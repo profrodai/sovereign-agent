@@ -198,6 +198,32 @@ def _approval_dirs(session: Session) -> dict[str, Path]:
     }
 
 
+def build_auto_decision(
+    request: ApprovalRequest, engage_mode: str
+) -> ApprovalResponse | None:
+    """Build an auto-decision for `request` per `engage_mode`, or None.
+
+    v0.3 Module 2. The two non-interactive engage modes ('autonomous'
+    and 'silent') grant their own approvals so the executor doesn't
+    have to block on a human. The synthetic approver id is
+    'auto:engage_mode_<mode>' so audit greps can find every
+    request the bot decided for itself.
+
+    Returns None for 'interactive': a human must call record_decision.
+    This function is pure — it does no I/O; callers are responsible
+    for handing the returned response to record_decision().
+    """
+    if engage_mode in ("autonomous", "silent"):
+        return ApprovalResponse(
+            request_id=request.request_id,
+            decision="granted",
+            approver=f"auto:engage_mode_{engage_mode}",
+            decided_at=now_utc().isoformat(),
+            reason=f"auto-granted by engage_mode={engage_mode!r}",
+        )
+    return None
+
+
 # ---------------------------------------------------------------------------
 # Write side — used by the executor
 # ---------------------------------------------------------------------------

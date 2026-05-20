@@ -28,6 +28,7 @@ from sovereign_agent.executor import DefaultExecutor
 from sovereign_agent.halves.loop import LoopHalf
 from sovereign_agent.ipc.watcher import IpcWatcher
 from sovereign_agent.orchestrator.credentials import CredentialGateway
+from sovereign_agent.orchestrator.auto_approver import AutoApprover
 from sovereign_agent.planner import DefaultPlanner
 from sovereign_agent.scheduler.drift_corrected import DriftCorrectedScheduler
 from sovereign_agent.session.directory import (
@@ -87,6 +88,14 @@ class Orchestrator:
             poll_interval_s=config.poll_interval_s,
         )
         self.scheduler = DriftCorrectedScheduler(poll_interval_s=config.poll_interval_s)
+        # v0.3 Module 2: engage-mode-aware auto-approver. A no-op in
+        # 'interactive' mode; auto-grants every approval in 'autonomous'
+        # and 'silent' modes (silent suppresses channel delivery instead).
+        self.auto_approver = AutoApprover(
+            sessions_dir=config.sessions_dir,
+            engage_mode=config.engage_mode,
+            poll_interval_s=config.poll_interval_s,
+        )
         self._running = False
         self._subtasks: list[asyncio.Task] = []
         # Session-scoped caches so repeated dispatches don't rebuild tools.
@@ -121,6 +130,8 @@ class Orchestrator:
         # Spawn subsystems.
         self._subtasks.append(asyncio.create_task(self.watcher.run()))
         self._subtasks.append(asyncio.create_task(self.scheduler.run()))
+        # v0.3 Module 2: the auto-approver runs alongside other subsystems.
+        self._subtasks.append(asyncio.create_task(self.auto_approver.run()))
         try:
             while self._running:
                 await asyncio.sleep(0.25)
@@ -133,6 +144,8 @@ class Orchestrator:
         self._running = False
         await self.watcher.shutdown()
         await self.scheduler.shutdown()
+        # v0.3 Module 2: stop the auto-approver before cancelling subtasks.
+        await self.auto_approver.shutdown()
         for t in self._subtasks:
             t.cancel()
         for t in self._subtasks:
@@ -189,6 +202,28 @@ class Orchestrator:
         target = self.router.reply_target_for(session.session_id)
         if target is None:
             return
+        # v0.3 Module 2: engage_mode-aware delivery.
+        #   silent      — never deliver (shadow mode)
+        #   autonomous  — always deliver
+        #   interactive — deliver only if the originating inbox event
+        #                 was a mention. CLI always sets is_mention=True
+        #                 so this is a no-op for CLI; group-chat adapters
+        #                 get silent-until-@-mentioned for free.
+        if self.config.engage_mode == "silent":
+            log.info(
+                "engage_mode=silent: suppressing channel reply for %s",
+                session.session_id,
+            )
+            return
+        if self.config.engage_mode == "interactive":
+            events = list(session.iter_inbox_events())
+            if events and not events[-1].get("is_mention", True):
+                log.info(
+                    "engage_mode=interactive: last inbox event not a "
+                    "mention; suppressing reply for %s",
+                    session.session_id,
+                )
+                return
         channel_type, platform_id, thread_id = target
         adapter = self.channels.for_channel_type(channel_type)
         if adapter is None:

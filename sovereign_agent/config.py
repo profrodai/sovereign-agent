@@ -40,6 +40,11 @@ class Config:
 
     # Execution mode
     bare_mode: bool = False
+    # v0.3 Module 2: how the agent engages with the world.
+    #   interactive  — human approves; reply only to is_mention=True
+    #   autonomous   — bot auto-approves its own tool gates; reply to all
+    #   silent       — bot auto-approves; reply to nothing (shadow mode)
+    engage_mode: Literal["interactive", "autonomous", "silent"] = "interactive"
 
     # Observability
     observability_backend: Literal["jsonl", "evidently", "otel"] = "jsonl"
