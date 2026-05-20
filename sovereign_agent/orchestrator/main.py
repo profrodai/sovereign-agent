@@ -146,9 +146,7 @@ class Orchestrator:
             try:
                 await adapter.teardown()
             except Exception:  # noqa: BLE001
-                log.exception(
-                    "error tearing down channel adapter %s", adapter.name
-                )
+                log.exception("error tearing down channel adapter %s", adapter.name)
         await self.queue.shutdown(grace_period_s=5.0)
 
     def _install_signal_handlers(self) -> None:
@@ -199,9 +197,7 @@ class Orchestrator:
 
         text = (result.output or {}).get("final_answer") or result.summary
         try:
-            await adapter.deliver(
-                platform_id, thread_id, OutboundMessage.text(text)
-            )
+            await adapter.deliver(platform_id, thread_id, OutboundMessage.text(text))
         except Exception:  # noqa: BLE001
             log.exception(
                 "failed to deliver channel response for %s",

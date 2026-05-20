@@ -181,9 +181,7 @@ async def _run_planner_via_ticket(
     try:
         tools_summary = context.get("tools_summary") or ""
         recent_messages = context.get("recent_messages") or []
-        user_prompt = _build_planner_user_prompt(
-            task, tools_summary, recent_messages
-        )
+        user_prompt = _build_planner_user_prompt(task, tools_summary, recent_messages)
         messages = [
             ChatMessage(role="system", content=planner.system_prompt),
             ChatMessage(role="user", content=user_prompt),
@@ -246,8 +244,7 @@ def _build_planner_user_prompt(
     # in recent_messages; render the last few so the planner has context.
     if recent_messages:
         rendered = "\n".join(
-            f"- {m.get('sender_id') or 'user'}: {m.get('text', '')}"
-            for m in recent_messages[-10:]
+            f"- {m.get('sender_id') or 'user'}: {m.get('text', '')}" for m in recent_messages[-10:]
         )
         lines.append("RECENT MESSAGES:\n" + rendered)
     if tools_summary:

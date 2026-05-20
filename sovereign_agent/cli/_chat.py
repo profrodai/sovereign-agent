@@ -71,9 +71,7 @@ async def _stdin_loop(writer: asyncio.StreamWriter) -> None:
 async def _chat_against(reader: asyncio.StreamReader, writer: asyncio.StreamWriter) -> None:
     reader_task = asyncio.create_task(_reader_loop(reader))
     stdin_task = asyncio.create_task(_stdin_loop(writer))
-    _, pending = await asyncio.wait(
-        {reader_task, stdin_task}, return_when=asyncio.FIRST_COMPLETED
-    )
+    _, pending = await asyncio.wait({reader_task, stdin_task}, return_when=asyncio.FIRST_COMPLETED)
     for task in pending:
         task.cancel()
         with contextlib.suppress(asyncio.CancelledError):

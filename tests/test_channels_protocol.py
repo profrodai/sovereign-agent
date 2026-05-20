@@ -77,9 +77,7 @@ def test_inbound_event_roundtrips_through_dict():
 
 
 def test_inbound_event_from_dict_tolerates_missing_optionals():
-    restored = InboundEvent.from_dict(
-        {"channel_type": "tiny", "platform_id": "p1", "text": "hi"}
-    )
+    restored = InboundEvent.from_dict({"channel_type": "tiny", "platform_id": "p1", "text": "hi"})
     assert restored.thread_id is None
     assert restored.sender_id is None
     assert restored.is_mention is False
@@ -102,8 +100,6 @@ def test_setup_teardown_cycle():
 
 def test_deliver_returns_platform_id_or_none():
     adapter = TinyAdapter()
-    result = asyncio.run(
-        adapter.deliver("p1", None, OutboundMessage.text("hi"))
-    )
+    result = asyncio.run(adapter.deliver("p1", None, OutboundMessage.text("hi")))
     assert result == "tiny-msg-1"
     assert len(adapter.delivered) == 1

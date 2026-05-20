@@ -6,18 +6,39 @@ The SessionQueue is faked so the test does not need a running orchestrator
 loop or an LLM — it asserts that the *plumbing* is correct: a socket
 message becomes a session with an inbox and a binding file.
 
-The final test validates the orchestrator patch from this module: that
-`Orchestrator(config, adapters=[...])` constructs and registers channels.
+The final tests validate the orchestrator patch from this module: that
+`Orchestrator(config, adapters=[...])` constructs and registers channels,
+and that a bare `Orchestrator()` keeps v0.2 behaviour.
 """
 
 from __future__ import annotations
 
 import asyncio
 import json
+import os
+import shutil
+import tempfile
+from pathlib import Path
+
+import pytest
 
 from sovereign_agent.channels.cli import CliChannelAdapter
 from sovereign_agent.channels.router import InboundRouter
 from sovereign_agent.session.directory import list_sessions
+
+
+# See test_channels_cli.py for the rationale: macOS AF_UNIX paths are
+# capped at ~104 bytes and pytest's tmp_path lives under a long
+# /private/var/folders/... prefix, which exceeds the limit when you
+# append "cli.sock". Bind sockets under a short base instead.
+@pytest.fixture
+def sock_path() -> Path:
+    base = "/tmp" if os.path.isdir("/tmp") else tempfile.gettempdir()
+    d = tempfile.mkdtemp(prefix="sa_sock_", dir=base)
+    try:
+        yield Path(d) / "cli.sock"
+    finally:
+        shutil.rmtree(d, ignore_errors=True)
 
 
 class FakeQueue:
@@ -37,15 +58,14 @@ async def _wait_for_session(sessions_dir, *, attempts: int = 100, delay: float =
     return None
 
 
-def test_message_creates_session_with_inbox_and_binding(tmp_path):
+def test_message_creates_session_with_inbox_and_binding(tmp_path, sock_path):
     async def _run() -> None:
-        sock = tmp_path / "cli.sock"
         sessions_dir = tmp_path / "sessions"
         router = InboundRouter(FakeQueue(), sessions_dir=sessions_dir)
-        adapter = CliChannelAdapter(socket_path=sock)
+        adapter = CliChannelAdapter(socket_path=sock_path)
         await adapter.setup(router)
         try:
-            reader, writer = await asyncio.open_unix_connection(path=str(sock))
+            reader, writer = await asyncio.open_unix_connection(path=str(sock_path))
             writer.write((json.dumps({"text": "hello agent"}) + "\n").encode())
             await writer.drain()
 
@@ -72,18 +92,17 @@ def test_message_creates_session_with_inbox_and_binding(tmp_path):
     asyncio.run(_run())
 
 
-def test_admin_to_retargets_and_reply_to_redirects(tmp_path):
+def test_admin_to_retargets_and_reply_to_redirects(tmp_path, sock_path):
     """`to` binds the message as another channel; `reply_to` keeps the
     reply pointed back at the CLI client. This is the admin/test transport."""
 
     async def _run() -> None:
-        sock = tmp_path / "cli.sock"
         sessions_dir = tmp_path / "sessions"
         router = InboundRouter(FakeQueue(), sessions_dir=sessions_dir)
-        adapter = CliChannelAdapter(socket_path=sock)
+        adapter = CliChannelAdapter(socket_path=sock_path)
         await adapter.setup(router)
         try:
-            reader, writer = await asyncio.open_unix_connection(path=str(sock))
+            reader, writer = await asyncio.open_unix_connection(path=str(sock_path))
             payload = {
                 "text": "pretend I am on telegram",
                 "to": {"channel_type": "telegram", "platform_id": "tg-7"},
@@ -113,7 +132,11 @@ def test_admin_to_retargets_and_reply_to_redirects(tmp_path):
 
 def test_orchestrator_accepts_adapters(tmp_path):
     """Validates the orchestrator/main.py patch: the `adapters=` parameter,
-    the ChannelRegistry, and the InboundRouter are all wired in."""
+    the ChannelRegistry, and the InboundRouter are all wired in.
+
+    This test does NOT bind the socket (no setup() call), so it can keep
+    using tmp_path for the socket path without hitting the AF_UNIX limit.
+    """
     from sovereign_agent.config import Config
     from sovereign_agent.orchestrator import Orchestrator
 

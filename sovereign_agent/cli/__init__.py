@@ -224,9 +224,7 @@ def chat() -> None:
     run_chat(Config.from_env(), socket_path=default_socket_path())
 
 
-channels_app = typer.Typer(
-    name="channels", help="Inspect channel adapters."
-)
+channels_app = typer.Typer(name="channels", help="Inspect channel adapters.")
 app.add_typer(channels_app, name="channels")
 
 
