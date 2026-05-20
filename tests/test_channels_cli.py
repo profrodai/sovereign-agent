@@ -19,7 +19,7 @@ from pathlib import Path
 
 import pytest
 
-from sovereign_agent.channels.cli import CliChannelAdapter, SUPERSEDED_NOTICE
+from sovereign_agent.channels.cli import SUPERSEDED_NOTICE, CliChannelAdapter
 from sovereign_agent.channels.router import InboundRouter
 from sovereign_agent.session.directory import list_sessions
 

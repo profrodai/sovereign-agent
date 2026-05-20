@@ -16,7 +16,7 @@ faked so the tests assert on enqueue calls without a live orchestrator.
 from __future__ import annotations
 
 import asyncio
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 
 from sovereign_agent.channels.adapter import InboundEvent
 from sovereign_agent.channels.router import InboundRouter
@@ -40,7 +40,7 @@ def _event(text: str, *, ts: datetime | None = None, platform: str = "cli-main")
         thread_id=None,
         sender_id="cli:local",
         text=text,
-        timestamp=ts or datetime(2026, 5, 1, 12, 0, 0, tzinfo=timezone.utc),
+        timestamp=ts or datetime(2026, 5, 1, 12, 0, 0, tzinfo=UTC),
     )
 
 
@@ -62,12 +62,8 @@ def test_route_reuses_session_for_same_binding(tmp_path):
     queue = FakeQueue()
     router = InboundRouter(queue, sessions_dir=tmp_path)
 
-    sid1 = asyncio.run(
-        router.route(_event("one", ts=datetime(2026, 5, 1, 12, 0, 0, tzinfo=timezone.utc)))
-    )
-    sid2 = asyncio.run(
-        router.route(_event("two", ts=datetime(2026, 5, 1, 12, 0, 1, tzinfo=timezone.utc)))
-    )
+    sid1 = asyncio.run(router.route(_event("one", ts=datetime(2026, 5, 1, 12, 0, 0, tzinfo=UTC))))
+    sid2 = asyncio.run(router.route(_event("two", ts=datetime(2026, 5, 1, 12, 0, 1, tzinfo=UTC))))
 
     assert sid1 == sid2
     session = load_session(sid1, sessions_dir=tmp_path)
@@ -77,7 +73,7 @@ def test_route_reuses_session_for_same_binding(tmp_path):
 def test_route_is_idempotent_on_exact_duplicate(tmp_path):
     queue = FakeQueue()
     router = InboundRouter(queue, sessions_dir=tmp_path)
-    event = _event("retry me", ts=datetime(2026, 5, 1, 12, 0, 0, tzinfo=timezone.utc))
+    event = _event("retry me", ts=datetime(2026, 5, 1, 12, 0, 0, tzinfo=UTC))
 
     sid1 = asyncio.run(router.route(event))
     sid2 = asyncio.run(router.route(event))  # identical event, e.g. an adapter retry
@@ -93,14 +89,14 @@ def test_cold_start_router_recovers_binding_from_disk(tmp_path):
     # First router instance creates the session + binding.json.
     sid = asyncio.run(
         InboundRouter(FakeQueue(), sessions_dir=tmp_path).route(
-            _event("before restart", ts=datetime(2026, 5, 1, 12, 0, 0, tzinfo=timezone.utc))
+            _event("before restart", ts=datetime(2026, 5, 1, 12, 0, 0, tzinfo=UTC))
         )
     )
     # A fresh router instance — as if the orchestrator restarted — must
     # rediscover the binding by scanning sessions/*/inbox/binding.json.
     fresh = InboundRouter(FakeQueue(), sessions_dir=tmp_path)
     sid_after = asyncio.run(
-        fresh.route(_event("after restart", ts=datetime(2026, 5, 1, 13, 0, 0, tzinfo=timezone.utc)))
+        fresh.route(_event("after restart", ts=datetime(2026, 5, 1, 13, 0, 0, tzinfo=UTC)))
     )
     assert sid_after == sid
 
@@ -109,7 +105,7 @@ def test_terminal_session_gets_a_fresh_one(tmp_path):
     queue = FakeQueue()
     router = InboundRouter(queue, sessions_dir=tmp_path)
     sid1 = asyncio.run(
-        router.route(_event("old convo", ts=datetime(2026, 5, 1, 12, 0, 0, tzinfo=timezone.utc)))
+        router.route(_event("old convo", ts=datetime(2026, 5, 1, 12, 0, 0, tzinfo=UTC)))
     )
 
     # Drive the bound session to a terminal state.
@@ -119,7 +115,7 @@ def test_terminal_session_gets_a_fresh_one(tmp_path):
 
     # Forward-only: a new message must NOT revive it.
     sid2 = asyncio.run(
-        router.route(_event("new convo", ts=datetime(2026, 5, 1, 14, 0, 0, tzinfo=timezone.utc)))
+        router.route(_event("new convo", ts=datetime(2026, 5, 1, 14, 0, 0, tzinfo=UTC)))
     )
     assert sid2 != sid1
 

@@ -27,8 +27,8 @@ from sovereign_agent.errors import SovereignError, wrap_unexpected
 from sovereign_agent.executor import DefaultExecutor
 from sovereign_agent.halves.loop import LoopHalf
 from sovereign_agent.ipc.watcher import IpcWatcher
-from sovereign_agent.orchestrator.credentials import CredentialGateway
 from sovereign_agent.orchestrator.auto_approver import AutoApprover
+from sovereign_agent.orchestrator.credentials import CredentialGateway
 from sovereign_agent.planner import DefaultPlanner
 from sovereign_agent.scheduler.drift_corrected import DriftCorrectedScheduler
 from sovereign_agent.session.directory import (
@@ -47,8 +47,8 @@ if TYPE_CHECKING:
     # runtime to avoid a circular import (orchestrator.worker imports
     # from this module). TYPE_CHECKING makes the annotation legible to
     # static checkers without adding a runtime dep.
-    from sovereign_agent.orchestrator.worker import WorkerOutcome
     from sovereign_agent.channels.adapter import ChannelAdapter
+    from sovereign_agent.orchestrator.worker import WorkerOutcome
 
 log = logging.getLogger(__name__)
 
@@ -73,7 +73,7 @@ class Orchestrator:
         *,
         llm_client: LLMClient | None = None,
         extra_tools: ToolRegistry | None = None,
-        adapters: "list[ChannelAdapter] | None" = None,
+        adapters: list[ChannelAdapter] | None = None,
     ) -> None:
         self.config = config
         self.credentials = CredentialGateway()
@@ -178,7 +178,7 @@ class Orchestrator:
     # ------------------------------------------------------------------
     # v0.3 Module 1: channel adapter management + reply delivery
     # ------------------------------------------------------------------
-    async def add_adapter(self, adapter: "ChannelAdapter") -> None:
+    async def add_adapter(self, adapter: ChannelAdapter) -> None:
         """Register and (if already running) start a channel adapter."""
         self.channels.register(adapter)
         if self._running:

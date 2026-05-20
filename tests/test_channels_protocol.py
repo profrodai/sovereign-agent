@@ -11,7 +11,7 @@ All tests are plain sync functions; async work is driven with
 from __future__ import annotations
 
 import asyncio
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 
 from sovereign_agent.channels.adapter import (
     ChannelAdapter,
@@ -65,7 +65,7 @@ def test_inbound_event_roundtrips_through_dict():
         thread_id=None,
         sender_id="tiny:bob",
         text="hello there",
-        timestamp=datetime(2026, 5, 1, 9, 30, tzinfo=timezone.utc),
+        timestamp=datetime(2026, 5, 1, 9, 30, tzinfo=UTC),
         is_mention=True,
     )
     restored = InboundEvent.from_dict(event.to_dict())

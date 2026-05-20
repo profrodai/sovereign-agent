@@ -22,7 +22,7 @@ from __future__ import annotations
 
 import asyncio
 import json
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from pathlib import Path
 
 from sovereign_agent.channels.adapter import InboundEvent, OutboundMessage
@@ -35,7 +35,6 @@ from sovereign_agent.ipc.approval import (
 )
 from sovereign_agent.session.directory import create_session, load_session
 from sovereign_agent.session.state import now_utc
-
 
 # ---------------------------------------------------------------------------
 # Fixtures and fakes
@@ -296,7 +295,7 @@ def _seed_session_with_event(*, sessions_dir: Path, router, is_mention: bool):
         thread_id=None,
         sender_id="cli:local",
         text="hello",
-        timestamp=datetime.now(timezone.utc),
+        timestamp=datetime.now(UTC),
         is_mention=is_mention,
     )
 

@@ -9,6 +9,14 @@ quickstart.
 
 from __future__ import annotations
 
+# Channels (v0.3 Module 1)
+from sovereign_agent.channels import ChannelAdapter as ChannelAdapter
+from sovereign_agent.channels import ChannelRegistry as ChannelRegistry
+from sovereign_agent.channels import CliChannelAdapter as CliChannelAdapter
+from sovereign_agent.channels import InboundEvent as InboundEvent
+from sovereign_agent.channels import InboundRouter as InboundRouter
+from sovereign_agent.channels import OutboundMessage as OutboundMessage
+
 # Config
 from sovereign_agent.config import Config
 
@@ -61,16 +69,6 @@ from sovereign_agent.observability import (
 
 # Orchestrator
 from sovereign_agent.orchestrator import Orchestrator, TaskResult, run_task
-
-# Channels (v0.3 Module 1)
-from sovereign_agent.channels import (
-    ChannelAdapter,
-    ChannelRegistry,
-    CliChannelAdapter,
-    InboundEvent,
-    InboundRouter,
-    OutboundMessage,
-)
 
 # Planner / Executor
 from sovereign_agent.planner import DefaultPlanner, Planner, Subgoal
