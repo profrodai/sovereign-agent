@@ -51,6 +51,14 @@ class LoopHalf:
         task = input_payload.get("task") or ""
         context = input_payload.get("context") or {}
 
+        # v0.3 Module 1: surface recent inbound channel messages to the
+        # planner. A channel-routed session keeps its conversation in
+        # inbox/messages.jsonl; without this the planner only ever sees
+        # the static SESSION.md task and cannot hold a conversation.
+        inbox_events = session.iter_inbox_events()
+        if inbox_events and "recent_messages" not in context:
+            context = {**context, "recent_messages": inbox_events}
+
         # Planner.
         session.append_trace_event(
             {

@@ -47,6 +47,7 @@ if TYPE_CHECKING:
     # from this module). TYPE_CHECKING makes the annotation legible to
     # static checkers without adding a runtime dep.
     from sovereign_agent.orchestrator.worker import WorkerOutcome
+    from sovereign_agent.channels.adapter import ChannelAdapter
 
 log = logging.getLogger(__name__)
 
@@ -71,6 +72,7 @@ class Orchestrator:
         *,
         llm_client: LLMClient | None = None,
         extra_tools: ToolRegistry | None = None,
+        adapters: "list[ChannelAdapter] | None" = None,
     ) -> None:
         self.config = config
         self.credentials = CredentialGateway()
@@ -90,6 +92,18 @@ class Orchestrator:
         # Session-scoped caches so repeated dispatches don't rebuild tools.
         self._per_session_tools: dict[str, ToolRegistry] = {}
 
+        # v0.3 Module 1: channels. adapters=None means NO channels — a
+        # bare Orchestrator, run_task(), and every v0.2 test path behave
+        # exactly as before. `serve` / `chat` pass an explicit adapter
+        # list. Imported lazily to keep the channels package optional.
+        from sovereign_agent.channels.registry import ChannelRegistry
+        from sovereign_agent.channels.router import InboundRouter
+
+        self.channels = ChannelRegistry()
+        self.router = InboundRouter(self.queue, sessions_dir=config.sessions_dir)
+        for adapter in adapters or []:
+            self.channels.register(adapter)
+
     # ------------------------------------------------------------------
     # Lifecycle
     # ------------------------------------------------------------------
@@ -99,6 +113,10 @@ class Orchestrator:
         self._install_signal_handlers()
         # Resume unfinished sessions from disk.
         await self._resume_on_startup()
+
+        # v0.3 Module 1: start channel adapters (open sockets, connect bots).
+        for adapter in self.channels.list():
+            await adapter.setup(self.router)
 
         # Spawn subsystems.
         self._subtasks.append(asyncio.create_task(self.watcher.run()))
@@ -123,6 +141,14 @@ class Orchestrator:
             except (asyncio.CancelledError, Exception):  # noqa: BLE001
                 pass
         self._subtasks.clear()
+        # v0.3 Module 1: stop channel adapters cleanly.
+        for adapter in self.channels.list():
+            try:
+                await adapter.teardown()
+            except Exception:  # noqa: BLE001
+                log.exception(
+                    "error tearing down channel adapter %s", adapter.name
+                )
         await self.queue.shutdown(grace_period_s=5.0)
 
     def _install_signal_handlers(self) -> None:
@@ -137,6 +163,50 @@ class Orchestrator:
     async def _on_signal(self, sig: signal.Signals) -> None:
         log.info("received %s; initiating graceful shutdown", sig.name)
         await self.shutdown()
+
+    # ------------------------------------------------------------------
+    # v0.3 Module 1: channel adapter management + reply delivery
+    # ------------------------------------------------------------------
+    async def add_adapter(self, adapter: "ChannelAdapter") -> None:
+        """Register and (if already running) start a channel adapter."""
+        self.channels.register(adapter)
+        if self._running:
+            await adapter.setup(self.router)
+
+    async def remove_adapter(self, name: str) -> None:
+        """Stop and unregister a channel adapter without a restart."""
+        if name not in self.channels:
+            return
+        adapter = self.channels.get(name)
+        await adapter.teardown()
+        self.channels.unregister(name)
+
+    async def _deliver_channel_response(self, session: Session, result) -> None:
+        """If `session` arrived via a channel, send the agent reply back.
+
+        No-op for non-channel sessions (run_task, scripted demos), so
+        v0.2 behaviour is untouched. The text is the loop half's final
+        answer, falling back to its summary for non-complete outcomes.
+        """
+        target = self.router.reply_target_for(session.session_id)
+        if target is None:
+            return
+        channel_type, platform_id, thread_id = target
+        adapter = self.channels.for_channel_type(channel_type)
+        if adapter is None:
+            return
+        from sovereign_agent.channels.adapter import OutboundMessage
+
+        text = (result.output or {}).get("final_answer") or result.summary
+        try:
+            await adapter.deliver(
+                platform_id, thread_id, OutboundMessage.text(text)
+            )
+        except Exception:  # noqa: BLE001
+            log.exception(
+                "failed to deliver channel response for %s",
+                session.session_id,
+            )
 
     async def _resume_on_startup(self) -> None:
         sessions = list_sessions(sessions_dir=self.config.sessions_dir)
@@ -211,6 +281,10 @@ class Orchestrator:
         # Read the task from SESSION.md (simplest source) if present.
         task = _read_task_from_session_md(session)
         result = await loop_half.run(session, {"task": task})
+
+        # v0.3 Module 1: if this session arrived via a channel, send the
+        # agent's reply back out. No-op for run_task / scripted sessions.
+        await self._deliver_channel_response(session, result)
 
         if result.next_action == "complete":
             session.mark_complete(result.output)

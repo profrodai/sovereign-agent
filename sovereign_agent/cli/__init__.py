@@ -113,6 +113,19 @@ def doctor(
     for msg in cfg.validate():
         issues.append(msg)
 
+    # v0.3 Module 1: the CLI channel socket directory must be writable,
+    # or `sovereign-agent chat` / `serve` cannot open their socket.
+    try:
+        from sovereign_agent.channels.cli import default_socket_path
+
+        _sock = default_socket_path()
+        _sock.parent.mkdir(parents=True, exist_ok=True)
+        _probe = _sock.parent / ".doctor_probe"
+        _probe.write_text("ok", encoding="utf-8")
+        _probe.unlink()
+    except Exception as exc:  # noqa: BLE001
+        issues.append(f"CLI channel socket path not writable: {exc}")
+
     # Optional: make a real LLM call.
     if not skip_llm and os.environ.get(cfg.llm_api_key_env):
         try:
@@ -183,14 +196,54 @@ def run(
 # ---------------------------------------------------------------------------
 @app.command()
 def serve() -> None:
-    """Start a long-running orchestrator."""
+    """Start a long-running orchestrator with the CLI channel."""
+    # v0.3 Module 1: serve runs the CLI channel adapter so a separate
+    # `sovereign-agent chat` process can connect to it.
+    from sovereign_agent.channels.cli import CliChannelAdapter
+
     cfg = Config.from_env()
-    orch = Orchestrator(cfg)
+    orch = Orchestrator(cfg, adapters=[CliChannelAdapter()])
     typer.echo(f"starting orchestrator (sessions_dir={cfg.sessions_dir}). Ctrl+C to stop.")
     try:
         asyncio.run(orch.run())
     except KeyboardInterrupt:
         pass
+
+
+@app.command()
+def chat() -> None:
+    """Open an interactive REPL conversation with an agent.
+
+    Connects to a CLI channel socket if one is already served (e.g. by
+    `sovereign-agent serve`); otherwise starts an embedded orchestrator
+    with a CLI channel adapter so `chat` works standalone.
+    """
+    from sovereign_agent.channels.cli import default_socket_path
+    from sovereign_agent.cli._chat import run_chat
+
+    run_chat(Config.from_env(), socket_path=default_socket_path())
+
+
+channels_app = typer.Typer(
+    name="channels", help="Inspect channel adapters."
+)
+app.add_typer(channels_app, name="channels")
+
+
+@channels_app.command("list")
+def channels_list() -> None:
+    """List the channel adapters this build ships."""
+    from sovereign_agent.channels.cli import (
+        CliChannelAdapter,
+        default_socket_path,
+    )
+
+    cli_adapter = CliChannelAdapter()
+    typer.echo(
+        f"{cli_adapter.name:10s} channel_type={cli_adapter.channel_type} "
+        f"threads={cli_adapter.supports_threads}"
+    )
+    typer.echo(f"  default socket: {default_socket_path()}")
 
 
 # ---------------------------------------------------------------------------

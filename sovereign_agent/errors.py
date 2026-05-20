@@ -173,6 +173,7 @@ CANONICAL_CODES: dict[ErrorCategory, frozenset[str]] = {
             "SA_IO_SESSION_ESCAPE",
             "SA_IO_ATOMIC_WRITE_FAILED",
             "SA_IO_MALFORMED_HANDOFF_STATE",
+            "SA_IO_CHANNEL_SOCKET_BUSY",
         }
     ),
     ErrorCategory.EXT: frozenset(

@@ -252,6 +252,41 @@ class Session:
         """Append one event to logs/trace.jsonl. O_APPEND, atomic per-write."""
         atomic_append_jsonl(self.trace_path, event)
 
+    @property
+    def inbox_path(self) -> Path:
+        """JSONL file of inbound channel messages for this session.
+
+        Written by the InboundRouter when a channel event arrives; read
+        by the loop half so the planner sees recent messages as context.
+        Same atomic-append discipline as the trace. (v0.3 Module 1.)
+        """
+        return self.directory / "inbox" / "messages.jsonl"
+
+    def append_inbox_event(self, event: dict) -> None:
+        """Append one inbound channel message to inbox/messages.jsonl."""
+        atomic_append_jsonl(self.inbox_path, event)
+
+    def iter_inbox_events(self) -> list[dict]:
+        """Every inbound message recorded for this session, in order.
+
+        Tolerates a truncated final line from a crash mid-write — the
+        same survivability the trace reader has.
+        """
+        path = self.inbox_path
+        if not path.exists():
+            return []
+        events: list[dict] = []
+        with open(path, encoding="utf-8") as handle:
+            for line in handle:
+                line = line.strip()
+                if not line:
+                    continue
+                try:
+                    events.append(json.loads(line))
+                except json.JSONDecodeError:
+                    continue
+        return events
+
     # ------------------------------------------------------------------
     # Lifecycle shortcuts
     # ------------------------------------------------------------------
@@ -285,6 +320,7 @@ def _make_subdirs(directory: Path) -> None:
         "memory/semantic",
         "memory/episodic",
         "memory/procedural",
+        "inbox",
         "ipc",
         "ipc/input",
         "ipc/output",

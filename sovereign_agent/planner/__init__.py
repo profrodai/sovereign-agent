@@ -180,7 +180,10 @@ async def _run_planner_via_ticket(
     started = now_utc()
     try:
         tools_summary = context.get("tools_summary") or ""
-        user_prompt = _build_planner_user_prompt(task, tools_summary)
+        recent_messages = context.get("recent_messages") or []
+        user_prompt = _build_planner_user_prompt(
+            task, tools_summary, recent_messages
+        )
         messages = [
             ChatMessage(role="system", content=planner.system_prompt),
             ChatMessage(role="user", content=user_prompt),
@@ -233,8 +236,20 @@ async def _run_planner_via_ticket(
         raise wrapped from exc
 
 
-def _build_planner_user_prompt(task: str, tools_summary: str) -> str:
+def _build_planner_user_prompt(
+    task: str,
+    tools_summary: str,
+    recent_messages: list[dict] | None = None,
+) -> str:
     lines = [f"TASK:\n{task}\n"]
+    # v0.3 Module 1: a channel-routed session carries its conversation
+    # in recent_messages; render the last few so the planner has context.
+    if recent_messages:
+        rendered = "\n".join(
+            f"- {m.get('sender_id') or 'user'}: {m.get('text', '')}"
+            for m in recent_messages[-10:]
+        )
+        lines.append("RECENT MESSAGES:\n" + rendered)
     if tools_summary:
         lines.append("AVAILABLE TOOLS:\n" + tools_summary)
     lines.append("Respond with ONLY the JSON array of subgoals.")

@@ -62,6 +62,16 @@ from sovereign_agent.observability import (
 # Orchestrator
 from sovereign_agent.orchestrator import Orchestrator, TaskResult, run_task
 
+# Channels (v0.3 Module 1)
+from sovereign_agent.channels import (
+    ChannelAdapter,
+    ChannelRegistry,
+    CliChannelAdapter,
+    InboundEvent,
+    InboundRouter,
+    OutboundMessage,
+)
+
 # Planner / Executor
 from sovereign_agent.planner import DefaultPlanner, Planner, Subgoal
 
