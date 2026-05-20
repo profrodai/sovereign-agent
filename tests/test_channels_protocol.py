@@ -27,6 +27,7 @@ class TinyAdapter:
     ChannelAdapter Protocol is the entire contract.
     """
 
+    kind = "channel"
     name = "tiny"
     channel_type = "tiny"
     supports_threads = False

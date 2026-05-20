@@ -10,6 +10,7 @@ quickstart.
 from __future__ import annotations
 
 # Channels (v0.3 Module 1)
+from sovereign_agent.channels import CHANNEL_REGISTRY as CHANNEL_REGISTRY
 from sovereign_agent.channels import ChannelAdapter as ChannelAdapter
 from sovereign_agent.channels import ChannelRegistry as ChannelRegistry
 from sovereign_agent.channels import CliChannelAdapter as CliChannelAdapter
@@ -72,6 +73,10 @@ from sovereign_agent.orchestrator import Orchestrator, TaskResult, run_task
 
 # Planner / Executor
 from sovereign_agent.planner import DefaultPlanner, Planner, Subgoal
+
+# Plugin registries (v0.3 Module 3)
+from sovereign_agent.registries import Plugin as Plugin
+from sovereign_agent.registries import Registry as Registry
 
 # Scheduler (Decision 6)
 from sovereign_agent.scheduler import DriftCorrectedScheduler, ScheduledTask
@@ -193,5 +198,9 @@ __all__ = [
     "MemoryStore",
     "MemoryRetrieval",
     "MemoryConsolidation",
+    # plugin registries (v0.3 Module 3)
+    "Plugin",
+    "Registry",
+    "CHANNEL_REGISTRY",
     "__version__",
 ]

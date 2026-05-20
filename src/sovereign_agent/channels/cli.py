@@ -79,6 +79,10 @@ class CliChannelAdapter:
 
     # Declared adapter attributes — this is what makes isinstance() against
     # the ChannelAdapter Protocol succeed.
+    # v0.3 Module 3: Plugin contract. Concrete adapters declare
+    # their kind directly — Protocol class attributes do not
+    # propagate to non-subclass implementations.
+    kind = "channel"
     name = "cli"
     channel_type = "cli"
     supports_threads = False

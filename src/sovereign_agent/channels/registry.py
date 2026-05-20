@@ -1,53 +1,54 @@
 """ChannelRegistry: the set of adapters an orchestrator is running.
 
-v0.3 Module 1 ships this as a small, standalone class — a name-keyed dict
-with a register/get/list surface. v0.3 Module 3 introduces a generic
-`Registry[T]` and a process-level `CHANNEL_REGISTRY` singleton; at that
-point this class becomes a thin compatibility shim over the generic one.
+As of v0.3 Module 3, this is a thin compatibility shim over the generic
+`Registry[T]` defined in `sovereign_agent.registries`. The M1 docstring
+promised this dissolve; M3 delivers it.
 
-It is kept deliberately specific *now* so Chapter 6 can introduce "a
-registry" as a plain dict-wrapper for one concrete case, before Chapter 8
-generalises the pattern across four cases. The student sees the specific
-thing before the abstraction — which is the whole teaching philosophy of
-this library (an abstraction earns its place by dissolving a failure the
-student has already felt).
+Why a shim still exists:
+
+  - Backwards compatibility. The Orchestrator's `__init__` constructs
+    `ChannelRegistry()` directly. Removing the class would be a breaking
+    change for any v0.3.0 user.
+  - One channel-specific method. `for_channel_type()` narrows further
+    than the generic `for_kind("channel")` does, because every adapter
+    has kind="channel" but channel_type varies (cli, telegram, slack).
+    Different layers want different granularities — the orchestrator
+    iterates by kind; the router resolves by channel_type.
+
+For new code, prefer:
+
+  - The module-level singleton: `from sovereign_agent.channels import
+    CHANNEL_REGISTRY`. This is what the operator introspects.
+  - A scoped registry: `Registry[ChannelAdapter](kind_filter="channel")`,
+    for cases where you want isolation from the global.
+
+The teaching arc behind this shim: Chapter 6 introduced "a registry" as a
+plain dict-wrapper for one concrete case (channels). Chapter 8 generalises
+the pattern across four cases by naming the contract (Plugin) and turning
+the dict-wrapper into a generic (Registry[T]). The shim is what production
+code looks like during the transition — real refactors are incremental;
+the first instance of an abstraction earns its place by replacing the
+simplest case first.
 """
 
 from __future__ import annotations
 
 from sovereign_agent.channels.adapter import ChannelAdapter
-from sovereign_agent.errors import ValidationError
+from sovereign_agent.registries import Registry
 
 
-class ChannelRegistry:
-    """An ordered, name-keyed collection of channel adapters."""
+class ChannelRegistry(Registry[ChannelAdapter]):
+    """An ordered, name-keyed collection of channel adapters.
+
+    Backwards-compatible with the M1 signature: `ChannelRegistry()` takes
+    no arguments, enforces kind="channel" via the parent class's
+    kind_filter, and inherits register / get / list / __contains__ /
+    __len__ / __iter__ from `Registry[T]`. The only addition over the
+    generic is `for_channel_type()`.
+    """
 
     def __init__(self) -> None:
-        self._adapters: dict[str, ChannelAdapter] = {}
-
-    def register(self, adapter: ChannelAdapter) -> None:
-        """Add an adapter. Raises if an adapter with the same name exists."""
-        if adapter.name in self._adapters:
-            raise ValidationError(
-                code="SA_VAL_BAD_TYPE",
-                message=f"channel adapter {adapter.name!r} is already registered",
-                context={"registered": sorted(self._adapters)},
-            )
-        self._adapters[adapter.name] = adapter
-
-    def unregister(self, name: str) -> None:
-        """Remove an adapter by name. Silent if it isn't registered."""
-        self._adapters.pop(name, None)
-
-    def get(self, name: str) -> ChannelAdapter:
-        """Fetch an adapter by name. Raises if it isn't registered."""
-        if name not in self._adapters:
-            raise ValidationError(
-                code="SA_VAL_BAD_TYPE",
-                message=f"channel adapter {name!r} is not registered",
-                context={"registered": sorted(self._adapters)},
-            )
-        return self._adapters[name]
+        super().__init__(kind_filter="channel")
 
     def for_channel_type(self, channel_type: str) -> ChannelAdapter | None:
         """Return the first adapter that handles `channel_type`, or None.
@@ -55,20 +56,10 @@ class ChannelRegistry:
         The orchestrator uses this to find the adapter to deliver a
         response through, given only a session's channel binding.
         """
-        for adapter in self._adapters.values():
+        for adapter in self.list():
             if adapter.channel_type == channel_type:
                 return adapter
         return None
-
-    def list(self) -> list[ChannelAdapter]:
-        """All registered adapters, in registration order."""
-        return list(self._adapters.values())
-
-    def __contains__(self, name: str) -> bool:
-        return name in self._adapters
-
-    def __len__(self) -> int:
-        return len(self._adapters)
 
 
 __all__ = ["ChannelRegistry"]

@@ -62,6 +62,7 @@ def _fake_request(request_id: str = "appr_test_001") -> ApprovalRequest:
 class RecordingAdapter:
     """A ChannelAdapter test double that records every deliver() call."""
 
+    kind = "channel"
     name = "cli"
     channel_type = "cli"
     supports_threads = False

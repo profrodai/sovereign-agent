@@ -49,7 +49,7 @@ class Discoverable(Protocol):
 
 
 _VALID_KINDS: frozenset[str] = frozenset(
-    {"tool", "planner", "executor", "memory", "half", "observability"}
+    {"tool", "planner", "executor", "memory", "half", "observability", "channel"}
 )
 _REQUIRED_FIELDS: tuple[str, ...] = (
     "name",

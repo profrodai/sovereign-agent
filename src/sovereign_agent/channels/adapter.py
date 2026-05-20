@@ -37,7 +37,7 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 from datetime import datetime
-from typing import TYPE_CHECKING, Protocol, runtime_checkable
+from typing import TYPE_CHECKING, ClassVar, Protocol, runtime_checkable
 
 from sovereign_agent.session.state import _parse_dt, now_utc
 
@@ -119,6 +119,10 @@ class ChannelAdapter(Protocol):
     that conforms without a base class.
     """
 
+    # v0.3 Module 3: the Plugin contract. Every channel adapter
+    # has kind="channel"; concrete adapters inherit this without
+    # redeclaring it.
+    kind: ClassVar[str] = "channel"
     name: str
     channel_type: str
     supports_threads: bool

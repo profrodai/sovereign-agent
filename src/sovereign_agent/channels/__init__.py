@@ -22,6 +22,13 @@ from sovereign_agent.channels.adapter import (
 from sovereign_agent.channels.cli import CliChannelAdapter, default_socket_path
 from sovereign_agent.channels.registry import ChannelRegistry
 from sovereign_agent.channels.router import InboundRouter
+from sovereign_agent.registries import Registry
+
+# v0.3 Module 3: the process-level singleton operators introspect via
+#   python -c 'from sovereign_agent.channels import CHANNEL_REGISTRY; \
+#              print(CHANNEL_REGISTRY.names())'
+# kind_filter='channel' rejects non-channel plugins at registration time.
+CHANNEL_REGISTRY: "Registry[ChannelAdapter]" = Registry(kind_filter="channel")
 
 __all__ = [
     "ChannelAdapter",
@@ -31,4 +38,5 @@ __all__ = [
     "InboundRouter",
     "CliChannelAdapter",
     "default_socket_path",
+    "CHANNEL_REGISTRY",
 ]
