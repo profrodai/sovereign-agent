@@ -288,9 +288,7 @@ def test_auto_approver_ignores_non_session_directories(tmp_path):
 # a deliver() call.
 
 
-def _seed_session_with_event(
-    *, sessions_dir: Path, router, is_mention: bool
-):
+def _seed_session_with_event(*, sessions_dir: Path, router, is_mention: bool):
     """Push one InboundEvent through the real router. Returns the session."""
     event = InboundEvent(
         channel_type="cli",

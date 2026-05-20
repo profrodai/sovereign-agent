@@ -198,9 +198,7 @@ def _approval_dirs(session: Session) -> dict[str, Path]:
     }
 
 
-def build_auto_decision(
-    request: ApprovalRequest, engage_mode: str
-) -> ApprovalResponse | None:
+def build_auto_decision(request: ApprovalRequest, engage_mode: str) -> ApprovalResponse | None:
     """Build an auto-decision for `request` per `engage_mode`, or None.
 
     v0.3 Module 2. The two non-interactive engage modes ('autonomous'
