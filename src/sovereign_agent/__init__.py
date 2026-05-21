@@ -71,6 +71,26 @@ from sovereign_agent.observability import (
 # Orchestrator
 from sovereign_agent.orchestrator import Orchestrator, TaskResult, run_task
 
+# Worker backends (v0.3 Module 4a)
+from sovereign_agent.orchestrator.worker import (
+    BareWorker as BareWorker,
+)
+from sovereign_agent.orchestrator.worker import (
+    DockerWorker as DockerWorker,
+)
+from sovereign_agent.orchestrator.worker import (
+    SubprocessWorker as SubprocessWorker,
+)
+from sovereign_agent.orchestrator.worker import (
+    WorkerBackend as WorkerBackend,
+)
+from sovereign_agent.orchestrator.worker import (
+    WorkerOutcome as WorkerOutcome,
+)
+from sovereign_agent.orchestrator.worker_factory import (
+    make_worker_backend as make_worker_backend,
+)
+
 # Planner / Executor
 from sovereign_agent.planner import DefaultPlanner, Planner, Subgoal
 
@@ -202,5 +222,12 @@ __all__ = [
     "Plugin",
     "Registry",
     "CHANNEL_REGISTRY",
+    # worker backends (v0.3 Module 4a)
+    "WorkerBackend",
+    "BareWorker",
+    "SubprocessWorker",
+    "DockerWorker",
+    "WorkerOutcome",
+    "make_worker_backend",
     "__version__",
 ]

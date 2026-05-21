@@ -29,6 +29,8 @@ from sovereign_agent.halves.loop import LoopHalf
 from sovereign_agent.ipc.watcher import IpcWatcher
 from sovereign_agent.orchestrator.auto_approver import AutoApprover
 from sovereign_agent.orchestrator.credentials import CredentialGateway
+from sovereign_agent.orchestrator.worker import WorkerBackend, WorkerOutcome
+from sovereign_agent.orchestrator.worker_factory import make_worker_backend
 from sovereign_agent.planner import DefaultPlanner
 from sovereign_agent.scheduler.drift_corrected import DriftCorrectedScheduler
 from sovereign_agent.session.directory import (
@@ -112,6 +114,14 @@ class Orchestrator:
         self.router = InboundRouter(self.queue, sessions_dir=config.sessions_dir)
         for adapter in adapters or []:
             self.channels.register(adapter)
+
+        # v0.3 Module 4a: build the worker backend the queue's dispatch
+        # will route through. For worker_backend='subprocess' on a host
+        # without a usable isolation primitive, this raises
+        # SovereignError(code='SA_NO_SANDBOX_PRIMITIVE') — fail-loud so
+        # an operator who asked for sandboxing never silently runs
+        # unconfined.
+        self._worker_backend = make_worker_backend(config, advance_fn=self._bare_advance)
 
     # ------------------------------------------------------------------
     # Lifecycle
@@ -262,30 +272,25 @@ class Orchestrator:
     # Session dispatch (SessionQueue callback)
     # ------------------------------------------------------------------
     async def process_session(self, session_id: str) -> bool:
-        """Called by SessionQueue. Decides what to do next for this session."""
+        """Called by SessionQueue. Routes the session through the configured
+        worker backend (bare in-process, sandboxed subprocess, or future Docker).
+
+        # v0.3 Module 4a: process_session routes through worker backend
+
+        The actual step logic lives in advance_session_once (which the
+        backends converge on). This method's only job is selecting the
+        right backend for THIS session, running one step, and signalling
+        the queue whether to re-enqueue.
+        """
         try:
             session = load_session(session_id, sessions_dir=self.config.sessions_dir)
         except Exception:  # noqa: BLE001
             log.exception("failed to load session %s", session_id)
             return False
-        state = session.state.state
-        session.append_trace_event(
-            {
-                "event_type": "session.state_changed",
-                "actor": "orchestrator",
-                "timestamp": now_utc().isoformat(),
-                "payload": {"state": state},
-            }
-        )
+
+        backend = self._backend_for_session(session)
         try:
-            if state == "planning" or state == "executing":
-                return await self._dispatch_loop_half(session)
-            if state == "handed_off_to_structured":
-                return await self._dispatch_structured_half(session)
-            if state in ("completed", "failed", "escalated"):
-                return True
-            log.warning("unknown session state %s for %s; skipping", state, session_id)
-            return True
+            outcome = await backend.run_session(session_id, session.directory)
         except SovereignError as exc:
             log.warning("session %s failed with %s: %s", session_id, exc.code, exc.message)
             try:
@@ -301,6 +306,44 @@ class Orchestrator:
             except Exception:  # noqa: BLE001
                 pass
             return False
+        # outcome.terminal True means the session reached completed/failed/escalated.
+        # outcome.advanced True means state changed and the queue should re-enqueue.
+        return outcome.terminal or outcome.advanced
+
+    # v0.3 Module 4a: helpers backing the WorkerBackend-routed dispatch.
+
+    async def _bare_advance(self, session_id: str, session_dir: Path) -> WorkerOutcome:
+        """The advance_fn BareWorker calls. Delegates to advance_session_once
+        using THIS orchestrator's config / llm_client / extra_tools, not env
+        defaults — so caller-supplied dependencies propagate correctly into
+        the in-process step.
+        """
+        return await advance_session_once(
+            session_id=session_id,
+            session_dir=session_dir,
+            config=self.config,
+            llm_client=self._llm_client,
+            extra_tools=self._extra_tools,
+        )
+
+    def _backend_for_session(self, session: Session) -> WorkerBackend:
+        """Pick the WorkerBackend for THIS session.
+
+        If `session.worker_backend` (read from config_overrides) is set
+        and differs from `config.worker_backend`, build a one-off backend
+        via the factory. Otherwise reuse the orchestrator's shared backend.
+
+        Per-session overrides survive resumes — they live in session.json
+        on disk, not in memory. A sandboxed session resumed from disk
+        cannot accidentally come back under the bare backend.
+        """
+        override = session.worker_backend
+        if override is None or override == self.config.worker_backend:
+            return self._worker_backend
+        import dataclasses
+
+        override_config = dataclasses.replace(self.config, worker_backend=override)
+        return make_worker_backend(override_config, advance_fn=self._bare_advance)
 
     async def _dispatch_loop_half(self, session: Session) -> bool:
         llm = self._ensure_llm_client()

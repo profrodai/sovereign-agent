@@ -184,6 +184,18 @@ class Session:
     def session_md_path(self) -> Path:
         return self.directory / "SESSION.md"
 
+    @property
+    def worker_backend(self) -> str | None:
+        """v0.3 Module 4a: the worker backend selected for this session,
+        or None to inherit from Config.
+
+        Stored under config_overrides['worker_backend'] — the
+        forward-compatible vehicle for any per-session config knob.
+        Set at session creation via
+            create_session(..., config_overrides={'worker_backend': 'subprocess'})
+        """
+        return self.state.config_overrides.get("worker_backend")
+
     # ------------------------------------------------------------------
     # v0.2 Module 3: resumed-from parent helpers
     # ------------------------------------------------------------------

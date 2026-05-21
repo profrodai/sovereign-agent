@@ -46,6 +46,14 @@ class Config:
     #   silent       — bot auto-approves; reply to nothing (shadow mode)
     engage_mode: Literal["interactive", "autonomous", "silent"] = "interactive"
 
+    # v0.3 Module 4a: worker backend selection.
+    #   bare       — in-process, no isolation. v0.2 default.
+    #   subprocess — sandboxed via Landlock (Linux) or sandbox-exec (macOS).
+    #   docker     — v0.4 stub; reserved slot.
+    # Fails loud at orchestrator init if 'subprocess' is selected on a host
+    # without a usable isolation primitive.
+    worker_backend: Literal["bare", "subprocess", "docker"] = "bare"
+
     # Observability
     observability_backend: Literal["jsonl", "evidently", "otel"] = "jsonl"
 

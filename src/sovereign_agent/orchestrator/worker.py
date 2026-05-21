@@ -409,8 +409,53 @@ class SubprocessWorker:
         return None
 
 
+# ---------------------------------------------------------------------------
+# DockerWorker — v0.4 stub (v0.3 Module 4a)
+# ---------------------------------------------------------------------------
+
+
+class DockerWorker:
+    """v0.4 stub. Reserves the WorkerBackend slot; raises on use.
+
+    The DockerWorker design intentionally lives next to BareWorker and
+    SubprocessWorker so the operator-facing config knob ('bare' /
+    'subprocess' / 'docker') maps cleanly to three classes. v0.3 ships
+    the first two; v0.4 will fill in this body.
+
+    Operators selecting worker_backend='docker' in v0.3 still see a
+    valid Protocol implementation at construction time — they get a
+    clear NotImplementedError if they actually try to run a session,
+    not a confusing AttributeError or missing-class import error.
+    """
+
+    name = "docker"
+
+    def __init__(self, **kwargs) -> None:  # type: ignore[no-untyped-def]
+        log.warning(
+            "DockerWorker is a v0.4 stub. SubprocessWorker is the supported "
+            "isolated backend in v0.3. Set worker_backend='subprocess' for "
+            "kernel-level isolation."
+        )
+
+    async def run_session(
+        self,
+        session_id: str,
+        session_dir: Path,
+        *,
+        timeout_s: float | None = None,
+    ) -> WorkerOutcome:
+        raise NotImplementedError(
+            "DockerWorker is reserved for v0.4. Use worker_backend='subprocess' "
+            "for OS-level isolation in v0.3."
+        )
+
+    async def close(self) -> None:
+        return None
+
+
 __all__ = [
     "BareWorker",
+    "DockerWorker",
     "SubprocessWorker",
     "WorkerBackend",
     "WorkerOutcome",
