@@ -78,6 +78,42 @@ from typing import Protocol, runtime_checkable
 log = logging.getLogger(__name__)
 
 
+def _emit_worker_timeout(
+    *,
+    session_id: str,
+    session_dir: Path,
+    backend: str,
+    pid: int | None,
+    elapsed_s: float | None,
+) -> None:
+    """v0.3 Module 4b: append a liveness.worker_timeout trace event.
+
+    Best-effort. Failures are logged and swallowed — the caller's
+    WorkerOutcome already reflects the timeout, and we don't want a trace
+    write failure to mask the original signal.
+    """
+    try:
+        from sovereign_agent.session.directory import load_session
+        from sovereign_agent.session.state import now_utc
+
+        session = load_session(session_id, sessions_dir=session_dir.parent)
+        session.append_trace_event(
+            {
+                "event_type": "liveness.worker_timeout",
+                "actor": "worker",
+                "timestamp": now_utc().isoformat(),
+                "payload": {
+                    "session_id": session_id,
+                    "backend": backend,
+                    "pid": pid,
+                    "elapsed_s": elapsed_s,
+                },
+            }
+        )
+    except Exception:  # noqa: BLE001
+        log.exception("failed to emit liveness.worker_timeout for %s", session_id)
+
+
 @dataclass
 class WorkerOutcome:
     """Result of one worker step.
@@ -169,6 +205,16 @@ class BareWorker:
         try:
             return await asyncio.wait_for(coro, timeout=timeout_s)
         except TimeoutError:
+            # v0.3 Module 4b: surface worker timeouts as trace events for the
+            # operator/monitor. Best-effort — the outcome still reflects the
+            # timeout even if trace emission fails.
+            _emit_worker_timeout(
+                session_id=session_id,
+                session_dir=session_dir,
+                backend="bare",
+                pid=None,
+                elapsed_s=timeout_s,
+            )
             return WorkerOutcome(
                 session_id=session_id,
                 terminal=False,
@@ -347,6 +393,16 @@ class SubprocessWorker:
         except TimeoutError:
             proc.kill()
             await proc.wait()
+            # v0.3 Module 4b: surface worker timeouts as trace events for the
+            # operator/monitor. Best-effort — we have proc.pid here since the
+            # process was alive long enough to time out.
+            _emit_worker_timeout(
+                session_id=session_id,
+                session_dir=session_dir,
+                backend="subprocess",
+                pid=proc.pid,
+                elapsed_s=timeout_s,
+            )
             return WorkerOutcome(
                 session_id=session_id,
                 terminal=False,

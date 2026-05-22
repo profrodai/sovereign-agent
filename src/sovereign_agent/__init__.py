@@ -71,6 +71,11 @@ from sovereign_agent.observability import (
 # Orchestrator
 from sovereign_agent.orchestrator import Orchestrator, TaskResult, run_task
 
+# Liveness monitor (v0.3 Module 4b)
+from sovereign_agent.orchestrator.liveness import (
+    LivenessMonitor as LivenessMonitor,
+)
+
 # Worker backends (v0.3 Module 4a)
 from sovereign_agent.orchestrator.worker import (
     BareWorker as BareWorker,

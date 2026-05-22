@@ -54,6 +54,14 @@ class Config:
     # without a usable isolation primitive.
     worker_backend: Literal["bare", "subprocess", "docker"] = "bare"
 
+    # v0.3 Module 4b: liveness monitor — periodic stalled-session detection
+    # and a heartbeat file external observers can stat. 60s/600s match
+    # NanoClaw's host-sweep cadence and give a useful "session unresponsive"
+    # signal without flagging fresh sessions.
+    liveness_enabled: bool = True
+    liveness_stall_threshold_s: float = 600.0
+    liveness_poll_interval_s: float = 60.0
+
     # Observability
     observability_backend: Literal["jsonl", "evidently", "otel"] = "jsonl"
 

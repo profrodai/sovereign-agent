@@ -29,6 +29,7 @@ from sovereign_agent.halves.loop import LoopHalf
 from sovereign_agent.ipc.watcher import IpcWatcher
 from sovereign_agent.orchestrator.auto_approver import AutoApprover
 from sovereign_agent.orchestrator.credentials import CredentialGateway
+from sovereign_agent.orchestrator.liveness import LivenessMonitor
 from sovereign_agent.orchestrator.worker import WorkerBackend, WorkerOutcome
 from sovereign_agent.orchestrator.worker_factory import make_worker_backend
 from sovereign_agent.planner import DefaultPlanner
@@ -98,6 +99,16 @@ class Orchestrator:
             engage_mode=config.engage_mode,
             poll_interval_s=config.poll_interval_s,
         )
+        # v0.3 Module 4b: liveness monitor — peer of watcher/scheduler/auto_approver.
+        # Emits liveness.session_stalled trace events when a session goes silent
+        # past liveness_stall_threshold_s; maintains .orchestrator_heartbeat
+        # under sessions_dir for external observers.
+        self.liveness_monitor = LivenessMonitor(
+            sessions_dir=config.sessions_dir,
+            stall_threshold_s=config.liveness_stall_threshold_s,
+            poll_interval_s=config.liveness_poll_interval_s,
+            enabled=config.liveness_enabled,
+        )
         self._running = False
         self._subtasks: list[asyncio.Task] = []
         # Session-scoped caches so repeated dispatches don't rebuild tools.
@@ -142,6 +153,9 @@ class Orchestrator:
         self._subtasks.append(asyncio.create_task(self.scheduler.run()))
         # v0.3 Module 2: the auto-approver runs alongside other subsystems.
         self._subtasks.append(asyncio.create_task(self.auto_approver.run()))
+        # v0.3 Module 4b: the liveness monitor runs alongside other subsystems.
+        # No-op task if liveness_enabled=False (run() returns immediately).
+        self._subtasks.append(asyncio.create_task(self.liveness_monitor.run()))
         try:
             while self._running:
                 await asyncio.sleep(0.25)
@@ -156,6 +170,9 @@ class Orchestrator:
         await self.scheduler.shutdown()
         # v0.3 Module 2: stop the auto-approver before cancelling subtasks.
         await self.auto_approver.shutdown()
+        # v0.3 Module 4b: stop the liveness monitor before cancelling subtasks.
+        # Safe to call even if run() was a no-op (enabled=False).
+        await self.liveness_monitor.shutdown()
         for t in self._subtasks:
             t.cancel()
         for t in self._subtasks:
