@@ -48,3 +48,7 @@ site/
 *.swp
 *.swo
 *~
+sovereign-agent-v0.3-module*.tar.gz
+sovereign-agent-v0.3-module*/
+sovereign-agent-v0.3-lint-cleanup.tar.gz
+sovereign-agent-v0.3-lint-cleanup/

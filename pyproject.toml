@@ -72,13 +72,14 @@ requires = ["setuptools>=68", "wheel"]
 build-backend = "setuptools.build_meta"
 
 [tool.setuptools.packages.find]
-where = ["."]
+where = ["src"]              # was: where = ["."]
 include = ["sovereign_agent*"]
 exclude = ["tests*", "chapters*", "lessons*", "examples*"]
 
 # Tooling configuration ─────────────────────────────────────────────────
 [tool.pytest.ini_options]
 asyncio_mode = "auto"
+pythonpath = ["."]
 testpaths = ["tests", "chapters"]
 python_files = ["test_*.py", "tests.py"]
 markers = [

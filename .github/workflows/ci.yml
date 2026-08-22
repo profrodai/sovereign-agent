@@ -27,7 +27,7 @@ jobs:
           python -m pip install -e .[dev]
 
       - name: Ruff lint
-        run: ruff check sovereign_agent/ tests/
+        run: ruff check src/sovereign_agent/ tests/
 
       - name: Pytest
         run: pytest -v --tb=short
