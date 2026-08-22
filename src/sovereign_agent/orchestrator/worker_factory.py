@@ -59,6 +59,7 @@ from sovereign_agent.errors import SystemError, ValidationError
 from sovereign_agent.orchestrator.worker import (
     BareWorker,
     DockerWorker,
+    OSIsolatedWorker,
     SubprocessWorker,
     WorkerBackend,
     WorkerOutcome,
@@ -126,7 +127,10 @@ def make_worker_backend(
                 context={"platform": sys.platform, "policy": policy.name},
             )
         log.info("worker backend: subprocess with policy %r", policy.name)
-        return SubprocessWorker(isolation_policy=policy)
+        return OSIsolatedWorker(
+            SubprocessWorker(),
+            isolation_policy=policy,
+        )
 
     if name == "docker":
         return DockerWorker()

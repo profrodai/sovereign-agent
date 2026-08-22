@@ -493,6 +493,9 @@ typecheck: ## Enforce mypy on currently clean public runtime modules
 		$(PKG_DIR)/ipc \
 		$(PKG_DIR)/memory \
 		$(PKG_DIR)/observability \
+		$(PKG_DIR)/orchestrator/lifecycle.py \
+		$(PKG_DIR)/orchestrator/worker.py \
+		$(PKG_DIR)/orchestrator/worker_factory.py \
 		$(PKG_DIR)/planner \
 		$(PKG_DIR)/providers \
 		$(PKG_DIR)/runtime \

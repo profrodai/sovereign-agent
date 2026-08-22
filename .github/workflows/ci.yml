@@ -45,6 +45,9 @@ jobs:
             src/sovereign_agent/ipc \
             src/sovereign_agent/memory \
             src/sovereign_agent/observability \
+            src/sovereign_agent/orchestrator/lifecycle.py \
+            src/sovereign_agent/orchestrator/worker.py \
+            src/sovereign_agent/orchestrator/worker_factory.py \
             src/sovereign_agent/planner \
             src/sovereign_agent/providers \
             src/sovereign_agent/runtime \

@@ -84,6 +84,18 @@ from sovereign_agent.observability import (
 
 # Orchestrator
 from sovereign_agent.orchestrator import Orchestrator, TaskResult, run_task
+from sovereign_agent.orchestrator.lifecycle import (
+    CloseResult,
+    ExecResult,
+    ExecutionLifecycle,
+    InvocationSpec,
+    LifecycleResult,
+    LifecycleState,
+    LifecycleTimeouts,
+    RuntimeHandle,
+    TerminalReason,
+    WorkerRequest,
+)
 
 # Liveness monitor (v0.3 Module 4b)
 from sovereign_agent.orchestrator.liveness import (
@@ -96,6 +108,9 @@ from sovereign_agent.orchestrator.worker import (
 )
 from sovereign_agent.orchestrator.worker import (
     DockerWorker as DockerWorker,
+)
+from sovereign_agent.orchestrator.worker import (
+    OSIsolatedWorker as OSIsolatedWorker,
 )
 from sovereign_agent.orchestrator.worker import (
     SubprocessWorker as SubprocessWorker,
@@ -267,7 +282,18 @@ __all__ = [
     "BareWorker",
     "SubprocessWorker",
     "DockerWorker",
+    "OSIsolatedWorker",
     "WorkerOutcome",
     "make_worker_backend",
+    "WorkerRequest",
+    "RuntimeHandle",
+    "InvocationSpec",
+    "ExecResult",
+    "CloseResult",
+    "ExecutionLifecycle",
+    "LifecycleResult",
+    "LifecycleState",
+    "LifecycleTimeouts",
+    "TerminalReason",
     "__version__",
 ]

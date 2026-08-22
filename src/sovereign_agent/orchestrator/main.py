@@ -31,7 +31,11 @@ from sovereign_agent.ipc.watcher import IpcWatcher
 from sovereign_agent.orchestrator.auto_approver import AutoApprover
 from sovereign_agent.orchestrator.credentials import CredentialGateway
 from sovereign_agent.orchestrator.liveness import LivenessMonitor
-from sovereign_agent.orchestrator.worker import WorkerBackend, WorkerOutcome
+from sovereign_agent.orchestrator.worker import (
+    WorkerBackend,
+    WorkerOutcome,
+    run_session_compat,
+)
 from sovereign_agent.orchestrator.worker_factory import make_worker_backend
 from sovereign_agent.planner import DefaultPlanner
 from sovereign_agent.providers import InvocationRequest, NativeProvider
@@ -309,7 +313,7 @@ class Orchestrator:
 
         backend = self._backend_for_session(session)
         try:
-            outcome = await backend.run_session(session_id, session.directory)
+            outcome = await run_session_compat(backend, session_id, session.directory)
         except SovereignError as exc:
             log.warning("session %s failed with %s: %s", session_id, exc.code, exc.message)
             try:

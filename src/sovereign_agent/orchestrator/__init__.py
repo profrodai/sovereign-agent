@@ -1,6 +1,18 @@
 """Orchestrator: the long-running coordinator."""
 
 from sovereign_agent.orchestrator.credentials import CredentialGateway
+from sovereign_agent.orchestrator.lifecycle import (
+    CloseResult,
+    ExecResult,
+    ExecutionLifecycle,
+    InvocationSpec,
+    LifecycleResult,
+    LifecycleState,
+    LifecycleTimeouts,
+    RuntimeHandle,
+    TerminalReason,
+    WorkerRequest,
+)
 from sovereign_agent.orchestrator.main import Orchestrator, TaskResult, run_task
 from sovereign_agent.orchestrator.mounts import (
     ALLOWLIST_PATH,
@@ -10,6 +22,14 @@ from sovereign_agent.orchestrator.mounts import (
     MountValidationResult,
     load_allowlist,
     validate_mount,
+)
+from sovereign_agent.orchestrator.worker import (
+    BareWorker,
+    DockerWorker,
+    OSIsolatedWorker,
+    SubprocessWorker,
+    WorkerBackend,
+    WorkerOutcome,
 )
 
 __all__ = [
@@ -24,4 +44,20 @@ __all__ = [
     "MountValidationResult",
     "load_allowlist",
     "validate_mount",
+    "BareWorker",
+    "CloseResult",
+    "DockerWorker",
+    "ExecResult",
+    "ExecutionLifecycle",
+    "InvocationSpec",
+    "LifecycleResult",
+    "LifecycleState",
+    "LifecycleTimeouts",
+    "OSIsolatedWorker",
+    "RuntimeHandle",
+    "SubprocessWorker",
+    "TerminalReason",
+    "WorkerBackend",
+    "WorkerOutcome",
+    "WorkerRequest",
 ]
