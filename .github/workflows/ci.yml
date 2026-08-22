@@ -21,10 +21,10 @@ jobs:
           python-version: ${{ matrix.python-version }}
           cache: pip
 
-      - name: Install package + dev extras
+      - name: Install package + dev group
         run: |
           python -m pip install --upgrade pip
-          python -m pip install -e .[dev]
+          python -m pip install -e . --group dev
 
       - name: Ruff lint
         run: ruff check src/sovereign_agent/ tests/
@@ -105,10 +105,10 @@ jobs:
           python-version: "3.12"
           cache: pip
 
-      - name: Install package
+      - name: Install package + dev group
         run: |
           python -m pip install --upgrade pip
-          python -m pip install -e .
+          python -m pip install -e . --group dev
 
       - name: Kernel info (Landlock requires Linux >= 5.13)
         run: |
