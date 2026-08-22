@@ -55,6 +55,7 @@ PUBLIC_RUNTIME_PATHS = [
     "src/sovereign_agent/memory",
     "src/sovereign_agent/observability",
     "src/sovereign_agent/planner",
+    "src/sovereign_agent/providers",
     "src/sovereign_agent/runtime",
     "src/sovereign_agent/tickets",
     "src/sovereign_agent/voice",

@@ -23,9 +23,10 @@ from typing import TYPE_CHECKING
 
 from sovereign_agent._internal.llm_client import LLMClient, OpenAICompatibleClient
 from sovereign_agent.config import Config
+from sovereign_agent.contracts import ExecutionId, FrozenDict, InvocationId
+from sovereign_agent.contracts._core import thaw_json
 from sovereign_agent.errors import SovereignError, wrap_unexpected
 from sovereign_agent.executor import DefaultExecutor
-from sovereign_agent.halves.loop import LoopHalf
 from sovereign_agent.ipc.watcher import IpcWatcher
 from sovereign_agent.orchestrator.auto_approver import AutoApprover
 from sovereign_agent.orchestrator.credentials import CredentialGateway
@@ -33,6 +34,7 @@ from sovereign_agent.orchestrator.liveness import LivenessMonitor
 from sovereign_agent.orchestrator.worker import WorkerBackend, WorkerOutcome
 from sovereign_agent.orchestrator.worker_factory import make_worker_backend
 from sovereign_agent.planner import DefaultPlanner
+from sovereign_agent.providers import InvocationRequest, NativeProvider
 from sovereign_agent.scheduler.drift_corrected import DriftCorrectedScheduler
 from sovereign_agent.session.directory import (
     Session,
@@ -367,18 +369,28 @@ class Orchestrator:
         tools = self._tools_for(session)
         planner = DefaultPlanner(model=self.config.llm_planner_model, client=llm)
         executor = DefaultExecutor(model=self.config.llm_executor_model, client=llm, tools=tools)
-        loop_half = LoopHalf(planner=planner, executor=executor)
+        provider = NativeProvider(planner=planner, executor=executor)
 
         # Read the task from SESSION.md (simplest source) if present.
         task = _read_task_from_session_md(session)
-        result = await loop_half.run(session, {"task": task})
+        result = await provider.invoke(
+            InvocationRequest(
+                execution_id=ExecutionId(f"{session.session_id}:execution"),
+                invocation_id=InvocationId(f"{session.session_id}:invocation"),
+                task=task,
+                session=session,
+                context=FrozenDict(),
+            )
+        )
 
         # v0.3 Module 1: if this session arrived via a channel, send the
         # agent's reply back out. No-op for run_task / scripted sessions.
         await self._deliver_channel_response(session, result)
 
         if result.next_action == "complete":
-            session.mark_complete(result.output)
+            output = thaw_json(result.output)
+            assert isinstance(output, dict)
+            session.mark_complete(output)
             return True
         if result.next_action == "handoff_to_structured":
             session.update_state(state="handed_off_to_structured")

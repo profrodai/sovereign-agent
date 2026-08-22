@@ -5,7 +5,7 @@
 
 !!! warning "The tree is ahead of the last release"
     The only published release is **0.2.0**, whose semver surface was **67**
-    symbols. The working tree exports **76**. The 9 extra symbols are unreleased
+    symbols. The working tree exports **84**. The 17 extra symbols are unreleased
     v0.3 work and carry **no** stability promise until v0.3.0 is tagged. Both
     sets are listed below, separately, so you can tell which is which.
 
@@ -98,7 +98,7 @@ Category | Symbols
 
 ---
 
-## The 9 unreleased additions (in-tree, not covered)
+## The 17 unreleased additions (in-tree, not covered)
 
 These are in `sovereign_agent.__all__` on `main` but were not in the published
 0.2.0 surface. They may be renamed, resignatured, or removed before v0.3.0 is
@@ -109,6 +109,7 @@ Category | Symbols
 **Channels** (v0.3 M1) | `CHANNEL_REGISTRY`
 **Plugin registries** (v0.3 M3) | `Plugin`, `Registry`
 **Worker backends** (v0.3 M4a) | `WorkerBackend`, `WorkerOutcome`, `BareWorker`, `SubprocessWorker`, `DockerWorker`, `make_worker_backend`
+**Agent providers** (v0.3 Unit 2) | `AgentProvider`, `InvocationRequest`, `InvocationResult`, `NativeProvider`, `ProviderCapabilities`, `ProviderEvent`, `ProviderRegistry`, `PROVIDER_REGISTRY`
 
 `DockerWorker` is a stub. It satisfies the `WorkerBackend` protocol so that
 `Config.worker_backend='docker'` constructs without an import error, but

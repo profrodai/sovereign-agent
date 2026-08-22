@@ -494,6 +494,7 @@ typecheck: ## Enforce mypy on currently clean public runtime modules
 		$(PKG_DIR)/memory \
 		$(PKG_DIR)/observability \
 		$(PKG_DIR)/planner \
+		$(PKG_DIR)/providers \
 		$(PKG_DIR)/runtime \
 		$(PKG_DIR)/tickets \
 		$(PKG_DIR)/voice

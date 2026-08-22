@@ -4,8 +4,8 @@ Alpha. The declared version is 0.2.0 and that is the only release on PyPI,
 but this tree also carries unreleased v0.3 work (channels, plugin
 registries, worker-backend dispatch, liveness monitor).
 
-The 76 names in __all__ are the public API surface. Of those, 67 shipped in
-0.2.0 and are stable across 0.2.x; the 9 v0.3 additions carry no stability
+The names in __all__ are the public API surface. Of those, 67 shipped in
+0.2.0 and are stable across 0.2.x; the v0.3 additions carry no stability
 promise until 0.3.0 is tagged. Anything not in __all__ is internal and may
 change between any two releases -- including names that happen to be
 importable from this module, such as the channel adapter types and
@@ -113,6 +113,18 @@ from sovereign_agent.orchestrator.worker_factory import (
 # Planner / Executor
 from sovereign_agent.planner import DefaultPlanner, Planner, Subgoal
 
+# Providers (v0.3 Unit 2)
+from sovereign_agent.providers import (
+    PROVIDER_REGISTRY,
+    AgentProvider,
+    InvocationRequest,
+    InvocationResult,
+    NativeProvider,
+    ProviderCapabilities,
+    ProviderEvent,
+    ProviderRegistry,
+)
+
 # Plugin registries (v0.3 Module 3)
 from sovereign_agent.registries import Plugin as Plugin
 from sovereign_agent.registries import Registry as Registry
@@ -203,6 +215,15 @@ __all__ = [
     "Planner",
     "Subgoal",
     "DefaultPlanner",
+    # providers (v0.3 Unit 2)
+    "AgentProvider",
+    "InvocationRequest",
+    "InvocationResult",
+    "NativeProvider",
+    "ProviderCapabilities",
+    "ProviderEvent",
+    "ProviderRegistry",
+    "PROVIDER_REGISTRY",
     "Executor",
     "ExecutorResult",
     "DefaultExecutor",

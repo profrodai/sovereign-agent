@@ -347,17 +347,17 @@ Override via `SOVEREIGN_AGENT_DATA_DIR=<path>`.
 
 **v0.2.0 alpha, with unreleased v0.3 work on `main`.** PyPI has one release
 (`0.2.0`); `pyproject.toml` still declares `0.2.0`. The published 0.2.0 semver
-surface was 67 symbols. The working tree now exports **76** symbols in
-`sovereign_agent.__all__` — the 9 additions are unreleased v0.3 work and are not
+surface was 67 symbols. The working tree now exports **84** symbols in
+`sovereign_agent.__all__` — the 17 additions are unreleased v0.3 work and are not
 covered by the 0.2.x stability promise. See [`docs/API.md`](docs/API.md) for the
 full contract and the symbol-by-symbol breakdown.
 
 - ✅ Framework: sessions, tickets, IPC, parallelism, isolation, resume, verifiers, HITL
-- ✅ 370 tests collected — 369 pass, 1 skipped (library + chapters + integration)
+- ✅ 401 tests collected — 400 pass, 1 skipped (library + chapters + integration)
 - ✅ 8 reference scenarios, all with dataflow integrity checks
 - ✅ 5 tutorial chapters, drift-checked against production code in CI
 - 🚧 Voice pipeline, observability backends (Evidently/OTel) — skeletons, not implementations
-- 🚧 Channels, plugin registries, worker-backend dispatch, liveness monitor — in-tree, unreleased
+- 🚧 Channels, providers, plugin registries, worker-backend dispatch, liveness monitor — in-tree, unreleased
 - ❌ Docker worker backend — stub only; `DockerWorker.run_session()` raises `NotImplementedError`
 - ❌ Vector-DB memory backends — not started, and a [v0.3 non-goal](docs/v0.3-non-goals.md)
 
