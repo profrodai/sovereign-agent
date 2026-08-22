@@ -39,10 +39,12 @@ classifier = FakeSentimentClassifier()
 
 # Use one of:
 from sklearn.pipeline import Pipeline
-classifier = joblib.load("sentiment.joblib")   # sklearn path
+
+classifier = joblib.load("sentiment.joblib")  # sklearn path
 
 # or:
 from transformers import pipeline
+
 classifier = pipeline(
     "text-classification",
     model="distilbert-base-uncased-finetuned-sst-2-english",
@@ -59,7 +61,7 @@ does not change.
 ```python
 Rule(
     name="manager_confirmed",
-    condition=manager_affirmative,   # <-- ClassifierVerifier, not a lambda
+    condition=manager_affirmative,  # <-- ClassifierVerifier, not a lambda
     action=_commit_booking,
 )
 ```
