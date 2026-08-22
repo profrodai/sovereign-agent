@@ -17,7 +17,6 @@ import asyncio
 import json
 from pathlib import Path
 
-
 SCENARIOS: list[str] = [
     # Pick from: "research_assistant", "code_reviewer", "pub_booking"
     # or add new ones to examples/ and register here.
