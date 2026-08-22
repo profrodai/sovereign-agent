@@ -12,16 +12,22 @@
 >   Library and course are **separate repos**. The course *uses* the library; it
 >   does not rebuild it.
 >
-> sovereign-agent's chapters follow the **Raschka pattern**. Each chapter's
+> sovereign-agent's chapters follow the **Raschka pattern** for the v0.2
+> substrate. Each chapter's
 > `solution.py` re-exports from `sovereign_agent/` directly, and
 > `tools/verify_chapter_drift.py` enforces that they stay in sync. You're not
-> learning a toy copy — you're learning the framework itself.
+> learning a toy copy — you're learning the production primitives mapped by the
+> five chapters. v0.3's governed execution additions are deliberately taught in
+> unit documents instead; see [`docs/teaching-surface.md`](../docs/teaching-surface.md).
 >
 > The Week-5 homework that lives in a separate repo (`homework-*`) is the
 > Howard pattern: a scenario built *on top of* `pip install sovereign-agent`.
 > Different pedagogy, different tree.
 
-Five chapters that reconstruct the spine of sovereign-agent in sequence. Each chapter builds one architectural idea, ends with a runnable demo, and its solution file is byte-for-byte the same code as the corresponding module in `sovereign_agent/`. A CI check (`tools/verify_chapter_drift.py`) enforces this so the tutorial cannot drift from the framework.
+Five chapters reconstruct the original v0.2 spine in sequence. Each builds one
+architectural idea, ends with a runnable demo, and re-exports the corresponding
+production primitive. A CI check (`tools/verify_chapter_drift.py`) enforces the
+declared mappings; it does not claim that these chapters cover every v0.3 module.
 
 This is the minitorch trick applied to agent systems: the tutorial *is* the production code, just viewed from a different angle.
 

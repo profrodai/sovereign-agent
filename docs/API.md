@@ -1,13 +1,14 @@
 # API stability and semver contract
 
 **Applies from:** v0.2.0 onwards.
-**Contract version:** 1.
+**Contract version:** 2.
+**Current release surface:** v0.3.0, 152 symbols.
 
-!!! warning "The tree is ahead of the last release"
-    The only published release is **0.2.0**, whose semver surface was **67**
-    symbols. The working tree exports **152**. The 85 extra symbols are unreleased
-    v0.3 work and carry **no** stability promise until v0.3.0 is tagged. Both
-    sets are listed below, separately, so you can tell which is which.
+The exact, machine-checked contracts are
+[`public-api-v0.2.txt`](public-api-v0.2.txt) and
+[`public-api-v0.3.txt`](public-api-v0.3.txt). The release gate compares the
+v0.3 manifest with `sovereign_agent.__all__` and proves that every v0.2 symbol
+is retained.
 
 This document specifies which parts of sovereign-agent are covered by the
 [semver](https://semver.org/) contract, what "breaking change" means in this
@@ -98,11 +99,10 @@ Category | Symbols
 
 ---
 
-## The 85 unreleased additions (in-tree, not covered)
+## The 85 v0.3 additions
 
-These are in `sovereign_agent.__all__` on `main` but were not in the published
-0.2.0 surface. They may be renamed, resignatured, or removed before v0.3.0 is
-tagged. Do not pin production code to them.
+These entered the public contract in v0.3.0. They were not part of the v0.2
+surface, but are now stable within the v0.3 series under the same rules.
 
 Category | Symbols
 ---|---
@@ -165,38 +165,39 @@ Examples of what would stay on the minor:
 
 ## What this means for dependent projects
 
-If you `pip install sovereign-agent ~= 0.2.0` (the recommended pin for
-downstream projects and homework), you will:
+If you `pip install sovereign-agent ~= 0.3.0` (the recommended pin for
+downstream projects), you will:
 
-- Receive every `0.2.x` bug-fix release automatically
-- Never receive `0.3.0` or later (which may have breaking changes)
-- Be safe to run your CI against the latest `0.2.x`
+- Receive every `0.3.x` bug-fix release automatically
+- Never receive `0.4.0` or later (which may have breaking changes)
+- Be safe to run your CI against the latest `0.3.x`
 
-If you pin `sovereign-agent == 0.2.0` exactly, you will:
+If you pin `sovereign-agent == 0.3.0` exactly, you will:
 
 - Receive no updates
 - Manually opt into bug fixes by bumping
 
-Most users should use `~= 0.2.0`.
+Most users should use `~= 0.3.0`. The five-chapter v0.2 curriculum may keep an
+exact v0.2 pin when reproducing that historical teaching surface.
 
 ---
 
 ## Deprecation policy
 
-When a public symbol is to be removed in the next minor release:
+v0.3.0 deprecates no public symbols. When a public symbol is to be removed:
 
-1. A `DeprecationWarning` is added in the last patch release of the
-   current minor, pointing to the replacement.
+1. A `DeprecationWarning` is added, pointing to the replacement.
 2. The symbol is documented as deprecated in `CHANGELOG.md`.
 3. The symbol is kept functional for at least one full minor cycle (so
    users have time to migrate).
-4. On the next minor bump, the symbol is removed and its removal is
+4. Only a later minor bump may remove it, and its removal is
    documented in the release notes.
 
 Example timeline:
 
-- `0.2.5` — `old_function()` emits `DeprecationWarning`, docs point to `new_function()`
-- `0.3.0` — `old_function()` removed; release notes link the migration
+- `0.3.2` — `old_function()` emits `DeprecationWarning`, docs point to `new_function()`
+- all of `0.4.*` — `old_function()` remains functional
+- `0.5.0` or later — removal is permitted and release notes link the migration
 
 ---
 

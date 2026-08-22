@@ -140,7 +140,7 @@ def list_tracked_files(repo: Path) -> list[Path]:
     """
     try:
         out = subprocess.run(
-            ["git", "ls-files"],
+            ["git", "ls-files", "--cached", "--others", "--exclude-standard"],
             cwd=repo,
             capture_output=True,
             text=True,
@@ -356,6 +356,7 @@ _EMAIL_ALLOW_DOMAINS = {
     "example.com",
     "example.org",
     "example.net",
+    "example.invalid",
     "test.local",
     # Fictional fixture domains used in scenarios
     "evil.com",

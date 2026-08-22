@@ -5,7 +5,7 @@ sovereign-agent is meant to run on a single host: a Linux box, a Mac Mini, a lap
 This page collects the operational advice for that case. Multi-machine and hosted deployments are out of scope — see [v0.3 non-goals](v0.3-non-goals.md).
 
 !!! warning "Alpha"
-    The published release is `0.2.0` and the project is alpha. There is no
+    The package version is `0.3.0` and the project is alpha. There is no
     container image, no Helm chart, and no supported multi-host topology. Deploy
     this only where you are willing to read the code when it misbehaves.
 

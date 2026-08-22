@@ -19,7 +19,9 @@ See [`docs/architecture.md`](../docs/architecture.md).)
 
 ## Current lessons
 
-*No published lessons yet.* `_template/` is the only thing in this directory. The framework is alpha (`0.2.0` published, v0.3 work unreleased), and no lesson has been written, so treat this directory as intent rather than content.
+*No published lessons yet.* `_template/` is the only thing in this directory.
+The framework is alpha at v0.3.0, and no lesson has been written, so treat this
+directory as intent rather than content.
 
 ## Deprecation
 

@@ -68,6 +68,11 @@ jobs:
         run: |
           uv build
           ls -la dist/
+      - name: Verify API, contents, and clean core-only install
+        run: |
+          uv run python scripts/verify_release.py \
+            --wheel dist/sovereign_agent-0.3.0-py3-none-any.whl \
+            --sdist dist/sovereign_agent-0.3.0.tar.gz
       - name: Verify wheel installs cleanly in a fresh venv
         run: |
           python -m venv /tmp/verify-venv

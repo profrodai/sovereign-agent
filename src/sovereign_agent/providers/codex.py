@@ -1,4 +1,4 @@
-"""Native OpenAI Codex CLI provider (no Sandcastle dependency)."""
+"""Native OpenAI Codex CLI provider."""
 
 from __future__ import annotations
 

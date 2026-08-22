@@ -1,4 +1,4 @@
-"""Native Anthropic Claude Code CLI provider (no Sandcastle dependency)."""
+"""Native Anthropic Claude Code CLI provider."""
 
 from __future__ import annotations
 

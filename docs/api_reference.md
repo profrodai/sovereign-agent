@@ -4,9 +4,9 @@ The public API of `sovereign_agent`. Anything not listed here is internal and ma
 
 Full docstrings are on the classes themselves; this page is an overview. For the definitive reference, read the source — every public class has a docstring that explains its purpose, parameters, and behaviour.
 
-The authoritative list of what is *stable* versus merely *present* is
-[API Stability](API.md). Sections below marked **(unreleased v0.3)** are in the
-tree but carry no compatibility promise.
+The authoritative v0.3.0 contract is [API Stability](API.md) and its
+machine-checked 152-symbol manifest. All listed top-level exports are stable
+within the v0.3 series.
 
 ## Errors (Pattern C)
 
@@ -154,7 +154,7 @@ These classes exist and can be instantiated. They do not yet retrieve or
 consolidate anything useful. Vector-DB backends are a
 [v0.3 non-goal](v0.3-non-goals.md).
 
-## Worker backends (unreleased v0.3)
+## Worker backends
 
 ```python
 from sovereign_agent import (
@@ -175,7 +175,7 @@ from sovereign_agent import (
 
 Use `"subprocess"` where you would have reached for `"docker"`.
 
-## Governed execution (unreleased v0.3 Unit 7)
+## Governed execution
 
 ```python
 from sovereign_agent import (
@@ -195,13 +195,13 @@ obligation. `status`, `cancel`, and `receipt` expose durable execution control.
 An execution ID is an idempotency key: finalized retries return the existing
 immutable receipt.
 
-## Plugin registries (unreleased v0.3)
+## Plugin registries
 
 ```python
 from sovereign_agent import Plugin, Registry
 ```
 
-## Channels (unreleased v0.3)
+## Channels
 
 ```python
 from sovereign_agent import CHANNEL_REGISTRY

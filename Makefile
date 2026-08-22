@@ -8,7 +8,7 @@
 #
 # Quick start:
 #   make first-run           # install uv project + dev tools + run preflight
-#   make test                # 477 tests
+#   make test                # 480 tests
 #   make demo-ch5            # full working agent end-to-end
 #   make example-research    # research-assistant example end-to-end
 #   make bundle              # tar the repo for sharing
@@ -143,7 +143,7 @@ help: ## Show this help with typical workflows and every target
 	@printf "  $(BOLD)◆ Ship to PyPI$(RESET) $(DIM)(first-time release workflow)$(RESET)\n"
 	@printf "      $(DIM)1$(RESET)  $(CYAN)make pre-publish$(RESET)            audit for secrets, PII, forbidden files\n"
 	@printf "      $(DIM)2$(RESET)  $(CYAN)make ready-to-ship$(RESET)          preflight + pre-publish + build in one shot\n"
-	@printf "      $(DIM)3$(RESET)  $(DIM)git tag v0.2.0-alpha && git push --tags$(RESET)   triggers publish.yml\n"
+	@printf "      $(DIM)3$(RESET)  $(DIM)git tag v0.3.0 && git push origin v0.3.0$(RESET)   triggers publish.yml\n"
 	@printf "      $(DIM)·$(RESET)  $(CYAN)make build$(RESET)                  $(DIM)uv build$(RESET) wheel+sdist locally\n"
 	@printf "      $(DIM)·$(RESET)  $(CYAN)make publish-test$(RESET)           $(DIM)uv publish$(RESET) to TestPyPI (manual)\n"
 	@printf "      $(DIM)·$(RESET)  $(CYAN)make bundle$(RESET)                 tar the repo to $(BOLD)$(BUNDLE_DIR)/$(RESET)\n"
@@ -541,15 +541,21 @@ pre-publish-strict: ## pre-publish + scan git history (slower but more thorough)
 	@$(PY) scripts/pre_publish.py --git
 
 .PHONY: ready-to-ship
-ready-to-ship: preflight pre-publish build ## Full launch checklist: preflight + pre-publish + build
+ready-to-ship: preflight pre-publish release-verify ## Deterministic, non-publishing v0.3 release proof
 	@printf "\n$(GREEN)✓$(RESET) $(BOLD)Ready to ship.$(RESET)\n"
-	@printf "  $(CYAN)➜$(RESET) next: $(CYAN)git tag v0.2.0-alpha && git push origin v0.2.0-alpha$(RESET)\n"
-	@printf "  $(DIM)(the publish.yml workflow takes over from there)$(RESET)\n\n"
+	@printf "  $(DIM)No publish, tag, push, live provider, or credential action was performed.$(RESET)\n\n"
+
+.PHONY: release-verify
+release-verify: ci docs-strict build ## Prove API, package content, and clean core install
+	@$(PY) scripts/verify_release.py \
+		--wheel dist/sovereign_agent-0.3.0-py3-none-any.whl \
+		--sdist dist/sovereign_agent-0.3.0.tar.gz
 
 .PHONY: build
 build: ## Build wheel + sdist into dist/ via uv build
 	@printf "\n$(BLUE)▶$(RESET) $(BOLD)Building distribution$(RESET)\n"
 	@printf "$(DIM)%s$(RESET)\n" "$(SUBRULE)"
+	@rm -rf dist/
 	@$(UV) build
 	@ls -lh dist/ 2>/dev/null | tail -n +2
 

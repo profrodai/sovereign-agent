@@ -45,7 +45,11 @@ Two things in one repository:
 **A production library** you `pip install` and use to build agents.
 **A build-from-scratch curriculum** that reconstructs the library in five chapters with tests, so you learn by implementing.
 
-Both point at the same code. A CI check (`tools/verify_chapter_drift.py`) ensures the chapter code and the production library stay identical. This is the fastai pattern — the library and the course teach each other.
+The chapters rebuild the v0.2 substrate and re-export the production primitives
+they teach. A CI check (`tools/verify_chapter_drift.py`) prevents those mapped
+primitives from drifting. v0.3 features are taught in numbered unit documents;
+the chapters intentionally do not claim whole-package parity. See the
+[teaching-surface decision](docs/teaching-surface.md).
 
 sovereign-agent is **not** trying to be the next Claude Code or OpenHands. It's the thing you read to understand *why* they and every other production agent system converged on the same eight architectural decisions.
 
@@ -153,10 +157,9 @@ Each is ~200-400 lines of code with tests. See `examples/` for end-to-end scenar
 
 ---
 
-## What is in the tree beyond v0.2.0 (unreleased v0.3 work)
+## What shipped in v0.3.0
 
-`pyproject.toml` still says `version = "0.2.0"` and PyPI has exactly one release
-(`0.2.0`), but `main` now carries v0.3 work that has not been released or tagged:
+The v0.3 package adds:
 
 - **Channel adapters** — `ChannelAdapter` protocol plus a CLI adapter and an
   inbound router. Only `CHANNEL_REGISTRY` is exported in `__all__`; the adapter
@@ -170,8 +173,8 @@ Each is ~200-400 lines of code with tests. See `examples/` for end-to-end scenar
 - **Liveness monitor** — stalled-session detection and heartbeat
   (`LivenessMonitor`, importable but not in `__all__`).
 
-These are unreleased. Treat anything in this list as subject to change without a
-version bump until v0.3.0 is tagged. See
+These additions are part of the v0.3 public contract where listed in
+`sovereign_agent.__all__`. See
 [`docs/v0.3-non-goals.md`](docs/v0.3-non-goals.md) for what v0.3 will *not* do,
 and [`docs/branch-consolidation-2026-08-22.md`](docs/branch-consolidation-2026-08-22.md)
 for how these branches landed.
@@ -239,14 +242,16 @@ sovereign-agent/
 ├── chapters/             # 5 tutorial chapters (minitorch-style, fill in the TODOs)
 ├── examples/             # 8 reference scenarios (research, code review, HITL, etc.)
 ├── docs/                 # architecture, API stability, deployment
-└── tests/                # 477 collected tests — library + chapters + examples
+└── tests/                # 480 collected tests — library + chapters + examples
 ```
 
 - **If you want to ship an agent today** → read `src/sovereign_agent/` and pick scenarios from `examples/`
 - **If you want to understand how it works** → read the chapters. Each one rebuilds a piece of the library. Your tests pass when you're done.
 - **If you want the architecture argument** → [`docs/architecture.md`](docs/architecture.md)
 
-The chapter/library drift check (`tools/verify_chapter_drift.py`) runs in CI. If you change the library and forget to update the chapter, or vice versa, CI fails. The tutorial can't rot.
+The chapter/library drift check (`tools/verify_chapter_drift.py`) runs in CI for
+the v0.2 primitives those chapters teach. The explicit v0.3 teaching scope is
+documented in [`docs/teaching-surface.md`](docs/teaching-surface.md).
 
 ---
 
@@ -320,11 +325,11 @@ The Makefile is also the documentation for the release workflow:
 ```
 make doctor           # tabular status — Python, uv, .env, deps, imports, CI
 make preflight        # lint + drift + pytest collection + demo importability
-make test             # full suite (477 collected: 476 pass, 1 skip)
+make test             # full suite (480 collected: 479 pass, 1 skip)
 make ci-real-estimate # cost preview for a full ci-real run (no API calls)
 make ci-real          # run every -real scenario against a live LLM
 make pre-publish      # audit for secrets, PII, forbidden files before public push
-make ready-to-ship    # preflight + pre-publish + build — ends "next: git tag..."
+make ready-to-ship    # deterministic CI + audit + wheel/sdist clean-install proof
 ```
 
 `make help` groups every target by category. `make doctor` output is tabular; paste it into an issue and a maintainer has full diagnostic context.
@@ -348,19 +353,17 @@ Override via `SOVEREIGN_AGENT_DATA_DIR=<path>`.
 
 ## Status
 
-**v0.2.0 alpha, with unreleased v0.3 work on `main`.** PyPI has one release
-(`0.2.0`); `pyproject.toml` still declares `0.2.0`. The published 0.2.0 semver
-surface was 67 symbols. The working tree now exports **152** symbols in
-`sovereign_agent.__all__` — the 85 additions are unreleased v0.3 work and are not
-covered by the 0.2.x stability promise. See [`docs/API.md`](docs/API.md) for the
-full contract and the symbol-by-symbol breakdown.
+**v0.3.0.** The package exports **152** symbols in
+`sovereign_agent.__all__`. All 67 symbols from v0.2.0 remain, and the 85 v0.3
+additions are covered by the v0.3 compatibility contract. See
+[`docs/API.md`](docs/API.md) and the checked export manifests.
 
 - ✅ Framework: sessions, tickets, IPC, parallelism, isolation, resume, verifiers, HITL
-- ✅ 477 tests collected — 476 pass, 1 skipped (library + chapters + integration)
+- ✅ 480 tests collected — 479 pass, 1 skipped (library + chapters + integration)
 - ✅ 8 reference scenarios, all with dataflow integrity checks
 - ✅ 5 tutorial chapters, drift-checked against production code in CI
 - 🚧 Voice pipeline, observability backends (Evidently/OTel) — skeletons, not implementations
-- 🚧 Channels, native Codex/Claude CLI providers, plugin registries, worker-backend dispatch, liveness monitor, durable seat registry and relay — in-tree, unreleased
+- ✅ Channels, native Codex/Claude CLI providers, plugin registries, worker lifecycle, governed repository execution, durable seat registry and relay
 - ❌ Docker worker backend — stub only; `DockerWorker.run_session()` raises `NotImplementedError`
 - ❌ Vector-DB memory backends — not started, and a [v0.3 non-goal](docs/v0.3-non-goals.md)
 

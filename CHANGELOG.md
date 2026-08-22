@@ -4,13 +4,13 @@ All notable changes to sovereign-agent.
 
 Repository: [`zeroemployeeorg/sovereign-agent`](https://github.com/zeroemployeeorg/sovereign-agent).
 
-## [Unreleased] — v0.3 development
+## [0.3.0] — 2026-08-22
 
-`pyproject.toml` still declares `0.2.0`. There is no v0.3 tag and no v0.3 PyPI
-release, so **the version string does not identify this tree** — use commit SHAs
-when reporting against `main`.
+The package, documentation, API manifest, wheel, and sdist declare v0.3.0.
+Publishing remains a separate tag-triggered action; `make ready-to-ship` never
+publishes or uses live credentials.
 
-### In-tree, unreleased
+### Added
 
 Landed on `main` on 2026-08-22 via
 [PR #1](https://github.com/zeroemployeeorg/sovereign-agent/pull/1) and
@@ -55,8 +55,20 @@ a feature-branch tip rather than the pre-v0.3 state of `main`.
   in `__all__`.
 - Move to `src/` layout.
 
-`sovereign_agent.__all__` now has 152 symbols, up from the 67 that shipped in
-0.2.0. The 85 additions carry no stability promise until 0.3.0 is tagged.
+`sovereign_agent.__all__` now has 152 public symbols, up from the 67 that shipped
+in 0.2.0. Every v0.2 symbol remains and the 85 additions enter the v0.3
+compatibility contract.
+
+### Release readiness
+
+- Added machine-readable v0.2 and v0.3 API manifests and a gate comparing them
+  with `__all__`.
+- Added a v0.2 migration guide, threat model, explicit teaching-surface decision,
+  release-note fragments, and a no-deprecations declaration.
+- `make ready-to-ship` now runs deterministic CI, strict docs, distribution
+  content checks, and a clean core-only wheel install. The smoke test validates
+  packaged schemas and rejects import-time filesystem, network, and process side
+  effects.
 
 ### Documentation and truth repair
 
@@ -64,7 +76,7 @@ a feature-branch tip rather than the pre-v0.3 state of `main`.
   `pyproject.toml` URLs, `mkdocs.yml`, and the docs tree. Old
   `sovereignagents/...` links still resolve by GitHub redirect but are no longer
   canonical.
-- Corrected test-count claims: the suite collects **477** tests (476 pass, 1
+- Corrected test-count claims: the suite collects **480** tests (479 pass, 1
   skipped). Previous docs claimed 267, 220, and 120 in different places.
 - Corrected public-API claims: **152** symbols in `__all__`, of which 67 are the
   stable 0.2.0 surface. `docs/API.md` now lists both sets separately, and names
