@@ -4,8 +4,8 @@ Alpha. The declared version is 0.2.0 and that is the only release on PyPI,
 but this tree also carries unreleased v0.3 work (channels, plugin
 registries, worker-backend dispatch, liveness monitor).
 
-The names in __all__ are the public API surface. Of those, 67 shipped in
-0.2.0 and are stable across 0.2.x; the v0.3 additions carry no stability
+The 143 names in __all__ are the public API surface. Of those, 67 shipped in
+0.2.0 and are stable across 0.2.x; the 76 v0.3 additions carry no stability
 promise until 0.3.0 is tagged. Anything not in __all__ is internal and may
 change between any two releases -- including names that happen to be
 importable from this module, such as the channel adapter types and
@@ -148,6 +148,38 @@ from sovereign_agent.providers import (
 # Plugin registries (v0.3 Module 3)
 from sovereign_agent.registries import Plugin as Plugin
 from sovereign_agent.registries import Registry as Registry
+
+# Seat registry (v0.3 Unit 6)
+from sovereign_agent.registry import (
+    RegistrationConflict,
+    RegistryCorruptionError,
+    RegistryError,
+    RegistryValidationError,
+    RuntimeAddress,
+    Seat,
+    SeatInstance,
+    SeatInstanceNotFound,
+    SeatLifecycle,
+    SeatRegistry,
+)
+
+# Durable relay (v0.3 Unit 6)
+from sovereign_agent.relay import (
+    Acknowledgement,
+    ClaimedMessage,
+    DeliveryRecord,
+    DeliveryStatus,
+    DuplicateMessageConflict,
+    DurableRelay,
+    LeaseLost,
+    MessageNotFound,
+    Relay,
+    RelayAuthenticationError,
+    RelayCorruptionError,
+    RelayError,
+    RelayMessage,
+    RelayValidationError,
+)
 
 # Repository execution (v0.3 Unit 5)
 from sovereign_agent.repository import (
@@ -292,6 +324,31 @@ __all__ = [
     "RepositoryLockTimeout",
     "RepositoryManager",
     "RepositoryValidationError",
+    # registry and relay (v0.3 Unit 6)
+    "RegistrationConflict",
+    "RegistryCorruptionError",
+    "RegistryError",
+    "RegistryValidationError",
+    "RuntimeAddress",
+    "Seat",
+    "SeatInstance",
+    "SeatInstanceNotFound",
+    "SeatLifecycle",
+    "SeatRegistry",
+    "Acknowledgement",
+    "ClaimedMessage",
+    "DeliveryRecord",
+    "DeliveryStatus",
+    "DuplicateMessageConflict",
+    "DurableRelay",
+    "LeaseLost",
+    "MessageNotFound",
+    "Relay",
+    "RelayAuthenticationError",
+    "RelayCorruptionError",
+    "RelayError",
+    "RelayMessage",
+    "RelayValidationError",
     "Executor",
     "ExecutorResult",
     "DefaultExecutor",

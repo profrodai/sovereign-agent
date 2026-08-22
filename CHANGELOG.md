@@ -39,12 +39,17 @@ a feature-branch tip rather than the pre-v0.3 state of `main`.
   durable fenced repository leases, deterministic redacted Git evidence, and
   opt-in non-force delivery with exact remote-SHA verification. See
   `docs/v0.3-unit5-repository.md`.
+- Unit 6 persistent seat registry and durable local relay: immutable
+  registration identity, atomic heartbeats, liveness inspection, validated
+  local addressing, idempotent envelopes, ordered fenced claims, ack/nack,
+  bounded backoff, lease recovery, dead letters, acknowledgement records and
+  explicit corruption quarantine. See `docs/v0.3-unit6-registry-relay.md`.
 - `LivenessMonitor` — stalled-session detection and heartbeat. Importable but not
   in `__all__`.
 - Move to `src/` layout.
 
-`sovereign_agent.__all__` now has 119 symbols, up from the 67 that shipped in
-0.2.0. The 52 additions carry no stability promise until 0.3.0 is tagged.
+`sovereign_agent.__all__` now has 143 symbols, up from the 67 that shipped in
+0.2.0. The 76 additions carry no stability promise until 0.3.0 is tagged.
 
 ### Documentation and truth repair
 
@@ -52,9 +57,9 @@ a feature-branch tip rather than the pre-v0.3 state of `main`.
   `pyproject.toml` URLs, `mkdocs.yml`, and the docs tree. Old
   `sovereignagents/...` links still resolve by GitHub redirect but are no longer
   canonical.
-- Corrected test-count claims: the suite collects **446** tests (445 pass, 1
+- Corrected test-count claims: the suite collects **457** tests (456 pass, 1
   skipped). Previous docs claimed 267, 220, and 120 in different places.
-- Corrected public-API claims: **119** symbols in `__all__`, of which 67 are the
+- Corrected public-API claims: **143** symbols in `__all__`, of which 67 are the
   stable 0.2.0 surface. `docs/API.md` now lists both sets separately, and names
   the v0.3 symbols that are importable but not in `__all__`.
 - Removed links to files that do not exist: `docs/class-slides.md`,

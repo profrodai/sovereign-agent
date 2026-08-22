@@ -14,18 +14,9 @@ from dataclasses import dataclass
 from pathlib import Path
 
 from sovereign_agent._internal.atomic import atomic_write_json
+from sovereign_agent._internal.file_lock import exclusive_file_lock
 
 from .errors import RepositoryLockLost, RepositoryLockTimeout
-
-try:
-    import fcntl
-except ImportError:  # pragma: no cover - exercised on Windows
-    fcntl = None  # type: ignore[assignment]
-
-try:
-    import msvcrt
-except ImportError:  # pragma: no cover - exercised on POSIX
-    msvcrt = None  # type: ignore[assignment]
 
 
 @dataclass(frozen=True)
@@ -177,35 +168,8 @@ def _guard(lock_path: Path) -> Iterator[None]:
     """Serialize generation transitions without making the guard itself ownership."""
     guard_path = lock_path.with_suffix(lock_path.suffix + ".guard")
     guard_path.parent.mkdir(mode=0o700, parents=True, exist_ok=True)
-    fd = os.open(guard_path, os.O_CREAT | os.O_RDWR, 0o600)
-    try:
-        _lock_fd(fd)
+    with exclusive_file_lock(guard_path):
         yield
-    finally:
-        _unlock_fd(fd)
-        os.close(fd)
-
-
-def _lock_fd(fd: int) -> None:
-    if fcntl is not None:
-        fcntl.flock(fd, fcntl.LOCK_EX)
-        return
-    if msvcrt is None:  # pragma: no cover - supported Python platforms provide one
-        raise RuntimeError("no cross-process file locking implementation is available")
-    if os.fstat(fd).st_size == 0:
-        os.write(fd, b"\0")
-    os.lseek(fd, 0, os.SEEK_SET)
-    msvcrt.locking(fd, msvcrt.LK_LOCK, 1)
-
-
-def _unlock_fd(fd: int) -> None:
-    if fcntl is not None:
-        fcntl.flock(fd, fcntl.LOCK_UN)
-        return
-    if msvcrt is None:  # pragma: no cover
-        return
-    os.lseek(fd, 0, os.SEEK_SET)
-    msvcrt.locking(fd, msvcrt.LK_UNLCK, 1)
 
 
 __all__ = ["RepositoryLease", "RepositoryLockManager"]

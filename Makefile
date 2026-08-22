@@ -8,7 +8,7 @@
 #
 # Quick start:
 #   make first-run           # install uv project + dev tools + run preflight
-#   make test                # 446 tests
+#   make test                # 457 tests
 #   make demo-ch5            # full working agent end-to-end
 #   make example-research    # research-assistant example end-to-end
 #   make bundle              # tar the repo for sharing
@@ -500,6 +500,8 @@ typecheck: ## Enforce mypy on currently clean public runtime modules
 		$(PKG_DIR)/orchestrator/worker_factory.py \
 		$(PKG_DIR)/planner \
 		$(PKG_DIR)/providers \
+		$(PKG_DIR)/registry \
+		$(PKG_DIR)/relay \
 		$(PKG_DIR)/repository \
 		$(PKG_DIR)/runtime \
 		$(PKG_DIR)/tickets \

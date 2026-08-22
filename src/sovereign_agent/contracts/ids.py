@@ -33,6 +33,14 @@ class SeatInstanceId(_ValidatedId):
     kind = "seat_instance_id"
 
 
+class SeatId(_ValidatedId):
+    kind = "seat_id"
+
+
+class RelayMessageId(_ValidatedId):
+    kind = "relay_message_id"
+
+
 class SovereignSessionId(_ValidatedId):
     kind = "sovereign_session_id"
 
@@ -62,6 +70,8 @@ __all__ = [
     "InvocationId",
     "ProviderSessionId",
     "RepositoryId",
+    "RelayMessageId",
+    "SeatId",
     "SeatInstanceId",
     "SovereignSessionId",
     "WorkerHandleId",

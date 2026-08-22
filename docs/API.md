@@ -5,7 +5,7 @@
 
 !!! warning "The tree is ahead of the last release"
     The only published release is **0.2.0**, whose semver surface was **67**
-    symbols. The working tree exports **119**. The 52 extra symbols are unreleased
+    symbols. The working tree exports **143**. The 76 extra symbols are unreleased
     v0.3 work and carry **no** stability promise until v0.3.0 is tagged. Both
     sets are listed below, separately, so you can tell which is which.
 
@@ -98,7 +98,7 @@ Category | Symbols
 
 ---
 
-## The 52 unreleased additions (in-tree, not covered)
+## The 76 unreleased additions (in-tree, not covered)
 
 These are in `sovereign_agent.__all__` on `main` but were not in the published
 0.2.0 surface. They may be renamed, resignatured, or removed before v0.3.0 is
@@ -111,6 +111,7 @@ Category | Symbols
 **Worker lifecycle** (v0.3 Unit 3) | `WorkerBackend`, `WorkerOutcome`, `BareWorker`, `SubprocessWorker`, `OSIsolatedWorker`, `DockerWorker`, `make_worker_backend`, `WorkerRequest`, `RuntimeHandle`, `InvocationSpec`, `ExecResult`, `CloseResult`, `ExecutionLifecycle`, `LifecycleResult`, `LifecycleState`, `LifecycleTimeouts`, `TerminalReason`
 **Agent providers** (v0.3 Units 2 and 4) | `AgentProvider`, `InvocationRequest`, `InvocationResult`, `NativeProvider`, `ProviderCapabilities`, `ProviderEvent`, `ProviderRegistry`, `PROVIDER_REGISTRY`, `CliProvider`, `CodexCliProvider`, `ClaudeCodeProvider`, `ProbeEvidence`, `ProviderUnavailable`
 **Repository execution** (v0.3 Unit 5) | `RepositoryManager`, `RepositoryConfig`, `RepositoryExecution`, `RepositoryIdentity`, `GitEvidence`, `DirtyWorktreePolicy`, `DeliveryState`, `DeliveryResult`, `DeliveryFailureReason`, `RepositoryLease`, `RepositoryLockManager`, `RepositoryError`, `RepositoryConfigurationError`, `RepositoryValidationError`, `RepositoryDirtyError`, `RepositoryCommandError`, `RepositoryLockTimeout`, `RepositoryLockLost`, `RepositoryDeliveryError`
+**Seat registry and relay** (v0.3 Unit 6) | `Seat`, `SeatInstance`, `SeatLifecycle`, `SeatRegistry`, `RuntimeAddress`, `RegistrationConflict`, `RegistryError`, `RegistryValidationError`, `RegistryCorruptionError`, `SeatInstanceNotFound`, `RelayMessage`, `DeliveryRecord`, `DeliveryStatus`, `ClaimedMessage`, `Acknowledgement`, `DurableRelay`, `Relay`, `RelayError`, `RelayValidationError`, `RelayAuthenticationError`, `RelayCorruptionError`, `DuplicateMessageConflict`, `MessageNotFound`, `LeaseLost`
 
 `DockerWorker` is an unavailable placeholder. It remains discoverable, but
 refuses during lifecycle preparation and its legacy `run_session()` raises
