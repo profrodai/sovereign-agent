@@ -19,6 +19,12 @@ branch in a work repo is invisible to everyone who is not already on that branch
 which is exactly the failure mode the split exists to prevent. So: no `SOW.md` in
 this tree, and no path in this tree that claims to be one.
 
+The governed handshake is the same split in runtime form. This repository
+validates request shape, capabilities, and technical evidence, then returns an
+immutable `ExecutionReceipt`. Zero Employee validates that receipt against
+doctrine (conformance / acceptance). Sovereign Agent does not set that bit.
+
+
 For the current release-readiness picture, read
 [CHANGELOG.md](https://github.com/zeroemployeeorg/sovereign-agent/blob/main/CHANGELOG.md)
 and [v0.3 non-goals](v0.3-non-goals.md). Those are maintained; a checklist buried
