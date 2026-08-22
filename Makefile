@@ -484,6 +484,7 @@ format-check: ## ruff format --check (does not modify files)
 typecheck: ## Enforce mypy on currently clean public runtime modules
 	@$(MYPY) \
 		$(PKG_DIR)/channels \
+		$(PKG_DIR)/contracts \
 		$(PKG_DIR)/discovery.py \
 		$(PKG_DIR)/errors.py \
 		$(PKG_DIR)/executor \
@@ -493,6 +494,7 @@ typecheck: ## Enforce mypy on currently clean public runtime modules
 		$(PKG_DIR)/memory \
 		$(PKG_DIR)/observability \
 		$(PKG_DIR)/planner \
+		$(PKG_DIR)/runtime \
 		$(PKG_DIR)/tickets \
 		$(PKG_DIR)/voice
 

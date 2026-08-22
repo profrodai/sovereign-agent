@@ -9,7 +9,10 @@ from __future__ import annotations
 import os
 from dataclasses import dataclass, field, fields
 from pathlib import Path
-from typing import Any, Literal
+from typing import TYPE_CHECKING, Any, Literal
+
+if TYPE_CHECKING:
+    from sovereign_agent.runtime import RuntimeRoot
 
 
 @dataclass
@@ -69,6 +72,11 @@ class Config:
     enable_voice: bool = False
     enable_structured_half: bool = True
 
+    # v0.3 runtime root. Appended after all v0.2 fields so positional Config
+    # construction keeps its historical argument order. ``sessions_dir`` is
+    # retained as the read-through, copy-on-write legacy source.
+    runtime_dir: Path = field(default_factory=lambda: Path("runtime"))
+
     @classmethod
     def from_env(cls, env: dict[str, str] | None = None) -> Config:
         """Load a Config from environment variables.
@@ -92,18 +100,22 @@ class Config:
     def from_toml(cls, path: Path) -> Config:
         import tomllib
 
-        with open(path, "rb") as f:
-            data = tomllib.load(f)
+        with open(path, "rb") as handle:
+            data = tomllib.load(handle)
         section = data.get("sovereign_agent", data)
         overrides: dict[str, Any] = {}
-        for f in fields(cls):
-            if f.name in section:
-                overrides[f.name] = _coerce(f.type, section[f.name])
+        for config_field in fields(cls):
+            if config_field.name in section:
+                overrides[config_field.name] = _coerce(
+                    config_field.type, section[config_field.name]
+                )
         return cls(**overrides)
 
     def validate(self) -> list[str]:
         """Return a list of problems with this config, empty if OK."""
         issues: list[str] = []
+        if not self.runtime_dir.parent.exists():
+            issues.append(f"runtime_dir parent does not exist: {self.runtime_dir.parent}")
         # Sessions directory can be created later, so only warn if its parent doesn't exist.
         if not self.sessions_dir.parent.exists():
             issues.append(f"sessions_dir parent does not exist: {self.sessions_dir.parent}")
@@ -122,6 +134,12 @@ class Config:
             else str(getattr(self, f.name))
             for f in fields(self)
         }
+
+    def make_runtime_root(self) -> RuntimeRoot:
+        """Build a side-effect-free runtime handle using the legacy session setting."""
+        from sovereign_agent.runtime import RuntimeRoot
+
+        return RuntimeRoot(self.runtime_dir, legacy_sessions_dir=self.sessions_dir)
 
 
 def _coerce(declared_type: Any, raw: str) -> Any:

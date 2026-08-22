@@ -1,0 +1,84 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://zeroemployee.org/schemas/sovereign-agent/v1/execution-receipt.schema.json",
+  "title": "Execution Receipt",
+  "type": "object",
+  "required": [
+    "schema_version",
+    "execution_id",
+    "invocation_id",
+    "status",
+    "started_at",
+    "completed_at",
+    "result",
+    "error",
+    "evidence",
+    "evidence_sha256",
+    "supersedes_sha256",
+    "correction_sequence"
+  ],
+  "properties": {
+    "schema_version": {"const": "1.0"},
+    "execution_id": {"$ref": "#/$defs/id"},
+    "invocation_id": {"$ref": "#/$defs/id"},
+    "status": {"enum": ["running", "succeeded", "failed", "cancelled"]},
+    "started_at": {"type": "string", "format": "date-time"},
+    "completed_at": {"type": ["string", "null"], "format": "date-time"},
+    "result": {},
+    "error": {"type": ["object", "null"]},
+    "evidence": {"type": "object"},
+    "evidence_sha256": {
+      "type": ["string", "null"],
+      "pattern": "^[0-9a-f]{64}$"
+    },
+    "supersedes_sha256": {
+      "type": ["string", "null"],
+      "pattern": "^[0-9a-f]{64}$"
+    },
+    "correction_sequence": {"type": "integer", "minimum": 0}
+  },
+  "allOf": [
+    {
+      "if": {"properties": {"status": {"const": "running"}}},
+      "then": {
+        "properties": {
+          "completed_at": {"type": "null"},
+          "result": {"type": "null"}
+        }
+      },
+      "else": {
+        "properties": {"completed_at": {"type": "string", "format": "date-time"}}
+      }
+    },
+    {
+      "if": {"properties": {"status": {"const": "succeeded"}}},
+      "then": {"properties": {"error": {"type": "null"}}},
+      "else": {"properties": {"result": {"type": "null"}}}
+    },
+    {
+      "if": {"properties": {"status": {"const": "failed"}}},
+      "then": {"properties": {"error": {"type": "object"}}}
+    },
+    {
+      "if": {"properties": {"correction_sequence": {"const": 0}}},
+      "then": {"properties": {"supersedes_sha256": {"type": "null"}}},
+      "else": {
+        "properties": {
+          "supersedes_sha256": {
+            "type": "string",
+            "pattern": "^[0-9a-f]{64}$"
+          }
+        }
+      }
+    }
+  ],
+  "$defs": {
+    "id": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 128,
+      "pattern": "^[A-Za-z0-9](?:[A-Za-z0-9._:/-]{0,126}[A-Za-z0-9])?$"
+    }
+  },
+  "additionalProperties": true
+}

@@ -27,6 +27,12 @@ src/sovereign_agent/_internal/__init__.py
 src/sovereign_agent/_internal/paths.py
 src/sovereign_agent/_internal/llm_client.py
 src/sovereign_agent/_internal/atomic.py
+src/sovereign_agent/contracts/__init__.py
+src/sovereign_agent/contracts/schemas/governed-execution-request.schema.json
+src/sovereign_agent/contracts/schemas/execution-receipt.schema.json
+src/sovereign_agent/contracts/schemas/capability-manifest.schema.json
+src/sovereign_agent/runtime/__init__.py
+src/sovereign_agent/runtime/root.py
 
 Makefile
 pyproject.toml
