@@ -27,7 +27,26 @@ jobs:
           python -m pip install -e . --group dev
 
       - name: Ruff lint
-        run: ruff check src/sovereign_agent/ tests/
+        run: ruff check src/sovereign_agent/ tests/ chapters/ examples/ scripts/ tools/
+
+      - name: Ruff format check
+        run: ruff format --check src/sovereign_agent/ tests/ chapters/ examples/ scripts/ tools/
+
+      - name: Mypy public runtime modules
+        run: |
+          mypy \
+            src/sovereign_agent/channels \
+            src/sovereign_agent/discovery.py \
+            src/sovereign_agent/errors.py \
+            src/sovereign_agent/executor \
+            src/sovereign_agent/halves \
+            src/sovereign_agent/handoff \
+            src/sovereign_agent/ipc \
+            src/sovereign_agent/memory \
+            src/sovereign_agent/observability \
+            src/sovereign_agent/planner \
+            src/sovereign_agent/tickets \
+            src/sovereign_agent/voice
 
       - name: Pytest
         run: pytest -v --tb=short

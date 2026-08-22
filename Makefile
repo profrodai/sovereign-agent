@@ -89,7 +89,7 @@ help: ## Show this help with typical workflows and every target
 	@printf "  $(BOLD)◆ First time on this repo$(RESET)\n"
 	@printf "      $(DIM)1$(RESET)  $(CYAN)make first-run$(RESET)              install uv project + dev tools, run preflight\n"
 	@printf "      $(DIM)2$(RESET)  $(DIM)cp .env.example .env$(RESET)         then edit .env and set $(BOLD)NEBIUS_KEY$(RESET)\n"
-	@printf "      $(DIM)3$(RESET)  $(CYAN)make verify$(RESET)                 full setup check incl. real LLM round-trip\n"
+	@printf "      $(DIM)3$(RESET)  $(CYAN)make verify$(RESET)                 deterministic setup and release checks\n"
 	@printf "      $(DIM)4$(RESET)  $(CYAN)make demo-ch5-real$(RESET)          your first real agent run\n"
 	@printf "\n"
 	@printf "  $(BOLD)◆ Daily dev loop$(RESET)\n"
@@ -225,8 +225,12 @@ preflight: ## Comprehensive contributor preflight (covers the release checklist)
 	@$(PY) scripts/preflight.py
 
 .PHONY: verify
-verify: ## Verify the full setup: .env, API key, real LLM round-trip, filesystem
+verify: ## Verify deterministic setup and release gates (no live credentials)
 	@$(PY) scripts/verify_setup.py
+
+.PHONY: verify-live
+verify-live: ## Verify setup plus an opt-in real LLM round-trip
+	@$(PY) scripts/verify_setup.py --live
 
 .PHONY: first-run
 first-run: install preflight ## Complete first-time setup (install + preflight)
@@ -477,8 +481,20 @@ format-check: ## ruff format --check (does not modify files)
 	@$(RUFF) format --check $(PKG_DIR)/ $(TESTS_DIR)/ $(CHAPTERS_DIR)/ $(EXAMPLES_DIR)/ scripts/ tools/
 
 .PHONY: typecheck
-typecheck: ## mypy (not enforced in CI but useful locally)
-	@$(MYPY) $(PKG_DIR)/ || true
+typecheck: ## Enforce mypy on currently clean public runtime modules
+	@$(MYPY) \
+		$(PKG_DIR)/channels \
+		$(PKG_DIR)/discovery.py \
+		$(PKG_DIR)/errors.py \
+		$(PKG_DIR)/executor \
+		$(PKG_DIR)/halves \
+		$(PKG_DIR)/handoff \
+		$(PKG_DIR)/ipc \
+		$(PKG_DIR)/memory \
+		$(PKG_DIR)/observability \
+		$(PKG_DIR)/planner \
+		$(PKG_DIR)/tickets \
+		$(PKG_DIR)/voice
 
 .PHONY: drift
 drift: ## Verify chapter solutions re-export from the expected production modules
@@ -608,7 +624,7 @@ distclean: clean clean-dist flatten-clean ## Nuke everything transient (caches, 
 # ==============================================================================
 
 .PHONY: ci
-ci: format-check lint test drift test-examples ## What CI runs: format check + lint + test + drift + examples
+ci: format-check lint typecheck test drift test-examples ## CI: format + lint + types + tests + drift + examples
 	@printf "\n$(GREEN)✓$(RESET) $(BOLD)CI pipeline green$(RESET)\n"
 
 .PHONY: ci-real

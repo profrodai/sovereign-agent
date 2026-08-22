@@ -36,13 +36,18 @@ from the worker implementation.
   SubprocessWorker   — spawns `python -m sovereign_agent.orchestrator.worker_entrypoint`
                        in a separate process. OS-level isolation,
                        no Docker daemon required. Portable across
-                       Linux/macOS/Windows.
-  DockerWorker       — (see docker_worker.py) spawns a container with
-                       the session directory bind-mounted read-write.
-                       Stronger isolation; requires Docker daemon.
+                       Linux/macOS/Windows. This is the supported
+                       isolated backend.
+  DockerWorker       — NOT IMPLEMENTED. A stub defined below that
+                       satisfies the Protocol so the 'docker' config
+                       value constructs, then raises
+                       NotImplementedError from run_session(). There is
+                       no docker_worker module, no Dockerfile, and no
+                       container code path anywhere in this repository.
 
 Users pick via `Config.worker_backend`. Scenarios can override
-per-invocation. Tests use `BareWorker` by default.
+per-invocation. Tests use `BareWorker` by default. Anyone reaching for
+'docker' wants 'subprocess'.
 
 ## What a backend MUST do
 
@@ -466,31 +471,40 @@ class SubprocessWorker:
 
 
 # ---------------------------------------------------------------------------
-# DockerWorker — v0.4 stub (v0.3 Module 4a)
+# DockerWorker — UNIMPLEMENTED STUB (slot reserved; no container code exists)
 # ---------------------------------------------------------------------------
 
 
 class DockerWorker:
-    """v0.4 stub. Reserves the WorkerBackend slot; raises on use.
+    """UNIMPLEMENTED STUB. Reserves the WorkerBackend slot; raises on use.
 
-    The DockerWorker design intentionally lives next to BareWorker and
-    SubprocessWorker so the operator-facing config knob ('bare' /
-    'subprocess' / 'docker') maps cleanly to three classes. v0.3 ships
-    the first two; v0.4 will fill in this body.
+    Docker-based isolation does not exist in this repository. There is no
+    container image, no Dockerfile, and no bind-mount logic — only this
+    class, and it raises.
 
-    Operators selecting worker_backend='docker' in v0.3 still see a
-    valid Protocol implementation at construction time — they get a
-    clear NotImplementedError if they actually try to run a session,
-    not a confusing AttributeError or missing-class import error.
+    The stub exists so the operator-facing config knob ('bare' /
+    'subprocess' / 'docker') maps cleanly to three classes and so that
+    selecting 'docker' fails with a clear NotImplementedError at
+    run_session() rather than a confusing AttributeError or a
+    missing-class import error at construction.
+
+    The supported isolated backend is SubprocessWorker, which gets
+    kernel-enforced filesystem isolation from Landlock (Linux >= 5.13)
+    or sandbox-exec (macOS) without a container runtime.
+
+    The `docker` pip extra installs the Docker SDK but is deliberately
+    excluded from the `all` meta-extra, because installing a dependency
+    for a code path that does not exist advertises a capability the
+    library does not have.
     """
 
     name = "docker"
 
     def __init__(self, **kwargs) -> None:  # type: ignore[no-untyped-def]
         log.warning(
-            "DockerWorker is a v0.4 stub. SubprocessWorker is the supported "
-            "isolated backend in v0.3. Set worker_backend='subprocess' for "
-            "kernel-level isolation."
+            "DockerWorker is an unimplemented stub; no container code path "
+            "exists. SubprocessWorker is the supported isolated backend. Set "
+            "worker_backend='subprocess' for kernel-level isolation."
         )
 
     async def run_session(
@@ -501,8 +515,9 @@ class DockerWorker:
         timeout_s: float | None = None,
     ) -> WorkerOutcome:
         raise NotImplementedError(
-            "DockerWorker is reserved for v0.4. Use worker_backend='subprocess' "
-            "for OS-level isolation in v0.3."
+            "DockerWorker is not implemented; there is no container code path in "
+            "sovereign-agent. Use worker_backend='subprocess' for OS-level "
+            "isolation (Landlock on Linux >=5.13, sandbox-exec on macOS)."
         )
 
     async def close(self) -> None:

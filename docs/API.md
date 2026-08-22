@@ -3,6 +3,12 @@
 **Applies from:** v0.2.0 onwards.
 **Contract version:** 1.
 
+!!! warning "The tree is ahead of the last release"
+    The only published release is **0.2.0**, whose semver surface was **67**
+    symbols. The working tree exports **76**. The 9 extra symbols are unreleased
+    v0.3 work and carry **no** stability promise until v0.3.0 is tagged. Both
+    sets are listed below, separately, so you can tell which is which.
+
 This document specifies which parts of sovereign-agent are covered by the
 [semver](https://semver.org/) contract, what "breaking change" means in this
 codebase, and what guarantees users of `pip install sovereign-agent` can
@@ -66,7 +72,9 @@ If you find yourself importing from internal paths, either:
 
 ---
 
-## The 67 public symbols (v0.2.0)
+## The 67 stable symbols (published v0.2.0)
+
+These are covered by the contract above for every `0.2.*` release.
 
 Category | Symbols
 ---|---
@@ -87,6 +95,35 @@ Category | Symbols
 **Tools** | `ToolRegistry`, `ToolResult`, `register_tool`, `global_registry`, `make_builtin_registry`
 **Queue** | `SessionQueue`, `TaskPriority`
 **Meta** | `__version__`
+
+---
+
+## The 9 unreleased additions (in-tree, not covered)
+
+These are in `sovereign_agent.__all__` on `main` but were not in the published
+0.2.0 surface. They may be renamed, resignatured, or removed before v0.3.0 is
+tagged. Do not pin production code to them.
+
+Category | Symbols
+---|---
+**Channels** (v0.3 M1) | `CHANNEL_REGISTRY`
+**Plugin registries** (v0.3 M3) | `Plugin`, `Registry`
+**Worker backends** (v0.3 M4a) | `WorkerBackend`, `WorkerOutcome`, `BareWorker`, `SubprocessWorker`, `DockerWorker`, `make_worker_backend`
+
+`DockerWorker` is a stub. It satisfies the `WorkerBackend` protocol so that
+`Config.worker_backend='docker'` constructs without an import error, but
+`run_session()` raises `NotImplementedError`. See
+[v0.3 non-goals](v0.3-non-goals.md).
+
+### Imported but not exported
+
+A few v0.3 names are importable from the top-level package yet are **not** in
+`__all__`: `ChannelAdapter`, `ChannelRegistry`, `CliChannelAdapter`,
+`InboundEvent`, `InboundRouter`, `OutboundMessage`, and `LivenessMonitor`. By the
+rule stated at the top of this document, absence from `__all__` means internal.
+Being importable is not a promise.
+
+---
 
 If you need to use a symbol not listed here, it is internal. See "What
 'internal' means" above.
@@ -162,5 +199,5 @@ Example timeline:
 ## Questions
 
 Open an issue at
-[github.com/sovereignagents/sovereign-agent/issues](https://github.com/sovereignagents/sovereign-agent/issues)
+[github.com/zeroemployeeorg/sovereign-agent/issues](https://github.com/zeroemployeeorg/sovereign-agent/issues)
 with the `api-stability` label.

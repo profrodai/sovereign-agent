@@ -1,8 +1,8 @@
 site_name: sovereign-agent
 site_description: A framework for building always-on AI agents that you actually own
-site_url: https://sovereignagents.github.io/sovereign-agent/
-repo_url: https://github.com/sovereignagents/sovereign-agent
-repo_name: sovereignagents/sovereign-agent
+site_url: https://zeroemployeeorg.github.io/sovereign-agent/
+repo_url: https://github.com/zeroemployeeorg/sovereign-agent
+repo_name: zeroemployeeorg/sovereign-agent
 edit_uri: edit/main/docs/
 
 theme:
@@ -44,6 +44,10 @@ nav:
   - Architecture:
       - Overview: architecture.md
   - API Reference: api_reference.md
+  - API Stability: API.md
   - Chapters:
       - Overview: chapters/index.md
   - Deployment: deployment.md
+  - Project:
+      - v0.3 Non-Goals: v0.3-non-goals.md
+      - Branch Consolidation (2026-08-22): branch-consolidation-2026-08-22.md

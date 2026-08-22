@@ -1,8 +1,12 @@
 # API reference
 
-The supported public API of `sovereign_agent`. Anything not listed here is internal and may change between patch releases.
+The public API of `sovereign_agent`. Anything not listed here is internal and may change between patch releases.
 
 Full docstrings are on the classes themselves; this page is an overview. For the definitive reference, read the source — every public class has a docstring that explains its purpose, parameters, and behaviour.
+
+The authoritative list of what is *stable* versus merely *present* is
+[API Stability](API.md). Sections below marked **(unreleased v0.3)** are in the
+tree but carry no compatibility promise.
 
 ## Errors (Pattern C)
 
@@ -145,6 +149,48 @@ from sovereign_agent import (
     MemoryRetrieval, MemoryConsolidation,
 )
 ```
+
+These classes exist and can be instantiated. They do not yet retrieve or
+consolidate anything useful. Vector-DB backends are a
+[v0.3 non-goal](v0.3-non-goals.md).
+
+## Worker backends (unreleased v0.3)
+
+```python
+from sovereign_agent import (
+    WorkerBackend, WorkerOutcome,
+    BareWorker, SubprocessWorker, DockerWorker,
+    make_worker_backend,
+)
+```
+
+`make_worker_backend(config, advance_fn=...)` selects a backend from
+`Config.worker_backend`, which accepts `"bare"`, `"subprocess"`, or `"docker"`:
+
+| Value | Status |
+|---|---|
+| `"bare"` (default) | Works. Runs the step in-process — no isolation, by choice. |
+| `"subprocess"` | Works. Separate Python process, optionally confined by Landlock (Linux ≥ 5.13) or `sandbox-exec` (macOS). Raises at construction time if you ask for it on a host with neither. |
+| `"docker"` | **Stub.** Constructs and logs a warning; `run_session()` raises `NotImplementedError`. |
+
+Use `"subprocess"` where you would have reached for `"docker"`.
+
+## Plugin registries (unreleased v0.3)
+
+```python
+from sovereign_agent import Plugin, Registry
+```
+
+## Channels (unreleased v0.3)
+
+```python
+from sovereign_agent import CHANNEL_REGISTRY
+```
+
+`CHANNEL_REGISTRY` is the only channel symbol in `__all__`. The adapter types
+(`ChannelAdapter`, `CliChannelAdapter`, `InboundEvent`, `InboundRouter`,
+`OutboundMessage`, `ChannelRegistry`) are importable but internal — see
+[API Stability](API.md).
 
 ## LLM client (internal)
 

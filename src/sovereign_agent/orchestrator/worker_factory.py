@@ -7,8 +7,8 @@ the right backend based on `config.worker_backend`. Three values:
   - "subprocess" : sandboxed via Landlock (Linux) or sandbox-exec (macOS).
                    Fails loud at construction time if the host has
                    neither primitive available.
-  - "docker"     : v0.4 stub. Reserved slot; raises NotImplementedError
-                   on use.
+  - "docker"     : unavailable placeholder; raises NotImplementedError
+                   on use and is not advertised as a supported backend.
 
 ## Fail-loud philosophy
 

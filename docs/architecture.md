@@ -1,8 +1,28 @@
 # Architecture
 
-The authoritative architecture document is [the Statement of Work in the repo root][sow]. This page is a short summary so readers have a signpost to the full doc.
+This page is the architecture summary for `sovereign-agent`. It is not a pointer
+to a longer document elsewhere in this tree, because there is no longer document.
 
-[sow]: https://github.com/sovereignagents/sovereign-agent/blob/main/SOW.md
+Earlier revisions of this page described a root `SOW.md` as "the authoritative
+architecture document." No such file has ever existed in this repository, and it
+is not going to be added. The reason is a repository boundary, not an oversight:
+
+- **`work_repo`** — this repository. It holds code that genuinely collides, so
+  work lands on branches and is merged through pull requests. What it owes you is
+  readable code, this architecture summary, the API contract in
+  [API stability](API.md), and the [CHANGELOG](https://github.com/zeroemployeeorg/sovereign-agent/blob/main/CHANGELOG.md).
+- **`sow_repo`** — a separate corpus repository. Scoping and reporting live
+  there, not here.
+
+These are deliberately two different fields. A Statement of Work committed onto a
+branch in a work repo is invisible to everyone who is not already on that branch,
+which is exactly the failure mode the split exists to prevent. So: no `SOW.md` in
+this tree, and no path in this tree that claims to be one.
+
+For the current release-readiness picture, read
+[CHANGELOG.md](https://github.com/zeroemployeeorg/sovereign-agent/blob/main/CHANGELOG.md)
+and [v0.3 non-goals](v0.3-non-goals.md). Those are maintained; a checklist buried
+in a spec document would not be.
 
 ## One sentence
 
@@ -53,6 +73,19 @@ Reasoning models plan well but are slow at tool use. Fast tool-calling models ex
 
 Split the roles: the planner produces subgoals; the executor runs each one through a ReAct loop. Empirically, this lifts task success by 15–30% on multi-step tasks while reducing total latency, because the executor moves much faster than a thinking model would.
 
-## Full SOW
+## Where the rest of it lives
 
-For the full rationale, prior art credits, file-level specifications, test obligations, release readiness checklist, and the canonical list of what's in scope for v1.0 and what's deliberately deferred: [SOW.md][sow].
+There is no single specification document to send you to. The material an SOW
+would have carried is distributed across artifacts that are actually maintained:
+
+| What you want | Where it is |
+|---|---|
+| Prior art and credits | [`CREDITS.md`](https://github.com/zeroemployeeorg/sovereign-agent/blob/main/CREDITS.md) |
+| File-level specifications | The module docstrings. Every public module explains why it exists before it explains what it does. |
+| Test obligations | `tests/`, and the CI workflow that gates them |
+| What shipped, when | [`CHANGELOG.md`](https://github.com/zeroemployeeorg/sovereign-agent/blob/main/CHANGELOG.md) |
+| What is deliberately deferred | [v0.3 non-goals](v0.3-non-goals.md) |
+| What the public API promises | [API stability](API.md) |
+
+Scoping and reporting for work on this repository live in the corpus repository
+(`sow_repo`), not here. See the boundary note at the top of this page.

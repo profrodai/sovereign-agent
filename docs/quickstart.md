@@ -4,10 +4,21 @@
 
 ```bash
 pip install sovereign-agent            # core
-pip install sovereign-agent[dev]       # core + test/lint/docs tooling
 ```
 
 Requires Python 3.12+.
+
+Dev tooling is a PEP 735 dependency *group*, not an extra, so there is no
+`[dev]` to install. From a checkout:
+
+```bash
+uv sync --group dev                    # or: pip install -e . --group dev
+```
+
+Optional extras that do something: `[evidently]`, `[otel]`, `[voice]`, `[rasa]` —
+and note that the Evidently and OTel backends are stubs today. The `[docker]`
+extra installs the Docker SDK but there is no working Docker code path; see
+[v0.3 non-goals](v0.3-non-goals.md).
 
 ## Preflight
 

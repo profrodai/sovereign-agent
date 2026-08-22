@@ -15,7 +15,7 @@ name: publish
 #   https://pypi.org/manage/account/publishing/
 # with:
 #   - PyPI Project Name: sovereign-agent
-#   - Owner: sovereignagents
+#   - Owner: zeroemployeeorg
 #   - Repository name: sovereign-agent
 #   - Workflow filename: publish.yml
 #   - Environment name: pypi

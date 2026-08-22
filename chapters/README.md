@@ -53,4 +53,4 @@ This is the same trade-off Sasha Rush makes in minitorch (four modules) and Karp
 
 ## Where to go after the chapters
 
-When you've finished the chapters, the homework repos (`homework-*`) are the next step: build a new scenario on the framework you've now understood from the inside. The first one is [`homework-pub-booking`](https://github.com/sovereignagents/homework-pub-booking) — extend sovereign-agent into a full hybrid pub-booking system with a real LLM, Rasa CALM callbacks, and a voice pipeline. See that repo's README for the current assignment.
+When you've finished the chapters, the homework repos (`homework-*`) are the next step: build a new scenario on the framework you've now understood from the inside. The first one is [`homework-pub-booking`](https://github.com/zeroemployeeorg/homework-pub-booking) — extend sovereign-agent into a full hybrid pub-booking system with a real LLM, Rasa CALM callbacks, and a voice pipeline. See that repo's README for the current assignment.

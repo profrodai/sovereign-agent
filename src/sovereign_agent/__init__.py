@@ -1,10 +1,24 @@
 """sovereign-agent: a framework for building always-on AI agents that you actually own.
 
-The ~30 public names below are the supported API surface. Anything not in
-__all__ is internal and may change between minor versions.
+Alpha. The declared version is 0.2.0 and that is the only release on PyPI,
+but this tree also carries unreleased v0.3 work (channels, plugin
+registries, worker-backend dispatch, liveness monitor).
 
-See docs/architecture.md for the architecture. See README.md for the
-quickstart.
+The 76 names in __all__ are the public API surface. Of those, 67 shipped in
+0.2.0 and are stable across 0.2.x; the 9 v0.3 additions carry no stability
+promise until 0.3.0 is tagged. Anything not in __all__ is internal and may
+change between any two releases -- including names that happen to be
+importable from this module, such as the channel adapter types and
+LivenessMonitor.
+
+Not implemented, despite having a name or a config value: DockerWorker (no
+container code path exists anywhere in this repository), the Evidently and
+OTel observability backends, the voice pipeline, and the memory
+retrieval/consolidation behaviours.
+
+See docs/API.md for the semver contract, docs/v0.3-non-goals.md for what is
+deliberately out of scope, docs/architecture.md for the architecture, and
+README.md for the quickstart.
 """
 
 from __future__ import annotations

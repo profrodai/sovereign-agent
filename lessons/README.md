@@ -2,7 +2,11 @@
 
 Dated writeups of experiments against sovereign-agent. Each lesson implements a technique (usually from a recent paper), compares it against a baseline on standard scenarios, and writes up what was learned.
 
-Lessons are the **research vehicle** for the framework. See SOW §4 for the full rationale. The short version: without this feed, every paper's technique lives in isolation — a PDF, maybe a reference implementation, nobody builds on any of them. With the feed, each paper gets implemented against a real always-on agent, compared against a baseline on the same scenarios every other lesson used, and archived in a location anyone can clone and run.
+Lessons are the intended **research vehicle** for the framework. The rationale: without this feed, every paper's technique lives in isolation — a PDF, maybe a reference implementation, nobody builds on any of them. With the feed, each paper gets implemented against a real always-on agent, compared against a baseline on the same scenarios every other lesson used, and archived in a location anyone can clone and run.
+
+(Earlier text here cited "SOW §4". There is no SOW in this repository and there is
+not going to be one — this is a work repo, and scoping lives in the corpus repo.
+See [`docs/architecture.md`](../docs/architecture.md).)
 
 ## Adding a lesson
 
@@ -15,7 +19,7 @@ Lessons are the **research vehicle** for the framework. See SOW §4 for the full
 
 ## Current lessons
 
-*No published lessons yet.* The framework is v0.1.0 alpha; the first lessons land once the v1.0 release checklist clears. The template below is ready for use.
+*No published lessons yet.* `_template/` is the only thing in this directory. The framework is alpha (`0.2.0` published, v0.3 work unreleased), and no lesson has been written, so treat this directory as intent rather than content.
 
 ## Deprecation
 

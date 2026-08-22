@@ -2,13 +2,93 @@
 
 All notable changes to sovereign-agent.
 
-## [0.2.0] — unreleased
+Repository: [`zeroemployeeorg/sovereign-agent`](https://github.com/zeroemployeeorg/sovereign-agent).
 
-Placeholder for the stable v0.2.0 release. Promoted from `[0.2.0-alpha]`
-once the test.pypi rehearsal is green and at least one external install
-has been verified.
+## [Unreleased] — v0.3 development
 
-## [0.2.0-alpha] — 2026-04-??   <!-- fill in date at tag time -->
+`pyproject.toml` still declares `0.2.0`. There is no v0.3 tag and no v0.3 PyPI
+release, so **the version string does not identify this tree** — use commit SHAs
+when reporting against `main`.
+
+### In-tree, unreleased
+
+Landed on `main` on 2026-08-22 via
+[PR #1](https://github.com/zeroemployeeorg/sovereign-agent/pull/1) and
+[PR #2](https://github.com/zeroemployeeorg/sovereign-agent/pull/2). See
+`docs/branch-consolidation-2026-08-22.md` for branch tips, merge commits, and a
+correction to the `archive/pre-v0.3-runtime-stack-20260822` tag, which points at
+a feature-branch tip rather than the pre-v0.3 state of `main`.
+
+- Channel adapters: `ChannelAdapter` protocol, CLI adapter, inbound router. Only
+  `CHANNEL_REGISTRY` is exported in `__all__`.
+- Generic `Plugin` protocol and `Registry[T]`.
+- Orchestrator dispatch routed through `WorkerBackend` via
+  `make_worker_backend()`.
+- `LivenessMonitor` — stalled-session detection and heartbeat. Importable but not
+  in `__all__`.
+- Move to `src/` layout.
+
+`sovereign_agent.__all__` now has 76 symbols, up from the 67 that shipped in
+0.2.0. The 9 additions carry no stability promise until 0.3.0 is tagged.
+
+### Documentation and truth repair
+
+- Repository identity updated to `zeroemployeeorg` across `README.md`,
+  `pyproject.toml` URLs, `mkdocs.yml`, and the docs tree. Old
+  `sovereignagents/...` links still resolve by GitHub redirect but are no longer
+  canonical.
+- Corrected test-count claims: the suite collects **370** tests (369 pass, 1
+  skipped). Previous docs claimed 267, 220, and 120 in different places.
+- Corrected public-API claims: **76** symbols in `__all__`, of which 67 are the
+  stable 0.2.0 surface. `docs/API.md` now lists both sets separately, and names
+  the v0.3 symbols that are importable but not in `__all__`.
+- Removed links to files that do not exist: `docs/class-slides.md`,
+  `CONTRIBUTING.md`, and a root `SOW.md`.
+- Replaced the "authoritative SOW in the repo root" framing in
+  `docs/architecture.md` with the work-repo/corpus boundary: this repository is
+  `work_repo` and holds code; scoping and reporting live in a separate
+  `sow_repo`. No corpus path is hard-coded here, by design.
+- Docker is labelled unavailable everywhere it appears. `DockerWorker` docstrings
+  now say "unimplemented stub" rather than "v0.4 stub", and the raised
+  `NotImplementedError` states that no container code path exists.
+- Corrected the install instructions: dev tooling is a PEP 735 dependency
+  *group*, so `pip install "sovereign-agent[dev]"` was never a real extra.
+- Added `docs/v0.3-non-goals.md` — normative scope boundaries for v0.3,
+  including an explicit prohibition on introducing Sandcastle in any form.
+- Added `docs/branch-consolidation-2026-08-22.md`.
+
+### Packaging
+
+- **`docker` removed from the `all` meta-extra.** `pip install
+  "sovereign-agent[all]"` no longer pulls the Docker SDK, because there is no
+  Docker code path for it to support. The `docker` extra itself is retained so
+  the dependency stays declared in one place. Install it explicitly if you need
+  the SDK for your own reasons: `pip install "sovereign-agent[docker]"`.
+
+### Not implemented, despite having a name
+
+Recorded here so the gap is documented rather than inferred:
+
+- `DockerWorker` — stub; `run_session()` raises `NotImplementedError`.
+- Evidently and OpenTelemetry observability backends — import-gated stubs.
+- Voice pipeline — protocol only.
+- `MemoryRetrieval` / `MemoryConsolidation` — class shells, no behaviour.
+- `lessons/` — a template and a rationale README; no lesson has been written.
+
+## [0.2.0] — 2026-04-24
+
+Released to PyPI as the only published release. Tag `v0.2.0` →
+`9d934cf53ff223175d01ebf07483fd608fae66a0`.
+
+Contents are as described under `[0.2.0-alpha]` below; the alpha entry was the
+working record and was never rewritten at tag time. Two claims in that entry were
+accurate when written and are no longer accurate for the current tree — the test
+count (220 then, 370 now) and the public-symbol count (67 then, 76 now).
+
+## [0.2.0-alpha] — 2026-04-24
+
+Historical record, kept as written. Counts and claims in this entry describe the
+tree at 0.2.0 and are not a description of `main` today; see `[Unreleased]` above.
 
 v0.2 focuses on five capabilities students asked about in the first-cohort
 class: parallel tool calls, process isolation without Docker, session
@@ -166,7 +246,8 @@ credentials required by default) and wired into the Makefile:
   no API tokens in the repo.
 - `pip install sovereign-agent[all]` installs evidently, otel, voice, and
   docker extras. `[rasa]` is intentionally NOT in `all` because `rasa-pro`'s
-  pin set conflicts with several other extras.
+  pin set conflicts with several other extras. (Superseded: `docker` was later
+  removed from `all` too — see `[Unreleased]`.)
 - Python 3.12+ required.
 
 ### Breaking changes

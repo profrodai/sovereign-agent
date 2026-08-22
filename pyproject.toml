@@ -30,6 +30,13 @@ dependencies = [
 #   pip install sovereign-agent[rasa]
 # or:
 #   uv add sovereign-agent --extra rasa
+#
+# `docker` is also NOT in `all`, for a different reason: there is no working
+# Docker code path to install it for. DockerWorker is a stub whose
+# run_session() raises NotImplementedError, so pulling the Docker SDK into
+# `all` would advertise a capability that does not exist. The extra is kept
+# so the dependency is declared in one place when the backend is actually
+# implemented. See docs/v0.3-non-goals.md.
 [project.optional-dependencies]
 evidently = ["evidently>=0.4"]
 otel = [
@@ -40,15 +47,15 @@ otel = [
 voice = ["speechmatics-python", "elevenlabs"]
 rasa = ["rasa-pro"]
 docker = ["docker>=7.0"]
-all = ["sovereign-agent[evidently,otel,voice,docker]"]
+all = ["sovereign-agent[evidently,otel,voice]"]
 
 [project.scripts]
 sovereign-agent = "sovereign_agent.cli:app"
 
 [project.urls]
-Homepage = "https://github.com/sovereignagents/sovereign-agent"
-Repository = "https://github.com/sovereignagents/sovereign-agent"
-Issues = "https://github.com/sovereignagents/sovereign-agent/issues"
+Homepage = "https://github.com/zeroemployeeorg/sovereign-agent"
+Repository = "https://github.com/zeroemployeeorg/sovereign-agent"
+Issues = "https://github.com/zeroemployeeorg/sovereign-agent/issues"
 
 # Dev tooling lives in dependency groups (PEP 735). Never shipped on PyPI.
 # Install with `uv sync --all-groups` or `uv sync --group dev`.
