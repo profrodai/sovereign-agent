@@ -40,7 +40,7 @@ from sovereign_agent._internal.isolation import detect_best_policy
 from sovereign_agent.orchestrator.worker import SubprocessWorker
 
 worker = SubprocessWorker(
-    isolation_policy=detect_best_policy(),   # <-- picks the strongest available
+    isolation_policy=detect_best_policy(),  # <-- picks the strongest available
     allow_network=False,
 )
 ```

@@ -73,7 +73,7 @@ return ToolResult(
         "approval_reason": "Deposit exceeds auto-approve ceiling.",
     },
     summary="proposed booking awaiting approval",
-    requires_human_approval=True,    # <-- that's it
+    requires_human_approval=True,  # <-- that's it
 )
 ```
 
