@@ -47,7 +47,8 @@ SCOPE   ?= .
 _PYTEST_K := $(if $(strip $(K)),-k "$(K)",)
 
 # ── Paths ────────────────────────────────────────────────────────────────────
-PKG_DIR       := sovereign_agent
+SRC_DIR       := src
+PKG_DIR       := $(SRC_DIR)/sovereign_agent
 TESTS_DIR     := tests
 CHAPTERS_DIR  := chapters
 EXAMPLES_DIR  := examples
