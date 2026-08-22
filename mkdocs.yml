@@ -46,12 +46,24 @@ nav:
   - API Reference: api_reference.md
   - API Stability: API.md
   - Migration from v0.2: migration-v0.2-to-v0.3.md
+  - Migration from v0.3: migration-v0.3-to-v0.4.md
   - Threat Model: threat-model.md
   - Chapters:
       - Overview: chapters/index.md
       - Teaching Surface: teaching-surface.md
   - Deployment: deployment.md
   - Project:
+      - v0.4.0 Release Notes: release-notes/0.4.0.md
+      - v0.4 Operator Guide: v0.4-operator-guide.md
+      - v0.4 Unit 1 Protocol: v0.4-unit1-protocol.md
+      - v0.4 Unit 2 Connector: v0.4-unit2-connector.md
+      - v0.4 Unit 3 Relay: v0.4-unit3-relay.md
+      - v0.4 Unit 4 Seats: v0.4-unit4-seats.md
+      - v0.4 Unit 5 Approvals: v0.4-unit5-approvals.md
+      - v0.4 Unit 6 Channels: v0.4-unit6-channels.md
+      - v0.4 Unit 7 Plugins: v0.4-unit7-plugins.md
+      - v0.4 Unit 8 Service: v0.4-unit8-service.md
+      - v0.4 Unit 9 Release: v0.4-unit9-release.md
       - v0.3.0 Release Notes: release-notes/0.3.0.md
       - v0.3 Unit 1 Contracts: v0.3-unit1-contracts.md
       - v0.3 Unit 2 Native Provider: v0.3-unit2-native-provider.md

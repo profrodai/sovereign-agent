@@ -1,4 +1,23 @@
-# v0.3 threat model
+# v0.4 threat model
+
+v0.4 inherits the v0.3 model and adds:
+
+- Transport authentication (HMAC) is caller identity, not ZEO authorization.
+- Replay and idempotency ledgers are durable and fail closed on conflict.
+- One coordinator lease fences a runtime root; PID reuse is assumed.
+- Channel inbound events deduplicate by stable platform IDs; outbound
+  delivery receipts are independent of execution receipts.
+- Plugins load only after allowlist and API-range checks.
+- Backup restore refuses to occupy a live coordinator root.
+
+Residual risk from v0.3 remains: a compromised same-user host can defeat
+application-level controls. Multi-host HA is out of scope.
+
+The v0.3 text follows.
+
+---
+
+
 
 ## Security objective
 

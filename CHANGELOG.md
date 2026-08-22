@@ -4,6 +4,16 @@ All notable changes to sovereign-agent.
 
 Repository: [`zeroemployeeorg/sovereign-agent`](https://github.com/zeroemployeeorg/sovereign-agent).
 
+## [0.4.0] — 2026-08-22
+
+Durable local execution service on top of the v0.3 harness. HMAC-authenticated
+Unix-socket API, serialized Zero Employee connector, relay v2 directory states,
+seat supervision, durable approvals, webhook/Slack/email-draft channels,
+allowlisted plugins, coordinator fencing, backup/restore, and copy-on-write
+migration from v0.3 runtime roots. No Sandcastle. No multi-host workers.
+
+The 152-symbol v0.3 `__all__` surface is preserved.
+
 ## [0.3.0] — 2026-08-22
 
 The package, documentation, API manifest, wheel, and sdist declare v0.3.0.

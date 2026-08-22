@@ -171,9 +171,12 @@ def test_nack_backoff_and_max_attempt_dead_letter(system):
     first = relay.claim(recipient.address, owner="one")
     assert first is not None
     pending = relay.nack("retry", owner="one", lease_token=first.lease_token, error="temporary")
-    assert pending.available_at == clock.now + timedelta(seconds=2)
+    assert pending.available_at is not None
+    assert (
+        clock.now + timedelta(seconds=1) <= pending.available_at <= clock.now + timedelta(seconds=4)
+    )
     assert relay.claim(recipient.address, owner="one") is None
-    clock.advance(2)
+    clock.advance(4)
     second = relay.claim(recipient.address, owner="two")
     assert second is not None and second.attempt_count == 2
     dead = relay.nack("retry", owner="two", lease_token=second.lease_token, error="permanent")
@@ -224,7 +227,7 @@ def test_negative_acknowledgement_redacts_diagnostic_secrets(system):
 def test_corruption_is_quarantined_explicitly(system):
     _, root, _, _, recipient, relay = system
     relay.enqueue(message(system, "bad"))
-    path = next((root.relay_dir / "messages").glob("*.json"))
+    path = next((root.relay_dir / "inbox").rglob("*.json"))
     path.write_text("{bad", encoding="utf-8")
     with pytest.raises(RelayCorruptionError, match="quarantined"):
         relay.claim(recipient.address, owner="worker")
@@ -351,7 +354,11 @@ def test_artifact_refs_round_trip_without_copying_bytes(system):
     assert stored.to_instance.value == "recipient-1"
     assert stored.from_instance.value == "sender-1"
     queue_bytes = b"".join(
-        path.read_bytes() for path in (root.relay_dir / "messages").glob("*.json")
+        path.read_bytes()
+        for path in (
+            *(root.relay_dir / "inbox").rglob("*.json"),
+            *(root.relay_dir / "messages").glob("*.json"),
+        )
     )
     assert b"secret-bytes" not in queue_bytes
     restored = RelayMessage.from_dict(

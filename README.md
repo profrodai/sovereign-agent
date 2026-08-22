@@ -353,13 +353,13 @@ Override via `SOVEREIGN_AGENT_DATA_DIR=<path>`.
 
 ## Status
 
-**v0.3.0.** The package exports **152** symbols in
-`sovereign_agent.__all__`. All 67 symbols from v0.2.0 remain, and the 85 v0.3
-additions are covered by the v0.3 compatibility contract. See
-[`docs/API.md`](docs/API.md) and the checked export manifests.
+**v0.4.0.** The package still exports **152** symbols in
+`sovereign_agent.__all__` (the v0.3 surface, preserved). v0.4 adds a
+governed-connectivity service as importable subpackages. See
+[`docs/API.md`](docs/API.md) and [`docs/v0.4-operator-guide.md`](docs/v0.4-operator-guide.md).
 
 - ✅ Framework: sessions, tickets, IPC, parallelism, isolation, resume, verifiers, HITL
-- ✅ 500 tests collected — 497 pass, 3 opt-in/platform skips
+- ✅ 522 tests collected — 519 pass, 3 opt-in/platform skips
 - ✅ 8 reference scenarios, all with dataflow integrity checks
 - ✅ 5 tutorial chapters, drift-checked against production code in CI
 - 🚧 Voice pipeline, observability backends (Evidently/OTel) — skeletons, not implementations

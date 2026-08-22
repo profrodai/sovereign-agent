@@ -34,10 +34,9 @@ The core idea: the agent's **session directory is the unit of everything**. Memo
 
 ## Status
 
-Alpha. The declared package and documentation version is **0.3.0**. The release
-adds native CLI providers, governed repository execution, durable seat
-registry/relay, and finalized execution receipts while retaining all v0.2 public
-symbols.
+Alpha. The declared package and documentation version is **0.4.0**. The release
+adds authenticated local connectivity, durable relay v2, approvals, and
+coordinator operations while retaining all v0.3 public symbols.
 
 The spine is covered by deterministic contract, unit, and integration tests.
 Memory, voice, and the observability backends (Evidently, OTel) are

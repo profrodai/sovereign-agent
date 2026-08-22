@@ -6,6 +6,7 @@ import sovereign_agent
 from scripts.verify_release import (
     API_V02,
     API_V03,
+    API_V04,
     EXPECTED_VERSION,
     _manifest,
     _source_exports,
@@ -21,9 +22,10 @@ def test_release_source_contract_is_coherent() -> None:
 def test_v02_api_is_preserved_in_v03_manifest() -> None:
     v02 = set(_manifest(API_V02))
     v03 = set(_manifest(API_V03))
+    v04 = set(_manifest(API_V04))
     assert len(v02) == 67
     assert len(v03) == 152
-    assert v02 <= v03
+    assert v02 <= v03 == v04
     assert sorted(sovereign_agent.__all__) == _source_exports()
 
 

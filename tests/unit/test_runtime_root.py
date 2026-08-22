@@ -50,6 +50,13 @@ def test_initialize_writes_versioned_layout(tmp_path: Path) -> None:
     assert RuntimeRoot.open(runtime.root) == runtime
 
 
+def test_layout_v1_root_remains_readable(tmp_path: Path) -> None:
+    runtime = RuntimeRoot(tmp_path / "runtime", layout_version=1).initialize()
+    opened = RuntimeRoot.open(runtime.root)
+    assert opened.layout_version == 1
+    assert not (runtime.root / "api").exists()
+
+
 def test_initialize_rejects_unknown_on_disk_version(tmp_path: Path) -> None:
     runtime = RuntimeRoot(tmp_path / "runtime").initialize()
     metadata = json.loads(runtime.metadata_path.read_text(encoding="utf-8"))

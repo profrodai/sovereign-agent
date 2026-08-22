@@ -13,9 +13,26 @@ from typing import Any
 from sovereign_agent._internal.atomic import atomic_write_json, fsync_directory
 
 RUNTIME_SCHEMA_VERSION = 1
-RUNTIME_LAYOUT_VERSION = 1
+RUNTIME_LAYOUT_VERSION = 2
 RUNTIME_METADATA_FILENAME = "runtime.json"
-RUNTIME_DIRECTORIES = ("seats", "sessions", "executions", "relay", "receipts", "locks")
+RUNTIME_LAYOUT_V1_DIRECTORIES = (
+    "seats",
+    "sessions",
+    "executions",
+    "relay",
+    "receipts",
+    "locks",
+)
+RUNTIME_LAYOUT_V2_DIRECTORIES = (
+    *RUNTIME_LAYOUT_V1_DIRECTORIES,
+    "api",
+    "approvals",
+    "service",
+    "operations",
+    "plugins",
+)
+RUNTIME_DIRECTORIES = RUNTIME_LAYOUT_V2_DIRECTORIES
+SUPPORTED_LAYOUT_VERSIONS = frozenset({1, 2})
 
 _SAFE_COMPONENT = re.compile(r"^[A-Za-z0-9][A-Za-z0-9._-]*$")
 
@@ -78,6 +95,36 @@ class RuntimeRoot:
     def locks_dir(self) -> Path:
         return self.root / "locks"
 
+    @property
+    def api_dir(self) -> Path:
+        return self.root / "api"
+
+    @property
+    def approvals_dir(self) -> Path:
+        return self.root / "approvals"
+
+    @property
+    def service_dir(self) -> Path:
+        return self.root / "service"
+
+    @property
+    def operations_dir(self) -> Path:
+        return self.root / "operations"
+
+    @property
+    def plugins_dir(self) -> Path:
+        return self.root / "plugins"
+
+    def ensure_directory(self, name: str) -> Path:
+        """Create a named first-level directory without rewriting layout metadata."""
+        if name not in RUNTIME_LAYOUT_V2_DIRECTORIES:
+            raise RuntimeRootError(f"unknown runtime directory: {name}")
+        directory = self.root / name
+        if directory.is_symlink():
+            raise RuntimeRootError(f"runtime directory must not be a symlink: {directory}")
+        directory.mkdir(mode=0o700, parents=True, exist_ok=True)
+        return directory
+
     def initialize(self) -> RuntimeRoot:
         """Create and validate the durable layout and atomic root metadata."""
         if self.root.is_symlink():
@@ -87,10 +134,14 @@ class RuntimeRoot:
 
         self.root.mkdir(parents=True, exist_ok=True)
         existing = self._read_metadata()
+        layout = self.layout_version
         if existing is not None:
             self._validate_metadata(existing)
+            layout = int(existing["layout_version"])
+            object.__setattr__(self, "layout_version", layout)
+            object.__setattr__(self, "schema_version", int(existing["schema_version"]))
 
-        for name in RUNTIME_DIRECTORIES:
+        for name in directories_for_layout(layout):
             directory = self.root / name
             if directory.is_symlink():
                 raise RuntimeRootError(f"runtime directory must not be a symlink: {directory}")
@@ -111,12 +162,20 @@ class RuntimeRoot:
         legacy_sessions_dir: Path | None = None,
     ) -> RuntimeRoot:
         """Open and validate an initialized runtime root without modifying it."""
-        runtime = cls(root, legacy_sessions_dir=legacy_sessions_dir)
-        metadata = runtime._read_metadata()
+        probe = cls(root, legacy_sessions_dir=legacy_sessions_dir)
+        metadata = probe._read_metadata()
         if metadata is None:
-            raise RuntimeRootError(f"runtime metadata not found: {runtime.metadata_path}")
+            raise RuntimeRootError(f"runtime metadata not found: {probe.metadata_path}")
+        schema = int(metadata["schema_version"])
+        layout = int(metadata["layout_version"])
+        runtime = cls(
+            root,
+            legacy_sessions_dir=legacy_sessions_dir,
+            schema_version=schema,
+            layout_version=layout,
+        )
         runtime._validate_metadata(metadata)
-        for name in RUNTIME_DIRECTORIES:
+        for name in directories_for_layout(layout):
             directory = runtime.root / name
             if directory.is_symlink() or not directory.is_dir():
                 raise RuntimeRootError(f"runtime directory missing or unsafe: {directory}")
@@ -173,7 +232,7 @@ class RuntimeRoot:
         return {
             "schema_version": self.schema_version,
             "layout_version": self.layout_version,
-            "directories": list(RUNTIME_DIRECTORIES),
+            "directories": list(directories_for_layout(self.layout_version)),
         }
 
     def _read_metadata(self) -> dict[str, Any] | None:
@@ -192,13 +251,15 @@ class RuntimeRoot:
     def _validate_metadata(self, metadata: dict[str, Any]) -> None:
         schema = metadata.get("schema_version")
         layout = metadata.get("layout_version")
-        if schema != self.schema_version or layout != self.layout_version:
+        if schema != RUNTIME_SCHEMA_VERSION or layout not in SUPPORTED_LAYOUT_VERSIONS:
             raise UnsupportedRuntimeVersionError(
                 "unsupported runtime version: "
                 f"schema={schema!r}, layout={layout!r}; "
-                f"expected schema={self.schema_version}, layout={self.layout_version}"
+                f"supported schema={RUNTIME_SCHEMA_VERSION}, "
+                f"layouts={sorted(SUPPORTED_LAYOUT_VERSIONS)}"
             )
-        if metadata.get("directories") != list(RUNTIME_DIRECTORIES):
+        expected = list(directories_for_layout(int(layout)))
+        if metadata.get("directories") != expected:
             raise RuntimeRootError("runtime metadata directory layout does not match this version")
 
     def _legacy_session_directory(self, session_id: str) -> Path | None:
@@ -228,6 +289,14 @@ class RuntimeRoot:
         return destination
 
 
+def directories_for_layout(layout: int) -> tuple[str, ...]:
+    if layout == 1:
+        return RUNTIME_LAYOUT_V1_DIRECTORIES
+    if layout == 2:
+        return RUNTIME_LAYOUT_V2_DIRECTORIES
+    raise UnsupportedRuntimeVersionError(f"unsupported runtime layout: {layout}")
+
+
 def _validate_component(value: str, label: str) -> None:
     if not _SAFE_COMPONENT.fullmatch(value) or value in {".", ".."}:
         raise RuntimeRootError(f"unsafe {label}: {value!r}")
@@ -235,10 +304,14 @@ def _validate_component(value: str, label: str) -> None:
 
 __all__ = [
     "RUNTIME_DIRECTORIES",
+    "RUNTIME_LAYOUT_V1_DIRECTORIES",
+    "RUNTIME_LAYOUT_V2_DIRECTORIES",
     "RUNTIME_LAYOUT_VERSION",
     "RUNTIME_METADATA_FILENAME",
     "RUNTIME_SCHEMA_VERSION",
+    "SUPPORTED_LAYOUT_VERSIONS",
     "RuntimeRoot",
     "RuntimeRootError",
     "UnsupportedRuntimeVersionError",
+    "directories_for_layout",
 ]

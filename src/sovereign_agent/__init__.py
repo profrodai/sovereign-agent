@@ -1,9 +1,9 @@
 """sovereign-agent: a framework for building always-on AI agents that you actually own.
 
-Alpha. The declared version is 0.3.0.
+Alpha. The declared version is 0.4.0.
 
-The 152 names in __all__ are the v0.3 public API surface. All 67 symbols
-published in v0.2.0 remain covered by the compatibility contract. Anything not
+The 152 names in __all__ are the v0.3 public API surface, preserved in v0.4.
+All 67 symbols published in v0.2.0 remain covered by the compatibility contract. Anything not
 in __all__ is internal and may change between any two releases -- including
 names that happen to be importable from this module, such as the channel adapter
 types and LivenessMonitor.
@@ -252,7 +252,7 @@ from sovereign_agent.tools import (
     register_tool,
 )
 
-__version__ = "0.3.0"
+__version__ = "0.4.0"
 
 __all__ = [
     # errors

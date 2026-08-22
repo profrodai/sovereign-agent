@@ -1,4 +1,4 @@
-"""Deterministic v0.3 distribution and compatibility verification.
+"""Deterministic v0.4 distribution and compatibility verification.
 
 This gate never publishes, contacts a provider, or reads credentials.  It proves
 that the declared API and version match the documentation, that the distributions
@@ -22,7 +22,8 @@ ROOT = Path(__file__).resolve().parent.parent
 PACKAGE = ROOT / "src" / "sovereign_agent"
 API_V02 = ROOT / "docs" / "public-api-v0.2.txt"
 API_V03 = ROOT / "docs" / "public-api-v0.3.txt"
-EXPECTED_VERSION = "0.3.0"
+API_V04 = ROOT / "docs" / "public-api-v0.4.txt"
+EXPECTED_VERSION = "0.4.0"
 REQUIRED_SCHEMAS = {
     "sovereign_agent/contracts/schemas/capability-manifest.schema.json",
     "sovereign_agent/contracts/schemas/execution-receipt.schema.json",
@@ -153,7 +154,7 @@ before = sorted(str(p.relative_to(pathlib.Path.cwd())) for p in pathlib.Path.cwd
 import sovereign_agent as sa
 after = sorted(str(p.relative_to(pathlib.Path.cwd())) for p in pathlib.Path.cwd().rglob("*"))
 assert before == after, (before, after)
-assert sa.__version__ == "0.3.0"
+assert sa.__version__ == "0.4.0"
 assert len(sa.__all__) == len(set(sa.__all__))
 schemas = importlib.resources.files("sovereign_agent.contracts.schemas")
 for name in (
@@ -193,18 +194,24 @@ def verify_source() -> None:
 
     v02 = _manifest(API_V02)
     v03 = _manifest(API_V03)
+    v04 = _manifest(API_V04)
     assert v02 == sorted(v02), "v0.2 API manifest must be sorted"
     assert v03 == sorted(v03), "v0.3 API manifest must be sorted"
+    assert v04 == sorted(v04), "v0.4 API manifest must be sorted"
     assert len(v02) == 67 and len(v02) == len(set(v02))
     assert len(v03) == 152 and len(v03) == len(set(v03))
+    assert v03 == v04
     assert set(v02) <= set(v03), "v0.3 removed a stable v0.2 symbol"
-    assert _source_exports() == v03, "documented v0.3 API differs from __all__"
+    assert _source_exports() == v04, "documented v0.4 API differs from __all__"
 
     for required in (
         ROOT / "docs" / "migration-v0.2-to-v0.3.md",
+        ROOT / "docs" / "migration-v0.3-to-v0.4.md",
         ROOT / "docs" / "threat-model.md",
         ROOT / "docs" / "release-notes" / "0.3.0.md",
+        ROOT / "docs" / "release-notes" / "0.4.0.md",
         ROOT / "docs" / "teaching-surface.md",
+        ROOT / "docs" / "v0.4-operator-guide.md",
     ):
         assert required.is_file(), f"missing release document: {required.relative_to(ROOT)}"
 

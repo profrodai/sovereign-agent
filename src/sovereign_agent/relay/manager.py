@@ -4,6 +4,8 @@ from __future__ import annotations
 
 import hashlib
 import json
+import os
+import random
 import secrets
 import threading
 from collections.abc import Callable
@@ -12,8 +14,13 @@ from dataclasses import replace
 from datetime import UTC, datetime, timedelta
 from pathlib import Path
 
-from sovereign_agent._internal.atomic import atomic_write_bytes, fsync_directory
+from sovereign_agent._internal.atomic import (
+    atomic_append_jsonl,
+    atomic_write_bytes,
+    fsync_directory,
+)
 from sovereign_agent._internal.file_lock import exclusive_file_lock
+from sovereign_agent._internal.hashed import digest
 from sovereign_agent.contracts._core import canonical_json_bytes
 from sovereign_agent.contracts.ids import RelayMessageId
 from sovereign_agent.contracts.redaction import redact_text
@@ -64,27 +71,47 @@ class DurableRelay:
         self.backoff_cap = backoff_cap
         self._notifier = notifier
         self._condition = threading.Condition()
-        self._messages = self.runtime_root.relay_dir / "messages"
+        self._fault_hook = None
+        self._legacy_messages = self.runtime_root.relay_dir / "messages"
         self._acks = self.runtime_root.relay_dir / "acknowledgements"
         self._quarantine = self.runtime_root.relay_dir / "quarantine"
-        for directory in (self._messages, self._acks, self._quarantine):
+        self._attempts = self.runtime_root.relay_dir / "attempts"
+        self._conversations = self.runtime_root.relay_dir / "conversations"
+        self._state_roots = {
+            DeliveryStatus.PENDING: self.runtime_root.relay_dir / "inbox",
+            DeliveryStatus.CLAIMED: self.runtime_root.relay_dir / "claimed",
+            DeliveryStatus.ACKNOWLEDGED: self.runtime_root.relay_dir / "acknowledged",
+            DeliveryStatus.DEAD_LETTERED: self.runtime_root.relay_dir / "dead-letter",
+        }
+        self._outbox = self.runtime_root.relay_dir / "outbox"
+        for directory in (
+            *self._state_roots.values(),
+            self._outbox,
+            self._acks,
+            self._quarantine,
+            self._attempts,
+            self._conversations,
+            self._legacy_messages,
+        ):
             self._safe_directory(directory)
         self._lock_path = self.runtime_root.locks_dir / "relay.lock"
         self._ensure_regular_or_missing(self._lock_path)
+        self._migrate_legacy_messages()
 
     def enqueue(self, message: RelayMessage) -> DeliveryRecord:
         self._authenticate(message.sender, "sender")
         self._authenticate(message.recipient, "recipient")
         record = DeliveryRecord(message=message, available_at=message.created_at)
         with self._guard():
-            path = self._message_path(message.message_id)
-            if path.exists():
-                existing = self._read(path)
+            existing_path = self._locate(message.message_id)
+            if existing_path is not None:
+                existing = self._read(existing_path)
                 if canonical_json_bytes(existing.message.to_dict()) != canonical_json_bytes(
                     message.to_dict()
                 ):
                     raise DuplicateMessageConflict(message.message_id.value)
                 return existing
+            path = self._record_path(record)
             self._write(path, record)
         self._wake(message.recipient)
         return record
@@ -131,8 +158,11 @@ class DurableRelay:
                     lease_owner=owner,
                     lease_token=token,
                     lease_expires_at=now + timedelta(seconds=lease_seconds),
+                    lease_owner_pid=os.getpid(),
+                    lease_instance=owner,
                 )
                 self._write(path, claimed)
+                self._log_attempt(claimed, "claimed")
                 return ClaimedMessage(claimed, token)
         return None
 
@@ -198,6 +228,7 @@ class DurableRelay:
                     self.backoff_cap,
                     self.backoff_base * (2 ** max(0, record.attempt_count - 1)),
                 )
+                delay *= 0.5 + random.random()
                 updated = replace(
                     record,
                     status=DeliveryStatus.PENDING,
@@ -205,9 +236,12 @@ class DurableRelay:
                     lease_owner=None,
                     lease_token=None,
                     lease_expires_at=None,
+                    lease_owner_pid=None,
+                    lease_instance=None,
                     last_error=safe_error,
                 )
                 self._write(path, updated)
+                self._log_attempt(updated, "nack")
         self._wake(updated.message.recipient)
         return updated
 
@@ -281,9 +315,12 @@ class DurableRelay:
             lease_owner=None,
             lease_token=None,
             lease_expires_at=None,
+            lease_owner_pid=None,
+            lease_instance=None,
             last_error="lease expired",
         )
         self._write(path, recovered)
+        self._log_attempt(recovered, "lease-expired-recovery")
         return recovered
 
     def _dead_letter(
@@ -295,10 +332,13 @@ class DurableRelay:
             lease_owner=None,
             lease_token=None,
             lease_expires_at=None,
+            lease_owner_pid=None,
+            lease_instance=None,
             last_error=error,
             dead_lettered_at=now,
         )
         self._write(path, dead)
+        self._log_attempt(dead, "dead-letter")
         return dead
 
     @staticmethod
@@ -330,48 +370,154 @@ class DurableRelay:
             key=lambda item: self._order_key(item[1]),
         )
 
+    def inspect_conversation(self, conversation_id: str) -> dict[str, object]:
+        path = self._hashed_path(self._conversations, conversation_id)
+        if not path.exists():
+            return {"conversation_id": conversation_id, "message_ids": []}
+        data = json.loads(path.read_text(encoding="utf-8"))
+        if not isinstance(data, dict):
+            raise RelayCorruptionError("conversation index is not an object")
+        return data
+
+    def _migrate_legacy_messages(self) -> None:
+        for path in sorted(self._legacy_messages.glob("*.json")):
+            try:
+                record = self._read(path)
+            except RelayCorruptionError:
+                continue
+            target = self._record_path(record)
+            if target.resolve() != path.resolve():
+                self._write(path, record)
+
+    def _log_attempt(self, record: DeliveryRecord, event: str) -> None:
+        path = (
+            self.runtime_root.relay_dir
+            / "attempts"
+            / f"{digest(record.message.message_id.value)}.jsonl"
+        )
+        atomic_append_jsonl(
+            path,
+            {
+                "event": event,
+                "message_id": record.message.message_id.value,
+                "status": record.status.value,
+                "attempt_count": record.attempt_count,
+                "lease_owner": record.lease_owner,
+                "lease_owner_pid": record.lease_owner_pid,
+            },
+        )
+
+    def _index_conversation(self, message: RelayMessage) -> None:
+        if not message.conversation_id:
+            return
+        path = self._hashed_path(self._conversations, message.conversation_id)
+        current: dict[str, object] = {"conversation_id": message.conversation_id, "message_ids": []}
+        if path.exists():
+            loaded = json.loads(path.read_text(encoding="utf-8"))
+            if isinstance(loaded, dict):
+                current = loaded
+        ids_obj = current.get("message_ids") or []
+        ids = [str(item) for item in ids_obj] if isinstance(ids_obj, list) else []
+        if message.message_id.value not in ids:
+            ids.append(message.message_id.value)
+        current["message_ids"] = ids
+        atomic_write_bytes(path, canonical_json_bytes(current))
+
     def _all_records(self) -> list[tuple[Path, DeliveryRecord]]:
         result: list[tuple[Path, DeliveryRecord]] = []
-        for path in sorted(self._messages.glob("*.json")):
-            try:
-                result.append((path, self._read(path)))
-            except RelayCorruptionError as exc:
-                quarantine = self._quarantine / f"{path.stem}-{secrets.token_hex(4)}.json"
-                path.replace(quarantine)
-                fsync_directory(self._messages)
-                fsync_directory(self._quarantine)
-                raise RelayCorruptionError(f"record quarantined at {quarantine}") from exc
+        seen: set[str] = set()
+        roots = [
+            self._state_roots[DeliveryStatus.CLAIMED],
+            self._state_roots[DeliveryStatus.PENDING],
+            self._state_roots[DeliveryStatus.ACKNOWLEDGED],
+            self._state_roots[DeliveryStatus.DEAD_LETTERED],
+            self._outbox,
+            self._legacy_messages,
+        ]
+        for root in roots:
+            paths = [root] if root == self._legacy_messages else list(root.glob("*"))
+            for directory in paths:
+                search = directory if directory.is_dir() else root
+                for path in sorted(search.glob("*.json")):
+                    try:
+                        record = self._read(path)
+                    except RelayCorruptionError as exc:
+                        quarantine = self._quarantine / f"{path.stem}-{secrets.token_hex(4)}.json"
+                        path.replace(quarantine)
+                        fsync_directory(path.parent)
+                        fsync_directory(self._quarantine)
+                        raise RelayCorruptionError(f"record quarantined at {quarantine}") from exc
+                    mid = record.message.message_id.value
+                    if mid in seen:
+                        continue
+                    seen.add(mid)
+                    result.append((path, record))
         return result
 
-    @staticmethod
-    def _order_key(record: DeliveryRecord) -> tuple[datetime, str]:
-        return record.message.created_at, record.message.message_id.value
+    def _record_dir(self, record: DeliveryRecord) -> Path:
+        if record.status is DeliveryStatus.ACKNOWLEDGED and record.message.sender.instance_id:
+            # inbound ack lives under acknowledged/<recipient>
+            root = self._state_roots[record.status]
+        else:
+            root = self._state_roots.get(record.status, self._state_roots[DeliveryStatus.PENDING])
+        instance = digest(record.message.recipient.instance_id.value)
+        return self._safe_directory(root / instance)
 
-    def _required(self, path: Path, mid: RelayMessageId) -> DeliveryRecord:
-        if not path.exists():
+    def _record_path(self, record: DeliveryRecord) -> Path:
+        return self._hashed_path(self._record_dir(record), record.message.message_id.value)
+
+    def _locate(self, message_id: RelayMessageId) -> Path | None:
+        for _, record in self._all_records():
+            if record.message.message_id == message_id:
+                # _all_records already has path as first of tuples - inefficient.
+                break
+        for path, record in self._all_records():
+            if record.message.message_id == message_id:
+                return path
+        return None
+
+    def _required(self, path: Path | None, mid: RelayMessageId) -> DeliveryRecord:
+        located = path if path is not None and path.exists() else self._locate(mid)
+        if located is None:
             raise MessageNotFound(mid.value)
-        record = self._read(path)
+        record = self._read(located)
         if record.message.message_id != mid:
             raise RelayCorruptionError("message filename and envelope identity disagree")
         return record
 
-    def _read(self, path: Path) -> DeliveryRecord:
-        self._ensure_regular_or_missing(path)
-        try:
-            data = json.loads(path.read_text(encoding="utf-8"))
-            if not isinstance(data, dict):
-                raise TypeError("record is not an object")
-            return DeliveryRecord.from_dict(data)
-        except (OSError, ValueError, TypeError, KeyError, json.JSONDecodeError) as exc:
-            raise RelayCorruptionError(f"invalid relay record: {path}") from exc
-
-    def _write(self, path: Path, record: DeliveryRecord) -> None:
-        self._ensure_regular_or_missing(path)
-        atomic_write_bytes(path, canonical_json_bytes(record.to_dict()))
-        fsync_directory(path.parent)
+    def _write(self, old_path: Path, record: DeliveryRecord) -> None:
+        target = self._record_path(record)
+        self._ensure_regular_or_missing(target)
+        atomic_write_bytes(target, canonical_json_bytes(record.to_dict()))
+        fsync_directory(target.parent)
+        if old_path.resolve() != target.resolve() and old_path.exists():
+            old_path.unlink()
+            fsync_directory(old_path.parent)
+        if self._fault_hook is not None:
+            self._fault_hook(record.status.value, target)
+        if record.message.conversation_id:
+            self._index_conversation(record.message)
+        if record.status is DeliveryStatus.PENDING:
+            outbox = self._hashed_path(
+                self._safe_directory(
+                    self._outbox / digest(record.message.sender.instance_id.value)
+                ),
+                record.message.message_id.value,
+            )
+            if not outbox.exists():
+                atomic_write_bytes(outbox, canonical_json_bytes(record.to_dict()))
 
     def _message_path(self, message_id: RelayMessageId) -> Path:
-        return self._hashed_path(self._messages, message_id.value)
+        located = self._locate(message_id)
+        if located is not None:
+            return located
+        dummy_recipient = "unknown"
+        return self._hashed_path(
+            self._safe_directory(
+                self._state_roots[DeliveryStatus.PENDING] / digest(dummy_recipient)
+            ),
+            message_id.value,
+        )
 
     def _ack_path(self, message_id: RelayMessageId) -> Path:
         return self._hashed_path(self._acks, message_id.value)
@@ -385,13 +531,29 @@ class DurableRelay:
             raise RelayValidationError("relay record escaped its directory")
         return path
 
-    def _safe_directory(self, path: Path) -> None:
+    def _safe_directory(self, path: Path) -> Path:
         if path.is_symlink():
             raise RelayValidationError(f"relay directory must not be a symlink: {path}")
         path.mkdir(mode=0o700, parents=True, exist_ok=True)
         if not path.is_dir():
             raise RelayValidationError(f"relay path is not a directory: {path}")
         path.resolve().relative_to(self.runtime_root.root.resolve())
+        return path
+
+    def _read(self, path: Path) -> DeliveryRecord:
+        self._ensure_regular_or_missing(path)
+        try:
+            data = json.loads(path.read_text(encoding="utf-8"))
+            if not isinstance(data, dict):
+                raise TypeError("record is not an object")
+            return DeliveryRecord.from_dict(data)
+        except (OSError, ValueError, TypeError, KeyError, json.JSONDecodeError) as exc:
+            raise RelayCorruptionError(f"invalid relay record: {path}") from exc
+
+    @staticmethod
+    def _order_key(record: DeliveryRecord) -> tuple[datetime, str, str]:
+        conversation = record.message.conversation_id or ""
+        return record.message.created_at, conversation, record.message.message_id.value
 
     @staticmethod
     def _ensure_regular_or_missing(path: Path) -> None:

@@ -8,7 +8,7 @@
 #
 # Quick start:
 #   make first-run           # install uv project + dev tools + run preflight
-#   make test                # 500 tests
+#   make test                # full test suite
 #   make demo-ch5            # full working agent end-to-end
 #   make example-research    # research-assistant example end-to-end
 #   make bundle              # tar the repo for sharing
@@ -483,8 +483,12 @@ format-check: ## ruff format --check (does not modify files)
 .PHONY: typecheck
 typecheck: ## Enforce mypy on currently clean public runtime modules
 	@$(MYPY) \
+		$(PKG_DIR)/admission \
+		$(PKG_DIR)/api \
+		$(PKG_DIR)/approvals \
 		$(PKG_DIR)/channels \
 		$(PKG_DIR)/config.py \
+		$(PKG_DIR)/connectors \
 		$(PKG_DIR)/contracts \
 		$(PKG_DIR)/discovery.py \
 		$(PKG_DIR)/errors.py \
@@ -500,11 +504,14 @@ typecheck: ## Enforce mypy on currently clean public runtime modules
 		$(PKG_DIR)/orchestrator/worker.py \
 		$(PKG_DIR)/orchestrator/worker_factory.py \
 		$(PKG_DIR)/planner \
+		$(PKG_DIR)/plugins \
 		$(PKG_DIR)/providers \
 		$(PKG_DIR)/registry \
 		$(PKG_DIR)/relay \
 		$(PKG_DIR)/repository \
 		$(PKG_DIR)/runtime \
+		$(PKG_DIR)/service \
+		$(PKG_DIR)/operations \
 		$(PKG_DIR)/tickets \
 		$(PKG_DIR)/voice
 
@@ -540,16 +547,20 @@ pre-publish: ## Audit for secrets/PII/forbidden files — run BEFORE first publi
 pre-publish-strict: ## pre-publish + scan git history (slower but more thorough)
 	@$(PY) scripts/pre_publish.py --git
 
+.PHONY: fault-inject-v04
+fault-inject-v04: ## v0.4 crash/restart/backup/restore fault injection
+	@$(PYTEST) tests/v04 -q --tb=short
+
 .PHONY: ready-to-ship
-ready-to-ship: preflight pre-publish release-verify ## Deterministic, non-publishing v0.3 release proof
+ready-to-ship: preflight pre-publish release-verify fault-inject-v04 ## Deterministic, non-publishing v0.4 release proof
 	@printf "\n$(GREEN)✓$(RESET) $(BOLD)Ready to ship.$(RESET)\n"
 	@printf "  $(DIM)No publish, tag, push, live provider, or credential action was performed.$(RESET)\n\n"
 
 .PHONY: release-verify
 release-verify: ci docs-strict build ## Prove API, package content, and clean core install
 	@$(PY) scripts/verify_release.py \
-		--wheel dist/sovereign_agent-0.3.0-py3-none-any.whl \
-		--sdist dist/sovereign_agent-0.3.0.tar.gz
+		--wheel dist/sovereign_agent-0.4.0-py3-none-any.whl \
+		--sdist dist/sovereign_agent-0.4.0.tar.gz
 
 .PHONY: build
 build: ## Build wheel + sdist into dist/ via uv build

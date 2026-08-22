@@ -2,7 +2,7 @@
 
 **Applies from:** v0.2.0 onwards.
 **Contract version:** 2.
-**Current release surface:** v0.3.0, 152 symbols.
+**Current release surface:** v0.4.0, 152 symbols (v0.3 surface preserved).
 
 The exact, machine-checked contracts are
 [`public-api-v0.2.txt`](public-api-v0.2.txt) and

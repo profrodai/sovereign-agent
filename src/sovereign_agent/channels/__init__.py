@@ -20,8 +20,11 @@ from sovereign_agent.channels.adapter import (
     OutboundMessage,
 )
 from sovereign_agent.channels.cli import CliChannelAdapter, default_socket_path
+from sovereign_agent.channels.email import EmailAdapter
 from sovereign_agent.channels.registry import ChannelRegistry
 from sovereign_agent.channels.router import InboundRouter
+from sovereign_agent.channels.slack import SlackAdapter
+from sovereign_agent.channels.webhook import WebhookAdapter
 from sovereign_agent.registries import Registry
 
 # v0.3 Module 3: the process-level singleton operators introspect via
@@ -37,6 +40,9 @@ __all__ = [
     "ChannelRegistry",
     "InboundRouter",
     "CliChannelAdapter",
+    "EmailAdapter",
+    "SlackAdapter",
+    "WebhookAdapter",
     "default_socket_path",
     "CHANNEL_REGISTRY",
 ]

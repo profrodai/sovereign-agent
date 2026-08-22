@@ -152,6 +152,8 @@ class DeliveryRecord:
     lease_owner: str | None = None
     lease_token: str | None = None
     lease_expires_at: datetime | None = None
+    lease_owner_pid: int | None = None
+    lease_instance: str | None = None
     last_error: str | None = None
     acknowledged_at: datetime | None = None
     acknowledged_by: str | None = None
@@ -196,6 +198,8 @@ class DeliveryRecord:
             "lease_owner": self.lease_owner,
             "lease_token": self.lease_token,
             "lease_expires_at": _format_optional(self.lease_expires_at),
+            "lease_owner_pid": self.lease_owner_pid,
+            "lease_instance": self.lease_instance,
             "last_error": self.last_error,
             "acknowledged_at": _format_optional(self.acknowledged_at),
             "acknowledged_by": self.acknowledged_by,
@@ -217,6 +221,10 @@ class DeliveryRecord:
             lease_owner=_optional_string(data.get("lease_owner")),
             lease_token=_optional_string(data.get("lease_token")),
             lease_expires_at=_parse_optional(data.get("lease_expires_at"), "lease_expires_at"),
+            lease_owner_pid=None
+            if data.get("lease_owner_pid") is None
+            else int(data["lease_owner_pid"]),
+            lease_instance=_optional_string(data.get("lease_instance")),
             last_error=_optional_string(data.get("last_error")),
             acknowledged_at=_parse_optional(data.get("acknowledged_at"), "acknowledged_at"),
             acknowledged_by=_optional_string(data.get("acknowledged_by")),

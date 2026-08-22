@@ -1,5 +1,6 @@
 """Durable local relay with fenced claims and explicit acknowledgements."""
 
+from .addressing import AmbiguousRecipient, resolve_recipient
 from .errors import (
     DuplicateMessageConflict,
     LeaseLost,
@@ -22,6 +23,7 @@ from .models import (
 __all__ = [
     "RELAY_SCHEMA_VERSION",
     "Acknowledgement",
+    "AmbiguousRecipient",
     "ClaimedMessage",
     "DeliveryRecord",
     "DeliveryStatus",
@@ -35,4 +37,5 @@ __all__ = [
     "RelayError",
     "RelayMessage",
     "RelayValidationError",
+    "resolve_recipient",
 ]
