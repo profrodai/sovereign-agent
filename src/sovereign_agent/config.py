@@ -77,6 +77,14 @@ class Config:
     # retained as the read-through, copy-on-write legacy source.
     runtime_dir: Path = field(default_factory=lambda: Path("runtime"))
 
+    # v0.3 Unit 4: provider selection. CLI providers are probed before use and
+    # execute through WorkerBackend; no binary, network, or credential check is
+    # performed during Config construction.
+    agent_provider: Literal["native", "codex", "claude"] = "native"
+    codex_executable: str = "codex"
+    claude_executable: str = "claude"
+    provider_timeout_s: float | None = None
+
     @classmethod
     def from_env(cls, env: dict[str, str] | None = None) -> Config:
         """Load a Config from environment variables.

@@ -164,6 +164,9 @@ Each is ~200-400 lines of code with tests. See `examples/` for end-to-end scenar
 - **Plugin registries** — a generic `Plugin` protocol and `Registry[T]`.
 - **Worker backend integration** — orchestrator dispatch routes through
   `WorkerBackend` via `make_worker_backend()`.
+- **Native CLI providers** — Codex CLI and Claude Code are probed, capability
+  gated, parsed into normalized events, and executed through `WorkerBackend`
+  without Sandcastle.
 - **Liveness monitor** — stalled-session detection and heartbeat
   (`LivenessMonitor`, importable but not in `__all__`).
 
@@ -236,7 +239,7 @@ sovereign-agent/
 ├── chapters/             # 5 tutorial chapters (minitorch-style, fill in the TODOs)
 ├── examples/             # 8 reference scenarios (research, code review, HITL, etc.)
 ├── docs/                 # architecture, API stability, deployment
-└── tests/                # 370 collected tests — library + chapters + examples
+└── tests/                # 428 collected tests — library + chapters + examples
 ```
 
 - **If you want to ship an agent today** → read `src/sovereign_agent/` and pick scenarios from `examples/`
@@ -317,7 +320,7 @@ The Makefile is also the documentation for the release workflow:
 ```
 make doctor           # tabular status — Python, uv, .env, deps, imports, CI
 make preflight        # lint + drift + pytest collection + demo importability
-make test             # full suite (370 collected: 369 pass, 1 skip)
+make test             # full suite (428 collected: 427 pass, 1 skip)
 make ci-real-estimate # cost preview for a full ci-real run (no API calls)
 make ci-real          # run every -real scenario against a live LLM
 make pre-publish      # audit for secrets, PII, forbidden files before public push
@@ -347,17 +350,17 @@ Override via `SOVEREIGN_AGENT_DATA_DIR=<path>`.
 
 **v0.2.0 alpha, with unreleased v0.3 work on `main`.** PyPI has one release
 (`0.2.0`); `pyproject.toml` still declares `0.2.0`. The published 0.2.0 semver
-surface was 67 symbols. The working tree now exports **95** symbols in
-`sovereign_agent.__all__` — the 28 additions are unreleased v0.3 work and are not
+surface was 67 symbols. The working tree now exports **100** symbols in
+`sovereign_agent.__all__` — the 33 additions are unreleased v0.3 work and are not
 covered by the 0.2.x stability promise. See [`docs/API.md`](docs/API.md) for the
 full contract and the symbol-by-symbol breakdown.
 
 - ✅ Framework: sessions, tickets, IPC, parallelism, isolation, resume, verifiers, HITL
-- ✅ 413 tests collected — 412 pass, 1 skipped (library + chapters + integration)
+- ✅ 428 tests collected — 427 pass, 1 skipped (library + chapters + integration)
 - ✅ 8 reference scenarios, all with dataflow integrity checks
 - ✅ 5 tutorial chapters, drift-checked against production code in CI
 - 🚧 Voice pipeline, observability backends (Evidently/OTel) — skeletons, not implementations
-- 🚧 Channels, providers, plugin registries, worker-backend dispatch, liveness monitor — in-tree, unreleased
+- 🚧 Channels, native Codex/Claude CLI providers, plugin registries, worker-backend dispatch, liveness monitor — in-tree, unreleased
 - ❌ Docker worker backend — stub only; `DockerWorker.run_session()` raises `NotImplementedError`
 - ❌ Vector-DB memory backends — not started, and a [v0.3 non-goal](docs/v0.3-non-goals.md)
 

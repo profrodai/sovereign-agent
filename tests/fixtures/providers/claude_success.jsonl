@@ -1,0 +1,5 @@
+{"type":"system","subtype":"init","session_id":"claude-session-1","tools":["Read"]}
+{"type":"assistant","message":{"content":[{"type":"text","text":"Checking. "},{"type":"tool_use","id":"toolu_1","name":"Read","input":{"file_path":"README.md"}}]}}
+{"type":"user","message":{"content":[{"type":"tool_result","tool_use_id":"toolu_1","name":"Read","content":{"text":"readme"}}]}}
+{"type":"assistant","message":{"content":[{"type":"text","text":"Claude answer"}]}}
+{"type":"result","subtype":"success","session_id":"claude-session-1","usage":{"input_tokens":13,"output_tokens":5},"structured_output":{"answer":"Claude answer"}}

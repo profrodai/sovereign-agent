@@ -1,5 +1,8 @@
 """Agent provider contracts, normalized events, and native implementation."""
 
+from .claude import ClaudeCodeProvider
+from .cli import CliProvider, ProbeEvidence, ProviderUnavailable
+from .codex import CodexCliProvider
 from .events import (
     ProviderEvent,
     ProviderEventType,
@@ -21,6 +24,9 @@ from .registry import PROVIDER_REGISTRY, ProviderRegistry
 __all__ = [
     "PROVIDER_REGISTRY",
     "AgentProvider",
+    "ClaudeCodeProvider",
+    "CliProvider",
+    "CodexCliProvider",
     "EventCallback",
     "EventFanout",
     "InvocationRequest",
@@ -31,6 +37,8 @@ __all__ = [
     "ProviderEvent",
     "ProviderEventType",
     "ProviderRegistry",
+    "ProviderUnavailable",
+    "ProbeEvidence",
     "ProviderSessionEvent",
     "RawEvent",
     "StructuredResultEvent",

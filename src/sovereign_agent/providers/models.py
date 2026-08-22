@@ -13,6 +13,7 @@ from sovereign_agent.contracts import (
     ExecutionId,
     FrozenDict,
     InvocationId,
+    ProviderSessionId,
 )
 from sovereign_agent.contracts._core import freeze_json, require_object, require_string, thaw_json
 from sovereign_agent.session.directory import Session
@@ -29,6 +30,8 @@ class ProviderCapabilities:
     provider_session: bool = False
     structured_result: bool = False
     streaming: bool = False
+    resume: bool = False
+    available: bool = True
     evidence_level: EvidenceLevel = EvidenceLevel.DECLARED
 
     def to_manifest(self) -> CapabilityManifest:
@@ -40,6 +43,8 @@ class ProviderCapabilities:
                 ("provider_session", self.provider_session),
                 ("structured_result", self.structured_result),
                 ("streaming", self.streaming),
+                ("resume", self.resume),
+                ("available", self.available),
             )
         }
         return CapabilityManifest(capabilities=FrozenDict(tuple(values.items())))
@@ -60,6 +65,10 @@ class ProviderCapabilities:
             provider_session=manifest.is_available("provider_session"),
             structured_result=manifest.is_available("structured_result"),
             streaming=manifest.is_available("streaming"),
+            resume=manifest.is_available("resume"),
+            available=(
+                True if manifest.get("available") is None else manifest.is_available("available")
+            ),
             evidence_level=level,
         )
 
@@ -78,6 +87,7 @@ class InvocationRequest:
     task: str
     session: Session
     context: FrozenDict = field(default_factory=FrozenDict)
+    provider_session_id: ProviderSessionId | None = None
 
     def __post_init__(self) -> None:
         if not isinstance(self.execution_id, ExecutionId):
@@ -88,6 +98,14 @@ class InvocationRequest:
         if not isinstance(self.session, Session):
             raise ContractValidationError("session must be Session")
         object.__setattr__(self, "context", freeze_json(require_object(self.context, "context")))
+        if isinstance(self.provider_session_id, str):
+            object.__setattr__(
+                self, "provider_session_id", ProviderSessionId(self.provider_session_id)
+            )
+        if self.provider_session_id is not None and not isinstance(
+            self.provider_session_id, ProviderSessionId
+        ):
+            raise ContractValidationError("provider_session_id must be ProviderSessionId or None")
 
     def to_dict(self) -> dict[str, Any]:
         return {
@@ -95,6 +113,9 @@ class InvocationRequest:
             "invocation_id": str(self.invocation_id),
             "task": self.task,
             "context": thaw_json(self.context),
+            "provider_session_id": (
+                str(self.provider_session_id) if self.provider_session_id is not None else None
+            ),
         }
 
 

@@ -25,6 +25,7 @@ from sovereign_agent.providers import (
     ProviderEvent,
     ProviderRegistry,
     ProviderSessionEvent,
+    ProviderUnavailable,
     StructuredResultEvent,
     UsageEvent,
 )
@@ -95,12 +96,25 @@ async def test_native_provider_ordering_and_observer_containment(fresh_session) 
     )
     assert [event.sequence for event in result.events] == list(range(len(result.events)))
     assert [event.event_type for event in result.events] == [
-        "provider_session",
         "text",
         "structured_result",
     ]
-    assert observed == activity == [0, 1, 2]
-    assert len(provider.last_observer_failures) == 3
+    assert observed == activity == [0, 1]
+    assert len(provider.last_observer_failures) == 2
+
+
+@pytest.mark.asyncio
+async def test_native_provider_refuses_external_resume(fresh_session) -> None:
+    provider = NativeProvider(loop_half=_FakeLoop())  # type: ignore[arg-type]
+    request = InvocationRequest(
+        execution_id=ExecutionId("exec-1"),
+        invocation_id=InvocationId("invoke-1"),
+        task="test",
+        session=fresh_session,
+        provider_session_id="external-session",
+    )
+    with pytest.raises(ProviderUnavailable, match="no external provider session"):
+        await provider.invoke(request)
 
 
 def test_provider_registry_uses_plugin_contract() -> None:

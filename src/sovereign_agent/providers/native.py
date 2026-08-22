@@ -5,15 +5,15 @@ from __future__ import annotations
 from collections.abc import Sequence
 from typing import ClassVar
 
-from sovereign_agent.contracts import FrozenDict, ProviderSessionId
+from sovereign_agent.contracts import FrozenDict
 from sovereign_agent.contracts._core import thaw_json
 from sovereign_agent.executor import DefaultExecutor
 from sovereign_agent.halves.loop import LoopHalf
 from sovereign_agent.planner import DefaultPlanner
 
+from .cli import ProviderUnavailable
 from .events import (
     ProviderEventType,
-    ProviderSessionEvent,
     StructuredResultEvent,
     TextEvent,
     ToolCallEvent,
@@ -32,7 +32,6 @@ class NativeProvider:
     kind: ClassVar[str] = "provider"
     capabilities = ProviderCapabilities(
         tools=True,
-        provider_session=True,
         structured_result=True,
     )
 
@@ -59,22 +58,14 @@ class NativeProvider:
         observers: Sequence[EventCallback] = (),
         activity_callbacks: Sequence[EventCallback] = (),
     ) -> InvocationResult:
+        if request.provider_session_id is not None:
+            raise ProviderUnavailable("native provider has no external provider session to resume")
         fanout = EventFanout(observers, activity_callbacks)
         events: list[ProviderEventType] = []
 
         async def emit(event: ProviderEventType) -> None:
             events.append(event)
             await fanout.emit(event)
-
-        await emit(
-            ProviderSessionEvent(
-                execution_id=request.execution_id,
-                invocation_id=request.invocation_id,
-                sequence=len(events),
-                timestamp=utc_now(),
-                provider_session_id=ProviderSessionId(request.session.session_id),
-            )
-        )
 
         context = thaw_json(request.context)
         assert isinstance(context, dict)

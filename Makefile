@@ -8,7 +8,7 @@
 #
 # Quick start:
 #   make first-run           # install uv project + dev tools + run preflight
-#   make test                # 257 tests, ~16s
+#   make test                # 428 tests
 #   make demo-ch5            # full working agent end-to-end
 #   make example-research    # research-assistant example end-to-end
 #   make bundle              # tar the repo for sharing
@@ -484,6 +484,7 @@ format-check: ## ruff format --check (does not modify files)
 typecheck: ## Enforce mypy on currently clean public runtime modules
 	@$(MYPY) \
 		$(PKG_DIR)/channels \
+		$(PKG_DIR)/config.py \
 		$(PKG_DIR)/contracts \
 		$(PKG_DIR)/discovery.py \
 		$(PKG_DIR)/errors.py \
@@ -494,6 +495,7 @@ typecheck: ## Enforce mypy on currently clean public runtime modules
 		$(PKG_DIR)/memory \
 		$(PKG_DIR)/observability \
 		$(PKG_DIR)/orchestrator/lifecycle.py \
+		$(PKG_DIR)/orchestrator/main.py \
 		$(PKG_DIR)/orchestrator/worker.py \
 		$(PKG_DIR)/orchestrator/worker_factory.py \
 		$(PKG_DIR)/planner \

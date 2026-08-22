@@ -132,12 +132,17 @@ from sovereign_agent.planner import DefaultPlanner, Planner, Subgoal
 from sovereign_agent.providers import (
     PROVIDER_REGISTRY,
     AgentProvider,
+    ClaudeCodeProvider,
+    CliProvider,
+    CodexCliProvider,
     InvocationRequest,
     InvocationResult,
     NativeProvider,
+    ProbeEvidence,
     ProviderCapabilities,
     ProviderEvent,
     ProviderRegistry,
+    ProviderUnavailable,
 )
 
 # Plugin registries (v0.3 Module 3)
@@ -232,12 +237,17 @@ __all__ = [
     "DefaultPlanner",
     # providers (v0.3 Unit 2)
     "AgentProvider",
+    "ClaudeCodeProvider",
+    "CliProvider",
+    "CodexCliProvider",
     "InvocationRequest",
     "InvocationResult",
     "NativeProvider",
     "ProviderCapabilities",
     "ProviderEvent",
     "ProviderRegistry",
+    "ProviderUnavailable",
+    "ProbeEvidence",
     "PROVIDER_REGISTRY",
     "Executor",
     "ExecutorResult",

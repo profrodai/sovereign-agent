@@ -45,6 +45,7 @@ EXAMPLE_MODULES = [
 
 PUBLIC_RUNTIME_PATHS = [
     "src/sovereign_agent/channels",
+    "src/sovereign_agent/config.py",
     "src/sovereign_agent/contracts",
     "src/sovereign_agent/discovery.py",
     "src/sovereign_agent/errors.py",
@@ -55,6 +56,7 @@ PUBLIC_RUNTIME_PATHS = [
     "src/sovereign_agent/memory",
     "src/sovereign_agent/observability",
     "src/sovereign_agent/orchestrator/lifecycle.py",
+    "src/sovereign_agent/orchestrator/main.py",
     "src/sovereign_agent/orchestrator/worker.py",
     "src/sovereign_agent/orchestrator/worker_factory.py",
     "src/sovereign_agent/planner",
