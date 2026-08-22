@@ -7,6 +7,7 @@ from pathlib import Path
 
 import pytest
 
+from sovereign_agent._internal import atomic
 from sovereign_agent.config import Config
 from sovereign_agent.runtime import (
     RUNTIME_DIRECTORIES,
@@ -17,6 +18,16 @@ from sovereign_agent.runtime import (
     UnsupportedRuntimeVersionError,
 )
 from sovereign_agent.session.directory import SessionEscapeError, create_session, load_session
+
+
+def test_directory_fsync_is_best_effort_when_host_cannot_open_directory(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    def unavailable(_path: Path, _flags: int) -> int:
+        raise PermissionError("directory handles are unavailable")
+
+    monkeypatch.setattr(atomic.os, "open", unavailable)
+    assert atomic.fsync_directory(tmp_path) is False
 
 
 def test_constructing_runtime_root_has_no_filesystem_side_effect(tmp_path: Path) -> None:

@@ -8,7 +8,7 @@
 #
 # Quick start:
 #   make first-run           # install uv project + dev tools + run preflight
-#   make test                # 480 tests
+#   make test                # 500 tests
 #   make demo-ch5            # full working agent end-to-end
 #   make example-research    # research-assistant example end-to-end
 #   make bundle              # tar the repo for sharing

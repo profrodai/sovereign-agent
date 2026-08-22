@@ -53,6 +53,12 @@ nav:
   - Deployment: deployment.md
   - Project:
       - v0.3.0 Release Notes: release-notes/0.3.0.md
+      - v0.3 Unit 1 Contracts: v0.3-unit1-contracts.md
+      - v0.3 Unit 2 Native Provider: v0.3-unit2-native-provider.md
+      - v0.3 Unit 3 Worker Lifecycle: v0.3-unit3-worker-lifecycle.md
+      - v0.3 Unit 4 CLI Providers: v0.3-unit4-cli-providers.md
+      - v0.3 Unit 5 Repository Execution: v0.3-unit5-repository.md
+      - v0.3 Unit 6 Registry and Relay: v0.3-unit6-registry-relay.md
       - v0.3 Unit 7 Governed Execution: v0.3-unit7-governed-execution.md
       - v0.3 Non-Goals: v0.3-non-goals.md
       - Branch Consolidation (2026-08-22): branch-consolidation-2026-08-22.md

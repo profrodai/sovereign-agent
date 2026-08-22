@@ -86,6 +86,7 @@ def request(
     fresh_session,
     *,
     provider_session_id: str | None = None,
+    fork_provider_session: bool = False,
     context: FrozenDict | None = None,
 ) -> InvocationRequest:
     return InvocationRequest(
@@ -97,6 +98,7 @@ def request(
         provider_session_id=(
             ProviderSessionId(provider_session_id) if provider_session_id is not None else None
         ),
+        fork_provider_session=fork_provider_session,
     )
 
 
@@ -162,6 +164,30 @@ def test_claude_command_construction_distinguishes_fresh_and_resume(fresh_sessio
         "fix the tests",
     )
     assert resumed.environment == {"HOME": "/home/test"}
+
+
+def test_claude_fork_resumes_parent_without_mutating_request(fresh_session) -> None:
+    provider = ClaudeCodeProvider(
+        executable="/opt/claude",
+        backend=FakeBackend(help_stdout=""),
+    )
+    parent = ProviderSessionId("claude-parent-1")
+    fork_request = request(
+        fresh_session,
+        provider_session_id=str(parent),
+        fork_provider_session=True,
+    )
+
+    spec = provider.invocation_spec(fork_request)
+
+    assert spec.command[-4:] == (
+        "--resume",
+        str(parent),
+        "--fork-session",
+        "fix the tests",
+    )
+    assert fork_request.provider_session_id == parent
+    assert fork_request.fork_provider_session is True
 
 
 def test_codex_fixture_parses_ordered_evidence(fresh_session) -> None:
@@ -269,6 +295,42 @@ async def test_unproven_resume_is_refused_before_invocation(fresh_session) -> No
     with pytest.raises(ProviderUnavailable, match="resume support"):
         await provider.invoke(request(fresh_session, provider_session_id="claude-session-1"))
     assert len(backend.specs) == 2
+
+
+@pytest.mark.asyncio
+async def test_unproven_fork_is_refused_before_invocation(fresh_session) -> None:
+    backend = FakeBackend(help_stdout="--output-format stream-json --resume")
+    provider = ClaudeCodeProvider(backend=backend)
+    with pytest.raises(ProviderUnavailable, match="fork support"):
+        await provider.invoke(
+            request(
+                fresh_session,
+                provider_session_id="claude-session-1",
+                fork_provider_session=True,
+            )
+        )
+    assert len(backend.specs) == 2
+
+
+@pytest.mark.asyncio
+async def test_proven_fork_invokes_claude_with_fork_flag(fresh_session) -> None:
+    backend = FakeBackend(
+        help_stdout="--output-format stream-json --resume --fork-session",
+        invocation_stdout=fixture("claude_result.json"),
+    )
+    provider = ClaudeCodeProvider(backend=backend)
+
+    result = await provider.invoke(
+        request(
+            fresh_session,
+            provider_session_id="claude-parent-1",
+            fork_provider_session=True,
+        )
+    )
+
+    assert result.success is True
+    assert provider.capabilities.fork is True
+    assert "--fork-session" in backend.specs[-1].command
 
 
 @pytest.mark.asyncio

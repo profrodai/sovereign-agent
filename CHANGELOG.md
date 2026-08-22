@@ -30,10 +30,11 @@ a feature-branch tip rather than the pre-v0.3 state of `main`.
   redacted diagnostics. See `docs/v0.3-unit3-worker-lifecycle.md`.
 - Unit 4 native CLI providers: Codex CLI JSONL and Claude Code stream-json
   adapters, evidence-bearing version/help probes, capability-gated fresh and
-  resumed sessions, strict normalized event parsing, observer containment, and
-  execution through the Unit 3 backend seam without Sandcastle or `shell=True`.
-  Default tests use committed fixtures and fake backends; no live provider
-  checks run in CI. See `docs/v0.3-unit4-cli-providers.md`.
+  resumed sessions, capability-gated Claude session fork, strict normalized
+  event parsing, observer containment, and execution through the Unit 3 backend
+  seam without Sandcastle or `shell=True`. Default tests use committed fixtures
+  and fake backends; zero-token live help/version probes are opt in and do not
+  run in CI. See `docs/v0.3-unit4-cli-providers.md`.
 - Unit 5 governed repository execution: configured `RepositoryId` resolution,
   fail-closed dirty policies, isolated execution branches and worktrees,
   durable fenced repository leases, deterministic redacted Git evidence, and
@@ -76,8 +77,9 @@ compatibility contract.
   `pyproject.toml` URLs, `mkdocs.yml`, and the docs tree. Old
   `sovereignagents/...` links still resolve by GitHub redirect but are no longer
   canonical.
-- Corrected test-count claims: the suite collects **480** tests (479 pass, 1
-  skipped). Previous docs claimed 267, 220, and 120 in different places.
+- Corrected test-count claims: the suite collects **500** tests (497 pass, 3
+  opt-in/platform skips), including skipped-by-default live provider probes.
+  Previous docs claimed 267, 220, and 120 in different places.
 - Corrected public-API claims: **152** symbols in `__all__`, of which 67 are the
   stable 0.2.0 surface. `docs/API.md` now lists both sets separately, and names
   the v0.3 symbols that are importable but not in `__all__`.

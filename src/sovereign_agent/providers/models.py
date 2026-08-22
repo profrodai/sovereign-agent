@@ -31,6 +31,7 @@ class ProviderCapabilities:
     structured_result: bool = False
     streaming: bool = False
     resume: bool = False
+    fork: bool = False
     available: bool = True
     evidence_level: EvidenceLevel = EvidenceLevel.DECLARED
 
@@ -44,6 +45,7 @@ class ProviderCapabilities:
                 ("structured_result", self.structured_result),
                 ("streaming", self.streaming),
                 ("resume", self.resume),
+                ("fork", self.fork),
                 ("available", self.available),
             )
         }
@@ -66,6 +68,7 @@ class ProviderCapabilities:
             structured_result=manifest.is_available("structured_result"),
             streaming=manifest.is_available("streaming"),
             resume=manifest.is_available("resume"),
+            fork=manifest.is_available("fork"),
             available=(
                 True if manifest.get("available") is None else manifest.is_available("available")
             ),
@@ -88,6 +91,7 @@ class InvocationRequest:
     session: Session
     context: FrozenDict = field(default_factory=FrozenDict)
     provider_session_id: ProviderSessionId | None = None
+    fork_provider_session: bool = False
 
     def __post_init__(self) -> None:
         if not isinstance(self.execution_id, ExecutionId):
@@ -106,6 +110,12 @@ class InvocationRequest:
             self.provider_session_id, ProviderSessionId
         ):
             raise ContractValidationError("provider_session_id must be ProviderSessionId or None")
+        if not isinstance(self.fork_provider_session, bool):
+            raise ContractValidationError("fork_provider_session must be boolean")
+        if self.fork_provider_session and self.provider_session_id is None:
+            raise ContractValidationError(
+                "fork_provider_session requires an existing provider_session_id"
+            )
 
     def to_dict(self) -> dict[str, Any]:
         return {
@@ -116,6 +126,7 @@ class InvocationRequest:
             "provider_session_id": (
                 str(self.provider_session_id) if self.provider_session_id is not None else None
             ),
+            "fork_provider_session": self.fork_provider_session,
         }
 
 

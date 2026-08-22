@@ -4902,6 +4902,7 @@ voice = [
 
 [package.dev-dependencies]
 dev = [
+    { name = "jsonschema" },
     { name = "mkdocs" },
     { name = "mkdocs-material" },
     { name = "mypy" },
@@ -4932,6 +4933,7 @@ provides-extras = ["evidently", "otel", "voice", "rasa", "docker", "all"]
 
 [package.metadata.requires-dev]
 dev = [
+    { name = "jsonschema", specifier = ">=4.26.0" },
     { name = "mkdocs", specifier = ">=1.6" },
     { name = "mkdocs-material", specifier = ">=9.5" },
     { name = "mypy", specifier = ">=1.10" },

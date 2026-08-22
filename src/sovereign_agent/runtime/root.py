@@ -3,7 +3,6 @@
 from __future__ import annotations
 
 import json
-import os
 import re
 import secrets
 import shutil
@@ -11,7 +10,7 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import Any
 
-from sovereign_agent._internal.atomic import atomic_write_json
+from sovereign_agent._internal.atomic import atomic_write_json, fsync_directory
 
 RUNTIME_SCHEMA_VERSION = 1
 RUNTIME_LAYOUT_VERSION = 1
@@ -101,7 +100,7 @@ class RuntimeRoot:
 
         if existing is None:
             atomic_write_json(self.metadata_path, self._metadata())
-            _fsync_directory(self.root)
+            fsync_directory(self.root)
         return self
 
     @classmethod
@@ -221,7 +220,7 @@ class RuntimeRoot:
                 staging.replace(destination)
             except FileExistsError:
                 shutil.rmtree(staging)
-            _fsync_directory(self.sessions_dir)
+            fsync_directory(self.sessions_dir)
         except Exception:
             if staging.exists():
                 shutil.rmtree(staging)
@@ -232,20 +231,6 @@ class RuntimeRoot:
 def _validate_component(value: str, label: str) -> None:
     if not _SAFE_COMPONENT.fullmatch(value) or value in {".", ".."}:
         raise RuntimeRootError(f"unsafe {label}: {value!r}")
-
-
-def _fsync_directory(path: Path) -> None:
-    """Best-effort directory sync after metadata or migration rename."""
-    try:
-        fd = os.open(path, os.O_RDONLY)
-    except OSError:
-        return
-    try:
-        os.fsync(fd)
-    except OSError:
-        pass
-    finally:
-        os.close(fd)
 
 
 __all__ = [

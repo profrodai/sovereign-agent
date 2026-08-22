@@ -48,6 +48,7 @@ class ClaudeCodeProvider(CliProvider):
             provider_session=stream_json,
             structured_result=stream_json and "--json-schema" in help_text,
             resume=stream_json and "--resume" in help_text,
+            fork=stream_json and "--resume" in help_text and "--fork-session" in help_text,
             evidence_level=EvidenceLevel.PROBED,
         )
 
@@ -67,6 +68,8 @@ class ClaudeCodeProvider(CliProvider):
         ]
         if request.provider_session_id is not None:
             command.extend(("--resume", str(request.provider_session_id)))
+            if request.fork_provider_session:
+                command.append("--fork-session")
         if schema is not None:
             command.extend(("--json-schema", json.dumps(schema, sort_keys=True)))
         command.append(request.task)

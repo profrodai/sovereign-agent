@@ -5,14 +5,13 @@ from __future__ import annotations
 import builtins
 import hashlib
 import json
-import os
 from collections.abc import Callable, Mapping
 from contextlib import AbstractContextManager
 from datetime import UTC, datetime, timedelta
 from pathlib import Path
 from typing import Any
 
-from sovereign_agent._internal.atomic import atomic_write_bytes
+from sovereign_agent._internal.atomic import atomic_write_bytes, fsync_directory
 from sovereign_agent._internal.file_lock import exclusive_file_lock
 from sovereign_agent.contracts._core import canonical_json_bytes
 from sovereign_agent.contracts.ids import (
@@ -99,7 +98,7 @@ class SeatRegistry:
                 return current
             self._ensure_regular_or_missing(path)
             atomic_write_bytes(path, canonical_json_bytes(candidate.to_dict()))
-            self._fsync_directory(path.parent)
+            fsync_directory(path.parent)
         return candidate
 
     def get(self, instance_id: SeatInstanceId | str) -> SeatInstance:
@@ -151,7 +150,7 @@ class SeatRegistry:
                 capability_manifest_ref=current.capability_manifest_ref,
             )
             atomic_write_bytes(self._record_path(iid), canonical_json_bytes(updated.to_dict()))
-            self._fsync_directory(self._records)
+            fsync_directory(self._records)
             return updated
 
     def list(self) -> builtins.list[SeatInstance]:
@@ -231,14 +230,6 @@ class SeatRegistry:
         if value.tzinfo is None or value.utcoffset() is None:
             raise RegistryValidationError("clock must return a timezone-aware datetime")
         return value.astimezone(UTC)
-
-    @staticmethod
-    def _fsync_directory(path: Path) -> None:
-        fd = os.open(path, os.O_RDONLY)
-        try:
-            os.fsync(fd)
-        finally:
-            os.close(fd)
 
     def _guard(self, instance_id: SeatInstanceId) -> AbstractContextManager[None]:
         digest = hashlib.sha256(instance_id.value.encode()).hexdigest()

@@ -4,7 +4,6 @@ from __future__ import annotations
 
 import hashlib
 import json
-import os
 import secrets
 import threading
 from collections.abc import Callable
@@ -13,7 +12,7 @@ from dataclasses import replace
 from datetime import UTC, datetime, timedelta
 from pathlib import Path
 
-from sovereign_agent._internal.atomic import atomic_write_bytes
+from sovereign_agent._internal.atomic import atomic_write_bytes, fsync_directory
 from sovereign_agent._internal.file_lock import exclusive_file_lock
 from sovereign_agent.contracts._core import canonical_json_bytes
 from sovereign_agent.contracts.ids import RelayMessageId
@@ -170,7 +169,7 @@ class DurableRelay:
                 attempt_count=record.attempt_count,
             )
             atomic_write_bytes(self._ack_path(mid), canonical_json_bytes(ack.to_dict()))
-            self._fsync_directory(self._acks)
+            fsync_directory(self._acks)
             return ack
 
     ack = acknowledge
@@ -339,8 +338,8 @@ class DurableRelay:
             except RelayCorruptionError as exc:
                 quarantine = self._quarantine / f"{path.stem}-{secrets.token_hex(4)}.json"
                 path.replace(quarantine)
-                self._fsync_directory(self._messages)
-                self._fsync_directory(self._quarantine)
+                fsync_directory(self._messages)
+                fsync_directory(self._quarantine)
                 raise RelayCorruptionError(f"record quarantined at {quarantine}") from exc
         return result
 
@@ -369,7 +368,7 @@ class DurableRelay:
     def _write(self, path: Path, record: DeliveryRecord) -> None:
         self._ensure_regular_or_missing(path)
         atomic_write_bytes(path, canonical_json_bytes(record.to_dict()))
-        self._fsync_directory(path.parent)
+        fsync_directory(path.parent)
 
     def _message_path(self, message_id: RelayMessageId) -> Path:
         return self._hashed_path(self._messages, message_id.value)
@@ -406,14 +405,6 @@ class DurableRelay:
         if value.tzinfo is None or value.utcoffset() is None:
             raise RelayValidationError("clock must return a timezone-aware datetime")
         return value.astimezone(UTC)
-
-    @staticmethod
-    def _fsync_directory(path: Path) -> None:
-        fd = os.open(path, os.O_RDONLY)
-        try:
-            os.fsync(fd)
-        finally:
-            os.close(fd)
 
     def _guard(self) -> AbstractContextManager[None]:
         self._ensure_regular_or_missing(self._lock_path)

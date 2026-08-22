@@ -10,6 +10,7 @@ from pathlib import Path
 from typing import Any
 
 import pytest
+import yaml
 from typer.testing import CliRunner
 
 from sovereign_agent.cli import app
@@ -28,6 +29,7 @@ from sovereign_agent.contracts import (
     SovereignSessionId,
 )
 from sovereign_agent.execution import GovernedExecutionEngine
+from sovereign_agent.execution import cli as execution_cli
 from sovereign_agent.orchestrator import BareWorker, WorkerOutcome
 from sovereign_agent.providers import (
     InvocationResult,
@@ -314,6 +316,33 @@ async def test_provider_error_and_timeout_have_distinct_reasons(
 
 
 @pytest.mark.asyncio
+async def test_lifecycle_timeout_has_distinct_terminal_receipt(
+    governed: tuple[GovernedExecutionEngine, FakeProvider, RuntimeRoot],
+) -> None:
+    engine, provider, _ = governed
+    provider.delay = 1.0
+
+    receipt = await engine.run(
+        _request(
+            execution_id="lifecycle-timeout",
+            governance={
+                "authority": {"grant": "test"},
+                "constraints": {
+                    "timeouts": {
+                        "lifecycle_s": 0.01,
+                        "force_teardown_s": 0.01,
+                    }
+                },
+            },
+        )
+    )
+
+    assert receipt.status is ReceiptStatus.FAILED
+    assert receipt.termination is ReceiptTermination.LIFECYCLE_TIMEOUT
+    assert receipt.error["reason"] == "lifecycle-timeout"
+
+
+@pytest.mark.asyncio
 async def test_requested_filesystem_isolation_refuses_before_invoke(
     governed: tuple[GovernedExecutionEngine, FakeProvider, RuntimeRoot],
 ) -> None:
@@ -436,6 +465,102 @@ async def test_cli_receipt_json_and_stable_not_found_exit(
     )
     assert shown.exit_code == 0
     assert json.loads(shown.stdout)["termination"] == "completed"
+
+
+def test_cli_request_status_relay_and_receipt_flow(
+    governed: tuple[GovernedExecutionEngine, FakeProvider, RuntimeRoot],
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    engine, _, runtime = governed
+    config = tmp_path / "wiring.json"
+    config.write_text(json.dumps({"runtime_root": str(runtime.root)}), encoding="utf-8")
+    request = _request(execution_id="cli-black-box")
+    request_file = tmp_path / "request.yaml"
+    request_file.write_text(yaml.safe_dump(request.to_dict(), sort_keys=False), encoding="utf-8")
+    monkeypatch.setattr(execution_cli, "_engine", lambda _path: engine)
+    runner = CliRunner()
+
+    executed = runner.invoke(
+        app,
+        ["execute", "--request", str(request_file), "--config", str(config)],
+    )
+    status = runner.invoke(
+        app,
+        ["execution", "status", str(request.execution_id), "--config", str(config)],
+    )
+    receipt = runner.invoke(
+        app,
+        ["receipt", "show", str(request.execution_id), "--config", str(config)],
+    )
+
+    assert executed.exit_code == 0, executed.stdout
+    assert json.loads(executed.stdout)["termination"] == "completed"
+    assert status.exit_code == 0
+    assert json.loads(status.stdout)["phase"] == "finalized"
+    assert receipt.exit_code == 0
+    assert json.loads(receipt.stdout)["evidence_sha256"]
+
+    for instance in ("cli-sender", "cli-recipient"):
+        registered = runner.invoke(
+            app,
+            [
+                "seat",
+                "register",
+                "--instance",
+                instance,
+                "--seat-type",
+                "worker-seat",
+                "--provider",
+                "fake",
+                "--backend",
+                "bare",
+                "--config",
+                str(config),
+            ],
+        )
+        assert registered.exit_code == 0, registered.stdout
+
+    sent = runner.invoke(
+        app,
+        [
+            "relay",
+            "send",
+            "--from",
+            "cli-sender",
+            "--to",
+            "cli-recipient",
+            "--kind",
+            "review-request",
+            "--conversation-id",
+            "round-cli",
+            "--body",
+            "review",
+            "--config",
+            str(config),
+        ],
+    )
+    received = runner.invoke(
+        app,
+        [
+            "relay",
+            "receive",
+            "--to",
+            "cli-recipient",
+            "--owner",
+            "cli-test",
+            "--ack",
+            "--config",
+            str(config),
+        ],
+    )
+
+    assert sent.exit_code == 0, sent.stdout
+    assert received.exit_code == 0, received.stdout
+    received_json = json.loads(received.stdout)
+    assert received_json["claimed"] is True
+    assert received_json["message"]["conversation_id"] == "round-cli"
+    assert received_json["ack"]["message_id"] == json.loads(sent.stdout)["message"]["message_id"]
 
 
 @pytest.mark.asyncio

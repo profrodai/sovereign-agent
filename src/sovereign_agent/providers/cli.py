@@ -220,6 +220,8 @@ class CliProvider(ABC):
             )
         if request.provider_session_id is not None and not self.capabilities.resume:
             raise ProviderUnavailable(f"{self.name} resume support was not proven")
+        if request.fork_provider_session and not self.capabilities.fork:
+            raise ProviderUnavailable(f"{self.name} session fork support was not proven")
         context = thaw_json(request.context)
         assert isinstance(context, dict)
         requested = {

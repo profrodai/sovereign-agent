@@ -69,6 +69,7 @@ dev = [
   "mkdocs>=1.6",
   "mkdocs-material>=9.5",
   "pyyaml>=6",
+  "jsonschema>=4.26.0",
 ]
 
 # Build backend. Setuptools is still fine for this layout; uv will use it

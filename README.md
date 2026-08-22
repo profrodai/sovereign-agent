@@ -242,7 +242,7 @@ sovereign-agent/
 ├── chapters/             # 5 tutorial chapters (minitorch-style, fill in the TODOs)
 ├── examples/             # 8 reference scenarios (research, code review, HITL, etc.)
 ├── docs/                 # architecture, API stability, deployment
-└── tests/                # 480 collected tests — library + chapters + examples
+└── tests/                # 500 collected tests — library + chapters + examples
 ```
 
 - **If you want to ship an agent today** → read `src/sovereign_agent/` and pick scenarios from `examples/`
@@ -325,7 +325,7 @@ The Makefile is also the documentation for the release workflow:
 ```
 make doctor           # tabular status — Python, uv, .env, deps, imports, CI
 make preflight        # lint + drift + pytest collection + demo importability
-make test             # full suite (480 collected: 479 pass, 1 skip)
+make test             # full suite (500 collected: 497 pass, 3 opt-in/platform skips)
 make ci-real-estimate # cost preview for a full ci-real run (no API calls)
 make ci-real          # run every -real scenario against a live LLM
 make pre-publish      # audit for secrets, PII, forbidden files before public push
@@ -359,7 +359,7 @@ additions are covered by the v0.3 compatibility contract. See
 [`docs/API.md`](docs/API.md) and the checked export manifests.
 
 - ✅ Framework: sessions, tickets, IPC, parallelism, isolation, resume, verifiers, HITL
-- ✅ 480 tests collected — 479 pass, 1 skipped (library + chapters + integration)
+- ✅ 500 tests collected — 497 pass, 3 opt-in/platform skips
 - ✅ 8 reference scenarios, all with dataflow integrity checks
 - ✅ 5 tutorial chapters, drift-checked against production code in CI
 - 🚧 Voice pipeline, observability backends (Evidently/OTel) — skeletons, not implementations
@@ -426,7 +426,7 @@ verify, then commit.
 git clone https://github.com/zeroemployeeorg/sovereign-agent
 cd sovereign-agent
 make first-run          # install, preflight, sanity check
-make test               # 370 collected, ~9s
+make test               # full deterministic suite
 make demo-ch5           # see a working agent end-to-end
 ```
 

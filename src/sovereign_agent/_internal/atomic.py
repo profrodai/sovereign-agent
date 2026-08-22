@@ -67,6 +67,31 @@ def atomic_write_json(path: Path, obj: Any, *, indent: int | None = 2) -> None:
     atomic_write_text(path, data)
 
 
+def fsync_directory(path: Path) -> bool:
+    """Best-effort directory sync after an atomic rename.
+
+    POSIX permits opening a directory and syncing its metadata. Windows does
+    not expose the same operation through ``os.open``. The file itself has
+    already been flushed by :func:`atomic_write_bytes`, so an unavailable
+    directory sync must not turn a successful atomic write into a failure.
+
+    Returns ``True`` when the directory was synced and ``False`` when the host
+    does not support opening or syncing directory handles.
+    """
+    try:
+        fd = os.open(path, os.O_RDONLY)
+    except OSError:
+        return False
+    try:
+        try:
+            os.fsync(fd)
+        except OSError:
+            return False
+    finally:
+        os.close(fd)
+    return True
+
+
 def atomic_append_jsonl(path: Path, obj: Any) -> None:
     """Append one JSON object plus newline to a JSONL file.
 
@@ -141,5 +166,6 @@ __all__ = [
     "atomic_write_json",
     "atomic_append_jsonl",
     "compute_sha256",
+    "fsync_directory",
     "new_ipc_filename",
 ]

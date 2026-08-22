@@ -89,11 +89,15 @@ Summary of the correction, for anyone scanning:
 (stable) in pyproject.toml", 2026-04-24). This is the only release tag and
 matches the only PyPI release.
 
-No v0.3 tag exists. `pyproject.toml` still declares `0.2.0` while `main` carries
-v0.3 work, so **the version string does not identify the tree**. Use commit SHAs
-when reporting against `main`.
+No v0.3 tag existed at the consolidation commit. At `c139ad7`,
+`pyproject.toml` still declared `0.2.0` while `main` carried early v0.3 work, so
+the version string did not identify that historical tree. Later v0.3 unit
+branches declare `0.3.0`; publishing remains a separate tag-triggered action.
 
 ## Verified state at `c139ad7`
+
+This is a historical snapshot of the consolidation commit, not the current
+release branch:
 
 - `pytest` — 370 collected, 369 passed, 1 skipped.
 - `sovereign_agent.__all__` — 76 symbols (67 of which shipped in 0.2.0).

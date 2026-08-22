@@ -105,6 +105,80 @@ async def test_worker_timeout_and_preserve_policy(tmp_path: Path) -> None:
     assert backend.preserve is True
 
 
+@pytest.mark.parametrize(
+    "reason",
+    [
+        TerminalReason.IDLE_TIMEOUT,
+        TerminalReason.COMPLETION_TIMEOUT,
+        TerminalReason.PROVIDER_TIMEOUT,
+        TerminalReason.PROVIDER_ERROR,
+        TerminalReason.WORKER_ERROR,
+        TerminalReason.INVALID_STRUCTURED_OUTPUT,
+        TerminalReason.VERIFICATION_FAILED,
+        TerminalReason.DELIVERY_FAILED,
+        TerminalReason.BUSINESS_VERIFICATION_FAILED,
+    ],
+)
+@pytest.mark.asyncio
+async def test_backend_terminal_reasons_remain_distinct(
+    tmp_path: Path, reason: TerminalReason
+) -> None:
+    backend = RecordingBackend(
+        result=ExecResult(returncode=None, terminal_reason=reason),
+    )
+
+    result = await ExecutionLifecycle().run(backend, request(tmp_path))
+
+    assert result.reason is reason
+    assert result.exec_result is not None
+    assert result.exec_result.terminal_reason is reason
+
+
+@pytest.mark.asyncio
+async def test_lifecycle_timeout_is_distinct_from_worker_timeout(tmp_path: Path) -> None:
+    item = request(
+        tmp_path,
+        timeouts=LifecycleTimeouts(lifecycle_s=0.01, force_teardown_s=0.01),
+    )
+
+    result = await ExecutionLifecycle().run(RecordingBackend(delay=30), item)
+
+    assert result.reason is TerminalReason.LIFECYCLE_TIMEOUT
+    assert result.error == TerminalReason.LIFECYCLE_TIMEOUT.value
+
+
+@pytest.mark.asyncio
+async def test_close_timeout_forces_bounded_teardown(tmp_path: Path) -> None:
+    force_called = False
+
+    class SlowCloseBackend(RecordingBackend):
+        async def prepare(self, item: WorkerRequest) -> RuntimeHandle:
+            handle = await super().prepare(item)
+
+            def force_close() -> None:
+                nonlocal force_called
+                force_called = True
+
+            handle.state["force_close"] = force_close
+            return handle
+
+        async def close(self, handle: RuntimeHandle, preserve: bool = False) -> CloseResult:
+            del handle, preserve
+            await asyncio.sleep(30)
+            return CloseResult(closed=True)
+
+    item = request(
+        tmp_path,
+        timeouts=LifecycleTimeouts(close_s=0.01, force_teardown_s=0.01),
+    )
+
+    result = await ExecutionLifecycle().run(SlowCloseBackend(), item)
+
+    assert result.reason is TerminalReason.SUCCEEDED
+    assert result.close_result is not None and result.close_result.forced
+    assert force_called is True
+
+
 @pytest.mark.asyncio
 async def test_noncooperative_backend_cannot_hold_lifecycle_open(tmp_path: Path) -> None:
     release = asyncio.Event()
