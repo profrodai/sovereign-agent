@@ -17,7 +17,12 @@ from sovereign_agent.contracts._core import (
     require_string,
     thaw_json,
 )
-from sovereign_agent.contracts.ids import SeatId, SeatInstanceId
+from sovereign_agent.contracts.ids import (
+    ProviderSessionId,
+    SeatId,
+    SeatInstanceId,
+    SovereignSessionId,
+)
 
 REGISTRY_SCHEMA_VERSION = 1
 _ADDRESS = re.compile(r"^local://([A-Za-z0-9](?:[A-Za-z0-9._:/-]{0,126}[A-Za-z0-9])?)$")
@@ -97,6 +102,9 @@ class SeatInstance:
     heartbeat_at: datetime
     lifecycle: SeatLifecycle = SeatLifecycle.REGISTERED
     status: FrozenDict = field(default_factory=FrozenDict)
+    sovereign_session_id: SovereignSessionId | None = None
+    provider_session_id: ProviderSessionId | None = None
+    capability_manifest_ref: str | None = None
     schema_version: int = REGISTRY_SCHEMA_VERSION
 
     def __post_init__(self) -> None:
@@ -116,6 +124,27 @@ class SeatInstance:
             object.__setattr__(self, "address", RuntimeAddress(str(self.address)))
         if self.address.instance_id != self.instance_id:
             raise ValueError("runtime address does not match instance ID")
+        if self.sovereign_session_id is not None and not isinstance(
+            self.sovereign_session_id, SovereignSessionId
+        ):
+            object.__setattr__(
+                self, "sovereign_session_id", SovereignSessionId(str(self.sovereign_session_id))
+            )
+        if self.provider_session_id is not None:
+            if not isinstance(self.provider_session_id, ProviderSessionId):
+                object.__setattr__(
+                    self, "provider_session_id", ProviderSessionId(str(self.provider_session_id))
+                )
+            if self.provider_session_id.value == self.instance_id.value:
+                raise ValueError("provider session identity cannot be a seat instance identity")
+        if self.capability_manifest_ref is not None:
+            if (
+                not isinstance(self.capability_manifest_ref, str)
+                or not self.capability_manifest_ref
+            ):
+                raise ValueError("capability_manifest_ref must be a non-empty artifact reference")
+            if any(token in self.capability_manifest_ref for token in ("\n", "\r", "\0")):
+                raise ValueError("capability_manifest_ref must be a single-line artifact reference")
         for name in ("registered_at", "updated_at", "heartbeat_at"):
             value = getattr(self, name)
             if value.tzinfo is None or value.utcoffset() is None:
@@ -150,6 +179,13 @@ class SeatInstance:
             "heartbeat_at": format_datetime(self.heartbeat_at, "heartbeat_at"),
             "lifecycle": self.lifecycle.value,
             "status": thaw_json(self.status),
+            "sovereign_session_id": (
+                None if self.sovereign_session_id is None else self.sovereign_session_id.value
+            ),
+            "provider_session_id": (
+                None if self.provider_session_id is None else self.provider_session_id.value
+            ),
+            "capability_manifest_ref": self.capability_manifest_ref,
         }
 
     @classmethod
@@ -172,7 +208,28 @@ class SeatInstance:
             heartbeat_at=parse_datetime(data["heartbeat_at"], "heartbeat_at"),
             lifecycle=SeatLifecycle(str(data["lifecycle"])),
             status=freeze_json(data.get("status", {})),
+            sovereign_session_id=_optional_id(
+                data.get("sovereign_session_id"), SovereignSessionId, "sovereign_session_id"
+            ),
+            provider_session_id=_optional_id(
+                data.get("provider_session_id"), ProviderSessionId, "provider_session_id"
+            ),
+            capability_manifest_ref=_optional_string(data.get("capability_manifest_ref")),
         )
+
+
+def _optional_string(value: object) -> str | None:
+    if value is None:
+        return None
+    if not isinstance(value, str):
+        raise ValueError("expected optional string")
+    return value
+
+
+def _optional_id(value: object, cls: type, name: str) -> Any:
+    if value is None:
+        return None
+    return cls(require_string(value, name))
 
 
 __all__ = [

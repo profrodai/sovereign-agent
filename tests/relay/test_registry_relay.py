@@ -87,7 +87,7 @@ def message(system, identifier: str, *, created_offset: int = 0) -> RelayMessage
         sender=sender.address,
         recipient=recipient.address,
         kind="task",
-        correlation_id="corr",
+        conversation_id="corr",
         created_at=clock.now + timedelta(seconds=created_offset),
         payload={"nested": {"value": 1}},
     )
@@ -254,3 +254,112 @@ def test_process_safe_enqueue_is_atomic(system):
         results = pool.map(_process_enqueue, [str(root.root)] * 12)
     assert results == ["process-message"] * 12
     assert relay.get("process-message").attempt_count == 0
+
+
+def test_two_instances_of_the_same_seat_remain_separately_addressable(system):
+    _, _, registry, _, _, _ = system
+    first = registry.register(
+        instance_id="sparring-solweb-01",
+        seat_id="zeo-sparring",
+        provider="codex",
+        backend="os-isolated",
+        sovereign_session_id="sess-one",
+        provider_session_id="prov-one",
+        capability_manifest_ref="receipts/capabilities/one.json",
+    )
+    second = registry.register(
+        instance_id="sparring-solweb-02",
+        seat_id="zeo-sparring",
+        provider="codex",
+        backend="os-isolated",
+        sovereign_session_id="sess-two",
+        provider_session_id="prov-two",
+        capability_manifest_ref="receipts/capabilities/two.json",
+    )
+    assert first.seat_id == second.seat_id
+    assert first.address != second.address
+    assert registry.resolve(first.address).instance_id.value == "sparring-solweb-01"
+    assert registry.resolve(second.address).instance_id.value == "sparring-solweb-02"
+
+
+def test_provider_session_is_never_organizational_identity(system):
+    _, _, registry, _, _, _ = system
+    with pytest.raises(ValueError, match="provider session"):
+        registry.register(
+            instance_id="seat-org",
+            seat_id="zeo-stream",
+            provider="native",
+            backend="bare",
+            provider_session_id="seat-org",
+        )
+    record = registry.register(
+        instance_id="seat-org",
+        seat_id="zeo-stream",
+        provider="native",
+        backend="bare",
+        provider_session_id="opaque-provider-session",
+        sovereign_session_id="sess-bound",
+    )
+    with pytest.raises(RegistrationConflict):
+        registry.register(
+            instance_id="seat-org",
+            seat_id="zeo-stream",
+            provider="native",
+            backend="bare",
+            provider_session_id="different-opaque",
+            sovereign_session_id="sess-bound",
+        )
+    heartbeat = registry.heartbeat("seat-org", status={"pid": 9})
+    assert heartbeat.provider_session_id is not None
+    assert heartbeat.provider_session_id.value == "opaque-provider-session"
+    assert heartbeat.sovereign_session_id is not None
+    assert heartbeat.sovereign_session_id.value == "sess-bound"
+    assert record.address.instance_id.value == "seat-org"
+    assert record.address.instance_id.value != record.provider_session_id.value
+
+
+def test_expired_messages_dead_letter_with_failure_ground(system):
+    clock, _, _, _, recipient, relay = system
+    envelope = RelayMessage(
+        **{
+            **message(system, "expiring").__dict__,
+            "expires_at": clock.now + timedelta(seconds=2),
+        }
+    )
+    relay.enqueue(envelope)
+    clock.advance(3)
+    assert relay.claim(recipient.address, owner="worker") is None
+    dead = relay.dead_letters()
+    assert len(dead) == 1
+    assert dead[0].message.message_id.value == "expiring"
+    assert dead[0].last_error == "message expired"
+
+
+def test_artifact_refs_round_trip_without_copying_bytes(system):
+    _, root, _, _, _, relay = system
+    artifact = root.root / "outside-artifact.bin"
+    artifact.write_bytes(b"secret-bytes" * 1024)
+    envelope = RelayMessage(
+        **{
+            **message(system, "refs").__dict__,
+            "artifact_refs": ("projects/zero-employee/sow/runtime/runtime-SOW-1.md",),
+            "payload": {"body": "Review the proposed ruling against doctrine."},
+        }
+    )
+    stored = relay.enqueue(envelope).message
+    assert stored.artifact_refs == envelope.artifact_refs
+    assert stored.to_instance.value == "recipient-1"
+    assert stored.from_instance.value == "sender-1"
+    queue_bytes = b"".join(
+        path.read_bytes() for path in (root.relay_dir / "messages").glob("*.json")
+    )
+    assert b"secret-bytes" not in queue_bytes
+    restored = RelayMessage.from_dict(
+        {
+            **stored.to_dict(),
+            "correlation_id": stored.conversation_id,
+            "causation_id": None,
+        }
+    )
+    assert restored.conversation_id == "corr"
+    assert restored.requires_ack is True

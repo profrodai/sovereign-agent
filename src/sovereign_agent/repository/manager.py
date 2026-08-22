@@ -17,6 +17,7 @@ from .errors import (
     RepositoryCommandError,
     RepositoryConfigurationError,
     RepositoryDirtyError,
+    RepositoryLockLost,
     RepositoryValidationError,
 )
 from .locking import RepositoryLease, RepositoryLockManager
@@ -179,6 +180,55 @@ class RepositoryManager:
 
     def heartbeat(self, execution: RepositoryExecution) -> None:
         self._lease(execution).heartbeat()
+
+    def resume(
+        self,
+        execution: RepositoryExecution,
+        *,
+        lock_timeout: float = 30.0,
+        lease_seconds: float = 60.0,
+    ) -> RepositoryExecution:
+        """Revalidate an existing worktree and recover its lease generation."""
+        config = self.resolve(execution.repository_id)
+        try:
+            self.heartbeat(execution)
+            return execution
+        except RepositoryLockLost:
+            pass
+        if execution.source_checkout.resolve() != config.checkout.resolve():
+            raise RepositoryValidationError("execution source checkout mapping changed")
+        if not execution.worktree_path.is_dir():
+            raise RepositoryValidationError("execution worktree is missing during recovery")
+        branch = (
+            _git(
+                execution.worktree_path,
+                "symbolic-ref",
+                "--short",
+                "HEAD",
+                operation="recover execution branch",
+            )
+            .stdout.decode()
+            .strip()
+        )
+        if branch != execution.branch:
+            raise RepositoryValidationError("execution branch changed during recovery")
+        lock_key = hashlib.sha256(str(execution.repository_id).encode()).hexdigest()
+        lease = self._locks.acquire(
+            lock_key,
+            timeout=lock_timeout,
+            lease_seconds=lease_seconds,
+            owner=str(execution.execution_id),
+        )
+        return RepositoryExecution(
+            repository_id=execution.repository_id,
+            execution_id=execution.execution_id,
+            source_checkout=execution.source_checkout,
+            worktree_path=execution.worktree_path,
+            base_ref=execution.base_ref,
+            base_sha=execution.base_sha,
+            branch=execution.branch,
+            lock_token=lease.token,
+        )
 
     def resolve_relative_path(
         self, execution: RepositoryExecution, relative_path: str | Path
@@ -434,6 +484,10 @@ class RepositoryManager:
             return removed
         finally:
             lease.release()
+
+    def release(self, execution: RepositoryExecution) -> None:
+        """Release only the execution lease, preserving its evidence worktree."""
+        self._lease(execution).release()
 
     def _lease(self, execution: RepositoryExecution) -> RepositoryLease:
         key = hashlib.sha256(str(execution.repository_id).encode()).hexdigest()

@@ -54,6 +54,7 @@ class ClaudeCodeProvider(CliProvider):
     def invocation_spec(self, request: InvocationRequest) -> InvocationSpec:
         context = thaw_json(request.context)
         assert isinstance(context, dict)
+        cwd = self.working_directory(request)
         schema = object_value(context.get("json_schema"))
         if context.get("require_structured_result") and schema is None:
             raise ProviderUnavailable("claude structured results require context.json_schema")
@@ -69,7 +70,7 @@ class ClaudeCodeProvider(CliProvider):
         if schema is not None:
             command.extend(("--json-schema", json.dumps(schema, sort_keys=True)))
         command.append(request.task)
-        return self.spec(command, cwd=request.session.directory)
+        return self.spec(command, cwd=cwd)
 
     def parse_output(self, stdout: str, request: InvocationRequest) -> list[ProviderEventType]:
         builder = EventBuilder(request)

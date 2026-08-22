@@ -258,5 +258,21 @@ class CliProvider(ABC):
             stdin=stdin,
         )
 
+    def working_directory(self, request: InvocationRequest) -> Path:
+        """Use an admitted repository worktree when the execution engine supplies one."""
+        context = thaw_json(request.context)
+        assert isinstance(context, dict)
+        configured = context.get("repository_worktree")
+        if configured is None:
+            return request.session.directory
+        if not isinstance(configured, str):
+            raise ProviderUnavailable("repository_worktree must be an absolute directory path")
+        path = Path(configured)
+        if not path.is_absolute() or path.is_symlink() or not path.is_dir():
+            raise ProviderUnavailable(
+                "repository_worktree must be an existing non-symlink absolute directory"
+            )
+        return path
+
 
 __all__ = ["CliProvider", "ProbeEvidence", "ProviderUnavailable"]

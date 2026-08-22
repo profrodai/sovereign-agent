@@ -35,7 +35,27 @@
       "type": ["string", "null"],
       "pattern": "^[0-9a-f]{64}$"
     },
-    "correction_sequence": {"type": "integer", "minimum": 0}
+    "correction_sequence": {"type": "integer", "minimum": 0},
+    "termination": {"type": ["string", "null"]},
+    "predecessor_execution_id": {
+      "oneOf": [{"$ref": "#/$defs/id"}, {"type": "null"}]
+    },
+    "seat_type": {"oneOf": [{"$ref": "#/$defs/id"}, {"type": "null"}]},
+    "seat_instance": {"oneOf": [{"$ref": "#/$defs/id"}, {"type": "null"}]},
+    "sovereign_session": {"oneOf": [{"$ref": "#/$defs/id"}, {"type": "null"}]},
+    "provider": {"type": ["string", "null"]},
+    "provider_session": {"oneOf": [{"$ref": "#/$defs/id"}, {"type": "null"}]},
+    "worker_backend": {"type": ["string", "null"]},
+    "capability_manifest_ref": {"type": ["string", "null"]},
+    "completion_signal_seen": {"type": ["boolean", "null"]},
+    "structured_result_valid": {"type": ["boolean", "null"]},
+    "technical_verification_valid": {"type": ["boolean", "null"]},
+    "dataflow_integrity_valid": {"type": ["boolean", "null"]},
+    "repository": {"type": ["object", "null"]},
+    "verification": {"type": "array"},
+    "usage": {"type": ["object", "null"]},
+    "artifact_refs": {"type": "array", "items": {"type": "string"}},
+    "warnings": {"type": "array", "items": {"type": "string"}}
   },
   "allOf": [
     {

@@ -10,12 +10,16 @@ from sovereign_agent.contracts import (
     CapabilityManifest,
     ContractValidationError,
     EvidenceLevel,
+    ExecutionConstraints,
     ExecutionId,
     ExecutionReceipt,
     GovernedExecutionRequest,
     InvocationId,
+    MutationPolicy,
     ReceiptStatus,
     RepositoryId,
+    SandboxMinimum,
+    SeatId,
     SeatInstanceId,
     SovereignSessionId,
     canonical_json_bytes,
@@ -56,6 +60,20 @@ def request() -> GovernedExecutionRequest:
         governance={"network": "deny"},
         capability_manifest=manifest(),
         requested_at=NOW,
+        conversation_id="round-1",
+        seat_type=SeatId("zeo-stream"),
+        requested_by="projects/zero-employee/sow/runtime/runtime-SOW-1.md",
+        authority_refs=("ruling/RULING-359.md",),
+        work_artifact_refs=("projects/zero-employee/sow/runtime/runtime-SOW-1.md",),
+        base_ref="origin/main",
+        branch="sovereign/seat-01/execution-01",
+        constraints=ExecutionConstraints(
+            structured_output=True,
+            sandbox_minimum=SandboxMinimum.FILESYSTEM_ISOLATED,
+            filesystem_isolation=True,
+        ),
+        required_evidence=("structured_result", "commit_sha"),
+        acceptance_commands=(("make", "verify"),),
     )
 
 
@@ -89,11 +107,23 @@ def test_request_strict_round_trip_and_unknown_preservation() -> None:
 
 def test_request_rejects_missing_wrong_and_naive_values() -> None:
     wire = request().to_dict()
-    del wire["governance"]
+    del wire["conversation_id"]
     with pytest.raises(ContractValidationError, match="missing required"):
         GovernedExecutionRequest.from_dict(wire)
     with pytest.raises(ContractValidationError, match="timezone-aware"):
         GovernedExecutionRequest(**{**request().__dict__, "requested_at": datetime(2026, 1, 1)})
+
+
+def test_request_rejects_impossible_identity_and_mutation_combinations() -> None:
+    with pytest.raises(ContractValidationError, match="authority_refs"):
+        GovernedExecutionRequest(**{**request().__dict__, "authority_refs": ()})
+    with pytest.raises(ContractValidationError, match="trunk mutation"):
+        GovernedExecutionRequest(**{**request().__dict__, "branch": "main"})
+    with pytest.raises(ContractValidationError, match="filesystem-isolated"):
+        ExecutionConstraints(
+            trunk_mutation=MutationPolicy.ALLOWED,
+            sandbox_minimum=SandboxMinimum.FILESYSTEM_ISOLATED,
+        )
 
 
 def test_capability_availability_and_evidence_are_independent() -> None:

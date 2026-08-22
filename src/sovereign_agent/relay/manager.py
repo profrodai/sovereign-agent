@@ -109,6 +109,9 @@ class DurableRelay:
                     DeliveryStatus.DEAD_LETTERED,
                 }:
                     continue
+                if self._expired(record, now):
+                    self._dead_letter(path, record, now, "message expired")
+                    continue
                 if record.status is DeliveryStatus.CLAIMED:
                     assert record.lease_expires_at is not None
                     if record.lease_expires_at > now:
@@ -263,6 +266,11 @@ class DurableRelay:
         """Optional in-process wake-up only; callers must always re-check durable state."""
         with self._condition:
             self._condition.wait(timeout)
+
+    @staticmethod
+    def _expired(record: DeliveryRecord, now: datetime) -> bool:
+        expires = record.message.expires_at
+        return expires is not None and expires <= now
 
     def _recover_expired(self, path: Path, record: DeliveryRecord, now: datetime) -> DeliveryRecord:
         if record.attempt_count >= self.max_attempts:

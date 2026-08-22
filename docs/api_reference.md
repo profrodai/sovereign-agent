@@ -175,6 +175,26 @@ from sovereign_agent import (
 
 Use `"subprocess"` where you would have reached for `"docker"`.
 
+## Governed execution (unreleased v0.3 Unit 7)
+
+```python
+from sovereign_agent import (
+    AdmissionRejected,
+    ExecutionReceipt,
+    ExecutionStatus,
+    GovernedExecutionEngine,
+    GovernedExecutionRequest,
+    ReceiptStatus,
+)
+```
+
+`GovernedExecutionEngine.run(request)` admits and executes one versioned request.
+Admission refusals and every later terminal class produce a finalized receipt.
+Zero Employee, not this engine, decides whether the receipt satisfies a governed
+obligation. `status`, `cancel`, and `receipt` expose durable execution control.
+An execution ID is an idempotency key: finalized retries return the existing
+immutable receipt.
+
 ## Plugin registries (unreleased v0.3)
 
 ```python

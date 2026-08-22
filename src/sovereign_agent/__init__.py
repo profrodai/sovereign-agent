@@ -4,8 +4,8 @@ Alpha. The declared version is 0.2.0 and that is the only release on PyPI,
 but this tree also carries unreleased v0.3 work (channels, plugin
 registries, worker-backend dispatch, liveness monitor).
 
-The 143 names in __all__ are the public API surface. Of those, 67 shipped in
-0.2.0 and are stable across 0.2.x; the 76 v0.3 additions carry no stability
+The 152 names in __all__ are the public API surface. Of those, 67 shipped in
+0.2.0 and are stable across 0.2.x; the 85 v0.3 additions carry no stability
 promise until 0.3.0 is tagged. Anything not in __all__ is internal and may
 change between any two releases -- including names that happen to be
 importable from this module, such as the channel adapter types and
@@ -34,6 +34,13 @@ from sovereign_agent.channels import OutboundMessage as OutboundMessage
 
 # Config
 from sovereign_agent.config import Config
+from sovereign_agent.contracts import (
+    ExecutionConstraints,
+    ExecutionReceipt,
+    GovernedExecutionRequest,
+    ReceiptStatus,
+    ReceiptTermination,
+)
 
 # Discovery (Pattern A)
 from sovereign_agent.discovery import Discoverable, DiscoverySchema, discoverable
@@ -47,6 +54,14 @@ from sovereign_agent.errors import (
     SystemError,
     ToolError,
     ValidationError,
+)
+
+# Governed end-to-end execution (v0.3 Unit 7)
+from sovereign_agent.execution import (
+    AdmissionRejected,
+    ExecutionNotFound,
+    ExecutionStatus,
+    GovernedExecutionEngine,
 )
 from sovereign_agent.executor import DefaultExecutor, Executor, ExecutorResult
 
@@ -304,6 +319,16 @@ __all__ = [
     "ProviderUnavailable",
     "ProbeEvidence",
     "PROVIDER_REGISTRY",
+    # governed execution (v0.3 Unit 7)
+    "AdmissionRejected",
+    "ExecutionNotFound",
+    "ExecutionStatus",
+    "GovernedExecutionEngine",
+    "GovernedExecutionRequest",
+    "ExecutionConstraints",
+    "ExecutionReceipt",
+    "ReceiptStatus",
+    "ReceiptTermination",
     # repository execution (v0.3 Unit 5)
     "DeliveryFailureReason",
     "DeliveryResult",

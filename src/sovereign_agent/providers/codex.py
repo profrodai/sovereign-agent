@@ -54,6 +54,7 @@ class CodexCliProvider(CliProvider):
     def invocation_spec(self, request: InvocationRequest) -> InvocationSpec:
         context = thaw_json(request.context)
         assert isinstance(context, dict)
+        cwd = self.working_directory(request)
         schema_path = context.get("output_schema_path")
         if context.get("require_structured_result") and not isinstance(schema_path, str):
             raise ProviderUnavailable("codex structured results require context.output_schema_path")
@@ -80,7 +81,7 @@ class CodexCliProvider(CliProvider):
                 parts.extend(("--output-schema", schema_path))
             parts.extend((str(request.provider_session_id), request.task))
             command = tuple(parts)
-        return self.spec(command, cwd=request.session.directory)
+        return self.spec(command, cwd=cwd)
 
     def parse_output(self, stdout: str, request: InvocationRequest) -> list[ProviderEventType]:
         builder = EventBuilder(request)

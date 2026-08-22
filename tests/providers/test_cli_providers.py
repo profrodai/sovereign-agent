@@ -133,6 +133,17 @@ def test_codex_command_construction_distinguishes_fresh_and_resume(fresh_session
     assert fresh.cwd == fresh_session.directory
 
 
+def test_cli_provider_uses_admitted_repository_worktree(fresh_session, tmp_path: Path) -> None:
+    worktree = tmp_path / "worktree"
+    worktree.mkdir()
+    context = FrozenDict((("repository_worktree", str(worktree.resolve())),))
+    codex = CodexCliProvider(backend=FakeBackend(help_stdout=""))
+    claude = ClaudeCodeProvider(backend=FakeBackend(help_stdout=""))
+
+    assert codex.invocation_spec(request(fresh_session, context=context)).cwd == worktree
+    assert claude.invocation_spec(request(fresh_session, context=context)).cwd == worktree
+
+
 def test_claude_command_construction_distinguishes_fresh_and_resume(fresh_session) -> None:
     provider = ClaudeCodeProvider(
         executable="/opt/claude",

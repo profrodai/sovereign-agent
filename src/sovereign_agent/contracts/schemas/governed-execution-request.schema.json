@@ -14,7 +14,14 @@
     "input",
     "governance",
     "capability_manifest",
-    "requested_at"
+    "requested_at",
+    "conversation_id",
+    "seat_type",
+    "requested_by",
+    "authority_refs",
+    "work_artifact_refs",
+    "base_ref",
+    "branch"
   ],
   "properties": {
     "schema_version": {"const": "1.0"},
@@ -35,7 +42,23 @@
     "capability_manifest": {
       "$ref": "capability-manifest.schema.json"
     },
-    "requested_at": {"type": "string", "format": "date-time"}
+    "requested_at": {"type": "string", "format": "date-time"},
+    "conversation_id": {"type": "string", "minLength": 1},
+    "seat_type": {"$ref": "#/$defs/id"},
+    "requested_by": {"type": "string", "minLength": 1},
+    "authority_refs": {"type": "array", "items": {"type": "string"}, "minItems": 1},
+    "work_artifact_refs": {"type": "array", "items": {"type": "string"}},
+    "base_ref": {"type": "string", "minLength": 1},
+    "branch": {"type": "string", "minLength": 1},
+    "constraints": {"type": "object"},
+    "required_evidence": {"type": "array", "items": {"type": "string"}},
+    "acceptance_commands": {
+      "type": "array",
+      "items": {"type": "array", "items": {"type": "string"}}
+    },
+    "predecessor_execution_id": {
+      "oneOf": [{"$ref": "#/$defs/id"}, {"type": "null"}]
+    }
   },
   "$defs": {
     "id": {

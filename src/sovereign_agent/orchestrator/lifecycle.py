@@ -36,6 +36,7 @@ class TerminalReason(StrEnum):
     IDLE_TIMEOUT = "idle-timeout"
     COMPLETION_TIMEOUT = "completion-timeout"
     WORKER_TIMEOUT = "worker-timeout"
+    PROVIDER_TIMEOUT = "provider-timeout"
     LIFECYCLE_TIMEOUT = "lifecycle-timeout"
     PROVIDER_ERROR = "provider-error"
     WORKER_ERROR = "worker-error"

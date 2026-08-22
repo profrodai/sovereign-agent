@@ -16,7 +16,7 @@ from sovereign_agent.contracts._core import (
     require_string,
     thaw_json,
 )
-from sovereign_agent.contracts.ids import RelayMessageId
+from sovereign_agent.contracts.ids import RelayMessageId, SeatInstanceId
 from sovereign_agent.registry import RuntimeAddress
 from sovereign_agent.registry.models import validate_runtime_identifier
 
@@ -38,8 +38,11 @@ class RelayMessage:
     kind: str
     payload: FrozenDict
     created_at: datetime
-    correlation_id: str | None = None
-    causation_id: RelayMessageId | None = None
+    conversation_id: str | None = None
+    reply_to: RelayMessageId | None = None
+    requires_ack: bool = True
+    artifact_refs: tuple[str, ...] = ()
+    expires_at: datetime | None = None
     schema_version: int = RELAY_SCHEMA_VERSION
 
     def __post_init__(self) -> None:
@@ -59,14 +62,34 @@ class RelayMessage:
         if self.created_at.tzinfo is None or self.created_at.utcoffset() is None:
             raise ValueError("created_at must be timezone-aware")
         object.__setattr__(self, "created_at", self.created_at.astimezone(UTC))
-        if self.correlation_id is not None and not self.correlation_id:
-            raise ValueError("correlation_id must not be empty")
-        if self.causation_id is not None and not isinstance(self.causation_id, RelayMessageId):
-            object.__setattr__(self, "causation_id", RelayMessageId(str(self.causation_id)))
-        if self.causation_id is not None:
-            validate_runtime_identifier(self.causation_id.value, "causation_id")
+        if self.conversation_id is not None and not self.conversation_id:
+            raise ValueError("conversation_id must not be empty")
+        if self.reply_to is not None and not isinstance(self.reply_to, RelayMessageId):
+            object.__setattr__(self, "reply_to", RelayMessageId(str(self.reply_to)))
+        if self.reply_to is not None:
+            validate_runtime_identifier(self.reply_to.value, "reply_to")
+        if not isinstance(self.requires_ack, bool):
+            raise ValueError("requires_ack must be a boolean")
+        refs = tuple(self.artifact_refs)
+        if any(
+            not isinstance(item, str) or not item or "\n" in item or "\0" in item for item in refs
+        ):
+            raise ValueError("artifact_refs must be non-empty single-line references")
+        object.__setattr__(self, "artifact_refs", refs)
+        if self.expires_at is not None:
+            if self.expires_at.tzinfo is None or self.expires_at.utcoffset() is None:
+                raise ValueError("expires_at must be timezone-aware")
+            object.__setattr__(self, "expires_at", self.expires_at.astimezone(UTC))
         if self.schema_version != RELAY_SCHEMA_VERSION:
             raise ValueError("unsupported relay schema version")
+
+    @property
+    def from_instance(self) -> SeatInstanceId:
+        return self.sender.instance_id
+
+    @property
+    def to_instance(self) -> SeatInstanceId:
+        return self.recipient.instance_id
 
     def to_dict(self) -> dict[str, Any]:
         return {
@@ -75,30 +98,46 @@ class RelayMessage:
             "sender": self.sender.value,
             "recipient": self.recipient.value,
             "kind": self.kind,
-            "correlation_id": self.correlation_id,
-            "causation_id": self.causation_id.value if self.causation_id else None,
+            "conversation_id": self.conversation_id,
+            "reply_to": None if self.reply_to is None else self.reply_to.value,
+            "requires_ack": self.requires_ack,
+            "artifact_refs": list(self.artifact_refs),
+            "expires_at": None
+            if self.expires_at is None
+            else format_datetime(self.expires_at, "expires_at"),
             "created_at": format_datetime(self.created_at, "created_at"),
             "payload": thaw_json(self.payload),
         }
 
     @classmethod
     def from_dict(cls, data: Mapping[str, Any]) -> RelayMessage:
-        causation = data.get("causation_id")
+        conversation = data.get("conversation_id", data.get("correlation_id"))
+        reply = data.get("reply_to", data.get("causation_id"))
         payload = freeze_json(data["payload"], path="payload")
         if not isinstance(payload, FrozenDict):
             raise ValueError("payload must be an object")
+        refs = data.get("artifact_refs", ())
+        if refs is None:
+            refs = ()
+        if not isinstance(refs, (list, tuple)) or any(not isinstance(item, str) for item in refs):
+            raise ValueError("artifact_refs must be an array of strings")
+        requires_ack = data.get("requires_ack", True)
+        if not isinstance(requires_ack, bool):
+            raise ValueError("requires_ack must be a boolean")
+        expires = data.get("expires_at")
         return cls(
             schema_version=int(data["schema_version"]),
             message_id=RelayMessageId(require_string(data["message_id"], "message_id")),
             sender=RuntimeAddress(require_string(data["sender"], "sender")),
             recipient=RuntimeAddress(require_string(data["recipient"], "recipient")),
             kind=require_string(data["kind"], "kind"),
-            correlation_id=None
-            if data.get("correlation_id") is None
-            else require_string(data["correlation_id"], "correlation_id"),
-            causation_id=None
-            if causation is None
-            else RelayMessageId(require_string(causation, "causation_id")),
+            conversation_id=None
+            if conversation is None
+            else require_string(conversation, "conversation_id"),
+            reply_to=None if reply is None else RelayMessageId(require_string(reply, "reply_to")),
+            requires_ack=requires_ack,
+            artifact_refs=tuple(refs),
+            expires_at=None if expires is None else parse_datetime(expires, "expires_at"),
             created_at=parse_datetime(data["created_at"], "created_at"),
             payload=payload,
         )

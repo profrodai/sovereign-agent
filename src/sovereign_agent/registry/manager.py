@@ -15,7 +15,12 @@ from typing import Any
 from sovereign_agent._internal.atomic import atomic_write_bytes
 from sovereign_agent._internal.file_lock import exclusive_file_lock
 from sovereign_agent.contracts._core import canonical_json_bytes
-from sovereign_agent.contracts.ids import SeatId, SeatInstanceId
+from sovereign_agent.contracts.ids import (
+    ProviderSessionId,
+    SeatId,
+    SeatInstanceId,
+    SovereignSessionId,
+)
 from sovereign_agent.runtime import RuntimeRoot
 
 from .errors import (
@@ -51,6 +56,9 @@ class SeatRegistry:
         address: RuntimeAddress | str | None = None,
         lifecycle: SeatLifecycle = SeatLifecycle.REGISTERED,
         status: Mapping[str, Any] | None = None,
+        sovereign_session_id: SovereignSessionId | str | None = None,
+        provider_session_id: ProviderSessionId | str | None = None,
+        capability_manifest_ref: str | None = None,
     ) -> SeatInstance:
         iid = (
             instance_id if isinstance(instance_id, SeatInstanceId) else SeatInstanceId(instance_id)
@@ -76,6 +84,9 @@ class SeatRegistry:
             heartbeat_at=now,
             lifecycle=lifecycle,
             status=status or {},  # type: ignore[arg-type]
+            sovereign_session_id=sovereign_session_id,  # type: ignore[arg-type]
+            provider_session_id=provider_session_id,  # type: ignore[arg-type]
+            capability_manifest_ref=capability_manifest_ref,
         )
         with self._guard(iid):
             path = self._record_path(iid)
@@ -135,6 +146,9 @@ class SeatRegistry:
                 heartbeat_at=now,
                 lifecycle=lifecycle or current.lifecycle,
                 status=current.status if status is None else status,  # type: ignore[arg-type]
+                sovereign_session_id=current.sovereign_session_id,
+                provider_session_id=current.provider_session_id,
+                capability_manifest_ref=current.capability_manifest_ref,
             )
             atomic_write_bytes(self._record_path(iid), canonical_json_bytes(updated.to_dict()))
             self._fsync_directory(self._records)
@@ -175,6 +189,9 @@ class SeatRegistry:
             item.backend,
             item.capabilities,
             item.address,
+            item.sovereign_session_id,
+            item.provider_session_id,
+            item.capability_manifest_ref,
         )
 
     def _record_path(self, instance_id: SeatInstanceId) -> Path:
