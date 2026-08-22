@@ -49,6 +49,7 @@ PUBLIC_RUNTIME_PATHS = [
     "src/sovereign_agent/contracts",
     "src/sovereign_agent/discovery.py",
     "src/sovereign_agent/errors.py",
+    "src/sovereign_agent/execution",
     "src/sovereign_agent/executor",
     "src/sovereign_agent/halves",
     "src/sovereign_agent/handoff",
