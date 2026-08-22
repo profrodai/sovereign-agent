@@ -149,6 +149,29 @@ from sovereign_agent.providers import (
 from sovereign_agent.registries import Plugin as Plugin
 from sovereign_agent.registries import Registry as Registry
 
+# Repository execution (v0.3 Unit 5)
+from sovereign_agent.repository import (
+    DeliveryFailureReason,
+    DeliveryResult,
+    DeliveryState,
+    DirtyWorktreePolicy,
+    GitEvidence,
+    RepositoryCommandError,
+    RepositoryConfig,
+    RepositoryConfigurationError,
+    RepositoryDeliveryError,
+    RepositoryDirtyError,
+    RepositoryError,
+    RepositoryExecution,
+    RepositoryIdentity,
+    RepositoryLease,
+    RepositoryLockLost,
+    RepositoryLockManager,
+    RepositoryLockTimeout,
+    RepositoryManager,
+    RepositoryValidationError,
+)
+
 # Scheduler (Decision 6)
 from sovereign_agent.scheduler import DriftCorrectedScheduler, ScheduledTask
 
@@ -249,6 +272,26 @@ __all__ = [
     "ProviderUnavailable",
     "ProbeEvidence",
     "PROVIDER_REGISTRY",
+    # repository execution (v0.3 Unit 5)
+    "DeliveryFailureReason",
+    "DeliveryResult",
+    "DeliveryState",
+    "DirtyWorktreePolicy",
+    "GitEvidence",
+    "RepositoryCommandError",
+    "RepositoryConfig",
+    "RepositoryConfigurationError",
+    "RepositoryDeliveryError",
+    "RepositoryDirtyError",
+    "RepositoryError",
+    "RepositoryExecution",
+    "RepositoryIdentity",
+    "RepositoryLease",
+    "RepositoryLockLost",
+    "RepositoryLockManager",
+    "RepositoryLockTimeout",
+    "RepositoryManager",
+    "RepositoryValidationError",
     "Executor",
     "ExecutorResult",
     "DefaultExecutor",

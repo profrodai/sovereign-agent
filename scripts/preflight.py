@@ -61,6 +61,7 @@ PUBLIC_RUNTIME_PATHS = [
     "src/sovereign_agent/orchestrator/worker_factory.py",
     "src/sovereign_agent/planner",
     "src/sovereign_agent/providers",
+    "src/sovereign_agent/repository",
     "src/sovereign_agent/runtime",
     "src/sovereign_agent/tickets",
     "src/sovereign_agent/voice",
