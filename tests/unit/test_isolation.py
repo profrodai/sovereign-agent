@@ -288,7 +288,7 @@ def test_sandbox_exec_profile_read_only_paths(tmp_path: Path) -> None:
     )
     profile = Path(args[2]).read_text()
     # RO path has file-read* but NOT file-write*.
-    assert f'file-read* (subpath "{ro.resolve()}")' in profile
+    assert f'file-read* (subpath "{_sb_escape(ro.resolve())}")' in profile
 
 
 def test_sb_escape_handles_quotes_and_backslash() -> None:

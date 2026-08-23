@@ -1,0 +1,5 @@
+{"type":"thread.started","thread_id":"019abc12-3456-7890-abcd-ef1234567890"}
+{"type":"turn.started"}
+{"type":"item.completed","item":{"id":"item_1","type":"command_execution","command":"printf hello","aggregated_output":"hello","exit_code":0,"status":"completed"}}
+{"type":"item.completed","item":{"id":"item_2","type":"agent_message","text":"Codex answer"}}
+{"type":"turn.completed","usage":{"input_tokens":11,"cached_input_tokens":2,"output_tokens":7}}

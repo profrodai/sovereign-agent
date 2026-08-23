@@ -11,6 +11,7 @@ discouraged because Session.path() enforces traversal safety.
 from __future__ import annotations
 
 import json
+import re
 import secrets
 import shutil
 from pathlib import Path
@@ -27,9 +28,10 @@ from sovereign_agent.session.state import (
 )
 
 if TYPE_CHECKING:
-    pass
+    from sovereign_agent.runtime import RuntimeRoot
 
 DEFAULT_SESSIONS_DIR = Path("sessions")
+_SAFE_SESSION_ID = re.compile(r"^[A-Za-z0-9][A-Za-z0-9._-]*$")
 
 _DEFAULT_SESSION_MD_TEMPLATE = """# Session {session_id}
 
@@ -99,10 +101,12 @@ class Session:
         session_id: str,
         directory: Path,
         state: SessionState,
+        runtime_root: RuntimeRoot | None = None,
     ) -> None:
         self.session_id = session_id
         self.directory = directory
         self.state = state
+        self._runtime_root = runtime_root
 
     # ------------------------------------------------------------------
     # Path safety
@@ -211,6 +215,11 @@ class Session:
         """
         if self.state.resumed_from is None:
             return None
+        if self._runtime_root is not None:
+            try:
+                return load_session(self.state.resumed_from, runtime_root=self._runtime_root)
+            except SessionNotFoundError:
+                return None
         parent_dir = self.directory.parent / self.state.resumed_from
         parent_json = parent_dir / "session.json"
         if not parent_dir.exists() or not parent_json.exists():
@@ -243,9 +252,10 @@ class Session:
         If `state` is among the changes, validates the transition.
         Always updates `updated_at`.
         """
+        self._ensure_writable()
         if "state" in changes:
             proposed = str(changes["state"])
-            if not is_transition_allowed(self.state.state, proposed):  # type: ignore[arg-type]
+            if not is_transition_allowed(self.state.state, proposed):
                 raise InvalidStateTransition(self.state.state, proposed)
 
         # Apply changes to the in-memory state object.
@@ -262,6 +272,7 @@ class Session:
     # ------------------------------------------------------------------
     def append_trace_event(self, event: dict) -> None:
         """Append one event to logs/trace.jsonl. O_APPEND, atomic per-write."""
+        self._ensure_writable()
         atomic_append_jsonl(self.trace_path, event)
 
     @property
@@ -276,6 +287,7 @@ class Session:
 
     def append_inbox_event(self, event: dict) -> None:
         """Append one inbound channel message to inbox/messages.jsonl."""
+        self._ensure_writable()
         atomic_append_jsonl(self.inbox_path, event)
 
     def iter_inbox_events(self) -> list[dict]:
@@ -311,6 +323,14 @@ class Session:
     def mark_escalated(self, reason: str) -> None:
         self.update_state(state="escalated", result={"reason": reason})
 
+    def _ensure_writable(self) -> None:
+        """Copy a legacy tree into the runtime root immediately before writing."""
+        if self._runtime_root is None:
+            return
+        writable = self._runtime_root.session_directory(self.session_id, for_write=True)
+        if writable != self.directory:
+            self.directory = writable
+
     def __repr__(self) -> str:
         return f"Session(id={self.session_id!r}, state={self.state.state!r})"
 
@@ -323,6 +343,14 @@ class Session:
 def _generate_session_id() -> str:
     """Generate a 12-hex session id. Collision probability is vanishingly small."""
     return f"sess_{secrets.token_hex(6)}"
+
+
+def _validate_session_id(session_id: str) -> None:
+    if not _SAFE_SESSION_ID.fullmatch(session_id) or session_id in {".", ".."}:
+        raise SessionEscapeError(
+            f"unsafe session id: {session_id!r}",
+            {"session_id": session_id},
+        )
 
 
 def _make_subdirs(directory: Path) -> None:
@@ -353,6 +381,7 @@ def create_session(
     sessions_dir: Path | None = None,
     session_id: str | None = None,
     resumed_from: str | None = None,
+    runtime_root: RuntimeRoot | None = None,
 ) -> Session:
     """Create a new session directory and return a Session handle.
 
@@ -366,8 +395,15 @@ def create_session(
     touched. Use sovereign_agent.session.resume.resume_session() for the
     higher-level API that also populates parent-context hints.
     """
-    sessions_root = sessions_dir or DEFAULT_SESSIONS_DIR
+    if runtime_root is not None and sessions_dir is not None:
+        raise ValueError("pass either runtime_root or sessions_dir, not both")
+    if runtime_root is not None:
+        runtime_root.initialize()
+        sessions_root = runtime_root.sessions_dir
+    else:
+        sessions_root = sessions_dir or DEFAULT_SESSIONS_DIR
     sid = session_id or _generate_session_id()
+    _validate_session_id(sid)
     directory = sessions_root / sid
     if directory.exists():
         # Extremely unlikely; still, fail loudly rather than overwrite.
@@ -401,52 +437,73 @@ def create_session(
     )
     (directory / "SESSION.md").write_text(md, encoding="utf-8")
 
-    return Session(sid, directory, state)
+    return Session(sid, directory, state, runtime_root=runtime_root)
 
 
 def load_session(
     session_id: str,
     sessions_dir: Path | None = None,
+    runtime_root: RuntimeRoot | None = None,
 ) -> Session:
     """Load an existing session by id."""
-    sessions_root = sessions_dir or DEFAULT_SESSIONS_DIR
-    directory = sessions_root / session_id
+    _validate_session_id(session_id)
+    if runtime_root is not None and sessions_dir is not None:
+        raise ValueError("pass either runtime_root or sessions_dir, not both")
+    if runtime_root is not None:
+        directory = runtime_root.session_directory(session_id)
+    else:
+        sessions_root = sessions_dir or DEFAULT_SESSIONS_DIR
+        directory = sessions_root / session_id
     session_json = directory / "session.json"
     if not directory.exists() or not session_json.exists():
         raise SessionNotFoundError(session_id)
     with open(session_json, encoding="utf-8") as f:
         data = json.load(f)
     state = SessionState.from_dict(data)
-    return Session(session_id, directory, state)
+    return Session(session_id, directory, state, runtime_root=runtime_root)
 
 
 def list_sessions(
     state_filter: SessionStateName | None = None,
     sessions_dir: Path | None = None,
+    runtime_root: RuntimeRoot | None = None,
 ) -> list[Session]:
     """List all sessions under sessions_dir.
 
     Returned ordered by created_at descending (newest first).
     """
-    sessions_root = sessions_dir or DEFAULT_SESSIONS_DIR
-    if not sessions_root.exists():
-        return []
+    if runtime_root is not None and sessions_dir is not None:
+        raise ValueError("pass either runtime_root or sessions_dir, not both")
+    if runtime_root is None:
+        roots = [sessions_dir or DEFAULT_SESSIONS_DIR]
+    else:
+        roots = [runtime_root.sessions_dir]
+        if runtime_root.legacy_sessions_dir is not None:
+            roots.append(runtime_root.legacy_sessions_dir)
     sessions: list[Session] = []
-    for entry in sessions_root.iterdir():
-        if not entry.is_dir() or not entry.name.startswith("sess_"):
+    seen: set[str] = set()
+    for sessions_root in roots:
+        if not sessions_root.exists():
             continue
-        if not (entry / "session.json").exists():
-            continue
-        try:
-            session = load_session(entry.name, sessions_dir=sessions_root)
-        except Exception:
-            # Corrupt session dirs are skipped silently — list should be safe
-            # even when some sessions are broken. Doctor will surface them
-            # separately.
-            continue
-        if state_filter is not None and session.state.state != state_filter:
-            continue
-        sessions.append(session)
+        for entry in sessions_root.iterdir():
+            if not entry.is_dir() or not entry.name.startswith("sess_") or entry.name in seen:
+                continue
+            if not (entry / "session.json").exists():
+                continue
+            try:
+                if runtime_root is None:
+                    session = load_session(entry.name, sessions_dir=sessions_root)
+                else:
+                    session = load_session(entry.name, runtime_root=runtime_root)
+            except Exception:
+                # Corrupt session dirs are skipped silently — list should be safe
+                # even when some sessions are broken. Doctor will surface them
+                # separately.
+                continue
+            seen.add(entry.name)
+            if state_filter is not None and session.state.state != state_filter:
+                continue
+            sessions.append(session)
     sessions.sort(key=lambda s: s.state.created_at, reverse=True)
     return sessions
 
@@ -463,6 +520,7 @@ def archive_session(session: Session, archive_dir: Path | None = None) -> Path:
             message=f"cannot archive non-terminal session (state={session.state.state})",
             context={"session_id": session.session_id, "state": session.state.state},
         )
+    session._ensure_writable()
     archive = archive_dir or (session.directory.parent / "archive")
     archive.mkdir(parents=True, exist_ok=True)
     dest = archive / session.directory.name

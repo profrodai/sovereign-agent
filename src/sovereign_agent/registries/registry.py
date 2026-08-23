@@ -51,7 +51,7 @@ class Registry[T: Plugin]:
     """Ordered, name-keyed collection of plugins.
 
     Uses PEP 695 type parameter syntax (`class C[T: Bound]:`) — Python
-    3.12+. The bound `T: Plugin` is enforced by the type checker; at
+    3.13+. The bound `T: Plugin` is enforced by the type checker; at
     runtime, `kind_filter` enforces the plugin kind dynamically.
 
     Parameters

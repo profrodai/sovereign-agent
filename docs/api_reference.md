@@ -1,8 +1,12 @@
 # API reference
 
-The supported public API of `sovereign_agent`. Anything not listed here is internal and may change between patch releases.
+The public API of `sovereign_agent`. Anything not listed here is internal and may change between patch releases.
 
 Full docstrings are on the classes themselves; this page is an overview. For the definitive reference, read the source — every public class has a docstring that explains its purpose, parameters, and behaviour.
+
+The authoritative v0.3.0 contract is [API Stability](API.md) and its
+machine-checked 152-symbol manifest. All listed top-level exports are stable
+within the v0.3 series.
 
 ## Errors (Pattern C)
 
@@ -73,19 +77,39 @@ from sovereign_agent import IpcWatcher, write_ipc_message, send_input
 from sovereign_agent import DriftCorrectedScheduler, ScheduledTask
 ```
 
-## Tools
+## Capabilities (v0.5)
+
+Reusable actions are ZeoCore `@capability` definitions executed by
+`CapabilityExecutor`. Session filesystem operations project as `read_file`,
+`write_file`, and `list_files`. `complete_task` and `handoff_to_structured`
+are runtime commands. `CallableSurface` is the merged provider tools list.
+
+```python
+from sovereign_agent import (
+    CallableSurface,
+    CapabilityContextFactory,
+    CapabilityExecutor,
+    RuntimeCommandRegistry,
+    make_session_callable_surface,
+)
+```
+
+Runtime/provider evidence uses `RuntimeCapabilityAssertion` and
+`RuntimeCapabilityManifest` (wire key still `capability_manifest`).
+
+## Tools (compatibility window)
 
 ```python
 from sovereign_agent import (
     ToolRegistry,
     ToolResult,
-    register_tool,          # decorator
+    register_tool,          # decorator; deprecated
     global_registry,
     make_builtin_registry,  # session-scoped registry with read/write/handoff/complete
 )
 ```
 
-`@register_tool` auto-generates the discovery schema from the function's signature and docstring. Type hints (`str`, `int`, `float`, `bool`, `list`, `dict`) become JSON Schema.
+`@register_tool` auto-generates the discovery schema from the function's signature and docstring. Type hints (`str`, `int`, `float`, `bool`, `list`, `dict`) become JSON Schema. Prefer `@capability` for new reusable actions.
 
 ## Planner and Executor
 
@@ -145,6 +169,68 @@ from sovereign_agent import (
     MemoryRetrieval, MemoryConsolidation,
 )
 ```
+
+These classes exist and can be instantiated. They do not yet retrieve or
+consolidate anything useful. Vector-DB backends are a
+[v0.3 non-goal](v0.3-non-goals.md).
+
+## Worker backends
+
+```python
+from sovereign_agent import (
+    WorkerBackend, WorkerOutcome,
+    BareWorker, SubprocessWorker, DockerWorker,
+    make_worker_backend,
+)
+```
+
+`make_worker_backend(config, advance_fn=...)` selects a backend from
+`Config.worker_backend`, which accepts `"bare"`, `"subprocess"`, or `"docker"`:
+
+| Value | Status |
+|---|---|
+| `"bare"` (default) | Works. Runs the step in-process — no isolation, by choice. |
+| `"subprocess"` | Works. Separate Python process, optionally confined by Landlock (Linux ≥ 5.13) or `sandbox-exec` (macOS). Raises at construction time if you ask for it on a host with neither. |
+| `"docker"` | **Stub.** Constructs and logs a warning; `run_session()` raises `NotImplementedError`. |
+
+Use `"subprocess"` where you would have reached for `"docker"`.
+
+## Governed execution
+
+```python
+from sovereign_agent import (
+    AdmissionRejected,
+    ExecutionReceipt,
+    ExecutionStatus,
+    GovernedExecutionEngine,
+    GovernedExecutionRequest,
+    ReceiptStatus,
+)
+```
+
+`GovernedExecutionEngine.run(request)` admits and executes one versioned request.
+Admission refusals and every later terminal class produce a finalized receipt.
+Zero Employee, not this engine, decides whether the receipt satisfies a governed
+obligation. `status`, `cancel`, and `receipt` expose durable execution control.
+An execution ID is an idempotency key: finalized retries return the existing
+immutable receipt.
+
+## Plugin registries
+
+```python
+from sovereign_agent import Plugin, Registry
+```
+
+## Channels
+
+```python
+from sovereign_agent import CHANNEL_REGISTRY
+```
+
+`CHANNEL_REGISTRY` is the only channel symbol in `__all__`. The adapter types
+(`ChannelAdapter`, `CliChannelAdapter`, `InboundEvent`, `InboundRouter`,
+`OutboundMessage`, `ChannelRegistry`) are importable but internal — see
+[API Stability](API.md).
 
 ## LLM client (internal)
 

@@ -1,7 +1,14 @@
 # API stability and semver contract
 
 **Applies from:** v0.2.0 onwards.
-**Contract version:** 1.
+**Contract version:** 2.
+**Current release surface:** v0.4.0, 152 symbols (v0.3 surface preserved).
+
+The exact, machine-checked contracts are
+[`public-api-v0.2.txt`](public-api-v0.2.txt) and
+[`public-api-v0.3.txt`](public-api-v0.3.txt). The release gate compares the
+v0.3 manifest with `sovereign_agent.__all__` and proves that every v0.2 symbol
+is retained.
 
 This document specifies which parts of sovereign-agent are covered by the
 [semver](https://semver.org/) contract, what "breaking change" means in this
@@ -66,7 +73,9 @@ If you find yourself importing from internal paths, either:
 
 ---
 
-## The 67 public symbols (v0.2.0)
+## The 67 stable symbols (published v0.2.0)
+
+These are covered by the contract above for every `0.2.*` release.
 
 Category | Symbols
 ---|---
@@ -84,9 +93,42 @@ Category | Symbols
 **Scheduler** | `DriftCorrectedScheduler`, `ScheduledTask`
 **Session** | `Session`, `SessionState`, `create_session`, `load_session`, `list_sessions`, `archive_session`
 **Tickets** | `Ticket`, `TicketResult`, `TicketState`, `Manifest`, `OutputRecord`, `create_ticket`, `list_tickets`
+**Capabilities** (v0.5) | `CallableSurface`, `CapabilityContextFactory`, `CapabilityExecutor`, `RuntimeCommandRegistry`, `ApprovalDisposition`, `make_session_callable_surface`, `RuntimeCapabilityAssertion`, `RuntimeCapabilityManifest`
 **Tools** | `ToolRegistry`, `ToolResult`, `register_tool`, `global_registry`, `make_builtin_registry`
 **Queue** | `SessionQueue`, `TaskPriority`
 **Meta** | `__version__`
+
+---
+
+## The 85 v0.3 additions
+
+These entered the public contract in v0.3.0. They were not part of the v0.2
+surface, but are now stable within the v0.3 series under the same rules.
+
+Category | Symbols
+---|---
+**Channels** (v0.3 M1) | `CHANNEL_REGISTRY`
+**Plugin registries** (v0.3 M3) | `Plugin`, `Registry`
+**Worker lifecycle** (v0.3 Unit 3) | `WorkerBackend`, `WorkerOutcome`, `BareWorker`, `SubprocessWorker`, `OSIsolatedWorker`, `DockerWorker`, `make_worker_backend`, `WorkerRequest`, `RuntimeHandle`, `InvocationSpec`, `ExecResult`, `CloseResult`, `ExecutionLifecycle`, `LifecycleResult`, `LifecycleState`, `LifecycleTimeouts`, `TerminalReason`
+**Agent providers** (v0.3 Units 2 and 4) | `AgentProvider`, `InvocationRequest`, `InvocationResult`, `NativeProvider`, `ProviderCapabilities`, `ProviderEvent`, `ProviderRegistry`, `PROVIDER_REGISTRY`, `CliProvider`, `CodexCliProvider`, `ClaudeCodeProvider`, `ProbeEvidence`, `ProviderUnavailable`
+**Repository execution** (v0.3 Unit 5) | `RepositoryManager`, `RepositoryConfig`, `RepositoryExecution`, `RepositoryIdentity`, `GitEvidence`, `DirtyWorktreePolicy`, `DeliveryState`, `DeliveryResult`, `DeliveryFailureReason`, `RepositoryLease`, `RepositoryLockManager`, `RepositoryError`, `RepositoryConfigurationError`, `RepositoryValidationError`, `RepositoryDirtyError`, `RepositoryCommandError`, `RepositoryLockTimeout`, `RepositoryLockLost`, `RepositoryDeliveryError`
+**Seat registry and relay** (v0.3 Unit 6) | `Seat`, `SeatInstance`, `SeatLifecycle`, `SeatRegistry`, `RuntimeAddress`, `RegistrationConflict`, `RegistryError`, `RegistryValidationError`, `RegistryCorruptionError`, `SeatInstanceNotFound`, `RelayMessage`, `DeliveryRecord`, `DeliveryStatus`, `ClaimedMessage`, `Acknowledgement`, `DurableRelay`, `Relay`, `RelayError`, `RelayValidationError`, `RelayAuthenticationError`, `RelayCorruptionError`, `DuplicateMessageConflict`, `MessageNotFound`, `LeaseLost`
+**Governed execution** (v0.3 Unit 7) | `AdmissionRejected`, `ExecutionNotFound`, `ExecutionStatus`, `GovernedExecutionEngine`, `GovernedExecutionRequest`, `ExecutionConstraints`, `ExecutionReceipt`, `ReceiptStatus`, `ReceiptTermination`
+
+`DockerWorker` is an unavailable placeholder. It remains discoverable, but
+refuses during lifecycle preparation and its legacy `run_session()` raises
+`NotImplementedError`. See
+[v0.3 non-goals](v0.3-non-goals.md).
+
+### Imported but not exported
+
+A few v0.3 names are importable from the top-level package yet are **not** in
+`__all__`: `ChannelAdapter`, `ChannelRegistry`, `CliChannelAdapter`,
+`InboundEvent`, `InboundRouter`, `OutboundMessage`, and `LivenessMonitor`. By the
+rule stated at the top of this document, absence from `__all__` means internal.
+Being importable is not a promise.
+
+---
 
 If you need to use a symbol not listed here, it is internal. See "What
 'internal' means" above.
@@ -124,43 +166,44 @@ Examples of what would stay on the minor:
 
 ## What this means for dependent projects
 
-If you `pip install sovereign-agent ~= 0.2.0` (the recommended pin for
-downstream projects and homework), you will:
+If you `pip install sovereign-agent ~= 0.3.0` (the recommended pin for
+downstream projects), you will:
 
-- Receive every `0.2.x` bug-fix release automatically
-- Never receive `0.3.0` or later (which may have breaking changes)
-- Be safe to run your CI against the latest `0.2.x`
+- Receive every `0.3.x` bug-fix release automatically
+- Never receive `0.4.0` or later (which may have breaking changes)
+- Be safe to run your CI against the latest `0.3.x`
 
-If you pin `sovereign-agent == 0.2.0` exactly, you will:
+If you pin `sovereign-agent == 0.3.0` exactly, you will:
 
 - Receive no updates
 - Manually opt into bug fixes by bumping
 
-Most users should use `~= 0.2.0`.
+Most users should use `~= 0.3.0`. The five-chapter v0.2 curriculum may keep an
+exact v0.2 pin when reproducing that historical teaching surface.
 
 ---
 
 ## Deprecation policy
 
-When a public symbol is to be removed in the next minor release:
+v0.3.0 deprecates no public symbols. When a public symbol is to be removed:
 
-1. A `DeprecationWarning` is added in the last patch release of the
-   current minor, pointing to the replacement.
+1. A `DeprecationWarning` is added, pointing to the replacement.
 2. The symbol is documented as deprecated in `CHANGELOG.md`.
 3. The symbol is kept functional for at least one full minor cycle (so
    users have time to migrate).
-4. On the next minor bump, the symbol is removed and its removal is
+4. Only a later minor bump may remove it, and its removal is
    documented in the release notes.
 
 Example timeline:
 
-- `0.2.5` — `old_function()` emits `DeprecationWarning`, docs point to `new_function()`
-- `0.3.0` — `old_function()` removed; release notes link the migration
+- `0.3.2` — `old_function()` emits `DeprecationWarning`, docs point to `new_function()`
+- all of `0.4.*` — `old_function()` remains functional
+- `0.5.0` or later — removal is permitted and release notes link the migration
 
 ---
 
 ## Questions
 
 Open an issue at
-[github.com/sovereignagents/sovereign-agent/issues](https://github.com/sovereignagents/sovereign-agent/issues)
+[github.com/zeroemployeeorg/sovereign-agent/issues](https://github.com/zeroemployeeorg/sovereign-agent/issues)
 with the `api-stability` label.

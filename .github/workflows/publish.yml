@@ -15,7 +15,7 @@ name: publish
 #   https://pypi.org/manage/account/publishing/
 # with:
 #   - PyPI Project Name: sovereign-agent
-#   - Owner: sovereignagents
+#   - Owner: zeroemployeeorg
 #   - Repository name: sovereign-agent
 #   - Workflow filename: publish.yml
 #   - Environment name: pypi
@@ -61,13 +61,18 @@ jobs:
       - name: Set up Python
         uses: actions/setup-python@v5
         with:
-          python-version: "3.12"
+          python-version: "3.13"
       - name: Install uv
         uses: astral-sh/setup-uv@v3
       - name: Build distributions
         run: |
           uv build
           ls -la dist/
+      - name: Verify API, contents, and clean core-only install
+        run: |
+          uv run python scripts/verify_release.py \
+            --wheel dist/sovereign_agent-0.4.0-py3-none-any.whl \
+            --sdist dist/sovereign_agent-0.4.0.tar.gz
       - name: Verify wheel installs cleanly in a fresh venv
         run: |
           python -m venv /tmp/verify-venv

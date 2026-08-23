@@ -1,13 +1,34 @@
 """sovereign-agent: a framework for building always-on AI agents that you actually own.
 
-The ~30 public names below are the supported API surface. Anything not in
-__all__ is internal and may change between minor versions.
+Alpha. The declared version is 0.4.0.
 
-See docs/architecture.md for the architecture. See README.md for the
-quickstart.
+The 152 names in the v0.4 public API remain; v0.5 adds capability-adapter symbols.
+All 67 symbols published in v0.2.0 remain covered by the compatibility contract. Anything not
+in __all__ is internal and may change between any two releases -- including
+names that happen to be importable from this module, such as the channel adapter
+types and LivenessMonitor.
+
+Not implemented, despite having a name or a config value: DockerWorker (no
+container code path exists anywhere in this repository), the Evidently and
+OTel observability backends, the voice pipeline, and the memory
+retrieval/consolidation behaviours.
+
+See docs/API.md for the semver contract, docs/v0.3-non-goals.md for what is
+deliberately out of scope, docs/architecture.md for the architecture, and
+README.md for the quickstart.
 """
 
 from __future__ import annotations
+
+# Capabilities (v0.5 ZeoCore adapter)
+from sovereign_agent.capabilities import (
+    ApprovalDisposition,
+    CallableSurface,
+    CapabilityContextFactory,
+    CapabilityExecutor,
+    RuntimeCommandRegistry,
+    make_session_callable_surface,
+)
 
 # Channels (v0.3 Module 1)
 from sovereign_agent.channels import CHANNEL_REGISTRY as CHANNEL_REGISTRY
@@ -20,6 +41,15 @@ from sovereign_agent.channels import OutboundMessage as OutboundMessage
 
 # Config
 from sovereign_agent.config import Config
+from sovereign_agent.contracts import (
+    ExecutionConstraints,
+    ExecutionReceipt,
+    GovernedExecutionRequest,
+    ReceiptStatus,
+    ReceiptTermination,
+    RuntimeCapabilityAssertion,
+    RuntimeCapabilityManifest,
+)
 
 # Discovery (Pattern A)
 from sovereign_agent.discovery import Discoverable, DiscoverySchema, discoverable
@@ -33,6 +63,14 @@ from sovereign_agent.errors import (
     SystemError,
     ToolError,
     ValidationError,
+)
+
+# Governed end-to-end execution (v0.3 Unit 7)
+from sovereign_agent.execution import (
+    AdmissionRejected,
+    ExecutionNotFound,
+    ExecutionStatus,
+    GovernedExecutionEngine,
 )
 from sovereign_agent.executor import DefaultExecutor, Executor, ExecutorResult
 
@@ -70,6 +108,18 @@ from sovereign_agent.observability import (
 
 # Orchestrator
 from sovereign_agent.orchestrator import Orchestrator, TaskResult, run_task
+from sovereign_agent.orchestrator.lifecycle import (
+    CloseResult,
+    ExecResult,
+    ExecutionLifecycle,
+    InvocationSpec,
+    LifecycleResult,
+    LifecycleState,
+    LifecycleTimeouts,
+    RuntimeHandle,
+    TerminalReason,
+    WorkerRequest,
+)
 
 # Liveness monitor (v0.3 Module 4b)
 from sovereign_agent.orchestrator.liveness import (
@@ -82,6 +132,9 @@ from sovereign_agent.orchestrator.worker import (
 )
 from sovereign_agent.orchestrator.worker import (
     DockerWorker as DockerWorker,
+)
+from sovereign_agent.orchestrator.worker import (
+    OSIsolatedWorker as OSIsolatedWorker,
 )
 from sovereign_agent.orchestrator.worker import (
     SubprocessWorker as SubprocessWorker,
@@ -99,9 +152,82 @@ from sovereign_agent.orchestrator.worker_factory import (
 # Planner / Executor
 from sovereign_agent.planner import DefaultPlanner, Planner, Subgoal
 
+# Providers (v0.3 Unit 2)
+from sovereign_agent.providers import (
+    PROVIDER_REGISTRY,
+    AgentProvider,
+    ClaudeCodeProvider,
+    CliProvider,
+    CodexCliProvider,
+    InvocationRequest,
+    InvocationResult,
+    NativeProvider,
+    ProbeEvidence,
+    ProviderCapabilities,
+    ProviderEvent,
+    ProviderRegistry,
+    ProviderToolResultEvent,
+    ProviderUnavailable,
+)
+
 # Plugin registries (v0.3 Module 3)
 from sovereign_agent.registries import Plugin as Plugin
 from sovereign_agent.registries import Registry as Registry
+
+# Seat registry (v0.3 Unit 6)
+from sovereign_agent.registry import (
+    RegistrationConflict,
+    RegistryCorruptionError,
+    RegistryError,
+    RegistryValidationError,
+    RuntimeAddress,
+    Seat,
+    SeatInstance,
+    SeatInstanceNotFound,
+    SeatLifecycle,
+    SeatRegistry,
+)
+
+# Durable relay (v0.3 Unit 6)
+from sovereign_agent.relay import (
+    Acknowledgement,
+    ClaimedMessage,
+    DeliveryRecord,
+    DeliveryStatus,
+    DuplicateMessageConflict,
+    DurableRelay,
+    LeaseLost,
+    MessageNotFound,
+    Relay,
+    RelayAuthenticationError,
+    RelayCorruptionError,
+    RelayError,
+    RelayMessage,
+    RelayValidationError,
+)
+
+# Repository execution (v0.3 Unit 5)
+from sovereign_agent.repository import (
+    DeliveryFailureReason,
+    DeliveryResult,
+    DeliveryState,
+    DirtyWorktreePolicy,
+    GitEvidence,
+    RepositoryCommandError,
+    RepositoryConfig,
+    RepositoryConfigurationError,
+    RepositoryDeliveryError,
+    RepositoryDirtyError,
+    RepositoryError,
+    RepositoryExecution,
+    RepositoryIdentity,
+    RepositoryLease,
+    RepositoryLockLost,
+    RepositoryLockManager,
+    RepositoryLockTimeout,
+    RepositoryManager,
+    RepositoryValidationError,
+)
 
 # Scheduler (Decision 6)
 from sovereign_agent.scheduler import DriftCorrectedScheduler, ScheduledTask
@@ -139,7 +265,7 @@ from sovereign_agent.tools import (
     register_tool,
 )
 
-__version__ = "0.2.0"
+__version__ = "0.4.0"
 
 __all__ = [
     # errors
@@ -185,10 +311,89 @@ __all__ = [
     "register_tool",
     "global_registry",
     "make_builtin_registry",
+    # capabilities (v0.5 ZeoCore adapter)
+    "ApprovalDisposition",
+    "CallableSurface",
+    "CapabilityContextFactory",
+    "CapabilityExecutor",
+    "RuntimeCapabilityAssertion",
+    "RuntimeCapabilityManifest",
+    "RuntimeCommandRegistry",
+    "make_session_callable_surface",
     # planner / executor
     "Planner",
     "Subgoal",
     "DefaultPlanner",
+    # providers (v0.3 Unit 2)
+    "AgentProvider",
+    "ClaudeCodeProvider",
+    "CliProvider",
+    "CodexCliProvider",
+    "InvocationRequest",
+    "InvocationResult",
+    "NativeProvider",
+    "ProviderCapabilities",
+    "ProviderEvent",
+    "ProviderRegistry",
+    "ProviderToolResultEvent",
+    "ProviderUnavailable",
+    "ProbeEvidence",
+    "PROVIDER_REGISTRY",
+    # governed execution (v0.3 Unit 7)
+    "AdmissionRejected",
+    "ExecutionNotFound",
+    "ExecutionStatus",
+    "GovernedExecutionEngine",
+    "GovernedExecutionRequest",
+    "ExecutionConstraints",
+    "ExecutionReceipt",
+    "ReceiptStatus",
+    "ReceiptTermination",
+    # repository execution (v0.3 Unit 5)
+    "DeliveryFailureReason",
+    "DeliveryResult",
+    "DeliveryState",
+    "DirtyWorktreePolicy",
+    "GitEvidence",
+    "RepositoryCommandError",
+    "RepositoryConfig",
+    "RepositoryConfigurationError",
+    "RepositoryDeliveryError",
+    "RepositoryDirtyError",
+    "RepositoryError",
+    "RepositoryExecution",
+    "RepositoryIdentity",
+    "RepositoryLease",
+    "RepositoryLockLost",
+    "RepositoryLockManager",
+    "RepositoryLockTimeout",
+    "RepositoryManager",
+    "RepositoryValidationError",
+    # registry and relay (v0.3 Unit 6)
+    "RegistrationConflict",
+    "RegistryCorruptionError",
+    "RegistryError",
+    "RegistryValidationError",
+    "RuntimeAddress",
+    "Seat",
+    "SeatInstance",
+    "SeatInstanceNotFound",
+    "SeatLifecycle",
+    "SeatRegistry",
+    "Acknowledgement",
+    "ClaimedMessage",
+    "DeliveryRecord",
+    "DeliveryStatus",
+    "DuplicateMessageConflict",
+    "DurableRelay",
+    "LeaseLost",
+    "MessageNotFound",
+    "Relay",
+    "RelayAuthenticationError",
+    "RelayCorruptionError",
+    "RelayError",
+    "RelayMessage",
+    "RelayValidationError",
     "Executor",
     "ExecutorResult",
     "DefaultExecutor",
@@ -232,7 +437,18 @@ __all__ = [
     "BareWorker",
     "SubprocessWorker",
     "DockerWorker",
+    "OSIsolatedWorker",
     "WorkerOutcome",
     "make_worker_backend",
+    "WorkerRequest",
+    "RuntimeHandle",
+    "InvocationSpec",
+    "ExecResult",
+    "CloseResult",
+    "ExecutionLifecycle",
+    "LifecycleResult",
+    "LifecycleState",
+    "LifecycleTimeouts",
+    "TerminalReason",
     "__version__",
 ]

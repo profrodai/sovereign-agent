@@ -50,7 +50,8 @@ Optional extras:
 - `opentelemetry-*` (Apache 2.0)
 - `speechmatics-python`, `elevenlabs` — respective vendor licenses
 - `rasa-pro` — Rasa license; check terms before redistribution
-- `docker` (Apache 2.0)
+- `docker` (Apache 2.0) — declared by the `[docker]` extra only. Not used by any
+  code path and excluded from `[all]`; see `docs/v0.3-non-goals.md`.
 
 Development dependencies:
 

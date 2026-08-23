@@ -4,7 +4,7 @@
 
 **Time to complete:** about 3 hours.
 
-**Prerequisites:** Chapters 1–4. Python 3.12+, a basic understanding of tool-calling LLMs, and either a Nebius API key or willingness to run the `FakeLLMClient` that the demo defaults to.
+**Prerequisites:** Chapters 1–4. Python 3.13+, a basic understanding of tool-calling LLMs, and either a Nebius API key or willingness to run the `FakeLLMClient` that the demo defaults to.
 
 ## What this chapter is
 

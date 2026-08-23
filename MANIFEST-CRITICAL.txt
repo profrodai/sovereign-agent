@@ -6,27 +6,33 @@
 # If nothing prints, the extract was clean. Any "MISSING:" line means the
 # extract was corrupted — STOP and redo.
 
-sovereign_agent/__init__.py
-sovereign_agent/config.py
-sovereign_agent/discovery.py
-sovereign_agent/errors.py
+src/sovereign_agent/__init__.py
+src/sovereign_agent/config.py
+src/sovereign_agent/discovery.py
+src/sovereign_agent/errors.py
 
-sovereign_agent/tools/__init__.py
-sovereign_agent/tools/registry.py
-sovereign_agent/tools/builtin/__init__.py
-sovereign_agent/executor/__init__.py
-sovereign_agent/session/__init__.py
-sovereign_agent/session/directory.py
-sovereign_agent/ipc/__init__.py
-sovereign_agent/tickets/__init__.py
-sovereign_agent/planner/__init__.py
-sovereign_agent/halves/__init__.py
-sovereign_agent/halves/verifiers.py
-sovereign_agent/halves/structured.py
-sovereign_agent/_internal/__init__.py
-sovereign_agent/_internal/paths.py
-sovereign_agent/_internal/llm_client.py
-sovereign_agent/_internal/atomic.py
+src/sovereign_agent/tools/__init__.py
+src/sovereign_agent/tools/registry.py
+src/sovereign_agent/tools/builtin/__init__.py
+src/sovereign_agent/executor/__init__.py
+src/sovereign_agent/session/__init__.py
+src/sovereign_agent/session/directory.py
+src/sovereign_agent/ipc/__init__.py
+src/sovereign_agent/tickets/__init__.py
+src/sovereign_agent/planner/__init__.py
+src/sovereign_agent/halves/__init__.py
+src/sovereign_agent/halves/verifiers.py
+src/sovereign_agent/halves/structured.py
+src/sovereign_agent/_internal/__init__.py
+src/sovereign_agent/_internal/paths.py
+src/sovereign_agent/_internal/llm_client.py
+src/sovereign_agent/_internal/atomic.py
+src/sovereign_agent/contracts/__init__.py
+src/sovereign_agent/contracts/schemas/governed-execution-request.schema.json
+src/sovereign_agent/contracts/schemas/execution-receipt.schema.json
+src/sovereign_agent/contracts/schemas/capability-manifest.schema.json
+src/sovereign_agent/runtime/__init__.py
+src/sovereign_agent/runtime/root.py
 
 Makefile
 pyproject.toml
@@ -63,4 +69,7 @@ tests/conftest.py
 scripts/preflight.py
 scripts/verify_setup.py
 scripts/ci_real.py
+scripts/doctor.py
+scripts/flatten.py
+scripts/pre_publish.py
 tools/verify_chapter_drift.py

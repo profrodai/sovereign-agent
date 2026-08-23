@@ -19,20 +19,33 @@ import logging
 import signal
 from dataclasses import dataclass
 from pathlib import Path
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Literal, cast
 
 from sovereign_agent._internal.llm_client import LLMClient, OpenAICompatibleClient
 from sovereign_agent.config import Config
+from sovereign_agent.contracts import ExecutionId, FrozenDict, InvocationId
+from sovereign_agent.contracts._core import thaw_json
 from sovereign_agent.errors import SovereignError, wrap_unexpected
 from sovereign_agent.executor import DefaultExecutor
-from sovereign_agent.halves.loop import LoopHalf
 from sovereign_agent.ipc.watcher import IpcWatcher
 from sovereign_agent.orchestrator.auto_approver import AutoApprover
 from sovereign_agent.orchestrator.credentials import CredentialGateway
 from sovereign_agent.orchestrator.liveness import LivenessMonitor
-from sovereign_agent.orchestrator.worker import WorkerBackend, WorkerOutcome
+from sovereign_agent.orchestrator.worker import (
+    WorkerBackend,
+    WorkerOutcome,
+    run_session_compat,
+)
 from sovereign_agent.orchestrator.worker_factory import make_worker_backend
 from sovereign_agent.planner import DefaultPlanner
+from sovereign_agent.providers import (
+    AgentProvider,
+    ClaudeCodeProvider,
+    CodexCliProvider,
+    InvocationRequest,
+    NativeProvider,
+    ProviderRegistry,
+)
 from sovereign_agent.scheduler.drift_corrected import DriftCorrectedScheduler
 from sovereign_agent.session.directory import (
     Session,
@@ -113,6 +126,7 @@ class Orchestrator:
         self._subtasks: list[asyncio.Task] = []
         # Session-scoped caches so repeated dispatches don't rebuild tools.
         self._per_session_tools: dict[str, ToolRegistry] = {}
+        self.providers = ProviderRegistry()
 
         # v0.3 Module 1: channels. adapters=None means NO channels — a
         # bare Orchestrator, run_task(), and every v0.2 test path behave
@@ -193,10 +207,13 @@ class Orchestrator:
         loop = asyncio.get_event_loop()
         try:
             for sig in (signal.SIGTERM, signal.SIGINT):
-                loop.add_signal_handler(sig, lambda s=sig: asyncio.create_task(self._on_signal(s)))
+                loop.add_signal_handler(sig, self._schedule_signal, sig)
         except NotImplementedError:
             # Signal handlers don't work on all platforms (e.g. Windows).
             pass
+
+    def _schedule_signal(self, sig: signal.Signals) -> None:
+        asyncio.create_task(self._on_signal(sig))
 
     async def _on_signal(self, sig: signal.Signals) -> None:
         log.info("received %s; initiating graceful shutdown", sig.name)
@@ -307,7 +324,7 @@ class Orchestrator:
 
         backend = self._backend_for_session(session)
         try:
-            outcome = await backend.run_session(session_id, session.directory)
+            outcome = await run_session_compat(backend, session_id, session.directory)
         except SovereignError as exc:
             log.warning("session %s failed with %s: %s", session_id, exc.code, exc.message)
             try:
@@ -359,26 +376,33 @@ class Orchestrator:
             return self._worker_backend
         import dataclasses
 
-        override_config = dataclasses.replace(self.config, worker_backend=override)
+        backend_name = cast(Literal["bare", "subprocess", "docker"], override)
+        override_config = dataclasses.replace(self.config, worker_backend=backend_name)
         return make_worker_backend(override_config, advance_fn=self._bare_advance)
 
     async def _dispatch_loop_half(self, session: Session) -> bool:
-        llm = self._ensure_llm_client()
-        tools = self._tools_for(session)
-        planner = DefaultPlanner(model=self.config.llm_planner_model, client=llm)
-        executor = DefaultExecutor(model=self.config.llm_executor_model, client=llm, tools=tools)
-        loop_half = LoopHalf(planner=planner, executor=executor)
+        provider = self._provider_for(session)
 
         # Read the task from SESSION.md (simplest source) if present.
         task = _read_task_from_session_md(session)
-        result = await loop_half.run(session, {"task": task})
+        result = await provider.invoke(
+            InvocationRequest(
+                execution_id=ExecutionId(f"{session.session_id}:execution"),
+                invocation_id=InvocationId(f"{session.session_id}:invocation"),
+                task=task,
+                session=session,
+                context=FrozenDict(),
+            )
+        )
 
         # v0.3 Module 1: if this session arrived via a channel, send the
         # agent's reply back out. No-op for run_task / scripted sessions.
         await self._deliver_channel_response(session, result)
 
         if result.next_action == "complete":
-            session.mark_complete(result.output)
+            output = thaw_json(result.output)
+            assert isinstance(output, dict)
+            session.mark_complete(output)
             return True
         if result.next_action == "handoff_to_structured":
             session.update_state(state="handed_off_to_structured")
@@ -387,6 +411,35 @@ class Orchestrator:
             session.mark_escalated(result.summary)
             return True
         return True
+
+    def _provider_for(self, session: Session) -> AgentProvider:
+        name = self.config.agent_provider
+        if name == "native":
+            # Native tools can capture session-local state, so this adapter must
+            # not be reused across sovereign sessions.
+            llm = self._ensure_llm_client()
+            tools = self._tools_for(session)
+            planner = DefaultPlanner(model=self.config.llm_planner_model, client=llm)
+            executor = DefaultExecutor(
+                model=self.config.llm_executor_model, client=llm, tools=tools
+            )
+            return NativeProvider(planner=planner, executor=executor)
+        if name in self.providers:
+            return self.providers.get(name)
+        if name == "codex":
+            provider: AgentProvider = CodexCliProvider(
+                executable=self.config.codex_executable,
+                timeout_s=self.config.provider_timeout_s,
+            )
+        elif name == "claude":
+            provider = ClaudeCodeProvider(
+                executable=self.config.claude_executable,
+                timeout_s=self.config.provider_timeout_s,
+            )
+        else:
+            raise ValueError(f"unknown agent provider {name!r}")
+        self.providers.register(provider)
+        return provider
 
     async def _dispatch_structured_half(self, session: Session) -> bool:
         # Skeleton: the structured half has no default rules, so for now we

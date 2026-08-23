@@ -169,6 +169,7 @@ async def test_policy_always_overrides_flag(fresh_session: Session) -> None:
         client=client,
         tools=reg,
         parallelism_policy=PARALLELISM_POLICY_ALWAYS,
+        allow_unsafe_parallelism=True,
     )
     t0 = time.monotonic()
     result = await executor.execute(_sg(), fresh_session, max_turns=4)
@@ -182,13 +183,68 @@ async def test_policy_always_overrides_flag(fresh_session: Session) -> None:
 async def test_unsafe_tool_serialises_around_parallel_batch(fresh_session: Session) -> None:
     """Mixed [safe, safe, UNSAFE, safe, safe] should become runs:
         [safe, safe] | [UNSAFE] | [safe, safe]
-    Total ≈ 0.3 + 0.3 + 0.3 = 0.9s, not 0.3s (full parallel) or 1.5s (sequential)."""
+    Each safe pair uses a barrier that fails if it is dispatched sequentially;
+    phase markers prove the unsafe call remains between the two batches."""
     reg = ToolRegistry()
-    reg.register(_make_slow_tool("read1", 0.3, parallel_safe=True))
-    reg.register(_make_slow_tool("read2", 0.3, parallel_safe=True))
-    reg.register(_make_slow_tool("writeX", 0.3, parallel_safe=False))
-    reg.register(_make_slow_tool("read3", 0.3, parallel_safe=True))
-    reg.register(_make_slow_tool("read4", 0.3, parallel_safe=True))
+    phases: list[str] = []
+
+    def barrier_pair(first: str, second: str, phase: str) -> None:
+        entered: set[str] = set()
+        both_entered = asyncio.Event()
+
+        def build(name: str) -> _RegisteredTool:
+            async def _impl(label: str) -> ToolResult:
+                entered.add(name)
+                phases.append(f"{phase}:{name}:start")
+                if entered == {first, second}:
+                    both_entered.set()
+                await asyncio.wait_for(both_entered.wait(), timeout=0.5)
+                phases.append(f"{phase}:{name}:end")
+                return ToolResult(success=True, output={"label": label}, summary=name)
+
+            return _RegisteredTool(
+                name=name,
+                description=name,
+                fn=_impl,
+                parameters_schema={
+                    "type": "object",
+                    "properties": {"label": {"type": "string"}},
+                    "required": ["label"],
+                },
+                returns_schema={"type": "object"},
+                is_async=True,
+                parallel_safe=True,
+                examples=[],
+            )
+
+        reg.register(build(first))
+        reg.register(build(second))
+
+    barrier_pair("read1", "read2", "before")
+
+    async def write_x(label: str) -> ToolResult:
+        phases.append("write:start")
+        await asyncio.sleep(0)
+        phases.append("write:end")
+        return ToolResult(success=True, output={"label": label}, summary="writeX")
+
+    reg.register(
+        _RegisteredTool(
+            name="writeX",
+            description="writeX",
+            fn=write_x,
+            parameters_schema={
+                "type": "object",
+                "properties": {"label": {"type": "string"}},
+                "required": ["label"],
+            },
+            returns_schema={"type": "object"},
+            is_async=True,
+            parallel_safe=False,
+            examples=[],
+        )
+    )
+    barrier_pair("read3", "read4", "after")
 
     client = FakeLLMClient(
         [
@@ -206,13 +262,15 @@ async def test_unsafe_tool_serialises_around_parallel_batch(fresh_session: Sessi
     )
 
     executor = DefaultExecutor(model="fake", client=client, tools=reg)
-    t0 = time.monotonic()
     result = await executor.execute(_sg(), fresh_session, max_turns=4)
-    elapsed = time.monotonic() - t0
 
     assert result.success
-    # 3 sequential runs of ≈0.3s each = 0.9s. Generous bounds.
-    assert 0.75 <= elapsed < 1.25, f"expected three 0.3s runs ≈0.9s total, got {elapsed:.2f}s"
+    assert max(
+        index for index, item in enumerate(phases) if item.startswith("before:")
+    ) < phases.index("write:start")
+    assert phases.index("write:end") < min(
+        index for index, item in enumerate(phases) if item.startswith("after:")
+    )
     # Order must be preserved in the tool_calls_made trace.
     names = [c["name"] for c in result.tool_calls_made]
     assert names == ["read1", "read2", "writeX", "read3", "read4"]

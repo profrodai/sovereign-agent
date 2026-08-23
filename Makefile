@@ -8,7 +8,7 @@
 #
 # Quick start:
 #   make first-run           # install uv project + dev tools + run preflight
-#   make test                # 257 tests, ~16s
+#   make test                # full test suite
 #   make demo-ch5            # full working agent end-to-end
 #   make example-research    # research-assistant example end-to-end
 #   make bundle              # tar the repo for sharing
@@ -89,7 +89,7 @@ help: ## Show this help with typical workflows and every target
 	@printf "  $(BOLD)◆ First time on this repo$(RESET)\n"
 	@printf "      $(DIM)1$(RESET)  $(CYAN)make first-run$(RESET)              install uv project + dev tools, run preflight\n"
 	@printf "      $(DIM)2$(RESET)  $(DIM)cp .env.example .env$(RESET)         then edit .env and set $(BOLD)NEBIUS_KEY$(RESET)\n"
-	@printf "      $(DIM)3$(RESET)  $(CYAN)make verify$(RESET)                 full setup check incl. real LLM round-trip\n"
+	@printf "      $(DIM)3$(RESET)  $(CYAN)make verify$(RESET)                 deterministic setup and release checks\n"
 	@printf "      $(DIM)4$(RESET)  $(CYAN)make demo-ch5-real$(RESET)          your first real agent run\n"
 	@printf "\n"
 	@printf "  $(BOLD)◆ Daily dev loop$(RESET)\n"
@@ -143,7 +143,7 @@ help: ## Show this help with typical workflows and every target
 	@printf "  $(BOLD)◆ Ship to PyPI$(RESET) $(DIM)(first-time release workflow)$(RESET)\n"
 	@printf "      $(DIM)1$(RESET)  $(CYAN)make pre-publish$(RESET)            audit for secrets, PII, forbidden files\n"
 	@printf "      $(DIM)2$(RESET)  $(CYAN)make ready-to-ship$(RESET)          preflight + pre-publish + build in one shot\n"
-	@printf "      $(DIM)3$(RESET)  $(DIM)git tag v0.2.0-alpha && git push --tags$(RESET)   triggers publish.yml\n"
+	@printf "      $(DIM)3$(RESET)  $(DIM)git tag v0.3.0 && git push origin v0.3.0$(RESET)   triggers publish.yml\n"
 	@printf "      $(DIM)·$(RESET)  $(CYAN)make build$(RESET)                  $(DIM)uv build$(RESET) wheel+sdist locally\n"
 	@printf "      $(DIM)·$(RESET)  $(CYAN)make publish-test$(RESET)           $(DIM)uv publish$(RESET) to TestPyPI (manual)\n"
 	@printf "      $(DIM)·$(RESET)  $(CYAN)make bundle$(RESET)                 tar the repo to $(BOLD)$(BUNDLE_DIR)/$(RESET)\n"
@@ -225,8 +225,12 @@ preflight: ## Comprehensive contributor preflight (covers the release checklist)
 	@$(PY) scripts/preflight.py
 
 .PHONY: verify
-verify: ## Verify the full setup: .env, API key, real LLM round-trip, filesystem
+verify: ## Verify deterministic setup and release gates (no live credentials)
 	@$(PY) scripts/verify_setup.py
+
+.PHONY: verify-live
+verify-live: ## Verify setup plus an opt-in real LLM round-trip
+	@$(PY) scripts/verify_setup.py --live
 
 .PHONY: first-run
 first-run: install preflight ## Complete first-time setup (install + preflight)
@@ -477,8 +481,39 @@ format-check: ## ruff format --check (does not modify files)
 	@$(RUFF) format --check $(PKG_DIR)/ $(TESTS_DIR)/ $(CHAPTERS_DIR)/ $(EXAMPLES_DIR)/ scripts/ tools/
 
 .PHONY: typecheck
-typecheck: ## mypy (not enforced in CI but useful locally)
-	@$(MYPY) $(PKG_DIR)/ || true
+typecheck: ## Enforce mypy on currently clean public runtime modules
+	@$(MYPY) \
+		$(PKG_DIR)/admission \
+		$(PKG_DIR)/api \
+		$(PKG_DIR)/approvals \
+		$(PKG_DIR)/channels \
+		$(PKG_DIR)/config.py \
+		$(PKG_DIR)/connectors \
+		$(PKG_DIR)/contracts \
+		$(PKG_DIR)/discovery.py \
+		$(PKG_DIR)/errors.py \
+		$(PKG_DIR)/execution \
+		$(PKG_DIR)/executor \
+		$(PKG_DIR)/halves \
+		$(PKG_DIR)/handoff \
+		$(PKG_DIR)/ipc \
+		$(PKG_DIR)/memory \
+		$(PKG_DIR)/observability \
+		$(PKG_DIR)/orchestrator/lifecycle.py \
+		$(PKG_DIR)/orchestrator/main.py \
+		$(PKG_DIR)/orchestrator/worker.py \
+		$(PKG_DIR)/orchestrator/worker_factory.py \
+		$(PKG_DIR)/planner \
+		$(PKG_DIR)/plugins \
+		$(PKG_DIR)/providers \
+		$(PKG_DIR)/registry \
+		$(PKG_DIR)/relay \
+		$(PKG_DIR)/repository \
+		$(PKG_DIR)/runtime \
+		$(PKG_DIR)/service \
+		$(PKG_DIR)/operations \
+		$(PKG_DIR)/tickets \
+		$(PKG_DIR)/voice
 
 .PHONY: drift
 drift: ## Verify chapter solutions re-export from the expected production modules
@@ -512,16 +547,26 @@ pre-publish: ## Audit for secrets/PII/forbidden files — run BEFORE first publi
 pre-publish-strict: ## pre-publish + scan git history (slower but more thorough)
 	@$(PY) scripts/pre_publish.py --git
 
+.PHONY: fault-inject-v04
+fault-inject-v04: ## v0.4 crash/restart/backup/restore fault injection
+	@$(PYTEST) tests/v04 -q --tb=short
+
 .PHONY: ready-to-ship
-ready-to-ship: preflight pre-publish build ## Full launch checklist: preflight + pre-publish + build
+ready-to-ship: preflight pre-publish release-verify fault-inject-v04 ## Deterministic, non-publishing v0.4 release proof
 	@printf "\n$(GREEN)✓$(RESET) $(BOLD)Ready to ship.$(RESET)\n"
-	@printf "  $(CYAN)➜$(RESET) next: $(CYAN)git tag v0.2.0-alpha && git push origin v0.2.0-alpha$(RESET)\n"
-	@printf "  $(DIM)(the publish.yml workflow takes over from there)$(RESET)\n\n"
+	@printf "  $(DIM)No publish, tag, push, live provider, or credential action was performed.$(RESET)\n\n"
+
+.PHONY: release-verify
+release-verify: ci docs-strict build ## Prove API, package content, and clean core install
+	@$(PY) scripts/verify_release.py \
+		--wheel dist/sovereign_agent-0.4.0-py3-none-any.whl \
+		--sdist dist/sovereign_agent-0.4.0.tar.gz
 
 .PHONY: build
 build: ## Build wheel + sdist into dist/ via uv build
 	@printf "\n$(BLUE)▶$(RESET) $(BOLD)Building distribution$(RESET)\n"
 	@printf "$(DIM)%s$(RESET)\n" "$(SUBRULE)"
+	@rm -rf dist/
 	@$(UV) build
 	@ls -lh dist/ 2>/dev/null | tail -n +2
 
@@ -608,7 +653,7 @@ distclean: clean clean-dist flatten-clean ## Nuke everything transient (caches, 
 # ==============================================================================
 
 .PHONY: ci
-ci: format-check lint test drift test-examples ## What CI runs: format check + lint + test + drift + examples
+ci: format-check lint typecheck test drift test-examples ## CI: format + lint + types + tests + drift + examples
 	@printf "\n$(GREEN)✓$(RESET) $(BOLD)CI pipeline green$(RESET)\n"
 
 .PHONY: ci-real

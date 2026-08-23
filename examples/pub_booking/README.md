@@ -1,6 +1,6 @@
 # Pub booking — the reference Edinburgh scenario
 
-This is the reference scenario from the Nebius Academy course (SOW §5). The task: find a pub in Edinburgh matching some constraints, check its availability, and either confirm a booking or escalate to a structured half for confirmation.
+This is the reference scenario from the Nebius Academy course. The task: find a pub in Edinburgh matching some constraints, check its availability, and either confirm a booking or escalate to a structured half for confirmation.
 
 ## What it demonstrates
 

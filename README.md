@@ -5,16 +5,26 @@
 Debug by `cat`. Crash-recover by `ls`. Teach by reading the same code that runs in production.
 
 <p align="center">
-  <a href="https://github.com/sovereignagents/sovereign-agent/actions/workflows/ci.yml"><img alt="CI status" src="https://github.com/sovereignagents/sovereign-agent/actions/workflows/ci.yml/badge.svg"></a>
+  <a href="https://github.com/zeroemployeeorg/sovereign-agent/actions/workflows/ci.yml"><img alt="CI status" src="https://github.com/zeroemployeeorg/sovereign-agent/actions/workflows/ci.yml/badge.svg"></a>
   <a href="https://pypi.org/project/sovereign-agent/"><img alt="PyPI version" src="https://img.shields.io/pypi/v/sovereign-agent.svg"></a>
   <a href="https://pypi.org/project/sovereign-agent/"><img alt="Python versions" src="https://img.shields.io/pypi/pyversions/sovereign-agent.svg"></a>
   <a href="LICENSE"><img alt="License" src="https://img.shields.io/pypi/l/sovereign-agent.svg"></a>
-  <a href="https://github.com/sovereignagents/sovereign-agent/stargazers"><img alt="GitHub stars" src="https://img.shields.io/github/stars/sovereignagents/sovereign-agent.svg?style=social"></a>
+  <a href="https://github.com/zeroemployeeorg/sovereign-agent/stargazers"><img alt="GitHub stars" src="https://img.shields.io/github/stars/zeroemployeeorg/sovereign-agent.svg?style=social"></a>
 </p>
+
+> **Repository identity.** The canonical home is
+> [`zeroemployeeorg/sovereign-agent`](https://github.com/zeroemployeeorg/sovereign-agent).
+> Older `sovereignagents/...` URLs still resolve by GitHub redirect but are not
+> canonical; new links should use `zeroemployeeorg`.
 
 ```bash
 pip install sovereign-agent
 ```
+
+Reusable actions are ZeoCore capabilities (`@capability`). Session control
+(`complete_task`, `handoff_to_structured`) is a Sovereign runtime command.
+`make_session_callable_surface` merges both for the model. `@register_tool`
+still works during the compatibility window and is deprecated.
 
 ```python
 from sovereign_agent import run_task, register_tool
@@ -31,6 +41,9 @@ print(result.summary)
 
 The agent ran a planner, called `get_weather`, wrote a trace, and saved every artifact to `sessions/sess_<id>/`. Inspect it with `ls -R sessions/sess_<id>`. That's not a metaphor — it's how you debug this system.
 
+See [v0.5 Unit 4](docs/v0.5-unit4-builtins.md) for session filesystem capabilities
+(`read_file` / `write_file` / `list_files`) and runtime commands.
+
 ---
 
 ## What sovereign-agent is, exactly
@@ -40,7 +53,11 @@ Two things in one repository:
 **A production library** you `pip install` and use to build agents.
 **A build-from-scratch curriculum** that reconstructs the library in five chapters with tests, so you learn by implementing.
 
-Both point at the same code. A CI check (`tools/verify_chapter_drift.py`) ensures the chapter code and the production library stay identical. This is the fastai pattern — the library and the course teach each other.
+The chapters rebuild the v0.2 substrate and re-export the production primitives
+they teach. A CI check (`tools/verify_chapter_drift.py`) prevents those mapped
+primitives from drifting. v0.3 features are taught in numbered unit documents;
+the chapters intentionally do not claim whole-package parity. See the
+[teaching-surface decision](docs/teaching-surface.md).
 
 sovereign-agent is **not** trying to be the next Claude Code or OpenHands. It's the thing you read to understand *why* they and every other production agent system converged on the same eight architectural decisions.
 
@@ -61,7 +78,10 @@ Every production agent system I've read the internals of — Claude Code, OpenHa
 
 Each decision *removes* a class of bugs rather than handling them. That's why the decisions age well.
 
-Full walk-through in [`docs/architecture.md`](docs/architecture.md) — this is the text of the three-hour lecture.
+Full walk-through in [`docs/architecture.md`](docs/architecture.md). Note that
+the architecture doc enumerates the same system from an implementation angle and
+so numbers its decisions differently; the two lists overlap but are not a 1:1
+mapping, and neither is a renumbering of the other.
 
 ---
 
@@ -75,7 +95,9 @@ This is not a hypothetical concern:
 
 > *One morning I had a framework with 148 passing tests and three clean scenarios. I ran the code reviewer against a real LLM for the first time. It produced a perfectly-formatted review of code that did not exist — named `add`, `multiply`, `divide`. The framework reported ✓ success, ✓ manifest, ✓ complete. Every structural guarantee held. The output was pure fiction.*
 
-"It ran" is not "it worked." The library gives you the first; your scenario has to verify the second. Every example in this repo demonstrates the pattern. See [class slides §06](docs/class-slides.md) for the production healthcare anecdote that underscores why this is not optional.
+(148 was the test count at v0.1.0; see [Status](#status) for the current number.)
+
+"It ran" is not "it worked." The library gives you the first; your scenario has to verify the second. Every example in this repo demonstrates the pattern.
 
 ---
 
@@ -83,11 +105,20 @@ This is not a hypothetical concern:
 
 ```bash
 pip install sovereign-agent              # core
-pip install "sovereign-agent[all]"       # + optional extras (voice, observability, Docker)
-pip install "sovereign-agent[dev]"       # + development tooling
+pip install "sovereign-agent[all]"       # + optional extras (voice, observability)
 ```
 
-Requires Python 3.12+.
+Development tooling lives in the PEP 735 `dev` dependency *group*, not an extra —
+so it is `uv sync --group dev` (or `pip install -e . --group dev`), not
+`pip install "sovereign-agent[dev]"`.
+
+Requires Python 3.13+.
+
+**Docker is not available.** There is a `docker` extra, but it only installs the
+Docker SDK; `DockerWorker` is a stub that raises `NotImplementedError` on
+`run_session()`. The supported isolated backend is `worker_backend='subprocess'`
+(Landlock on Linux ≥ 5.13, `sandbox-exec` on macOS). See
+[v0.3 non-goals](docs/v0.3-non-goals.md).
 
 ---
 
@@ -116,7 +147,7 @@ This isn't new. It's how every financial, regulatory, or high-stakes agent syste
 
 ---
 
-## What ships in v0.2
+## What shipped in v0.2.0 (the published release)
 
 Five capabilities that came out of running sovereign-agent against real LLMs and hitting real failures:
 
@@ -131,6 +162,30 @@ Five capabilities that came out of running sovereign-agent against real LLMs and
 **Human-in-the-loop approval.** Tools return `requires_human_approval=True`. The executor exits cleanly, writes the request to disk, and resumes when a human decides — seconds, hours, or days later. Nothing in memory.
 
 Each is ~200-400 lines of code with tests. See `examples/` for end-to-end scenarios that use each one.
+
+---
+
+## What shipped in v0.3.0
+
+The v0.3 package adds:
+
+- **Channel adapters** — `ChannelAdapter` protocol plus a CLI adapter and an
+  inbound router. Only `CHANNEL_REGISTRY` is exported in `__all__`; the adapter
+  types are importable but not yet part of the semver surface.
+- **Plugin registries** — a generic `Plugin` protocol and `Registry[T]`.
+- **Worker backend integration** — orchestrator dispatch routes through
+  `WorkerBackend` via `make_worker_backend()`.
+- **Native CLI providers** — Codex CLI and Claude Code are probed, capability
+  gated, parsed into normalized events, and executed through `WorkerBackend`
+  without Sandcastle.
+- **Liveness monitor** — stalled-session detection and heartbeat
+  (`LivenessMonitor`, importable but not in `__all__`).
+
+These additions are part of the v0.3 public contract where listed in
+`sovereign_agent.__all__`. See
+[`docs/v0.3-non-goals.md`](docs/v0.3-non-goals.md) for what v0.3 will *not* do,
+and [`docs/branch-consolidation-2026-08-22.md`](docs/branch-consolidation-2026-08-22.md)
+for how these branches landed.
 
 ---
 
@@ -191,18 +246,20 @@ No SELECT queries. No vendor viewer. No SDK. `cat`.
 
 ```
 sovereign-agent/
-├── sovereign_agent/    # the library you pip install
-├── chapters/           # 5 tutorial chapters (minitorch-style, fill in the TODOs)
-├── examples/           # 8 reference scenarios (research, code review, HITL, etc.)
-├── docs/               # architecture, API stability, class slides
-└── tests/              # 267 tests — library + chapters + examples
+├── src/sovereign_agent/  # the library you pip install (src layout)
+├── chapters/             # 5 tutorial chapters (minitorch-style, fill in the TODOs)
+├── examples/             # 8 reference scenarios (research, code review, HITL, etc.)
+├── docs/                 # architecture, API stability, deployment
+└── tests/                # 500 collected tests — library + chapters + examples
 ```
 
-- **If you want to ship an agent today** → read `sovereign_agent/` and pick scenarios from `examples/`
+- **If you want to ship an agent today** → read `src/sovereign_agent/` and pick scenarios from `examples/`
 - **If you want to understand how it works** → read the chapters. Each one rebuilds a piece of the library. Your tests pass when you're done.
-- **If you want the full lecture** → `docs/class-slides.md` (3 hours, 122 slides, the full 8-decisions walkthrough with the actual traces from the debugging session)
+- **If you want the architecture argument** → [`docs/architecture.md`](docs/architecture.md)
 
-The chapter/library drift check (`tools/verify_chapter_drift.py`) runs in CI. If you change the library and forget to update the chapter, or vice versa, CI fails. The tutorial can't rot.
+The chapter/library drift check (`tools/verify_chapter_drift.py`) runs in CI for
+the v0.2 primitives those chapters teach. The explicit v0.3 teaching scope is
+documented in [`docs/teaching-surface.md`](docs/teaching-surface.md).
 
 ---
 
@@ -248,7 +305,7 @@ make doctor
 make example-research-real
 ```
 
-A real-LLM run prints every step, every tool call, and finishes with a dataflow integrity audit. Expected output for `example-research-real`:
+A real-LLM run prints every step, every tool call, and finishes with a dataflow integrity audit. Illustrative shape of `example-research-real` output (model names and byte counts depend on your `.env` and the run):
 
 ```
 ▶ research-assistant  (real LLM)
@@ -274,13 +331,13 @@ If the model fabricates a paper the audit catches it and flags ✗ with the fabr
 The Makefile is also the documentation for the release workflow:
 
 ```
-make doctor           # 15-check tabular status — Python, uv, .env, imports, CI
+make doctor           # tabular status — Python, uv, .env, deps, imports, CI
 make preflight        # lint + drift + pytest collection + demo importability
-make test             # 267 tests
+make test             # full suite (500 collected: 497 pass, 3 opt-in/platform skips)
 make ci-real-estimate # cost preview for a full ci-real run (no API calls)
 make ci-real          # run every -real scenario against a live LLM
 make pre-publish      # audit for secrets, PII, forbidden files before public push
-make ready-to-ship    # preflight + pre-publish + build — ends "next: git tag..."
+make ready-to-ship    # deterministic CI + audit + wheel/sdist clean-install proof
 ```
 
 `make help` groups every target by category. `make doctor` output is tabular; paste it into an issue and a maintainer has full diagnostic context.
@@ -304,14 +361,22 @@ Override via `SOVEREIGN_AGENT_DATA_DIR=<path>`.
 
 ## Status
 
-**v0.2.0 alpha.** The 67 public APIs in `sovereign_agent.__all__` are stable within the 0.2.x series — bug fixes flow through, breaking changes will bump to 0.3.0. See [`docs/API.md`](docs/API.md) for the full semver contract.
+**v0.4.0.** The package still exports **152** symbols in
+`sovereign_agent.__all__` (the v0.3 surface, preserved). v0.4 adds a
+governed-connectivity service as importable subpackages. See
+[`docs/API.md`](docs/API.md) and [`docs/v0.4-operator-guide.md`](docs/v0.4-operator-guide.md).
 
 - ✅ Framework: sessions, tickets, IPC, parallelism, isolation, resume, verifiers, HITL
-- ✅ 267 tests (library + chapter drift + mocked real-path integration)
+- ✅ 522 tests collected — 519 pass, 3 opt-in/platform skips
 - ✅ 8 reference scenarios, all with dataflow integrity checks
-- ✅ 5 tutorial chapters, CI-enforced against production code
-- 🚧 Voice pipeline, observability backends (Evidently/Langfuse/OTel) — shipped as skeletons
-- 🚧 Vector-DB memory backends — v0.3
+- ✅ 5 tutorial chapters, drift-checked against production code in CI
+- 🚧 Voice pipeline, observability backends (Evidently/OTel) — skeletons, not implementations
+- ✅ Channels, native Codex/Claude CLI providers, plugin registries, worker lifecycle, governed repository execution, durable seat registry and relay
+- ❌ Docker worker backend — stub only; `DockerWorker.run_session()` raises `NotImplementedError`
+- ❌ Vector-DB memory backends — not started, and a [v0.3 non-goal](docs/v0.3-non-goals.md)
+
+Nothing in this repository is load-bearing for a production deployment you have
+not read end to end yourself. The alpha label is not modesty.
 
 ---
 
@@ -323,28 +388,53 @@ It's not trying to replace Claude Code for daily coding or LangGraph for orchest
 
 If you want an agent you can own, audit, reproduce, teach, and — crucially — understand at the bottom of the stack, this is probably the smallest codebase in the world that gives you all five.
 
+For what v0.3 specifically will *not* attempt, see
+[`docs/v0.3-non-goals.md`](docs/v0.3-non-goals.md). Those are commitments, not
+moods.
+
+---
+
+## This is a work repo, not a corpus
+
+This repository holds **code**. It does not hold the planning and reporting
+chain for the work done on it. There is no Statement of Work, no SOW directory,
+and no filing chain in this tree, and there never should be:
+
+- **`work_repo`** — this repository. Code that genuinely collides, so changes
+  land on branches and get merged through pull requests.
+- **`sow_repo`** — a separate corpus repository, elsewhere. Where work is
+  scoped and reported.
+
+They are different fields for a reason. If you came looking for a root
+`SOW.md`, it is not missing — it was never supposed to be here. Read the code,
+the [architecture doc](docs/architecture.md), and the
+[CHANGELOG](CHANGELOG.md); those are the artifacts this repository owes you.
+
 ---
 
 ## Learn more
 
-- 📖 [**`docs/architecture.md`**](docs/architecture.md) — the 8 decisions in detail, with code
-- 🎓 [**`docs/class-slides.md`**](docs/class-slides.md) — the 3-hour lecture, 122 slides, full debugging journey
+- 📖 [**`docs/architecture.md`**](docs/architecture.md) — the architectural decisions in detail
 - 🧭 [**`chapters/`**](chapters/) — rebuild the framework yourself in 5 runnable chapters
 - 🧪 [**`examples/`**](examples/) — 8 reference scenarios, each with a dataflow integrity audit
-- 📋 [**`docs/API.md`**](docs/API.md) — semver contract for the 67 public symbols
+- 📋 [**`docs/API.md`**](docs/API.md) — semver contract for the public symbols
+- 🚫 [**`docs/v0.3-non-goals.md`**](docs/v0.3-non-goals.md) — what v0.3 will not do
+- 🌿 [**`docs/branch-consolidation-2026-08-22.md`**](docs/branch-consolidation-2026-08-22.md) — how the pre-v0.3 branches landed
 - 📝 [**`CHANGELOG.md`**](CHANGELOG.md) — what shipped and when
 
 ---
 
 ## Contributing
 
-Pull requests, issues, and architectural criticism are welcome. See [`CONTRIBUTING.md`](CONTRIBUTING.md).
+Pull requests, issues, and architectural criticism are welcome. There is no
+`CONTRIBUTING.md` yet; the contribution contract is `make verify` — apply, then
+verify, then commit.
 
 ```bash
-git clone https://github.com/sovereignagents/sovereign-agent
+git clone https://github.com/zeroemployeeorg/sovereign-agent
 cd sovereign-agent
 make first-run          # install, preflight, sanity check
-make test               # 267 tests, ~20s
+make test               # full deterministic suite
 make demo-ch5           # see a working agent end-to-end
 ```
 

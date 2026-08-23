@@ -1,8 +1,8 @@
 site_name: sovereign-agent
 site_description: A framework for building always-on AI agents that you actually own
-site_url: https://sovereignagents.github.io/sovereign-agent/
-repo_url: https://github.com/sovereignagents/sovereign-agent
-repo_name: sovereignagents/sovereign-agent
+site_url: https://zeroemployeeorg.github.io/sovereign-agent/
+repo_url: https://github.com/zeroemployeeorg/sovereign-agent
+repo_name: zeroemployeeorg/sovereign-agent
 edit_uri: edit/main/docs/
 
 theme:
@@ -44,6 +44,33 @@ nav:
   - Architecture:
       - Overview: architecture.md
   - API Reference: api_reference.md
+  - API Stability: API.md
+  - Migration from v0.2: migration-v0.2-to-v0.3.md
+  - Migration from v0.3: migration-v0.3-to-v0.4.md
+  - Threat Model: threat-model.md
   - Chapters:
       - Overview: chapters/index.md
+      - Teaching Surface: teaching-surface.md
   - Deployment: deployment.md
+  - Project:
+      - v0.4.0 Release Notes: release-notes/0.4.0.md
+      - v0.4 Operator Guide: v0.4-operator-guide.md
+      - v0.4 Unit 1 Protocol: v0.4-unit1-protocol.md
+      - v0.4 Unit 2 Connector: v0.4-unit2-connector.md
+      - v0.4 Unit 3 Relay: v0.4-unit3-relay.md
+      - v0.4 Unit 4 Seats: v0.4-unit4-seats.md
+      - v0.4 Unit 5 Approvals: v0.4-unit5-approvals.md
+      - v0.4 Unit 6 Channels: v0.4-unit6-channels.md
+      - v0.4 Unit 7 Plugins: v0.4-unit7-plugins.md
+      - v0.4 Unit 8 Service: v0.4-unit8-service.md
+      - v0.4 Unit 9 Release: v0.4-unit9-release.md
+      - v0.3.0 Release Notes: release-notes/0.3.0.md
+      - v0.3 Unit 1 Contracts: v0.3-unit1-contracts.md
+      - v0.3 Unit 2 Native Provider: v0.3-unit2-native-provider.md
+      - v0.3 Unit 3 Worker Lifecycle: v0.3-unit3-worker-lifecycle.md
+      - v0.3 Unit 4 CLI Providers: v0.3-unit4-cli-providers.md
+      - v0.3 Unit 5 Repository Execution: v0.3-unit5-repository.md
+      - v0.3 Unit 6 Registry and Relay: v0.3-unit6-registry-relay.md
+      - v0.3 Unit 7 Governed Execution: v0.3-unit7-governed-execution.md
+      - v0.3 Non-Goals: v0.3-non-goals.md
+      - Branch Consolidation (2026-08-22): branch-consolidation-2026-08-22.md

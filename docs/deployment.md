@@ -1,8 +1,13 @@
 # Deployment
 
-sovereign-agent v0.1.0 is meant to run on a single host: a Linux box, a Mac Mini, a laptop. That's the deliberate scope of "sovereign" — you own the compute, the data, and the failure modes.
+sovereign-agent is meant to run on a single host: a Linux box, a Mac Mini, a laptop. That's the deliberate scope of "sovereign" — you own the compute, the data, and the failure modes.
 
-This page collects the operational advice for that case. Multi-machine and hosted deployments are out of scope for v1.0 (see §6.3 of the architecture doc).
+This page collects the operational advice for that case. Multi-machine and hosted deployments are out of scope — see [v0.3 non-goals](v0.3-non-goals.md).
+
+!!! warning "Alpha"
+    The package version is `0.3.0` and the project is alpha. There is no
+    container image, no Helm chart, and no supported multi-host topology. Deploy
+    this only where you are willing to read the code when it misbehaves.
 
 ## Single-host layout
 
@@ -103,7 +108,17 @@ pip install sovereign-agent[evidently]      # LLMEval dashboards
 pip install sovereign-agent[otel]           # OpenTelemetry export
 ```
 
-Both backends read from `trace.jsonl` rather than replacing it, so the local file is always the source of truth.
+Both backends read from `trace.jsonl` rather than replacing it, so the local file is always the source of truth. Both are also **import-gated stubs** in this release: installing the extra gets you the dependency, not a working dashboard export. `trace.jsonl` is the only observability path that actually works today.
+
+## Worker isolation
+
+`Config.worker_backend` selects how a session step is executed:
+
+- `"bare"` (default) — in-process. No isolation. Fine for single-tenant hosts.
+- `"subprocess"` — a separate Python process, confined by Landlock on Linux ≥ 5.13 or `sandbox-exec` on macOS. This is the supported isolated backend. `make_worker_backend()` raises rather than silently degrading if the host offers neither primitive.
+- `"docker"` — **not available.** `DockerWorker` is a stub: it constructs and logs a warning, then raises `NotImplementedError` from `run_session()`. There is no Dockerfile, no image, and no container path in this repository. The `docker` pip extra installs only the SDK and is deliberately excluded from `[all]`.
+
+If you were planning to isolate workers with containers, use `"subprocess"`.
 
 ## Backup / restore
 
@@ -118,7 +133,7 @@ Restore is untar into place. No migration. No versioning ceremony.
 ## Resource sizing
 
 - **CPU:** minimal. The agent spends most of its time waiting on LLM calls.
-- **Memory:** `max_concurrent × ~100MB` is a generous upper bound for the Python process footprint. Spawning containers (when that lands) would add per-container overhead.
+- **Memory:** `max_concurrent × ~100MB` is a generous upper bound for the Python process footprint. Container-based workers do not exist (see below), so there is no per-container overhead to budget for.
 - **Disk:** dominated by trace logs and memory files. For a busy system, budget a few GB per week per session and archive completed sessions weekly (the default scheduled task does this).
 - **Network:** whatever your LLM provider's pricing scheme charges for.
 

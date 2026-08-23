@@ -12,16 +12,22 @@
 >   Library and course are **separate repos**. The course *uses* the library; it
 >   does not rebuild it.
 >
-> sovereign-agent's chapters follow the **Raschka pattern**. Each chapter's
+> sovereign-agent's chapters follow the **Raschka pattern** for the v0.2
+> substrate. Each chapter's
 > `solution.py` re-exports from `sovereign_agent/` directly, and
 > `tools/verify_chapter_drift.py` enforces that they stay in sync. You're not
-> learning a toy copy — you're learning the framework itself.
+> learning a toy copy — you're learning the production primitives mapped by the
+> five chapters. v0.3's governed execution additions are deliberately taught in
+> unit documents instead; see [`docs/teaching-surface.md`](../docs/teaching-surface.md).
 >
 > The Week-5 homework that lives in a separate repo (`homework-*`) is the
 > Howard pattern: a scenario built *on top of* `pip install sovereign-agent`.
 > Different pedagogy, different tree.
 
-Five chapters that reconstruct the spine of sovereign-agent in sequence. Each chapter builds one architectural idea, ends with a runnable demo, and its solution file is byte-for-byte the same code as the corresponding module in `sovereign_agent/`. A CI check (`tools/verify_chapter_drift.py`) enforces this so the tutorial cannot drift from the framework.
+Five chapters reconstruct the original v0.2 spine in sequence. Each builds one
+architectural idea, ends with a runnable demo, and re-exports the corresponding
+production primitive. A CI check (`tools/verify_chapter_drift.py`) enforces the
+declared mappings; it does not claim that these chapters cover every v0.3 module.
 
 This is the minitorch trick applied to agent systems: the tutorial *is* the production code, just viewed from a different angle.
 
@@ -43,7 +49,7 @@ Each chapter directory contains:
 - `tests.py` — pytest tests. Run `pytest chapters/chapter_N_*/tests.py` to check your work.
 - `demo.py` — runnable demo at the end. `python chapters/chapter_N_*/demo.py`.
 
-Expected flow: read the README, copy `starter.py` to a scratch file, fill in the NotImplementedError bodies, run the tests until they pass, check your code against `solution.py`, then run `demo.py` and see it work. The whole sequence is designed to take 5–8 hours of focused work for someone comfortable with Python 3.12 and asyncio.
+Expected flow: read the README, copy `starter.py` to a scratch file, fill in the NotImplementedError bodies, run the tests until they pass, check your code against `solution.py`, then run `demo.py` and see it work. The whole sequence is designed to take 5–8 hours of focused work for someone comfortable with Python 3.13 and asyncio.
 
 ## Why five chapters and not eight
 
@@ -53,4 +59,4 @@ This is the same trade-off Sasha Rush makes in minitorch (four modules) and Karp
 
 ## Where to go after the chapters
 
-When you've finished the chapters, the homework repos (`homework-*`) are the next step: build a new scenario on the framework you've now understood from the inside. The first one is [`homework-pub-booking`](https://github.com/sovereignagents/homework-pub-booking) — extend sovereign-agent into a full hybrid pub-booking system with a real LLM, Rasa CALM callbacks, and a voice pipeline. See that repo's README for the current assignment.
+When you've finished the chapters, the homework repos (`homework-*`) are the next step: build a new scenario on the framework you've now understood from the inside. The first one is [`homework-pub-booking`](https://github.com/zeroemployeeorg/homework-pub-booking) — extend sovereign-agent into a full hybrid pub-booking system with a real LLM, Rasa CALM callbacks, and a voice pipeline. See that repo's README for the current assignment.

@@ -44,6 +44,7 @@ from __future__ import annotations
 
 import json
 from pathlib import Path
+from typing import TYPE_CHECKING
 
 from sovereign_agent.errors import ValidationError
 from sovereign_agent.session.directory import (
@@ -52,6 +53,9 @@ from sovereign_agent.session.directory import (
     create_session,
     load_session,
 )
+
+if TYPE_CHECKING:
+    from sovereign_agent.runtime import RuntimeRoot
 
 # Cap the parent-trace summary we inline into SESSION.md. Very long traces
 # can blow out planner context windows. If users want the full trace they
@@ -70,6 +74,7 @@ def resume_session(
     session_id: str | None = None,
     allow_unfinished_parent: bool = False,
     trace_summary_lines: int = DEFAULT_TRACE_SUMMARY_LINES,
+    runtime_root: RuntimeRoot | None = None,
 ) -> Session:
     """Create a new session that resumes from `parent_id`.
 
@@ -92,10 +97,15 @@ def resume_session(
       SessionNotFoundError: parent doesn't exist.
       ValidationError: parent is unfinished and allow_unfinished_parent=False.
     """
+    if runtime_root is not None and sessions_dir is not None:
+        raise ValueError("pass either runtime_root or sessions_dir, not both")
     sessions_root = sessions_dir or DEFAULT_SESSIONS_DIR
 
     # Fetch parent (raises if missing).
-    parent = load_session(parent_id, sessions_dir=sessions_root)
+    if runtime_root is None:
+        parent = load_session(parent_id, sessions_dir=sessions_root)
+    else:
+        parent = load_session(parent_id, runtime_root=runtime_root)
 
     if not parent.state.is_terminal() and not allow_unfinished_parent:
         raise ValidationError(
@@ -113,15 +123,26 @@ def resume_session(
 
     resolved_scenario = scenario or parent.state.scenario
 
-    child = create_session(
-        scenario=resolved_scenario,
-        task=task,
-        user_id=user_id or parent.state.user_id,
-        config_overrides=config_overrides,
-        sessions_dir=sessions_root,
-        session_id=session_id,
-        resumed_from=parent_id,
-    )
+    if runtime_root is None:
+        child = create_session(
+            scenario=resolved_scenario,
+            task=task,
+            user_id=user_id or parent.state.user_id,
+            config_overrides=config_overrides,
+            sessions_dir=sessions_root,
+            session_id=session_id,
+            resumed_from=parent_id,
+        )
+    else:
+        child = create_session(
+            scenario=resolved_scenario,
+            task=task,
+            user_id=user_id or parent.state.user_id,
+            config_overrides=config_overrides,
+            session_id=session_id,
+            resumed_from=parent_id,
+            runtime_root=runtime_root,
+        )
 
     # Inline a context summary into SESSION.md. The planner reads SESSION.md
     # at the start of every run, so this is the natural place to surface

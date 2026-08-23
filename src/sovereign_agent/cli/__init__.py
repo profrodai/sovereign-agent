@@ -15,7 +15,9 @@ from pathlib import Path
 
 import typer
 
+from sovereign_agent.cli.v04 import register_v04_commands
 from sovereign_agent.config import Config
+from sovereign_agent.execution.cli import register_execution_commands
 from sovereign_agent.observability.report import generate_session_report
 from sovereign_agent.orchestrator import Orchestrator, run_task
 from sovereign_agent.session.directory import (
@@ -33,6 +35,9 @@ app = typer.Typer(
 )
 sessions_app = typer.Typer(name="sessions", help="Session management subcommands.")
 app.add_typer(sessions_app, name="sessions")
+
+register_execution_commands(app)
+register_v04_commands(app)
 
 
 # ---------------------------------------------------------------------------
@@ -62,9 +67,9 @@ def doctor(
 
     # Python version
     py = sys.version_info
-    if (py.major, py.minor) < (3, 12):
+    if (py.major, py.minor) < (3, 13):
         issues.append(
-            f"Python {py.major}.{py.minor} is too old. sovereign-agent requires Python 3.12+."
+            f"Python {py.major}.{py.minor} is too old. sovereign-agent requires Python 3.13+."
         )
     else:
         _ok(f"Python {py.major}.{py.minor}.{py.micro}")

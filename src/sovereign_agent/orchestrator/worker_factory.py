@@ -7,8 +7,8 @@ the right backend based on `config.worker_backend`. Three values:
   - "subprocess" : sandboxed via Landlock (Linux) or sandbox-exec (macOS).
                    Fails loud at construction time if the host has
                    neither primitive available.
-  - "docker"     : v0.4 stub. Reserved slot; raises NotImplementedError
-                   on use.
+  - "docker"     : unavailable placeholder; raises NotImplementedError
+                   on use and is not advertised as a supported backend.
 
 ## Fail-loud philosophy
 
@@ -59,6 +59,7 @@ from sovereign_agent.errors import SystemError, ValidationError
 from sovereign_agent.orchestrator.worker import (
     BareWorker,
     DockerWorker,
+    OSIsolatedWorker,
     SubprocessWorker,
     WorkerBackend,
     WorkerOutcome,
@@ -126,7 +127,10 @@ def make_worker_backend(
                 context={"platform": sys.platform, "policy": policy.name},
             )
         log.info("worker backend: subprocess with policy %r", policy.name)
-        return SubprocessWorker(isolation_policy=policy)
+        return OSIsolatedWorker(
+            SubprocessWorker(),
+            isolation_policy=policy,
+        )
 
     if name == "docker":
         return DockerWorker()

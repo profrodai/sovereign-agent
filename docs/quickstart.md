@@ -4,10 +4,21 @@
 
 ```bash
 pip install sovereign-agent            # core
-pip install sovereign-agent[dev]       # core + test/lint/docs tooling
 ```
 
-Requires Python 3.12+.
+Requires Python 3.13+.
+
+Dev tooling is a PEP 735 dependency *group*, not an extra, so there is no
+`[dev]` to install. From a checkout:
+
+```bash
+uv sync --group dev                    # or: pip install -e . --group dev
+```
+
+Optional extras that do something: `[evidently]`, `[otel]`, `[voice]`, `[rasa]` —
+and note that the Evidently and OTel backends are stubs today. The `[docker]`
+extra installs the Docker SDK but there is no working Docker code path; see
+[v0.3 non-goals](v0.3-non-goals.md).
 
 ## Preflight
 
@@ -19,6 +30,10 @@ sovereign-agent doctor
 Doctor checks your Python version, API key, disk space, mount allowlist, and (unless you pass `--skip-llm`) makes one real LLM call. If everything reads ✓, you're ready.
 
 ## Minimal agent
+
+New work should author reusable actions with ZeoCore `@capability` and merge
+them with Sovereign runtime commands via `make_session_callable_surface`.
+`@register_tool` still runs through `run_task` and is deprecated.
 
 ```python
 from sovereign_agent import run_task, register_tool, Config

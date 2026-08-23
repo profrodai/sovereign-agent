@@ -19,30 +19,36 @@ should tell SOMEONE to advance the session, then wait for artifacts
 to appear on disk (tickets, handoff files, session_complete). That
 "someone" is a worker backend.
 
-## The protocol
+## The protocols
 
     class WorkerBackend(Protocol):
-        async def run_session(self, session_id: str, session_dir: Path) -> WorkerOutcome: ...
+        async def prepare(self, request: WorkerRequest) -> RuntimeHandle: ...
+        async def execute(self, handle: RuntimeHandle, invocation: InvocationSpec | None) -> ExecResult: ...
+        async def close(self, handle: RuntimeHandle, preserve: bool) -> CloseResult: ...
 
-That's it. The worker is handed a session id and its on-disk directory;
-it drives one "step" (planner → executor → maybe handoff) and returns.
-Correctness guarantees come from the session directory contract, not
-from the worker implementation.
+The v0.2 ``run_session`` surface remains available through a compatibility
+adapter. Correctness guarantees come from the session directory contract, not
+from backend-owned orchestration state.
 
 ## Built-in backends
 
   BareWorker         — runs in-process via existing DefaultExecutor.
                        Same behaviour as v0.1.0. Default.
-  SubprocessWorker   — spawns `python -m sovereign_agent.orchestrator.worker_entrypoint`
-                       in a separate process. OS-level isolation,
-                       no Docker daemon required. Portable across
-                       Linux/macOS/Windows.
-  DockerWorker       — (see docker_worker.py) spawns a container with
-                       the session directory bind-mounted read-write.
-                       Stronger isolation; requires Docker daemon.
+  SubprocessWorker   — process separation only; it does not claim filesystem
+                       or network isolation.
+  OSIsolatedWorker   — composes SubprocessWorker with a proven Landlock or
+                       sandbox-exec policy and fails closed when requested
+                       enforcement cannot be demonstrated.
+  DockerWorker       — NOT IMPLEMENTED. A stub defined below that
+                       satisfies the Protocol so the 'docker' config
+                       value constructs, then raises
+                       NotImplementedError from run_session(). There is
+                       no docker_worker module, no Dockerfile, and no
+                       container code path anywhere in this repository.
 
 Users pick via `Config.worker_backend`. Scenarios can override
-per-invocation. Tests use `BareWorker` by default.
+per-invocation. Tests use `BareWorker` by default. Anyone reaching for
+'docker' wants 'subprocess'.
 
 ## What a backend MUST do
 
@@ -68,12 +74,34 @@ per-invocation. Tests use `BareWorker` by default.
 from __future__ import annotations
 
 import asyncio
+import json
 import logging
 import os
 import sys
+from collections.abc import Awaitable, Callable, Mapping
 from dataclasses import dataclass, field
 from pathlib import Path
-from typing import Protocol, runtime_checkable
+from typing import Any
+
+from sovereign_agent.contracts import (
+    EvidenceLevel,
+    ExecutionId,
+    FrozenDict,
+    RuntimeCapabilityAssertion,
+    RuntimeCapabilityManifest,
+)
+from sovereign_agent.contracts.redaction import REDACTED, redact_text
+from sovereign_agent.orchestrator.lifecycle import (
+    CloseResult,
+    ExecResult,
+    ExecutionLifecycle,
+    InvocationSpec,
+    LifecycleTimeouts,
+    RuntimeHandle,
+    TerminalReason,
+    WorkerBackend,
+    WorkerRequest,
+)
 
 log = logging.getLogger(__name__)
 
@@ -138,31 +166,91 @@ class WorkerOutcome:
     raw: dict = field(default_factory=dict)
 
 
-@runtime_checkable
-class WorkerBackend(Protocol):
-    """The interface the orchestrator uses to advance sessions.
+def _manifest(**values: tuple[bool | None, EvidenceLevel]) -> RuntimeCapabilityManifest:
+    return RuntimeCapabilityManifest(
+        capabilities=FrozenDict(
+            tuple(
+                (name, RuntimeCapabilityAssertion(available=available, evidence_level=evidence))
+                for name, (available, evidence) in values.items()
+            )
+        )
+    )
 
-    All methods are async. Implementations are free to block internally —
-    the orchestrator runs them on its event loop, so a worker that spawns
-    a subprocess should await its completion with asyncio-native waits,
-    not time.sleep.
+
+class IsolationUnavailable(RuntimeError):
+    terminal_reason = TerminalReason.ISOLATION_UNAVAILABLE
+
+
+async def run_session_compat(
+    backend: Any,
+    session_id: str,
+    session_dir: Path,
+    *,
+    timeout_s: float | None = None,
+) -> WorkerOutcome:
+    """Adapt the v0.2 ``run_session`` call to the Unit 3 lifecycle.
+
+    Third-party v0.2 backends are still accepted and called directly. Built-in
+    and Unit 3 backends take the new prepare/execute/close route.
     """
-
-    name: str
-
-    async def run_session(
-        self,
-        session_id: str,
-        session_dir: Path,
-        *,
-        timeout_s: float | None = None,
-    ) -> WorkerOutcome: ...
-
-    async def close(self) -> None:
-        """Release any resources the backend holds (thread pools,
-        subprocess handles, Docker containers). The orchestrator calls
-        this during shutdown."""
-        ...
+    if not isinstance(backend, WorkerBackend):
+        return await backend.run_session(session_id, session_dir, timeout_s=timeout_s)
+    request = WorkerRequest(
+        execution_id=ExecutionId(f"{session_id}:worker"),
+        session_id=session_id,
+        session_dir=session_dir,
+        timeouts=LifecycleTimeouts(execute_s=timeout_s),
+    )
+    result = await ExecutionLifecycle().run(backend, request)
+    if result.exec_result is not None and isinstance(result.exec_result.value, WorkerOutcome):
+        return result.exec_result.value
+    if result.reason in {
+        TerminalReason.WORKER_TIMEOUT,
+        TerminalReason.LIFECYCLE_TIMEOUT,
+        TerminalReason.COMPLETION_TIMEOUT,
+        TerminalReason.IDLE_TIMEOUT,
+    }:
+        return WorkerOutcome(
+            session_id=session_id,
+            terminal=False,
+            advanced=False,
+            summary=f"{backend.name} worker timed out",
+            raw={"timeout": True, "terminal_reason": result.reason.value},
+        )
+    execution = result.exec_result
+    if execution is not None and execution.returncode == 0:
+        terminal = False
+        advanced = False
+        summary = "subprocess exited 0"
+        if execution.stdout.strip():
+            last = execution.stdout.strip().splitlines()[-1]
+            try:
+                payload = json.loads(last)
+                if isinstance(payload, dict):
+                    terminal = bool(payload.get("terminal", False))
+                    advanced = bool(payload.get("advanced", False))
+                    summary = str(payload.get("summary", summary))
+            except json.JSONDecodeError:
+                summary = last
+        return WorkerOutcome(
+            session_id=session_id,
+            terminal=terminal,
+            advanced=advanced,
+            summary=summary,
+            raw={
+                "returncode": execution.returncode,
+                "stdout_tail": execution.stdout[-2000:],
+                "stderr_tail": execution.stderr[-2000:],
+            },
+        )
+    detail = result.error or (execution.stderr if execution is not None else result.reason.value)
+    return WorkerOutcome(
+        session_id=session_id,
+        terminal=False,
+        advanced=False,
+        summary=f"{backend.name} worker failed: {detail}",
+        raw={"terminal_reason": result.reason.value},
+    )
 
 
 # ---------------------------------------------------------------------------
@@ -183,7 +271,10 @@ class BareWorker:
 
     name = "bare"
 
-    def __init__(self, advance_fn):  # type: ignore[no-untyped-def]
+    def __init__(
+        self,
+        advance_fn: Callable[[str, Path], Awaitable[WorkerOutcome]],
+    ) -> None:
         """advance_fn is an async callable ``(session_id, session_dir) -> WorkerOutcome``.
 
         The orchestrator builds the callable from its own state-dispatch
@@ -191,6 +282,28 @@ class BareWorker:
         step does" from "where the step runs".
         """
         self._advance_fn = advance_fn
+
+    def capabilities(self) -> RuntimeCapabilityManifest:
+        return _manifest(
+            process_isolation=(False, EvidenceLevel.ENFORCED),
+            filesystem_isolation=(False, EvidenceLevel.ENFORCED),
+            network_isolation=(False, EvidenceLevel.ENFORCED),
+        )
+
+    async def prepare(self, request: WorkerRequest) -> RuntimeHandle:
+        if request.require_filesystem_isolation or request.require_network_isolation:
+            raise IsolationUnavailable("BareWorker cannot enforce requested isolation")
+        return RuntimeHandle(request=request, invocation=InvocationSpec())
+
+    async def execute(
+        self, handle: RuntimeHandle, invocation: InvocationSpec | None = None
+    ) -> ExecResult:
+        del invocation
+        outcome = await self._advance_fn(
+            handle.request.session_id,
+            handle.request.session_dir,
+        )
+        return ExecResult(returncode=0, value=outcome)
 
     async def run_session(
         self,
@@ -223,8 +336,13 @@ class BareWorker:
                 raw={"timeout": True},
             )
 
-    async def close(self) -> None:
-        return None
+    async def close(
+        self, handle: RuntimeHandle | None = None, preserve: bool = False
+    ) -> CloseResult:
+        del preserve
+        if handle is not None:
+            handle.closed = True
+        return CloseResult(closed=True)
 
 
 # ---------------------------------------------------------------------------
@@ -274,9 +392,11 @@ class SubprocessWorker:
         *,
         python_executable: str | None = None,
         extra_env: dict[str, str] | None = None,
-        isolation_policy=None,  # type: ignore[no-untyped-def]
+        isolation_policy: Any = None,
         extra_allowed_paths: list[Path] | None = None,
         allow_network: bool = True,
+        credential_allowlist: tuple[str, ...] = (),
+        environment_allowlist: tuple[str, ...] = (),
     ) -> None:
         self.python_executable = python_executable or sys.executable
         self.extra_env = extra_env or {}
@@ -289,6 +409,111 @@ class SubprocessWorker:
         # not provided and isolation is active, we auto-discover them.
         self._extra_allowed_paths = extra_allowed_paths
         self.allow_network = allow_network
+        self.credential_allowlist = tuple(credential_allowlist)
+        self.environment_allowlist = tuple(environment_allowlist)
+
+    def capabilities(self) -> RuntimeCapabilityManifest:
+        return _manifest(
+            process_isolation=(True, EvidenceLevel.PROBED),
+            filesystem_isolation=(False, EvidenceLevel.ENFORCED),
+            network_isolation=(False, EvidenceLevel.ENFORCED),
+        )
+
+    def _environment_for(self, request: WorkerRequest) -> dict[str, str]:
+        """Build a child environment without inheriting the parent wholesale."""
+        baseline_names = (
+            "PATH",
+            "LANG",
+            "LC_ALL",
+            "LC_CTYPE",
+            "TZ",
+            "TMPDIR",
+            "TEMP",
+            "TMP",
+            "SYSTEMROOT",
+            "WINDIR",
+            "PYTHONPATH",
+            "PYTHONHOME",
+            "VIRTUAL_ENV",
+        )
+        env = {name: os.environ[name] for name in baseline_names if name in os.environ}
+        allowed = (
+            set(self.credential_allowlist)
+            | set(self.environment_allowlist)
+            | set(request.credential_allowlist)
+            | set(request.environment_allowlist)
+        )
+        env.update({name: os.environ[name] for name in allowed if name in os.environ})
+        env.update(self.extra_env)
+        return env
+
+    def _invocation_for(self, request: WorkerRequest) -> InvocationSpec:
+        return InvocationSpec(
+            command=(
+                self.python_executable,
+                "-m",
+                "sovereign_agent.orchestrator.worker_entrypoint",
+                "--session-id",
+                request.session_id,
+                "--session-dir",
+                str(request.session_dir),
+            ),
+            environment=self._environment_for(request),
+        )
+
+    async def prepare(self, request: WorkerRequest) -> RuntimeHandle:
+        if request.require_filesystem_isolation or request.require_network_isolation:
+            raise IsolationUnavailable(
+                "SubprocessWorker provides process separation only; use OSIsolatedWorker"
+            )
+        return RuntimeHandle(request=request, invocation=self._invocation_for(request))
+
+    async def execute(
+        self, handle: RuntimeHandle, invocation: InvocationSpec | None = None
+    ) -> ExecResult:
+        spec = invocation or handle.invocation
+        try:
+            proc = await asyncio.create_subprocess_exec(
+                *spec.command,
+                env=dict(spec.environment),
+                cwd=str(spec.cwd) if spec.cwd is not None else None,
+                stdin=asyncio.subprocess.PIPE if spec.stdin is not None else None,
+                stdout=asyncio.subprocess.PIPE,
+                stderr=asyncio.subprocess.PIPE,
+            )
+        except FileNotFoundError as exc:
+            return ExecResult(
+                returncode=None,
+                stderr=str(exc),
+                started=False,
+                terminal_reason=TerminalReason.WORKER_ERROR,
+            )
+        handle.state["process"] = proc
+        handle.state["force_close"] = proc.kill
+        stdout, stderr = await proc.communicate(spec.stdin)
+        stdout_text = self._redact_diagnostic(
+            stdout.decode("utf-8", errors="replace"), spec.environment, handle.request
+        )
+        stderr_text = self._redact_diagnostic(
+            stderr.decode("utf-8", errors="replace"), spec.environment, handle.request
+        )
+        return ExecResult(
+            returncode=proc.returncode,
+            stdout=stdout_text,
+            stderr=stderr_text,
+            terminal_reason=(None if proc.returncode == 0 else TerminalReason.WORKER_ERROR),
+        )
+
+    def _redact_diagnostic(
+        self, text: str, environment: Mapping[str, str], request: WorkerRequest
+    ) -> str:
+        redacted = redact_text(text)
+        credential_names = set(self.credential_allowlist) | set(request.credential_allowlist)
+        for name in credential_names:
+            value = environment.get(name)
+            if value:
+                redacted = redacted.replace(value, REDACTED)
+        return redacted
 
     def _default_readonly_paths(self) -> list[Path]:
         """Paths every Python child needs read access to. Covers the
@@ -332,8 +557,14 @@ class SubprocessWorker:
         *,
         timeout_s: float | None = None,
     ) -> WorkerOutcome:
-        env = os.environ.copy()
-        env.update(self.extra_env)
+        request = WorkerRequest(
+            execution_id=ExecutionId(f"{session_id}:worker"),
+            session_id=session_id,
+            session_dir=session_dir,
+            credential_allowlist=self.credential_allowlist,
+            environment_allowlist=self.environment_allowlist,
+        )
+        env = self._environment_for(request)
 
         raw_command = [
             self.python_executable,
@@ -411,8 +642,16 @@ class SubprocessWorker:
                 raw={"timeout": True},
             )
 
-        stdout_text = stdout.decode("utf-8", errors="replace") if stdout else ""
-        stderr_text = stderr.decode("utf-8", errors="replace") if stderr else ""
+        stdout_text = (
+            self._redact_diagnostic(stdout.decode("utf-8", errors="replace"), env, request)
+            if stdout
+            else ""
+        )
+        stderr_text = (
+            self._redact_diagnostic(stderr.decode("utf-8", errors="replace"), env, request)
+            if stderr
+            else ""
+        )
 
         # Convention: the worker entrypoint writes a WorkerOutcome-shaped
         # JSON line as its LAST line of stdout. If it didn't, we fall
@@ -423,15 +662,13 @@ class SubprocessWorker:
         if stdout_text.strip():
             last = stdout_text.strip().splitlines()[-1]
             # We parse defensively — if it isn't JSON, treat as free text.
-            import json as _json
-
             try:
-                payload = _json.loads(last)
+                payload = json.loads(last)
                 if isinstance(payload, dict):
                     terminal = bool(payload.get("terminal", False))
                     advanced = bool(payload.get("advanced", False))
                     summary_line = str(payload.get("summary", ""))
-            except _json.JSONDecodeError:
+            except json.JSONDecodeError:
                 summary_line = last
 
         if proc.returncode == 0:
@@ -461,37 +698,170 @@ class SubprocessWorker:
             },
         )
 
-    async def close(self) -> None:
-        return None
+    async def close(
+        self, handle: RuntimeHandle | None = None, preserve: bool = False
+    ) -> CloseResult:
+        if handle is None:
+            return CloseResult(closed=True)
+        proc = handle.state.get("process")
+        forced = False
+        if proc is not None and proc.returncode is None:
+            proc.terminate()
+            try:
+                await asyncio.wait_for(proc.wait(), timeout=1.0)
+            except TimeoutError:
+                proc.kill()
+                await proc.wait()
+                forced = True
+        handle.closed = True
+        return CloseResult(closed=True, preserved=preserve, forced=forced)
 
 
 # ---------------------------------------------------------------------------
-# DockerWorker — v0.4 stub (v0.3 Module 4a)
+# OSIsolatedWorker — native policy composed over a process worker
+# ---------------------------------------------------------------------------
+
+
+class OSIsolatedWorker(SubprocessWorker):
+    """Compose a process-only worker with Landlock or sandbox-exec."""
+
+    # Keep the v0.2 operator-facing backend name while exposing the distinct
+    # implementation type.
+    name = "subprocess"
+
+    def __init__(
+        self,
+        process_worker: SubprocessWorker | None = None,
+        *,
+        isolation_policy: Any,
+        extra_allowed_paths: list[Path] | None = None,
+        allow_network: bool = True,
+    ) -> None:
+        self.process_worker = process_worker or SubprocessWorker()
+        super().__init__(
+            python_executable=self.process_worker.python_executable,
+            extra_env=self.process_worker.extra_env,
+            isolation_policy=isolation_policy,
+            extra_allowed_paths=extra_allowed_paths,
+            allow_network=allow_network,
+            credential_allowlist=self.process_worker.credential_allowlist,
+            environment_allowlist=self.process_worker.environment_allowlist,
+        )
+
+    def capabilities(self) -> RuntimeCapabilityManifest:
+        policy_name = getattr(self.isolation_policy, "name", "unknown")
+        filesystem = policy_name in {"landlock", "sandbox-exec"}
+        network = policy_name == "sandbox-exec"
+        return _manifest(
+            process_isolation=(True, EvidenceLevel.PROBED),
+            filesystem_isolation=(filesystem, EvidenceLevel.ENFORCED),
+            network_isolation=(network, EvidenceLevel.ENFORCED),
+        )
+
+    async def prepare(self, request: WorkerRequest) -> RuntimeHandle:
+        capabilities = self.capabilities()
+        if request.require_filesystem_isolation and not (
+            capabilities.is_available("filesystem_isolation")
+            and capabilities.has_evidence("filesystem_isolation", EvidenceLevel.ENFORCED)
+        ):
+            raise IsolationUnavailable("filesystem isolation cannot be proven")
+        if request.require_network_isolation and not (
+            capabilities.is_available("network_isolation")
+            and capabilities.has_evidence("network_isolation", EvidenceLevel.ENFORCED)
+        ):
+            raise IsolationUnavailable("network isolation cannot be proven")
+
+        invocation = self.process_worker._invocation_for(request)
+        allowed = [request.session_dir.resolve()]
+        if self._extra_allowed_paths is not None:
+            allowed.extend(path.resolve() for path in self._extra_allowed_paths)
+        else:
+            allowed.extend(self._default_readonly_paths())
+        command, policy_env = self.isolation_policy.wrap_command(
+            list(invocation.command),
+            allowed_paths=allowed,
+            allow_network=not request.require_network_isolation and self.allow_network,
+        )
+        environment = dict(invocation.environment)
+        environment.update(policy_env)
+        return RuntimeHandle(
+            request=request,
+            invocation=InvocationSpec(
+                command=tuple(command),
+                environment=environment,
+                cwd=invocation.cwd,
+                stdin=invocation.stdin,
+            ),
+        )
+
+    async def execute(
+        self, handle: RuntimeHandle, invocation: InvocationSpec | None = None
+    ) -> ExecResult:
+        return await self.process_worker.execute(handle, invocation)
+
+    async def close(
+        self, handle: RuntimeHandle | None = None, preserve: bool = False
+    ) -> CloseResult:
+        return await self.process_worker.close(handle, preserve)
+
+
+# ---------------------------------------------------------------------------
+# DockerWorker — UNIMPLEMENTED STUB (slot reserved; no container code exists)
 # ---------------------------------------------------------------------------
 
 
 class DockerWorker:
-    """v0.4 stub. Reserves the WorkerBackend slot; raises on use.
+    """UNIMPLEMENTED STUB. Reserves the WorkerBackend slot; raises on use.
 
-    The DockerWorker design intentionally lives next to BareWorker and
-    SubprocessWorker so the operator-facing config knob ('bare' /
-    'subprocess' / 'docker') maps cleanly to three classes. v0.3 ships
-    the first two; v0.4 will fill in this body.
+    Docker-based isolation does not exist in this repository. There is no
+    container image, no Dockerfile, and no bind-mount logic — only this
+    class, and it raises.
 
-    Operators selecting worker_backend='docker' in v0.3 still see a
-    valid Protocol implementation at construction time — they get a
-    clear NotImplementedError if they actually try to run a session,
-    not a confusing AttributeError or missing-class import error.
+    The stub exists so the operator-facing config knob ('bare' /
+    'subprocess' / 'docker') maps cleanly to three classes and so that
+    selecting 'docker' fails with a clear NotImplementedError at
+    run_session() rather than a confusing AttributeError or a
+    missing-class import error at construction.
+
+    The supported isolated backend is SubprocessWorker, which gets
+    kernel-enforced filesystem isolation from Landlock (Linux >= 5.13)
+    or sandbox-exec (macOS) without a container runtime.
+
+    The `docker` pip extra installs the Docker SDK but is deliberately
+    excluded from the `all` meta-extra, because installing a dependency
+    for a code path that does not exist advertises a capability the
+    library does not have.
     """
 
     name = "docker"
 
-    def __init__(self, **kwargs) -> None:  # type: ignore[no-untyped-def]
+    def __init__(self, **kwargs: Any) -> None:
+        del kwargs
         log.warning(
-            "DockerWorker is a v0.4 stub. SubprocessWorker is the supported "
-            "isolated backend in v0.3. Set worker_backend='subprocess' for "
-            "kernel-level isolation."
+            "DockerWorker is an unimplemented stub; no container code path "
+            "exists. SubprocessWorker is the supported isolated backend. Set "
+            "worker_backend='subprocess' for kernel-level isolation."
         )
+
+    def capabilities(self) -> RuntimeCapabilityManifest:
+        return _manifest(
+            process_isolation=(False, EvidenceLevel.PROBED),
+            filesystem_isolation=(False, EvidenceLevel.PROBED),
+            network_isolation=(False, EvidenceLevel.PROBED),
+            available=(False, EvidenceLevel.PROBED),
+        )
+
+    async def prepare(self, request: WorkerRequest) -> RuntimeHandle:
+        del request
+        raise IsolationUnavailable(
+            "DockerWorker is unavailable; invocation was refused before preparation"
+        )
+
+    async def execute(
+        self, handle: RuntimeHandle, invocation: InvocationSpec | None = None
+    ) -> ExecResult:
+        del handle, invocation
+        raise NotImplementedError("DockerWorker is unavailable")
 
     async def run_session(
         self,
@@ -501,18 +871,26 @@ class DockerWorker:
         timeout_s: float | None = None,
     ) -> WorkerOutcome:
         raise NotImplementedError(
-            "DockerWorker is reserved for v0.4. Use worker_backend='subprocess' "
-            "for OS-level isolation in v0.3."
+            "DockerWorker is not implemented; there is no container code path in "
+            "sovereign-agent. Use worker_backend='subprocess' for OS-level "
+            "isolation (Landlock on Linux >=5.13, sandbox-exec on macOS)."
         )
 
-    async def close(self) -> None:
-        return None
+    async def close(
+        self, handle: RuntimeHandle | None = None, preserve: bool = False
+    ) -> CloseResult:
+        del preserve
+        if handle is not None:
+            handle.closed = True
+        return CloseResult(closed=True)
 
 
 __all__ = [
     "BareWorker",
     "DockerWorker",
+    "OSIsolatedWorker",
     "SubprocessWorker",
     "WorkerBackend",
     "WorkerOutcome",
+    "IsolationUnavailable",
 ]
