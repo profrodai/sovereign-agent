@@ -2,9 +2,11 @@
 
 from __future__ import annotations
 
+from collections.abc import Callable
 from typing import ClassVar
 
 from sovereign_agent.channels.webhook import WebhookAdapter
+from sovereign_agent.runtime import RuntimeRoot
 
 
 class SlackAdapter(WebhookAdapter):
@@ -12,9 +14,11 @@ class SlackAdapter(WebhookAdapter):
     channel_type = "slack"
     kind: ClassVar[str] = "channel"
 
-    def __init__(self, *args: object, **kwargs: object) -> None:
-        try:
-            import slack_sdk  # noqa: F401
-        except ImportError:
-            pass
-        super().__init__(*args, **kwargs)  # type: ignore[misc]
+    def __init__(
+        self,
+        runtime_root: RuntimeRoot,
+        secret: bytes,
+        *,
+        approval_gate: Callable[[str], bool] | None = None,
+    ) -> None:
+        super().__init__(runtime_root, secret, approval_gate=approval_gate)

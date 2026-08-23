@@ -5,6 +5,7 @@ from __future__ import annotations
 import hashlib
 import hmac
 import json
+from collections.abc import Callable
 from datetime import UTC, datetime
 from typing import Any, ClassVar
 
@@ -22,7 +23,13 @@ class WebhookAdapter:
     channel_type = "webhook"
     supports_threads = True
 
-    def __init__(self, runtime_root: RuntimeRoot, secret: bytes, *, approval_gate=None) -> None:
+    def __init__(
+        self,
+        runtime_root: RuntimeRoot,
+        secret: bytes,
+        *,
+        approval_gate: Callable[[str], bool] | None = None,
+    ) -> None:
         self.runtime_root = runtime_root
         self.secret = secret
         self.approval_gate = approval_gate

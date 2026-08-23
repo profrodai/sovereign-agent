@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+from collections.abc import Callable
 from dataclasses import dataclass
 from email.message import EmailMessage
 from typing import ClassVar
@@ -30,12 +31,17 @@ class EmailAdapter:
     channel_type = "email"
     supports_threads = False
 
-    def __init__(self, runtime_root: RuntimeRoot, *, approval_gate=None) -> None:
+    def __init__(
+        self,
+        runtime_root: RuntimeRoot,
+        *,
+        approval_gate: Callable[[str], bool] | None = None,
+    ) -> None:
         self.runtime_root = runtime_root
         self.approval_gate = approval_gate
         self._drafts = runtime_root.ensure_directory("api") / "email-drafts"
         self._drafts.mkdir(mode=0o700, exist_ok=True)
-        self._router = None
+        self._router: object | None = None
 
     async def setup(self, router: object) -> None:
         self._router = router
