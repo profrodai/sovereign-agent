@@ -111,17 +111,17 @@ def test_docker_worker_satisfies_worker_backend_protocol():
     assert backend.name == "docker"
 
 
-def test_docker_worker_run_session_raises_not_implemented():
-    """Calling DockerWorker.run_session must fail explicitly with a
-    message pointing the operator at SubprocessWorker."""
+def test_docker_worker_run_session_refuses_without_engine():
+    """Calling DockerWorker.run_session without a digest/engine fails closed."""
     import asyncio
     from pathlib import Path
+
+    from sovereign_agent.orchestrator.worker import IsolationUnavailable
 
     backend = DockerWorker()
 
     async def _call():
         return await backend.run_session("sess_x", Path("/tmp/sess_x"))
 
-    with pytest.raises(NotImplementedError) as exc:
+    with pytest.raises(IsolationUnavailable):
         asyncio.run(_call())
-    assert "v0.4" in str(exc.value) or "subprocess" in str(exc.value).lower()

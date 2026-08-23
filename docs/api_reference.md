@@ -4,9 +4,9 @@ The public API of `sovereign_agent`. Anything not listed here is internal and ma
 
 Full docstrings are on the classes themselves; this page is an overview. For the definitive reference, read the source — every public class has a docstring that explains its purpose, parameters, and behaviour.
 
-The authoritative v0.6.0 contract is [API Stability](API.md) and its
-machine-checked 161-symbol manifest. All listed top-level exports are stable
-within the v0.6 series. Prefer ZeoCore `@capability` for new reusable actions;
+The authoritative v0.7.0 contract is [API Stability](API.md) and its
+machine-checked 165-symbol manifest. All listed top-level exports are stable
+within the v0.7 series. Prefer ZeoCore `@capability` for new reusable actions;
 `@register_tool` remains exported and deprecated until 2027-02-23.
 
 ## Errors (Pattern C)
@@ -186,15 +186,16 @@ from sovereign_agent import (
 ```
 
 `make_worker_backend(config, advance_fn=...)` selects a backend from
-`Config.worker_backend`, which accepts `"bare"`, `"subprocess"`, or `"docker"`:
+`Config.worker_backend`, which accepts `"bare"`, `"subprocess"`, `"docker"`,
+`"podman"`, and `"ssh"`:
 
 | Value | Status |
 |---|---|
 | `"bare"` (default) | Works. Runs the step in-process — no isolation, by choice. |
 | `"subprocess"` | Works. Separate Python process, optionally confined by Landlock (Linux ≥ 5.13) or `sandbox-exec` (macOS). Raises at construction time if you ask for it on a host with neither. |
-| `"docker"` | **Stub.** Constructs and logs a warning; `run_session()` raises `NotImplementedError`. |
-
-Use `"subprocess"` where you would have reached for `"docker"`.
+| `"docker"` | Digest-pinned container worker. Refuses without an engine or image digest. |
+| `"podman"` | Rootless Podman sharing the Docker contract. |
+| `"ssh"` | Identity-pinned remote worker. Disconnect is unknown until reconcile. |
 
 ## Governed execution
 

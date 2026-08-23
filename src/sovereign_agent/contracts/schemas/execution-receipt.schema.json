@@ -18,7 +18,7 @@
     "correction_sequence"
   ],
   "properties": {
-    "schema_version": {"const": "1.0"},
+    "schema_version": {"enum": ["1.0", "1.1"]},
     "execution_id": {"$ref": "#/$defs/id"},
     "invocation_id": {"$ref": "#/$defs/id"},
     "status": {"enum": ["running", "succeeded", "failed", "cancelled"]},

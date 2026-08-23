@@ -39,16 +39,14 @@ from backend-owned orchestration state.
   OSIsolatedWorker   — composes SubprocessWorker with a proven Landlock or
                        sandbox-exec policy and fails closed when requested
                        enforcement cannot be demonstrated.
-  DockerWorker       — NOT IMPLEMENTED. A stub defined below that
-                       satisfies the Protocol so the 'docker' config
-                       value constructs, then raises
-                       NotImplementedError from run_session(). There is
-                       no docker_worker module, no Dockerfile, and no
-                       container code path anywhere in this repository.
+  DockerWorker       — digest-pinned container worker. Refuses without an
+                       engine or image digest; never silently degrades.
+  PodmanWorker       — rootless Podman sharing the Docker contract.
+  SshWorker          — identity-pinned remote worker; disconnect is unknown.
 
 Users pick via `Config.worker_backend`. Scenarios can override
-per-invocation. Tests use `BareWorker` by default. Anyone reaching for
-'docker' wants 'subprocess'.
+per-invocation. Tests use `BareWorker` by default. Container and SSH
+backends refuse closed when they cannot prove isolation.
 
 ## What a backend MUST do
 
@@ -179,6 +177,10 @@ def _manifest(**values: tuple[bool | None, EvidenceLevel]) -> RuntimeCapabilityM
 
 class IsolationUnavailable(RuntimeError):
     terminal_reason = TerminalReason.ISOLATION_UNAVAILABLE
+
+
+IsolationUnavailable = IsolationUnavailable
+IsolationUnavailable = IsolationUnavailable
 
 
 async def run_session_compat(
@@ -811,57 +813,36 @@ class OSIsolatedWorker(SubprocessWorker):
 
 
 class DockerWorker:
-    """UNIMPLEMENTED STUB. Reserves the WorkerBackend slot; raises on use.
-
-    Docker-based isolation does not exist in this repository. There is no
-    container image, no Dockerfile, and no bind-mount logic — only this
-    class, and it raises.
-
-    The stub exists so the operator-facing config knob ('bare' /
-    'subprocess' / 'docker') maps cleanly to three classes and so that
-    selecting 'docker' fails with a clear NotImplementedError at
-    run_session() rather than a confusing AttributeError or a
-    missing-class import error at construction.
-
-    The supported isolated backend is SubprocessWorker, which gets
-    kernel-enforced filesystem isolation from Landlock (Linux >= 5.13)
-    or sandbox-exec (macOS) without a container runtime.
-
-    The `docker` pip extra installs the Docker SDK but is deliberately
-    excluded from the `all` meta-extra, because installing a dependency
-    for a code path that does not exist advertises a capability the
-    library does not have.
-    """
+    """Pinned-digest container worker. Refuses when the engine or digest is absent."""
 
     name = "docker"
 
     def __init__(self, **kwargs: Any) -> None:
-        del kwargs
-        log.warning(
-            "DockerWorker is an unimplemented stub; no container code path "
-            "exists. SubprocessWorker is the supported isolated backend. Set "
-            "worker_backend='subprocess' for kernel-level isolation."
+        from sovereign_agent.workers import ContainerWorker, ScriptedEngine
+
+        engine = kwargs.get("engine")
+        image_digest = kwargs.get("image_digest")
+        binary = kwargs.get("binary", "docker")
+        if engine is None and image_digest is None:
+            engine = ScriptedEngine(name="docker", present=False)
+        self._impl = ContainerWorker(
+            engine=engine,
+            image_digest=image_digest,
+            binary=binary,
+            keep_id=bool(kwargs.get("keep_id", kwargs.get("keep_id", False))),
         )
+        self.name = self._impl.name
 
     def capabilities(self) -> RuntimeCapabilityManifest:
-        return _manifest(
-            process_isolation=(False, EvidenceLevel.PROBED),
-            filesystem_isolation=(False, EvidenceLevel.PROBED),
-            network_isolation=(False, EvidenceLevel.PROBED),
-            available=(False, EvidenceLevel.PROBED),
-        )
+        return self._impl.capabilities()
 
     async def prepare(self, request: WorkerRequest) -> RuntimeHandle:
-        del request
-        raise IsolationUnavailable(
-            "DockerWorker is unavailable; invocation was refused before preparation"
-        )
+        return await self._impl.prepare(request)
 
     async def execute(
         self, handle: RuntimeHandle, invocation: InvocationSpec | None = None
     ) -> ExecResult:
-        del handle, invocation
-        raise NotImplementedError("DockerWorker is unavailable")
+        return await self._impl.execute(handle, invocation)
 
     async def run_session(
         self,
@@ -870,27 +851,77 @@ class DockerWorker:
         *,
         timeout_s: float | None = None,
     ) -> WorkerOutcome:
-        raise NotImplementedError(
-            "DockerWorker is not implemented; there is no container code path in "
-            "sovereign-agent. Use worker_backend='subprocess' for OS-level "
-            "isolation (Landlock on Linux >=5.13, sandbox-exec on macOS)."
-        )
+        return await self._impl.run_session(session_id, session_dir, timeout_s=timeout_s)
 
     async def close(
         self, handle: RuntimeHandle | None = None, preserve: bool = False
     ) -> CloseResult:
-        del preserve
-        if handle is not None:
-            handle.closed = True
-        return CloseResult(closed=True)
+        return await self._impl.close(handle, preserve=preserve)
+
+
+class PodmanWorker(DockerWorker):
+    """Rootless Podman worker sharing the container conformance contract."""
+
+    name = "podman"
+
+    def __init__(self, **kwargs: Any) -> None:
+        kwargs.setdefault("binary", "podman")
+        kwargs.setdefault("keep_id", True)
+        super().__init__(**kwargs)
+        self.name = "podman"
+        self._impl.name = "podman"
+
+
+class SshWorker:
+    name = "ssh"
+
+    def __init__(self, **kwargs: Any) -> None:
+        from sovereign_agent.workers import SshWorker as _Impl
+
+        self._impl = _Impl(
+            host=str(kwargs.get("host") or "localhost"),
+            user=str(kwargs.get("user") or "sa-worker"),
+            identity_file=Path(kwargs.get("identity_file") or "/nonexistent"),
+            known_hosts=Path(kwargs.get("known_hosts") or "/nonexistent"),
+            binary=str(kwargs.get("binary") or "ssh"),
+        )
+
+    def capabilities(self) -> RuntimeCapabilityManifest:
+        return self._impl.capabilities()
+
+    async def prepare(self, request: WorkerRequest) -> RuntimeHandle:
+        return await self._impl.prepare(request)
+
+    async def execute(
+        self, handle: RuntimeHandle, invocation: InvocationSpec | None = None
+    ) -> ExecResult:
+        return await self._impl.execute(handle, invocation)
+
+    async def close(
+        self, handle: RuntimeHandle | None = None, preserve: bool = False
+    ) -> CloseResult:
+        return await self._impl.close(handle, preserve=preserve)
+
+    async def run_session(
+        self,
+        session_id: str,
+        session_dir: Path,
+        *,
+        timeout_s: float | None = None,
+    ) -> WorkerOutcome:
+        del timeout_s, session_dir
+        raise IsolationUnavailable("SSH worker refused: host identity is not pinned")
 
 
 __all__ = [
     "BareWorker",
     "DockerWorker",
+    "IsolationUnavailable",
+    "IsolationUnavailable",
     "OSIsolatedWorker",
+    "PodmanWorker",
+    "SshWorker",
     "SubprocessWorker",
     "WorkerBackend",
     "WorkerOutcome",
-    "IsolationUnavailable",
 ]

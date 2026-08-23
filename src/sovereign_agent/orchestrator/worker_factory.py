@@ -7,8 +7,9 @@ the right backend based on `config.worker_backend`. Three values:
   - "subprocess" : sandboxed via Landlock (Linux) or sandbox-exec (macOS).
                    Fails loud at construction time if the host has
                    neither primitive available.
-  - "docker"     : unavailable placeholder; raises NotImplementedError
-                   on use and is not advertised as a supported backend.
+  - "docker"     : digest-pinned container backend; refuses without engine/digest
+  - "podman"     : rootless Podman sharing the Docker contract
+  - "ssh"        : identity-pinned remote worker; disconnect is unknown
 
 ## Fail-loud philosophy
 
@@ -60,6 +61,8 @@ from sovereign_agent.orchestrator.worker import (
     BareWorker,
     DockerWorker,
     OSIsolatedWorker,
+    PodmanWorker,
+    SshWorker,
     SubprocessWorker,
     WorkerBackend,
     WorkerOutcome,
@@ -135,10 +138,17 @@ def make_worker_backend(
     if name == "docker":
         return DockerWorker()
 
+    if name == "podman":
+        return PodmanWorker()
+
+    if name == "ssh":
+        return SshWorker()
+
     raise ValidationError(
         code="SA_VAL_BAD_TYPE",
         message=(
-            f"unknown worker_backend {name!r}; expected one of: 'bare', 'subprocess', 'docker'"
+            f"unknown worker_backend {name!r}; expected one of: "
+            "'bare', 'subprocess', 'docker', 'podman', 'ssh'"
         ),
         context={"got": name},
     )

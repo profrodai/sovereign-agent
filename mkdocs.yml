@@ -49,6 +49,7 @@ nav:
   - Migration from v0.3: migration-v0.3-to-v0.4.md
   - Migration from v0.4: migration-v0.4-to-v0.5.md
   - Migration from v0.5: migration-v0.5-to-v0.6.md
+  - Migration from v0.6: migration-v0.6-to-v0.7.md
   - Roadmap: roadmap.md
   - Compatibility: compatibility.md
   - Non-Goals: non-goals.md
@@ -58,6 +59,10 @@ nav:
       - Teaching Surface: teaching-surface.md
   - Deployment: deployment.md
   - Project:
+      - v0.7.0 Release Notes: release-notes/0.7.0.md
+      - v0.7 Operator Notes: v0.7-operator.md
+      - v0.7 Unit 1 Protocol: v0.7-unit1-protocol.md
+      - v0.7 Unit 12 Conformance: v0.7-unit12-conformance.md
       - v0.6.0 Release Notes: release-notes/0.6.0.md
       - v0.6 Operator Notes: v0.6-operator.md
       - v0.6 Soak: v0.6-soak.md

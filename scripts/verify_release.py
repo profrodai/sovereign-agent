@@ -26,7 +26,8 @@ API_V03 = ROOT / "docs" / "public-api-v0.3.txt"
 API_V04 = ROOT / "docs" / "public-api-v0.4.txt"
 API_V05 = ROOT / "docs" / "public-api-v0.5.txt"
 API_V06 = ROOT / "docs" / "public-api-v0.6.txt"
-EXPECTED_VERSION = "0.6.0"
+API_V07 = ROOT / "docs" / "public-api-v0.7.txt"
+EXPECTED_VERSION = "0.7.0"
 ZEOCORE_RANGE = "zeocore>=0.5,<0.6"
 REQUIRED_SCHEMAS = {
     "sovereign_agent/contracts/schemas/capability-manifest.schema.json",
@@ -246,19 +247,23 @@ def verify_source() -> None:
     v04 = _manifest(API_V04)
     v05 = _manifest(API_V05)
     v06 = _manifest(API_V06)
+    v07 = _manifest(API_V07)
     assert v02 == sorted(v02), "v0.2 API manifest must be sorted"
     assert v03 == sorted(v03), "v0.3 API manifest must be sorted"
     assert v04 == sorted(v04), "v0.4 API manifest must be sorted"
     assert v05 == sorted(v05), "v0.5 API manifest must be sorted"
     assert v06 == sorted(v06), "v0.6 API manifest must be sorted"
+    assert v07 == sorted(v07), "v0.7 API manifest must be sorted"
     assert len(v02) == 67 and len(v02) == len(set(v02))
     assert len(v03) == 152 and len(v03) == len(set(v03))
     assert v03 == v04
     assert len(v05) == 161 and len(v05) == len(set(v05))
     assert v05 == v06
+    assert len(v07) == 165 and len(v07) == len(set(v07))
     assert set(v02) <= set(v03), "v0.3 removed a stable v0.2 symbol"
     assert set(v04) <= set(v05), "v0.5 removed a stable v0.4 symbol"
-    assert _source_exports() == v06, "documented v0.6 API differs from __all__"
+    assert set(v06) <= set(v07), "v0.7 removed a stable v0.6 symbol"
+    assert _source_exports() == v07, "documented v0.7 API differs from __all__"
 
     for required in (
         ROOT / "docs" / "migration-v0.2-to-v0.3.md",
@@ -279,6 +284,11 @@ def verify_source() -> None:
         ROOT / "docs" / "v0.6-operator.md",
         ROOT / "docs" / "v0.6-soak.md",
         ROOT / "docs" / "v0.6-unit8-legacy.md",
+        ROOT / "docs" / "migration-v0.6-to-v0.7.md",
+        ROOT / "docs" / "release-notes" / "0.7.0.md",
+        ROOT / "docs" / "v0.7-operator.md",
+        ROOT / "docs" / "v0.7-unit1-protocol.md",
+        ROOT / "docs" / "v0.7-unit12-conformance.md",
     ):
         assert required.is_file(), f"missing release document: {required.relative_to(ROOT)}"
 

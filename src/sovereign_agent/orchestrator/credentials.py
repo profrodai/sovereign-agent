@@ -1,8 +1,7 @@
 """Credential gateway (Decision 5).
 
-Skeleton for now: loads credentials from the process environment. The
-per-tool scoping and injection-at-spawn-time is TODO when we wire Docker
-worker spawning into orchestrator/main.py.
+Resolves per-tool credentials through ``SecretBroker`` after placement.
+Values are injected only at process spawn, never persisted in receipts.
 """
 
 from __future__ import annotations
@@ -10,20 +9,23 @@ from __future__ import annotations
 import logging
 import os
 
+from sovereign_agent.secrets import SecretBroker
+
 log = logging.getLogger(__name__)
 
 
 class CredentialGateway:
-    """Minimal credential gateway. Loads from env at construction.
+    """Loads credentials from env and optional short-lived secret leases."""
 
-    TODO:
-      - per-tool scoping (so a worker running tool X only sees keys X needs)
-      - injection into worker environment at spawn time
-      - audit-log every injection (without values) via session.append_trace_event
-    """
-
-    def __init__(self, env: dict[str, str] | None = None) -> None:
+    def __init__(
+        self,
+        env: dict[str, str] | None = None,
+        *,
+        broker: SecretBroker | None = None,
+    ) -> None:
         self._env = dict(env) if env is not None else dict(os.environ)
+        self._broker = broker
+        self._tool_leases: dict[str, str] = {}
 
     def get(self, key: str) -> str | None:
         return self._env.get(key)
@@ -34,15 +36,22 @@ class CredentialGateway:
             raise RuntimeError(f"credential {key!r} is not set")
         return value
 
-    def for_tool(self, tool_name: str) -> dict[str, str]:
-        """Return only the credentials this tool is allowed to see.
+    def bind_tool_lease(self, tool_name: str, lease_id: str) -> None:
+        self._tool_leases[tool_name] = lease_id
 
-        Placeholder implementation returns empty — overriding this is how
-        users scope credentials. A full implementation will consult a
-        per-tool allowlist in ~/.config/sovereign-agent/tool-credentials.json.
+    def for_tool(self, tool_name: str) -> dict[str, str]:
+        """Return spawn-only credentials for ``tool_name``.
+
+        Without a bound secret lease this stays empty. Binding a lease
+        injects values only into the returned mapping for process spawn.
         """
-        log.debug("CredentialGateway.for_tool(%r): returning empty scope (TODO)", tool_name)
-        return {}
+        if self._broker is None:
+            log.debug("CredentialGateway.for_tool(%r): no broker bound", tool_name)
+            return {}
+        lease_id = self._tool_leases.get(tool_name)
+        if not lease_id:
+            return {}
+        return self._broker.inject(lease_id)
 
 
 __all__ = ["CredentialGateway"]

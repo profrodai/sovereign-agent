@@ -6,6 +6,16 @@ Repository: [`zeroemployeeorg/sovereign-agent`](https://github.com/zeroemployeeo
 
 ## Unreleased
 
+## [0.7.0] — 2026-08-23
+
+Bounded production execution fleet on the v0.6 coordinator. Docker and
+rootless Podman workers, authenticated SSH workers, fail-closed placement,
+reservations, secret leases, network enforcement with evidence,
+content-addressed artifacts, and reconciliation that forbids last-write-wins.
+`DockerWorker` is no longer a stub. ZeoCore remains the capability contract
+layer, not a scheduler. A git tag is not a public release until
+`make verify-pypi`.
+
 ## [0.6.0] — 2026-08-23
 
 Capability-native single-node default. `run_task` projects ZeoCore capabilities

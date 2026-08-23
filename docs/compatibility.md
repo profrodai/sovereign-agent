@@ -41,6 +41,7 @@ Shipped as `sovereign_agent/contracts/fixtures/compatibility-matrix.json`:
 | 0.2.0 (previous public PyPI line) | none | 3.12+ as published |
 | 0.5.1 (truthful public 0.5 line) | `>=0.5,<0.6` | 3.13+ |
 | 0.6.0 (capability-native default) | `>=0.5,<0.6` | 3.13+ |
+| 0.7.0 (bounded execution fleet) | `>=0.5,<0.6` | 3.13+ |
 
 ## Sovereign-owned extensions
 

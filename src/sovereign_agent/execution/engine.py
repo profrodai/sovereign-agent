@@ -178,6 +178,7 @@ class GovernedExecutionEngine:
         relay: DurableRelay | None = None,
         relay_recipient: RuntimeAddress | None = None,
         clock: Clock | None = None,
+        fleet_workers: Sequence[Any] | None = None,
     ) -> None:
         self.runtime = runtime_root.initialize()
         self.repositories = repository_manager
@@ -189,6 +190,7 @@ class GovernedExecutionEngine:
         self._clock = clock or (lambda: datetime.now(UTC))
         self.lifecycle = ExecutionLifecycle()
         self._active_tasks: dict[ExecutionId, asyncio.Task[ExecutionReceipt]] = {}
+        self.fleet_workers = list(fleet_workers or [])
 
     async def run(self, request: GovernedExecutionRequest) -> ExecutionReceipt:
         """Run or safely resume one execution ID."""
@@ -693,7 +695,20 @@ class GovernedExecutionEngine:
                         f"provider invocation backend cannot prove {capability_name}",
                     )
         self._check_capabilities(request, seat, provider, backend)
-        return {"seat": seat, "provider": provider, "backend": backend}
+        placement = None
+        if self.fleet_workers:
+            from sovereign_agent.fleet.placement import PlacementEngine, PlacementRefusal
+
+            try:
+                placement = PlacementEngine().place(
+                    requirements=dict(getattr(request, "requirements", None) or {}),
+                    effects=dict(getattr(request, "effects", None) or {}),
+                    constraints=request.constraints.to_dict(),
+                    workers=list(self.fleet_workers),
+                )
+            except PlacementRefusal as exc:
+                raise AdmissionRejected("placement-refused", str(exc)) from exc
+        return {"seat": seat, "provider": provider, "backend": backend, "placement": placement}
 
     @staticmethod
     def _validate_governance_structure(

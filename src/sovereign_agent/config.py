@@ -55,7 +55,7 @@ class Config:
     #   docker     — unavailable placeholder; raises on use.
     # Fails loud at orchestrator init if 'subprocess' is selected on a host
     # without a usable isolation primitive.
-    worker_backend: Literal["bare", "subprocess", "docker"] = "bare"
+    worker_backend: Literal["bare", "subprocess", "docker", "podman", "ssh"] = "bare"
 
     # v0.3 Module 4b: liveness monitor — periodic stalled-session detection
     # and a heartbeat file external observers can stat. 60s/600s match

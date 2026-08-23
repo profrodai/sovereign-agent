@@ -1,6 +1,6 @@
 {
   "schema_version": "1.0",
-  "description": "Published package pairs versus the current 0.6 line.",
+  "description": "Published package pairs versus the current 0.7 line.",
   "pairs": [
     {
       "sovereign_agent": "0.2.0",
@@ -22,6 +22,13 @@
       "python": ">=3.13",
       "published": false,
       "notes": "Capability-native single-node default. Git tag is not a public release until verify-pypi."
+    },
+    {
+      "sovereign_agent": "0.7.0",
+      "zeocore": ">=0.5,<0.6",
+      "python": ">=3.13",
+      "published": false,
+      "notes": "Bounded production execution fleet. Git tag is not a public release until verify-pypi."
     }
   ]
 }

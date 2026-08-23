@@ -1,16 +1,14 @@
 """sovereign-agent: a framework for building always-on AI agents that you actually own.
 
-Alpha. The declared version is 0.6.0.
+Alpha. The declared version is 0.7.0.
 
-The 161 names in the v0.5 public API remain; v0.6 hardens the capability-native
-default path without removing the compatibility window.
+The 161 names in the v0.6 public API remain; v0.7 adds bounded fleet execution.
 All 67 symbols published in v0.2.0 remain covered by the compatibility contract. Anything not
 in __all__ is internal and may change between any two releases -- including
 names that happen to be importable from this module, such as the channel adapter
 types and LivenessMonitor.
 
-Not implemented, despite having a name or a config value: DockerWorker (no
-container code path exists anywhere in this repository), the Evidently and
+Not implemented, despite having a name or a config value: the Evidently and
 OTel observability backends, the voice pipeline, and the memory
 retrieval/consolidation behaviours.
 
@@ -74,6 +72,7 @@ from sovereign_agent.execution import (
     GovernedExecutionEngine,
 )
 from sovereign_agent.executor import DefaultExecutor, Executor, ExecutorResult
+from sovereign_agent.fleet.coordinator import FleetCoordinator as FleetCoordinator
 
 # Halves
 from sovereign_agent.halves import Half, HalfResult
@@ -138,6 +137,12 @@ from sovereign_agent.orchestrator.worker import (
     OSIsolatedWorker as OSIsolatedWorker,
 )
 from sovereign_agent.orchestrator.worker import (
+    PodmanWorker as PodmanWorker,
+)
+from sovereign_agent.orchestrator.worker import (
+    SshWorker as SshWorker,
+)
+from sovereign_agent.orchestrator.worker import (
     SubprocessWorker as SubprocessWorker,
 )
 from sovereign_agent.orchestrator.worker import (
@@ -145,9 +150,6 @@ from sovereign_agent.orchestrator.worker import (
 )
 from sovereign_agent.orchestrator.worker import (
     WorkerOutcome as WorkerOutcome,
-)
-from sovereign_agent.orchestrator.worker_factory import (
-    make_worker_backend as make_worker_backend,
 )
 
 # Planner / Executor
@@ -232,6 +234,7 @@ from sovereign_agent.repository import (
 
 # Scheduler (Decision 6)
 from sovereign_agent.scheduler import DriftCorrectedScheduler, ScheduledTask
+from sovereign_agent.secrets import SecretBroker as SecretBroker
 
 # Session (Decision 1)
 from sovereign_agent.session import (
@@ -266,7 +269,7 @@ from sovereign_agent.tools import (
     register_tool,
 )
 
-__version__ = "0.6.0"
+__version__ = "0.7.0"
 
 __all__ = [
     # errors
@@ -439,8 +442,12 @@ __all__ = [
     "SubprocessWorker",
     "DockerWorker",
     "OSIsolatedWorker",
+    "PodmanWorker",
+    "SshWorker",
     "WorkerOutcome",
     "make_worker_backend",
+    "FleetCoordinator",
+    "SecretBroker",
     "WorkerRequest",
     "RuntimeHandle",
     "InvocationSpec",

@@ -37,7 +37,7 @@ def test_compatibility_matrix_includes_previous_published_pair() -> None:
     current = rest[-1]
     assert previous["sovereign_agent"] == "0.2.0"
     assert previous["zeocore"] is None
-    assert current["sovereign_agent"] == "0.6.0"
+    assert current["sovereign_agent"] == "0.7.0"
     assert current["zeocore"] == ">=0.5,<0.6"
     assert current["python"] == ">=3.13"
 
