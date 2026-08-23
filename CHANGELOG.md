@@ -6,10 +6,15 @@ Repository: [`zeroemployeeorg/sovereign-agent`](https://github.com/zeroemployeeo
 
 ## Unreleased
 
+## [0.5.0] — 2026-08-23
+
 Capability migration toward ZeoCore. Python 3.13 floor. Runtime evidence
 types renamed to `RuntimeCapabilityManifest`. Reusable actions go through
 ZeoCore; runtime commands stay in Sovereign. Legacy `register_tool` remains
 through the compatibility window.
+
+The 152-symbol v0.4 `__all__` surface is preserved; v0.5 adds 9 capability
+symbols for 161 total.
 
 ## [0.4.0] — 2026-08-22
 

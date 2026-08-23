@@ -1,4 +1,4 @@
-"""Deterministic v0.4 distribution and compatibility verification.
+"""Deterministic v0.5 distribution and compatibility verification.
 
 This gate never publishes, contacts a provider, or reads credentials.  It proves
 that the declared API and version match the documentation, that the distributions
@@ -24,7 +24,7 @@ API_V02 = ROOT / "docs" / "public-api-v0.2.txt"
 API_V03 = ROOT / "docs" / "public-api-v0.3.txt"
 API_V04 = ROOT / "docs" / "public-api-v0.4.txt"
 API_V05 = ROOT / "docs" / "public-api-v0.5.txt"
-EXPECTED_VERSION = "0.4.0"
+EXPECTED_VERSION = "0.5.0"
 REQUIRED_SCHEMAS = {
     "sovereign_agent/contracts/schemas/capability-manifest.schema.json",
     "sovereign_agent/contracts/schemas/execution-receipt.schema.json",
@@ -155,7 +155,7 @@ before = sorted(str(p.relative_to(pathlib.Path.cwd())) for p in pathlib.Path.cwd
 import sovereign_agent as sa
 after = sorted(str(p.relative_to(pathlib.Path.cwd())) for p in pathlib.Path.cwd().rglob("*"))
 assert before == after, (before, after)
-assert sa.__version__ == "0.4.0"
+assert sa.__version__ == os.environ["SOVEREIGN_EXPECTED_VERSION"]
 assert len(sa.__all__) == len(set(sa.__all__))
 schemas = importlib.resources.files("sovereign_agent.contracts.schemas")
 for name in (
@@ -173,6 +173,7 @@ print(json.dumps({"version": sa.__version__, "exports": len(sa.__all__)}))
             "HOME": str(temp / "home"),
             "PYTHONDONTWRITEBYTECODE": "1",
             "PYTHONNOUSERSITE": "1",
+            "SOVEREIGN_EXPECTED_VERSION": EXPECTED_VERSION,
         }
         (temp / "home").mkdir()
         _run(str(python), "-I", "-B", str(smoke), cwd=temp, env=env)
@@ -212,9 +213,11 @@ def verify_source() -> None:
     for required in (
         ROOT / "docs" / "migration-v0.2-to-v0.3.md",
         ROOT / "docs" / "migration-v0.3-to-v0.4.md",
+        ROOT / "docs" / "migration-v0.4-to-v0.5.md",
         ROOT / "docs" / "threat-model.md",
         ROOT / "docs" / "release-notes" / "0.3.0.md",
         ROOT / "docs" / "release-notes" / "0.4.0.md",
+        ROOT / "docs" / "release-notes" / "0.5.0.md",
         ROOT / "docs" / "teaching-surface.md",
         ROOT / "docs" / "v0.4-operator-guide.md",
     ):
