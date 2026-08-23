@@ -70,9 +70,10 @@ jobs:
           ls -la dist/
       - name: Verify API, contents, and clean core-only install
         run: |
-          uv run python scripts/verify_release.py \
-            --wheel dist/sovereign_agent-0.4.0-py3-none-any.whl \
-            --sdist dist/sovereign_agent-0.4.0.tar.gz
+          set -euo pipefail
+          WHEEL=$(ls dist/sovereign_agent-*.whl)
+          SDIST=$(ls dist/sovereign_agent-*.tar.gz)
+          uv run python scripts/verify_release.py --wheel "$WHEEL" --sdist "$SDIST"
       - name: Verify wheel installs cleanly in a fresh venv
         run: |
           python -m venv /tmp/verify-venv
