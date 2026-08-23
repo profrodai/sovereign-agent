@@ -92,7 +92,9 @@ class DepositResponse(BaseModel):
         ),
     ),
 )
-def commit_booking_with_deposit(request: DepositRequest, ctx: ToolContext) -> CapabilityResult[DepositResponse]:
+def commit_booking_with_deposit(
+    request: DepositRequest, ctx: ToolContext
+) -> CapabilityResult[DepositResponse]:
     needs_approval = request.deposit_gbp > AUTO_APPROVE_CEILING_GBP
     proposed = {
         "venue_id": request.venue_id,
