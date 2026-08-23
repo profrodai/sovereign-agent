@@ -2,8 +2,9 @@
 
 This gate never publishes, contacts a provider, or reads credentials.  It proves
 that the declared API and version match the documentation, that the distributions
-contain the complete runtime package, and that a core-only wheel works in a clean
-environment without import-time filesystem/network/process activity.
+contain the complete runtime package, that metadata and README tell the truth,
+and that a core-only wheel works in a clean environment without import-time
+filesystem/network/process activity.
 """
 
 from __future__ import annotations
@@ -24,11 +25,18 @@ API_V02 = ROOT / "docs" / "public-api-v0.2.txt"
 API_V03 = ROOT / "docs" / "public-api-v0.3.txt"
 API_V04 = ROOT / "docs" / "public-api-v0.4.txt"
 API_V05 = ROOT / "docs" / "public-api-v0.5.txt"
-EXPECTED_VERSION = "0.5.0"
+EXPECTED_VERSION = "0.5.1"
+ZEOCORE_RANGE = "zeocore>=0.5,<0.6"
 REQUIRED_SCHEMAS = {
     "sovereign_agent/contracts/schemas/capability-manifest.schema.json",
     "sovereign_agent/contracts/schemas/execution-receipt.schema.json",
     "sovereign_agent/contracts/schemas/governed-execution-request.schema.json",
+}
+REQUIRED_FIXTURES = {
+    "sovereign_agent/contracts/fixtures/capability-manifest.valid.json",
+    "sovereign_agent/contracts/fixtures/governed-execution-request.valid.json",
+    "sovereign_agent/contracts/fixtures/execution-receipt.valid.json",
+    "sovereign_agent/contracts/fixtures/compatibility-matrix.json",
 }
 
 
@@ -112,6 +120,7 @@ def _clean_wheel_smoke(wheel: Path) -> None:
         smoke = temp / "smoke.py"
         smoke.write_text(
             """
+import importlib.metadata
 import importlib.resources
 import json
 import os
@@ -157,6 +166,14 @@ after = sorted(str(p.relative_to(pathlib.Path.cwd())) for p in pathlib.Path.cwd(
 assert before == after, (before, after)
 assert sa.__version__ == os.environ["SOVEREIGN_EXPECTED_VERSION"]
 assert len(sa.__all__) == len(set(sa.__all__))
+meta = importlib.metadata.metadata("sovereign-agent")
+assert meta["Requires-Python"] == ">=3.13"
+requires = importlib.metadata.requires("sovereign-agent") or []
+normalized = [item.replace(" ", "") for item in requires]
+assert any(
+    "zeocore" in item and ">=0.5" in item and "<0.6" in item and "extra" not in item
+    for item in normalized
+), requires
 schemas = importlib.resources.files("sovereign_agent.contracts.schemas")
 for name in (
     "capability-manifest.schema.json",
@@ -164,6 +181,26 @@ for name in (
     "governed-execution-request.schema.json",
 ):
     json.loads(schemas.joinpath(name).read_text(encoding="utf-8"))
+from sovereign_agent.contracts import (
+    ExecutionReceipt,
+    GovernedExecutionRequest,
+    RuntimeCapabilityManifest,
+)
+from sovereign_agent.contracts.fixtures import FIXTURE_NAMES, load_fixture
+assert set(FIXTURE_NAMES) == {
+    "capability-manifest.valid.json",
+    "governed-execution-request.valid.json",
+    "execution-receipt.valid.json",
+    "compatibility-matrix.json",
+}
+RuntimeCapabilityManifest.from_dict(load_fixture("capability-manifest.valid.json"))
+GovernedExecutionRequest.from_dict(load_fixture("governed-execution-request.valid.json"))
+ExecutionReceipt.from_dict(load_fixture("execution-receipt.valid.json"))
+matrix = load_fixture("compatibility-matrix.json")
+assert matrix["pairs"][0]["sovereign_agent"] == "0.2.0"
+assert matrix["pairs"][0]["zeocore"] is None
+assert matrix["pairs"][1]["sovereign_agent"] == os.environ["SOVEREIGN_EXPECTED_VERSION"]
+assert matrix["pairs"][1]["zeocore"] == ">=0.5,<0.6"
 print(json.dumps({"version": sa.__version__, "exports": len(sa.__all__)}))
 """.lstrip(),
             encoding="utf-8",
@@ -190,9 +227,18 @@ print(json.dumps({"version": sa.__version__, "exports": len(sa.__all__)}))
 def verify_source() -> None:
     project = tomllib.loads((ROOT / "pyproject.toml").read_text(encoding="utf-8"))["project"]
     assert project["version"] == EXPECTED_VERSION
+    assert project["requires-python"] == ">=3.13"
+    assert ZEOCORE_RANGE in project["dependencies"]
 
     init_text = (PACKAGE / "__init__.py").read_text(encoding="utf-8")
     assert f'__version__ = "{EXPECTED_VERSION}"' in init_text
+
+    readme = (ROOT / "README.md").read_text(encoding="utf-8")
+    assert "@capability" in readme
+    assert "register_tool" in readme
+    assert "Python 3.13" in readme
+    assert ZEOCORE_RANGE in readme
+    assert f"**v{EXPECTED_VERSION}.**" in readme
 
     v02 = _manifest(API_V02)
     v03 = _manifest(API_V03)
@@ -218,6 +264,10 @@ def verify_source() -> None:
         ROOT / "docs" / "release-notes" / "0.3.0.md",
         ROOT / "docs" / "release-notes" / "0.4.0.md",
         ROOT / "docs" / "release-notes" / "0.5.0.md",
+        ROOT / "docs" / "release-notes" / "0.5.1.md",
+        ROOT / "docs" / "roadmap.md",
+        ROOT / "docs" / "non-goals.md",
+        ROOT / "docs" / "compatibility.md",
         ROOT / "docs" / "teaching-surface.md",
         ROOT / "docs" / "v0.4-operator-guide.md",
     ):
@@ -229,6 +279,7 @@ def verify_distribution(path: Path) -> None:
     missing = _source_runtime_files() - files
     assert not missing, f"{path.name} is missing runtime files: {sorted(missing)}"
     assert REQUIRED_SCHEMAS <= files, f"{path.name} is missing required schemas"
+    assert REQUIRED_FIXTURES <= files, f"{path.name} is missing required fixtures"
 
 
 def main() -> int:
@@ -243,7 +294,9 @@ def main() -> int:
     if args.wheel:
         verify_distribution(args.wheel)
         _clean_wheel_smoke(args.wheel.resolve())
-        print(f"✓ wheel content, core-only install, CLI, schemas, and import purity: {args.wheel}")
+        print(
+            f"✓ wheel content, core-only install, CLI, schemas, fixtures, and import purity: {args.wheel}"
+        )
     if args.sdist:
         verify_distribution(args.sdist)
         print(f"✓ sdist contains the complete runtime package: {args.sdist}")

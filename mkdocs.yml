@@ -47,12 +47,26 @@ nav:
   - API Stability: API.md
   - Migration from v0.2: migration-v0.2-to-v0.3.md
   - Migration from v0.3: migration-v0.3-to-v0.4.md
+  - Migration from v0.4: migration-v0.4-to-v0.5.md
+  - Roadmap: roadmap.md
+  - Compatibility: compatibility.md
+  - Non-Goals: non-goals.md
   - Threat Model: threat-model.md
   - Chapters:
       - Overview: chapters/index.md
       - Teaching Surface: teaching-surface.md
   - Deployment: deployment.md
   - Project:
+      - v0.5.1 Release Notes: release-notes/0.5.1.md
+      - v0.5.0 Release Notes: release-notes/0.5.0.md
+      - v0.5 Unit 1 Foundation: v0.5-unit1-foundation.md
+      - v0.5 Unit 2 Adapter: v0.5-unit2-adapter.md
+      - v0.5 Unit 3 Registry: v0.5-unit3-registry.md
+      - v0.5 Unit 4 Builtins: v0.5-unit4-builtins.md
+      - v0.5 Unit 5 Policy: v0.5-unit5-policy.md
+      - v0.5 Unit 6 Evidence: v0.5-unit6-evidence.md
+      - v0.5 Unit 7 Compat: v0.5-unit7-compat.md
+      - v0.5 Unit 8 Removal Gate: v0.5-unit8-removal-gate.md
       - v0.4.0 Release Notes: release-notes/0.4.0.md
       - v0.4 Operator Guide: v0.4-operator-guide.md
       - v0.4 Unit 1 Protocol: v0.4-unit1-protocol.md

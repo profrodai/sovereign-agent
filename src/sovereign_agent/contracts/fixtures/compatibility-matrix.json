@@ -1,0 +1,20 @@
+{
+  "schema_version": "1.0",
+  "description": "Previous public package pair versus the current 0.5 line.",
+  "pairs": [
+    {
+      "sovereign_agent": "0.2.0",
+      "zeocore": null,
+      "python": ">=3.12",
+      "published": true,
+      "notes": "Last public PyPI line before the capability migration."
+    },
+    {
+      "sovereign_agent": "0.5.1",
+      "zeocore": ">=0.5,<0.6",
+      "python": ">=3.13",
+      "published": true,
+      "notes": "First truthful public 0.5 line. Git tag v0.5.0 is not this pair."
+    }
+  ]
+}

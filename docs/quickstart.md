@@ -6,7 +6,7 @@
 pip install sovereign-agent            # core
 ```
 
-Requires Python 3.13+.
+Requires Python 3.13+. `zeocore>=0.5,<0.6` is required.
 
 Dev tooling is a PEP 735 dependency *group*, not an extra, so there is no
 `[dev]` to install. From a checkout:
@@ -18,7 +18,7 @@ uv sync --group dev                    # or: pip install -e . --group dev
 Optional extras that do something: `[evidently]`, `[otel]`, `[voice]`, `[rasa]` —
 and note that the Evidently and OTel backends are stubs today. The `[docker]`
 extra installs the Docker SDK but there is no working Docker code path; see
-[v0.3 non-goals](v0.3-non-goals.md).
+[non-goals](non-goals.md).
 
 ## Preflight
 
@@ -36,19 +36,33 @@ them with Sovereign runtime commands via `make_session_callable_surface`.
 `@register_tool` still runs through `run_task` and is deprecated.
 
 ```python
-from sovereign_agent import run_task, register_tool, Config
+from pydantic import BaseModel
+from zeo_core.contracts import CapabilityResult, EffectKind
+from zeo_core.tools import ToolContext, capability
+from sovereign_agent import run_task, Config
 
-@register_tool
-def get_weather(city: str) -> dict:
-    """Get the current weather for a city."""
-    return {"city": city, "temperature": 18, "condition": "rainy"}
+class WeatherQuery(BaseModel):
+    city: str
+
+@capability(
+    id="demo.weather.get@1.0.0",
+    description="Get the current weather for a city.",
+    effects={EffectKind.READ},
+)
+def get_weather(request: WeatherQuery, ctx: ToolContext) -> CapabilityResult:
+    return CapabilityResult.ok(
+        data={"city": request.city, "temperature": 18, "condition": "rainy"},
+        msg="ok",
+    )
 
 config = Config.from_env()
 result = run_task("What's the weather in Edinburgh?", config=config)
 print(result.summary)
 ```
 
-Under the hood this creates a session directory at `sessions/sess_<id>/`, runs a planner, runs an executor with your tool registered, and returns a summary. The executor makes one or more tool calls; each one is an audit-traceable ticket.
+Under the hood this creates a session directory at `sessions/sess_<id>/`, runs a
+planner, runs an executor against the callable surface, and returns a summary.
+Each invocation is an audit-traceable ticket.
 
 ## Inspect what happened
 

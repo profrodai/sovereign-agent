@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import tomllib
 from pathlib import Path
 
 import sovereign_agent
@@ -9,6 +10,8 @@ from scripts.verify_release import (
     API_V04,
     API_V05,
     EXPECTED_VERSION,
+    REQUIRED_FIXTURES,
+    ZEOCORE_RANGE,
     _manifest,
     _source_exports,
     verify_source,
@@ -18,6 +21,11 @@ from scripts.verify_release import (
 def test_release_source_contract_is_coherent() -> None:
     verify_source()
     assert sovereign_agent.__version__ == EXPECTED_VERSION
+    project_deps = tomllib.loads(
+        (Path(__file__).parents[2] / "pyproject.toml").read_text(encoding="utf-8")
+    )["project"]["dependencies"]
+    assert ZEOCORE_RANGE in project_deps
+    assert all((Path(__file__).parents[2] / "src" / path).is_file() for path in REQUIRED_FIXTURES)
 
 
 def test_v02_api_is_preserved_in_v03_manifest() -> None:

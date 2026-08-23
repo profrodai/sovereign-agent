@@ -225,3 +225,33 @@ jobs:
 
       - name: Run doctor
         run: NEBIUS_KEY=fake sovereign-agent doctor --skip-llm
+
+  zeocore-compat:
+    name: ZeoCore ${{ matrix.zeocore }}
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        zeocore:
+          - "==0.5.0"
+          - ">=0.5,<0.6"
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.13"
+          cache: pip
+      - name: Install package + pinned ZeoCore
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install -e . --group dev
+          python -m pip install --upgrade "zeocore${{ matrix.zeocore }}"
+          python -c "import zeo_core, importlib.metadata as m; print(m.version('zeocore'), zeo_core.__file__)"
+      - name: Capability, contract, boundary, and release suites
+        run: >-
+          python -m pytest -q
+          tests/capabilities
+          tests/contracts
+          tests/architecture/test_import_boundaries.py
+          tests/release/test_release_contract.py
+

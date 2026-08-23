@@ -6,6 +6,17 @@ Repository: [`zeroemployeeorg/sovereign-agent`](https://github.com/zeroemployeeo
 
 ## Unreleased
 
+v0.6 remaining work after the 0.5.1 public line: keep ZeoCore as the default
+authoring path, keep the compatibility matrix green, and close each later
+release only after the packaging-truth gate. Fleet scope stays in v0.7.
+
+## [0.5.1] — 2026-08-23
+
+Packaging and documentation truth for the v0.5 capability migration. Python
+3.13 floor, `zeocore>=0.5,<0.6`, capability-first README, contract fixtures in
+the wheel, and a ZeoCore min/newest CI job. Git tag `v0.5.0` is not moved and
+is not announced as the PyPI line.
+
 ## [0.5.0] — 2026-08-23
 
 Capability migration toward ZeoCore. Python 3.13 floor. Runtime evidence

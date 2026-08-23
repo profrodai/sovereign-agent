@@ -24,12 +24,14 @@ name: publish
 # with Environment name: testpypi.
 #
 # Release flow:
-#   git tag v0.3.0a1                       # PEP 440 alpha → TestPyPI
-#   git tag v0.3.0                         # stable → real PyPI
-#   git push origin <tag>
+#   make ready-to-ship                   # local truth gate (no publish)
+#   git tag v0.5.1 && git push origin v0.5.1
 #   → GitHub Actions runs this workflow
 #   → Builds wheel + sdist, verifies they install
 #   → Publishes to the appropriate index
+#   make verify-pypi VERSION=0.5.1       # live PyPI JSON + README + provenance
+#
+# A git tag is not a public release until verify-pypi succeeds.
 
 on:
   push:
@@ -148,6 +150,7 @@ jobs:
       url: https://pypi.org/project/sovereign-agent/
     permissions:
       id-token: write   # required for trusted publishing (OIDC)
+      attestations: write
     steps:
       - name: Download distributions
         uses: actions/download-artifact@v4
@@ -158,3 +161,4 @@ jobs:
         uses: pypa/gh-action-pypi-publish@release/v1
         with:
           skip-existing: false   # fail loudly if version already exists
+          attestations: true
