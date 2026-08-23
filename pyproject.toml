@@ -3,7 +3,7 @@ name = "sovereign-agent"
 version = "0.4.0"
 description = "A framework for building always-on AI agents that you actually own"
 readme = "README.md"
-requires-python = ">=3.12"
+requires-python = ">=3.13"
 license = { text = "Apache-2.0" }
 authors = [{ name = "Rod Rivera" }]
 keywords = ["agent", "llm", "always-on", "ai", "orchestration"]
@@ -12,10 +12,11 @@ classifiers = [
   "Intended Audience :: Developers",
   "License :: OSI Approved :: Apache Software License",
   "Programming Language :: Python :: 3",
-  "Programming Language :: Python :: 3.12",
+  "Programming Language :: Python :: 3.13",
   "Topic :: Software Development :: Libraries :: Python Modules",
 ]
 dependencies = [
+  "zeocore>=0.5,<0.6",
   "openai>=1.40",
   "typer>=0.12",
   "croniter>=2.0",
@@ -103,7 +104,7 @@ filterwarnings = ["ignore::DeprecationWarning"]
 
 [tool.ruff]
 line-length = 100
-target-version = "py312"
+target-version = "py313"
 
 [tool.ruff.lint]
 select = ["E", "F", "W", "I", "N", "UP", "B"]
@@ -114,7 +115,7 @@ ignore = [
 ]
 
 [tool.mypy]
-python_version = "3.12"
+python_version = "3.13"
 strict = false
 warn_unused_ignores = true
 warn_redundant_casts = true

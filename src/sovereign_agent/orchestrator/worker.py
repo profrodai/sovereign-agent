@@ -84,11 +84,11 @@ from pathlib import Path
 from typing import Any
 
 from sovereign_agent.contracts import (
-    Capability,
-    CapabilityManifest,
     EvidenceLevel,
     ExecutionId,
     FrozenDict,
+    RuntimeCapabilityAssertion,
+    RuntimeCapabilityManifest,
 )
 from sovereign_agent.contracts.redaction import REDACTED, redact_text
 from sovereign_agent.orchestrator.lifecycle import (
@@ -166,11 +166,11 @@ class WorkerOutcome:
     raw: dict = field(default_factory=dict)
 
 
-def _manifest(**values: tuple[bool | None, EvidenceLevel]) -> CapabilityManifest:
-    return CapabilityManifest(
+def _manifest(**values: tuple[bool | None, EvidenceLevel]) -> RuntimeCapabilityManifest:
+    return RuntimeCapabilityManifest(
         capabilities=FrozenDict(
             tuple(
-                (name, Capability(available=available, evidence_level=evidence))
+                (name, RuntimeCapabilityAssertion(available=available, evidence_level=evidence))
                 for name, (available, evidence) in values.items()
             )
         )
@@ -283,7 +283,7 @@ class BareWorker:
         """
         self._advance_fn = advance_fn
 
-    def capabilities(self) -> CapabilityManifest:
+    def capabilities(self) -> RuntimeCapabilityManifest:
         return _manifest(
             process_isolation=(False, EvidenceLevel.ENFORCED),
             filesystem_isolation=(False, EvidenceLevel.ENFORCED),
@@ -412,7 +412,7 @@ class SubprocessWorker:
         self.credential_allowlist = tuple(credential_allowlist)
         self.environment_allowlist = tuple(environment_allowlist)
 
-    def capabilities(self) -> CapabilityManifest:
+    def capabilities(self) -> RuntimeCapabilityManifest:
         return _manifest(
             process_isolation=(True, EvidenceLevel.PROBED),
             filesystem_isolation=(False, EvidenceLevel.ENFORCED),
@@ -748,7 +748,7 @@ class OSIsolatedWorker(SubprocessWorker):
             environment_allowlist=self.process_worker.environment_allowlist,
         )
 
-    def capabilities(self) -> CapabilityManifest:
+    def capabilities(self) -> RuntimeCapabilityManifest:
         policy_name = getattr(self.isolation_policy, "name", "unknown")
         filesystem = policy_name in {"landlock", "sandbox-exec"}
         network = policy_name == "sandbox-exec"
@@ -843,7 +843,7 @@ class DockerWorker:
             "worker_backend='subprocess' for kernel-level isolation."
         )
 
-    def capabilities(self) -> CapabilityManifest:
+    def capabilities(self) -> RuntimeCapabilityManifest:
         return _manifest(
             process_isolation=(False, EvidenceLevel.PROBED),
             filesystem_isolation=(False, EvidenceLevel.PROBED),

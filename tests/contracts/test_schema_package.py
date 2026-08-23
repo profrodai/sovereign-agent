@@ -7,8 +7,6 @@ from jsonschema import Draft202012Validator
 from referencing import Registry, Resource
 
 from sovereign_agent.contracts import (
-    Capability,
-    CapabilityManifest,
     EvidenceLevel,
     ExecutionId,
     ExecutionReceipt,
@@ -16,6 +14,8 @@ from sovereign_agent.contracts import (
     InvocationId,
     ReceiptStatus,
     RepositoryId,
+    RuntimeCapabilityAssertion,
+    RuntimeCapabilityManifest,
     SeatId,
     SeatInstanceId,
     SovereignSessionId,
@@ -51,9 +51,9 @@ def test_schemas_do_not_reference_an_internal_or_invented_corpus_path() -> None:
 
 
 def test_canonical_contract_instances_validate_against_bundled_schemas() -> None:
-    manifest = CapabilityManifest(
+    manifest = RuntimeCapabilityManifest(
         {
-            "network": Capability(
+            "network": RuntimeCapabilityAssertion(
                 available=None,
                 evidence_level=EvidenceLevel.UNKNOWN,
             )

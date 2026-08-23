@@ -4,6 +4,13 @@ All notable changes to sovereign-agent.
 
 Repository: [`zeroemployeeorg/sovereign-agent`](https://github.com/zeroemployeeorg/sovereign-agent).
 
+## Unreleased
+
+Capability migration toward ZeoCore. Python 3.13 floor. Runtime evidence
+types renamed to `RuntimeCapabilityManifest`. Reusable actions go through
+ZeoCore; runtime commands stay in Sovereign. Legacy `register_tool` remains
+through the compatibility window.
+
 ## [0.4.0] — 2026-08-22
 
 Durable local execution service on top of the v0.3 harness. HMAC-authenticated

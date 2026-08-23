@@ -49,7 +49,7 @@ Each chapter directory contains:
 - `tests.py` — pytest tests. Run `pytest chapters/chapter_N_*/tests.py` to check your work.
 - `demo.py` — runnable demo at the end. `python chapters/chapter_N_*/demo.py`.
 
-Expected flow: read the README, copy `starter.py` to a scratch file, fill in the NotImplementedError bodies, run the tests until they pass, check your code against `solution.py`, then run `demo.py` and see it work. The whole sequence is designed to take 5–8 hours of focused work for someone comfortable with Python 3.12 and asyncio.
+Expected flow: read the README, copy `starter.py` to a scratch file, fill in the NotImplementedError bodies, run the tests until they pass, check your code against `solution.py`, then run `demo.py` and see it work. The whole sequence is designed to take 5–8 hours of focused work for someone comfortable with Python 3.13 and asyncio.
 
 ## Why five chapters and not eight
 

@@ -261,7 +261,10 @@ def register_tool(
     """
 
     def _wrap(target_fn: Callable[..., Any]) -> Callable[..., Any]:
+        from sovereign_agent.capabilities.legacy import warn_legacy_register
+
         tool_name = name or target_fn.__name__
+        warn_legacy_register(tool_name)
         tool_desc = description or (inspect.getdoc(target_fn) or f"Tool {tool_name}").strip()
         params_schema = _build_params_schema(target_fn)
         returns_schema = _build_returns_schema(target_fn)

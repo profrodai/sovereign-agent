@@ -244,6 +244,8 @@ class RawEvent(ProviderEvent):
         return {"provider_type": self.provider_type, "payload": thaw_json(self.payload)}
 
 
+ProviderToolResultEvent = ToolResultEvent
+
 ProviderEventType = (
     TextEvent
     | ToolCallEvent
@@ -284,6 +286,7 @@ __all__ = [
     "TextEvent",
     "ToolCallEvent",
     "ToolResultEvent",
+    "ProviderToolResultEvent",
     "UsageEvent",
     "WarningEvent",
 ]

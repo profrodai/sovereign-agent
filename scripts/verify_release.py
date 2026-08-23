@@ -23,6 +23,7 @@ PACKAGE = ROOT / "src" / "sovereign_agent"
 API_V02 = ROOT / "docs" / "public-api-v0.2.txt"
 API_V03 = ROOT / "docs" / "public-api-v0.3.txt"
 API_V04 = ROOT / "docs" / "public-api-v0.4.txt"
+API_V05 = ROOT / "docs" / "public-api-v0.5.txt"
 EXPECTED_VERSION = "0.4.0"
 REQUIRED_SCHEMAS = {
     "sovereign_agent/contracts/schemas/capability-manifest.schema.json",
@@ -195,14 +196,18 @@ def verify_source() -> None:
     v02 = _manifest(API_V02)
     v03 = _manifest(API_V03)
     v04 = _manifest(API_V04)
+    v05 = _manifest(API_V05)
     assert v02 == sorted(v02), "v0.2 API manifest must be sorted"
     assert v03 == sorted(v03), "v0.3 API manifest must be sorted"
     assert v04 == sorted(v04), "v0.4 API manifest must be sorted"
+    assert v05 == sorted(v05), "v0.5 API manifest must be sorted"
     assert len(v02) == 67 and len(v02) == len(set(v02))
     assert len(v03) == 152 and len(v03) == len(set(v03))
     assert v03 == v04
+    assert len(v05) == 161 and len(v05) == len(set(v05))
     assert set(v02) <= set(v03), "v0.3 removed a stable v0.2 symbol"
-    assert _source_exports() == v04, "documented v0.4 API differs from __all__"
+    assert set(v04) <= set(v05), "v0.5 removed a stable v0.4 symbol"
+    assert _source_exports() == v05, "documented v0.5 API differs from __all__"
 
     for required in (
         ROOT / "docs" / "migration-v0.2-to-v0.3.md",

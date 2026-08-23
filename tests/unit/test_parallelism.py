@@ -169,6 +169,7 @@ async def test_policy_always_overrides_flag(fresh_session: Session) -> None:
         client=client,
         tools=reg,
         parallelism_policy=PARALLELISM_POLICY_ALWAYS,
+        allow_unsafe_parallelism=True,
     )
     t0 = time.monotonic()
     result = await executor.execute(_sg(), fresh_session, max_turns=4)

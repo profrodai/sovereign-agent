@@ -5,7 +5,7 @@ The default gate checks a clean checkout without requiring credentials or
 network access. Pass ``--live`` to additionally validate local LLM
 configuration and perform a real completion round-trip.
 
-  - Python version (>= 3.12)
+  - Python version (>= 3.13)
   - Package imports cleanly
   - uv.lock present (reproducible installs)
   - Filesystem writable where sessions will land
@@ -44,6 +44,8 @@ QUALITY_PATHS = [
     "tools/",
 ]
 PUBLIC_RUNTIME_PATHS = [
+    "src/sovereign_agent/approvals",
+    "src/sovereign_agent/capabilities",
     "src/sovereign_agent/channels",
     "src/sovereign_agent/config.py",
     "src/sovereign_agent/contracts",
@@ -149,11 +151,11 @@ def merge_env(dotenv: dict[str, str]) -> dict[str, str]:
 
 def check_python_version() -> int:
     v = sys.version_info
-    if (v.major, v.minor) >= (3, 12):
+    if (v.major, v.minor) >= (3, 13):
         ok(f"Python {v.major}.{v.minor}.{v.micro}")
         return 0
-    fail(f"Python {v.major}.{v.minor} — sovereign-agent requires 3.12+")
-    hint("pyenv install 3.12 && pyenv local 3.12")
+    fail(f"Python {v.major}.{v.minor} — sovereign-agent requires 3.13+")
+    hint("pyenv install 3.13 && pyenv local 3.13")
     return 1
 
 

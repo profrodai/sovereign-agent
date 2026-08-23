@@ -141,12 +141,12 @@ def _print_section(section: Section) -> None:
 def _check_python() -> Check:
     v = sys.version_info
     version_str = f"Python {v.major}.{v.minor}.{v.micro}"
-    if (v.major, v.minor) < (3, 12):
+    if (v.major, v.minor) < (3, 13):
         return Check(
             "python",
             Status.FAIL,
-            f"{version_str} (need 3.12+)",
-            hint="install a newer python (uv python install 3.12)",
+            f"{version_str} (need 3.13+)",
+            hint="install a newer python (uv python install 3.13)",
         )
     return Check("python", Status.OK, f"{version_str} on {sys.platform}")
 

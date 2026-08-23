@@ -240,6 +240,8 @@ class ExecutionReceipt:
     provider_session: ProviderSessionId | None = None
     worker_backend: str | None = None
     capability_manifest_ref: str | None = None
+    capability_catalog_digest: str | None = None
+    capability_invocation_refs: tuple[str, ...] = ()
     completion_signal_seen: bool | None = None
     structured_result_valid: bool | None = None
     technical_verification_valid: bool | None = None
@@ -275,6 +277,8 @@ class ExecutionReceipt:
             "provider_session",
             "worker_backend",
             "capability_manifest_ref",
+            "capability_catalog_digest",
+            "capability_invocation_refs",
             "completion_signal_seen",
             "structured_result_valid",
             "technical_verification_valid",
@@ -460,6 +464,8 @@ class ExecutionReceipt:
             provider_session=self.provider_session,
             worker_backend=self.worker_backend,
             capability_manifest_ref=self.capability_manifest_ref,
+            capability_catalog_digest=self.capability_catalog_digest,
+            capability_invocation_refs=self.capability_invocation_refs,
             repository=self.repository,
             verification=self.verification,
             usage=self.usage,
@@ -514,6 +520,10 @@ class ExecutionReceipt:
             "artifact_refs": list(self.artifact_refs),
             "warnings": list(self.warnings),
         }
+        if self.capability_catalog_digest:
+            known["capability_catalog_digest"] = self.capability_catalog_digest
+        if self.capability_invocation_refs:
+            known["capability_invocation_refs"] = list(self.capability_invocation_refs)
         return merge_unknown(known, self.unknown_fields)
 
     @classmethod
@@ -534,6 +544,8 @@ class ExecutionReceipt:
             "provider_session",
             "worker_backend",
             "capability_manifest_ref",
+            "capability_catalog_digest",
+            "capability_invocation_refs",
             "completion_signal_seen",
             "structured_result_valid",
             "technical_verification_valid",
@@ -587,6 +599,8 @@ class ExecutionReceipt:
             provider_session=_optional_id(known.get("provider_session"), ProviderSessionId),
             worker_backend=known.get("worker_backend"),
             capability_manifest_ref=known.get("capability_manifest_ref"),
+            capability_catalog_digest=known.get("capability_catalog_digest"),
+            capability_invocation_refs=tuple(known.get("capability_invocation_refs") or ()),
             completion_signal_seen=known.get("completion_signal_seen"),
             structured_result_valid=known.get("structured_result_valid"),
             technical_verification_valid=known.get("technical_verification_valid"),

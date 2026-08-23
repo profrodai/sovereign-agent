@@ -7,6 +7,7 @@ from .events import (
     ProviderEvent,
     ProviderEventType,
     ProviderSessionEvent,
+    ProviderToolResultEvent,
     RawEvent,
     StructuredResultEvent,
     TextEvent,
@@ -45,6 +46,7 @@ __all__ = [
     "TextEvent",
     "ToolCallEvent",
     "ToolResultEvent",
+    "ProviderToolResultEvent",
     "UsageEvent",
     "WarningEvent",
 ]

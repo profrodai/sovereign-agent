@@ -6,12 +6,12 @@ import pytest
 
 from sovereign_agent.config import Config
 from sovereign_agent.contracts import (
-    CapabilityManifest,
     EvidenceLevel,
     ExecutionId,
     FrozenDict,
     InvocationId,
     ProviderSessionId,
+    RuntimeCapabilityManifest,
 )
 from sovereign_agent.orchestrator.lifecycle import (
     CloseResult,
@@ -50,8 +50,8 @@ class FakeBackend:
         self.version_returncode = version_returncode
         self.specs: list[InvocationSpec] = []
 
-    def capabilities(self) -> CapabilityManifest:
-        return CapabilityManifest(capabilities=FrozenDict())
+    def capabilities(self) -> RuntimeCapabilityManifest:
+        return RuntimeCapabilityManifest(capabilities=FrozenDict())
 
     async def prepare(self, request: WorkerRequest) -> RuntimeHandle:
         return RuntimeHandle(request=request, invocation=InvocationSpec())

@@ -12,7 +12,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        python-version: ["3.12"]
+        python-version: ["3.13"]
     steps:
       - uses: actions/checkout@v4
 
@@ -35,6 +35,8 @@ jobs:
       - name: Mypy public runtime modules
         run: |
           mypy \
+            src/sovereign_agent/approvals \
+            src/sovereign_agent/capabilities \
             src/sovereign_agent/channels \
             src/sovereign_agent/config.py \
             src/sovereign_agent/contracts \
@@ -74,7 +76,7 @@ jobs:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
         with:
-          python-version: "3.12"
+          python-version: "3.13"
           cache: pip
       - name: Install package + dev group
         run: python -m pip install -e . --group dev
@@ -97,7 +99,7 @@ jobs:
 
       - uses: actions/setup-python@v5
         with:
-          python-version: "3.12"
+          python-version: "3.13"
           cache: pip
 
       - name: Install package
@@ -116,7 +118,7 @@ jobs:
 
       - uses: actions/setup-python@v5
         with:
-          python-version: "3.12"
+          python-version: "3.13"
           cache: pip
 
       - name: Install package
@@ -159,7 +161,7 @@ jobs:
 
       - uses: actions/setup-python@v5
         with:
-          python-version: "3.12"
+          python-version: "3.13"
           cache: pip
 
       - name: Install package + dev group
@@ -213,7 +215,7 @@ jobs:
 
       - uses: actions/setup-python@v5
         with:
-          python-version: "3.12"
+          python-version: "3.13"
           cache: pip
 
       - name: Install package

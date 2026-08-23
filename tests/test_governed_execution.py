@@ -15,7 +15,6 @@ from typer.testing import CliRunner
 
 from sovereign_agent.cli import app
 from sovereign_agent.contracts import (
-    CapabilityManifest,
     ExecutionConstraints,
     ExecutionId,
     FrozenDict,
@@ -24,6 +23,7 @@ from sovereign_agent.contracts import (
     ReceiptStatus,
     ReceiptTermination,
     RepositoryId,
+    RuntimeCapabilityManifest,
     SeatId,
     SeatInstanceId,
     SovereignSessionId,
@@ -212,7 +212,7 @@ def _request(
                 )
             ),
         ),
-        capability_manifest=CapabilityManifest(FrozenDict()),
+        capability_manifest=RuntimeCapabilityManifest(FrozenDict()),
         requested_at=datetime.now(UTC),
     )
 

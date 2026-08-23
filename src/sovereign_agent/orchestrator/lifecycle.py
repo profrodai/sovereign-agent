@@ -17,7 +17,7 @@ from enum import StrEnum
 from pathlib import Path
 from typing import Any, Protocol, runtime_checkable
 
-from sovereign_agent.contracts import CapabilityManifest, ExecutionId, FrozenDict
+from sovereign_agent.contracts import ExecutionId, FrozenDict, RuntimeCapabilityManifest
 from sovereign_agent.contracts._core import freeze_json
 
 
@@ -136,7 +136,7 @@ class CloseResult:
 class WorkerBackend(Protocol):
     name: str
 
-    def capabilities(self) -> CapabilityManifest: ...
+    def capabilities(self) -> RuntimeCapabilityManifest: ...
 
     async def prepare(self, request: WorkerRequest) -> RuntimeHandle: ...
 

@@ -6,8 +6,6 @@ from datetime import UTC, datetime, timedelta
 import pytest
 
 from sovereign_agent.contracts import (
-    Capability,
-    CapabilityManifest,
     ContractValidationError,
     EvidenceLevel,
     ExecutionConstraints,
@@ -18,6 +16,8 @@ from sovereign_agent.contracts import (
     MutationPolicy,
     ReceiptStatus,
     RepositoryId,
+    RuntimeCapabilityAssertion,
+    RuntimeCapabilityManifest,
     SandboxMinimum,
     SeatId,
     SeatInstanceId,
@@ -32,15 +32,15 @@ from sovereign_agent.contracts import (
 NOW = datetime(2026, 8, 22, 12, 0, tzinfo=UTC)
 
 
-def manifest() -> CapabilityManifest:
-    return CapabilityManifest(
+def manifest() -> RuntimeCapabilityManifest:
+    return RuntimeCapabilityManifest(
         {
-            "network": Capability(
+            "network": RuntimeCapabilityAssertion(
                 available=False,
                 evidence_level=EvidenceLevel.ENFORCED,
                 details={"mechanism": "sandbox"},
             ),
-            "shell": Capability(
+            "shell": RuntimeCapabilityAssertion(
                 available=True,
                 evidence_level=EvidenceLevel.DECLARED,
             ),
@@ -146,7 +146,7 @@ def test_capability_unknown_fields_round_trip() -> None:
         },
         "manifest_extension": True,
     }
-    assert CapabilityManifest.from_dict(wire).to_dict() == wire
+    assert RuntimeCapabilityManifest.from_dict(wire).to_dict() == wire
 
 
 def test_canonical_json_is_byte_stable_and_rejects_non_json() -> None:

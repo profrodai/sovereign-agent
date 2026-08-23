@@ -20,7 +20,7 @@ from ._core import (
     split_known,
     thaw_json,
 )
-from .capabilities import CapabilityManifest
+from .capabilities import EvidenceLevel, RuntimeCapabilityManifest, RuntimeRequirement
 from .ids import (
     ExecutionId,
     InvocationId,
@@ -223,7 +223,7 @@ class GovernedExecutionRequest:
     repository_id: RepositoryId
     operation: str
     input: FrozenDict
-    capability_manifest: CapabilityManifest
+    capability_manifest: RuntimeCapabilityManifest
     requested_at: datetime
     conversation_id: str
     seat_type: SeatId
@@ -239,6 +239,8 @@ class GovernedExecutionRequest:
     provider_session_id: ProviderSessionId | None = None
     worker_handle_id: WorkerHandleId | None = None
     governance: FrozenDict = field(default_factory=FrozenDict)
+    runtime_requirements: FrozenDict = field(default_factory=FrozenDict)
+    allowed_capabilities: tuple[str, ...] = ()
     schema_version: str = SCHEMA_VERSION
     unknown_fields: FrozenDict = field(default_factory=FrozenDict, repr=False)
 
@@ -256,6 +258,8 @@ class GovernedExecutionRequest:
             "input",
             "governance",
             "capability_manifest",
+            "runtime_requirements",
+            "allowed_capabilities",
             "requested_at",
             "conversation_id",
             "seat_type",
@@ -327,8 +331,8 @@ class GovernedExecutionRequest:
                 f"schema_version must be {self.SCHEMA_VERSION!r}, got {self.schema_version!r}"
             )
         format_datetime(self.requested_at, "requested_at")
-        if not isinstance(self.capability_manifest, CapabilityManifest):
-            raise ContractValidationError("capability_manifest must be CapabilityManifest")
+        if not isinstance(self.capability_manifest, RuntimeCapabilityManifest):
+            raise ContractValidationError("capability_manifest must be RuntimeCapabilityManifest")
         object.__setattr__(self, "input", freeze_json(require_object(self.input, "input")))
         object.__setattr__(
             self, "governance", freeze_json(require_object(self.governance, "governance"))
@@ -340,6 +344,14 @@ class GovernedExecutionRequest:
                 require_object(self.unknown_fields, "unknown_fields"), path="unknown_fields"
             ),
         )
+        object.__setattr__(
+            self, "runtime_requirements", _runtime_requirements(self.runtime_requirements)
+        )
+        object.__setattr__(
+            self,
+            "allowed_capabilities",
+            _string_tuple(self.allowed_capabilities, "allowed_capabilities"),
+        )
         if self.constraints.trunk_mutation is MutationPolicy.FORBIDDEN:
             if _is_protected_trunk(self.branch):
                 raise ContractValidationError("direct governed trunk mutation is forbidden")
@@ -350,6 +362,11 @@ class GovernedExecutionRequest:
                 raise ContractValidationError(
                     "self_merge cannot be allowed while trunk mutation is forbidden"
                 )
+
+    @property
+    def runtime_capabilities(self) -> RuntimeCapabilityManifest:
+        """Python name for the v1 wire field ``capability_manifest``."""
+        return self.capability_manifest
 
     def to_dict(self) -> dict[str, Any]:
         known: dict[str, Any] = {
@@ -386,6 +403,10 @@ class GovernedExecutionRequest:
             "required_evidence": list(self.required_evidence),
             "acceptance_commands": [list(command) for command in self.acceptance_commands],
         }
+        if self.runtime_requirements:
+            known["runtime_requirements"] = thaw_json(self.runtime_requirements)
+        if self.allowed_capabilities:
+            known["allowed_capabilities"] = list(self.allowed_capabilities)
         return merge_unknown(known, self.unknown_fields)
 
     @classmethod
@@ -400,6 +421,8 @@ class GovernedExecutionRequest:
             "required_evidence",
             "acceptance_commands",
             "constraints",
+            "runtime_requirements",
+            "allowed_capabilities",
         }
         missing = sorted(required - known.keys())
         if missing:
@@ -438,7 +461,7 @@ class GovernedExecutionRequest:
             operation=require_string(known["operation"], "operation"),
             input=freeze_json(require_object(known["input"], "input")),
             governance=freeze_json(require_object(known.get("governance", {}), "governance")),
-            capability_manifest=CapabilityManifest.from_dict(known["capability_manifest"]),
+            capability_manifest=RuntimeCapabilityManifest.from_dict(known["capability_manifest"]),
             requested_at=parse_datetime(known["requested_at"], "requested_at"),
             conversation_id=require_string(known["conversation_id"], "conversation_id"),
             seat_type=SeatId(require_string(known["seat_type"], "seat_type")),
@@ -452,8 +475,28 @@ class GovernedExecutionRequest:
                 known.get("required_evidence", ()), "required_evidence"
             ),
             acceptance_commands=_command_tuple(known.get("acceptance_commands", ())),
+            runtime_requirements=freeze_json(
+                require_object(known.get("runtime_requirements", {}), "runtime_requirements")
+            ),
+            allowed_capabilities=_string_tuple(
+                known.get("allowed_capabilities", ()), "allowed_capabilities"
+            ),
             unknown_fields=unknown,
         )
+
+
+def _runtime_requirements(value: object) -> FrozenDict:
+    source = require_object(value, "runtime_requirements")
+    normalized: dict[str, dict[str, str]] = {}
+    for name, item in source.items():
+        require_string(name, "runtime requirement name")
+        requirement = (
+            item if isinstance(item, RuntimeRequirement) else RuntimeRequirement.from_dict(item)
+        )
+        if not isinstance(requirement.minimum_evidence, EvidenceLevel):
+            raise ContractValidationError("runtime_requirements minimum_evidence is invalid")
+        normalized[name] = requirement.to_dict()
+    return FrozenDict(tuple(normalized.items()))
 
 
 def _command_tuple(value: object) -> tuple[tuple[str, ...], ...]:

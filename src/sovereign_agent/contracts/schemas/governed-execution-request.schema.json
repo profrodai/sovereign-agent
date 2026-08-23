@@ -51,6 +51,22 @@
     "base_ref": {"type": "string", "minLength": 1},
     "branch": {"type": "string", "minLength": 1},
     "constraints": {"type": "object"},
+    "runtime_requirements": {
+      "type": "object",
+      "additionalProperties": {
+        "type": "object",
+        "properties": {
+          "minimum_evidence": {
+            "enum": ["unknown", "declared", "probed", "enforced"]
+          }
+        },
+        "additionalProperties": true
+      }
+    },
+    "allowed_capabilities": {
+      "type": "array",
+      "items": {"type": "string"}
+    },
     "required_evidence": {"type": "array", "items": {"type": "string"}},
     "acceptance_commands": {
       "type": "array",

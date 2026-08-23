@@ -6,14 +6,14 @@ from dataclasses import dataclass, field
 from typing import Any
 
 from sovereign_agent.contracts import (
-    Capability,
-    CapabilityManifest,
     ContractValidationError,
     EvidenceLevel,
     ExecutionId,
     FrozenDict,
     InvocationId,
     ProviderSessionId,
+    RuntimeCapabilityAssertion,
+    RuntimeCapabilityManifest,
 )
 from sovereign_agent.contracts._core import freeze_json, require_object, require_string, thaw_json
 from sovereign_agent.session.directory import Session
@@ -35,9 +35,9 @@ class ProviderCapabilities:
     available: bool = True
     evidence_level: EvidenceLevel = EvidenceLevel.DECLARED
 
-    def to_manifest(self) -> CapabilityManifest:
+    def to_manifest(self) -> RuntimeCapabilityManifest:
         values = {
-            name: Capability(available=value, evidence_level=self.evidence_level)
+            name: RuntimeCapabilityAssertion(available=value, evidence_level=self.evidence_level)
             for name, value in (
                 ("tools", self.tools),
                 ("usage", self.usage),
@@ -49,16 +49,16 @@ class ProviderCapabilities:
                 ("available", self.available),
             )
         }
-        return CapabilityManifest(capabilities=FrozenDict(tuple(values.items())))
+        return RuntimeCapabilityManifest(capabilities=FrozenDict(tuple(values.items())))
 
     @classmethod
-    def from_manifest(cls, manifest: CapabilityManifest) -> ProviderCapabilities:
-        if not isinstance(manifest, CapabilityManifest):
-            raise ContractValidationError("manifest must be CapabilityManifest")
+    def from_manifest(cls, manifest: RuntimeCapabilityManifest) -> ProviderCapabilities:
+        if not isinstance(manifest, RuntimeCapabilityManifest):
+            raise ContractValidationError("manifest must be RuntimeCapabilityManifest")
         levels = [
             capability.evidence_level
             for capability in manifest.capabilities.values()
-            if isinstance(capability, Capability)
+            if isinstance(capability, RuntimeCapabilityAssertion)
         ]
         level = min(levels, default=EvidenceLevel.UNKNOWN)
         return cls(

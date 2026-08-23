@@ -47,6 +47,14 @@
     "provider_session": {"oneOf": [{"$ref": "#/$defs/id"}, {"type": "null"}]},
     "worker_backend": {"type": ["string", "null"]},
     "capability_manifest_ref": {"type": ["string", "null"]},
+    "capability_catalog_digest": {
+      "type": ["string", "null"],
+      "pattern": "^[0-9a-f]{64}$"
+    },
+    "capability_invocation_refs": {
+      "type": "array",
+      "items": {"type": "string"}
+    },
     "completion_signal_seen": {"type": ["boolean", "null"]},
     "structured_result_valid": {"type": ["boolean", "null"]},
     "technical_verification_valid": {"type": ["boolean", "null"]},

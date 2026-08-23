@@ -2,7 +2,7 @@
 
 Alpha. The declared version is 0.4.0.
 
-The 152 names in __all__ are the v0.3 public API surface, preserved in v0.4.
+The 152 names in the v0.4 public API remain; v0.5 adds capability-adapter symbols.
 All 67 symbols published in v0.2.0 remain covered by the compatibility contract. Anything not
 in __all__ is internal and may change between any two releases -- including
 names that happen to be importable from this module, such as the channel adapter
@@ -19,6 +19,16 @@ README.md for the quickstart.
 """
 
 from __future__ import annotations
+
+# Capabilities (v0.5 ZeoCore adapter)
+from sovereign_agent.capabilities import (
+    ApprovalDisposition,
+    CallableSurface,
+    CapabilityContextFactory,
+    CapabilityExecutor,
+    RuntimeCommandRegistry,
+    make_session_callable_surface,
+)
 
 # Channels (v0.3 Module 1)
 from sovereign_agent.channels import CHANNEL_REGISTRY as CHANNEL_REGISTRY
@@ -37,6 +47,8 @@ from sovereign_agent.contracts import (
     GovernedExecutionRequest,
     ReceiptStatus,
     ReceiptTermination,
+    RuntimeCapabilityAssertion,
+    RuntimeCapabilityManifest,
 )
 
 # Discovery (Pattern A)
@@ -154,6 +166,7 @@ from sovereign_agent.providers import (
     ProviderCapabilities,
     ProviderEvent,
     ProviderRegistry,
+    ProviderToolResultEvent,
     ProviderUnavailable,
 )
 
@@ -298,6 +311,15 @@ __all__ = [
     "register_tool",
     "global_registry",
     "make_builtin_registry",
+    # capabilities (v0.5 ZeoCore adapter)
+    "ApprovalDisposition",
+    "CallableSurface",
+    "CapabilityContextFactory",
+    "CapabilityExecutor",
+    "RuntimeCapabilityAssertion",
+    "RuntimeCapabilityManifest",
+    "RuntimeCommandRegistry",
+    "make_session_callable_surface",
     # planner / executor
     "Planner",
     "Subgoal",
@@ -313,6 +335,7 @@ __all__ = [
     "ProviderCapabilities",
     "ProviderEvent",
     "ProviderRegistry",
+    "ProviderToolResultEvent",
     "ProviderUnavailable",
     "ProbeEvidence",
     "PROVIDER_REGISTRY",

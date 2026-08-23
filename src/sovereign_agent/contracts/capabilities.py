@@ -1,10 +1,15 @@
-"""Capability declarations and the strength of evidence behind them."""
+"""Runtime/provider/worker capability *evidence* — not ZeoCore capability definitions.
+
+ZeoCore's ``CapabilityManifest`` describes one reusable callable.
+This module describes whether an execution substrate can guarantee a feature.
+"""
 
 from __future__ import annotations
 
+import warnings
 from dataclasses import dataclass, field
 from enum import IntEnum
-from typing import Any
+from typing import TYPE_CHECKING, Any
 
 from ._core import (
     ContractValidationError,
@@ -40,8 +45,8 @@ class EvidenceLevel(IntEnum):
 
 
 @dataclass(frozen=True)
-class Capability:
-    """One capability assertion.
+class RuntimeCapabilityAssertion:
+    """One runtime/provider/backend feature assertion.
 
     ``available`` is the assertion; ``evidence_level`` says how strongly that
     assertion is supported. Keeping those fields independent avoids treating
@@ -91,7 +96,7 @@ class Capability:
         )
 
     @classmethod
-    def from_dict(cls, value: object) -> Capability:
+    def from_dict(cls, value: object) -> RuntimeCapabilityAssertion:
         data = require_object(value, "capability")
         known, unknown = split_known(data, frozenset({"available", "evidence_level", "details"}))
         if "available" not in known:
@@ -106,19 +111,21 @@ class Capability:
 
 
 @dataclass(frozen=True)
-class CapabilityManifest:
-    """Immutable named capability assertions for one execution."""
+class RuntimeCapabilityManifest:
+    """Immutable named runtime capability assertions for one execution."""
 
     capabilities: FrozenDict
     unknown_fields: FrozenDict = field(default_factory=FrozenDict, repr=False)
 
     def __post_init__(self) -> None:
         source = require_object(self.capabilities, "capabilities")
-        normalized: dict[str, Capability] = {}
+        normalized: dict[str, RuntimeCapabilityAssertion] = {}
         for name, value in source.items():
             require_string(name, "capability name")
             normalized[name] = (
-                value if isinstance(value, Capability) else Capability.from_dict(value)
+                value
+                if isinstance(value, RuntimeCapabilityAssertion)
+                else RuntimeCapabilityAssertion.from_dict(value)
             )
         object.__setattr__(self, "capabilities", FrozenDict(tuple(normalized.items())))
         object.__setattr__(
@@ -130,9 +137,9 @@ class CapabilityManifest:
             ),
         )
 
-    def get(self, name: str) -> Capability | None:
+    def get(self, name: str) -> RuntimeCapabilityAssertion | None:
         value = self.capabilities.get(name)
-        return value if isinstance(value, Capability) else None
+        return value if isinstance(value, RuntimeCapabilityAssertion) else None
 
     def is_available(self, name: str) -> bool:
         capability = self.get(name)
@@ -146,13 +153,13 @@ class CapabilityManifest:
         capabilities = {
             name: capability.to_dict()
             for name, capability in self.capabilities.items()
-            if isinstance(capability, Capability)
+            if isinstance(capability, RuntimeCapabilityAssertion)
         }
         known: dict[str, Any] = {"capabilities": capabilities}
         return merge_unknown(known, self.unknown_fields)
 
     @classmethod
-    def from_dict(cls, value: object) -> CapabilityManifest:
+    def from_dict(cls, value: object) -> RuntimeCapabilityManifest:
         data = require_object(value, "capability_manifest")
         known, unknown = split_known(data, frozenset({"capabilities"}))
         if "capabilities" not in known:
@@ -160,10 +167,61 @@ class CapabilityManifest:
         capabilities = require_object(known["capabilities"], "capability_manifest.capabilities")
         return cls(
             capabilities=FrozenDict(
-                tuple((name, Capability.from_dict(item)) for name, item in capabilities.items())
+                tuple(
+                    (name, RuntimeCapabilityAssertion.from_dict(item))
+                    for name, item in capabilities.items()
+                )
             ),
             unknown_fields=unknown,
         )
 
 
-__all__ = ["Capability", "CapabilityManifest", "EvidenceLevel"]
+@dataclass(frozen=True)
+class RuntimeRequirement:
+    """Minimum evidence a governed execution demands of one runtime feature."""
+
+    minimum_evidence: EvidenceLevel
+
+    def to_dict(self) -> dict[str, Any]:
+        return {"minimum_evidence": self.minimum_evidence.to_wire()}
+
+    @classmethod
+    def from_dict(cls, value: object) -> RuntimeRequirement:
+        data = require_object(value, "runtime_requirement")
+        return cls(
+            minimum_evidence=EvidenceLevel.from_wire(data.get("minimum_evidence", "unknown"))
+        )
+
+
+if TYPE_CHECKING:
+    Capability = RuntimeCapabilityAssertion
+    CapabilityManifest = RuntimeCapabilityManifest
+
+
+def __getattr__(name: str) -> Any:
+    # Deprecated names through v0.5. Same objects so isinstance checks keep working.
+    if name == "Capability":
+        warnings.warn(
+            "Capability is deprecated; use RuntimeCapabilityAssertion",
+            DeprecationWarning,
+            stacklevel=2,
+        )
+        return RuntimeCapabilityAssertion
+    if name == "CapabilityManifest":
+        warnings.warn(
+            "CapabilityManifest is deprecated; use RuntimeCapabilityManifest",
+            DeprecationWarning,
+            stacklevel=2,
+        )
+        return RuntimeCapabilityManifest
+    raise AttributeError(f"module {__name__!r} has no attribute {name!r}")
+
+
+__all__ = [
+    "Capability",
+    "CapabilityManifest",
+    "EvidenceLevel",
+    "RuntimeCapabilityAssertion",
+    "RuntimeCapabilityManifest",
+    "RuntimeRequirement",
+]

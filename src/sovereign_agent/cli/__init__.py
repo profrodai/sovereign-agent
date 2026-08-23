@@ -67,9 +67,9 @@ def doctor(
 
     # Python version
     py = sys.version_info
-    if (py.major, py.minor) < (3, 12):
+    if (py.major, py.minor) < (3, 13):
         issues.append(
-            f"Python {py.major}.{py.minor} is too old. sovereign-agent requires Python 3.12+."
+            f"Python {py.major}.{py.minor} is too old. sovereign-agent requires Python 3.13+."
         )
     else:
         _ok(f"Python {py.major}.{py.minor}.{py.micro}")

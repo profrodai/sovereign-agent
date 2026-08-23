@@ -6,7 +6,7 @@
 pip install sovereign-agent            # core
 ```
 
-Requires Python 3.12+.
+Requires Python 3.13+.
 
 Dev tooling is a PEP 735 dependency *group*, not an extra, so there is no
 `[dev]` to install. From a checkout:
@@ -30,6 +30,10 @@ sovereign-agent doctor
 Doctor checks your Python version, API key, disk space, mount allowlist, and (unless you pass `--skip-llm`) makes one real LLM call. If everything reads ✓, you're ready.
 
 ## Minimal agent
+
+New work should author reusable actions with ZeoCore `@capability` and merge
+them with Sovereign runtime commands via `make_session_callable_surface`.
+`@register_tool` still runs through `run_task` and is deprecated.
 
 ```python
 from sovereign_agent import run_task, register_tool, Config

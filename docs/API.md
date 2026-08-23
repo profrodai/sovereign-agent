@@ -93,6 +93,7 @@ Category | Symbols
 **Scheduler** | `DriftCorrectedScheduler`, `ScheduledTask`
 **Session** | `Session`, `SessionState`, `create_session`, `load_session`, `list_sessions`, `archive_session`
 **Tickets** | `Ticket`, `TicketResult`, `TicketState`, `Manifest`, `OutputRecord`, `create_ticket`, `list_tickets`
+**Capabilities** (v0.5) | `CallableSurface`, `CapabilityContextFactory`, `CapabilityExecutor`, `RuntimeCommandRegistry`, `ApprovalDisposition`, `make_session_callable_surface`, `RuntimeCapabilityAssertion`, `RuntimeCapabilityManifest`
 **Tools** | `ToolRegistry`, `ToolResult`, `register_tool`, `global_registry`, `make_builtin_registry`
 **Queue** | `SessionQueue`, `TaskPriority`
 **Meta** | `__version__`

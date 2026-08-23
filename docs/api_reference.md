@@ -77,19 +77,39 @@ from sovereign_agent import IpcWatcher, write_ipc_message, send_input
 from sovereign_agent import DriftCorrectedScheduler, ScheduledTask
 ```
 
-## Tools
+## Capabilities (v0.5)
+
+Reusable actions are ZeoCore `@capability` definitions executed by
+`CapabilityExecutor`. Session filesystem operations project as `read_file`,
+`write_file`, and `list_files`. `complete_task` and `handoff_to_structured`
+are runtime commands. `CallableSurface` is the merged provider tools list.
+
+```python
+from sovereign_agent import (
+    CallableSurface,
+    CapabilityContextFactory,
+    CapabilityExecutor,
+    RuntimeCommandRegistry,
+    make_session_callable_surface,
+)
+```
+
+Runtime/provider evidence uses `RuntimeCapabilityAssertion` and
+`RuntimeCapabilityManifest` (wire key still `capability_manifest`).
+
+## Tools (compatibility window)
 
 ```python
 from sovereign_agent import (
     ToolRegistry,
     ToolResult,
-    register_tool,          # decorator
+    register_tool,          # decorator; deprecated
     global_registry,
     make_builtin_registry,  # session-scoped registry with read/write/handoff/complete
 )
 ```
 
-`@register_tool` auto-generates the discovery schema from the function's signature and docstring. Type hints (`str`, `int`, `float`, `bool`, `list`, `dict`) become JSON Schema.
+`@register_tool` auto-generates the discovery schema from the function's signature and docstring. Type hints (`str`, `int`, `float`, `bool`, `list`, `dict`) become JSON Schema. Prefer `@capability` for new reusable actions.
 
 ## Planner and Executor
 

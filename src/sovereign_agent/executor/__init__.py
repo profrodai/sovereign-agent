@@ -15,6 +15,8 @@ from typing import Protocol, runtime_checkable
 
 from sovereign_agent._internal.atomic import atomic_write_json, compute_sha256
 from sovereign_agent._internal.llm_client import ChatMessage, LLMClient, ToolCall
+from sovereign_agent.capabilities.legacy import arguments_digest
+from sovereign_agent.capabilities.surface import CallableSurface
 from sovereign_agent.discovery import DiscoverySchema
 from sovereign_agent.errors import SovereignError, wrap_unexpected
 from sovereign_agent.planner import Subgoal
@@ -75,12 +77,10 @@ to inform the arguments of another, keep them in separate turns.
 
 # v0.2: how the executor should treat multi-tool-call turns.
 #
-# "respect_tool_flags" (default): use parallel_safe=True on the tool to
-#     decide. Writes, handoffs, and complete_task are marked False and
-#     always run alone; read-only tools are marked True and may batch.
+# "respect_tool_flags" (default): use declared concurrency / parallel_safe.
+#     Writes, handoffs, and complete_task serialise; read-only work may batch.
 # "never":        always run tool calls sequentially (v0.1.0 behaviour).
-# "always":       run every batch in parallel regardless of flags. Useful
-#     for debugging but dangerous in scenarios with writes.
+# "always":       rejected at runtime except allow_unsafe_parallelism=True (tests).
 PARALLELISM_POLICY_DEFAULT = "respect_tool_flags"
 PARALLELISM_POLICY_NEVER = "never"
 PARALLELISM_POLICY_ALWAYS = "always"
@@ -97,11 +97,19 @@ class DefaultExecutor:
         tools: ToolRegistry,
         system_prompt: str | None = None,
         parallelism_policy: str = PARALLELISM_POLICY_DEFAULT,
+        callable_surface: CallableSurface | None = None,
+        allow_unsafe_parallelism: bool = False,
     ) -> None:
         self.model = model
         self.client = client
         self.tools = tools
+        self.callable_surface = callable_surface
         self.system_prompt = system_prompt or _DEFAULT_EXECUTOR_SYSTEM
+        if parallelism_policy == PARALLELISM_POLICY_ALWAYS and not allow_unsafe_parallelism:
+            raise ValueError(
+                "parallelism_policy='always' is not a product option; it may only "
+                "be used with allow_unsafe_parallelism=True in tests"
+            )
         if parallelism_policy not in (
             PARALLELISM_POLICY_DEFAULT,
             PARALLELISM_POLICY_NEVER,
@@ -221,7 +229,7 @@ async def _react_loop(
     session: Session,
     max_turns: int,
 ) -> ExecutorResult:
-    tools_as_openai = _registry_to_openai_tools(executor.tools)
+    tools_as_openai = _callable_surface_to_openai_tools(executor)
     messages: list[ChatMessage] = [
         ChatMessage(role="system", content=executor.system_prompt),
         ChatMessage(
@@ -439,8 +447,19 @@ async def _dispatch_tool_calls(
 
 
 def _is_parallel_safe(executor: DefaultExecutor, tool_name: str) -> bool:
-    """Check if a tool is registered as parallel_safe. Tools the executor
-    cannot find are treated as parallel_unsafe (conservative default)."""
+    """Conservative: unknown names and runtime commands are not parallel-safe."""
+    surface = executor.callable_surface
+    if surface is not None:
+        if tool_name in surface.commands.names():
+            return False
+        catalog = surface.freeze()
+        canonical = catalog.projection_index.get(tool_name)
+        if canonical is None:
+            return False
+        bound = surface.capabilities.get(canonical)
+        from zeo_core.contracts import ConcurrencyMode
+
+        return bound.definition.effects.concurrency is ConcurrencyMode.PARALLEL_SAFE
     try:
         tool = executor.tools.get(tool_name)
     except Exception:  # noqa: BLE001
@@ -449,6 +468,9 @@ def _is_parallel_safe(executor: DefaultExecutor, tool_name: str) -> bool:
 
 
 async def _invoke_tool(executor: DefaultExecutor, tc: ToolCall, session: Session) -> dict:
+    surface = executor.callable_surface
+    if surface is not None:
+        return await _invoke_surface(executor, tc, session, surface)
     try:
         tool = executor.tools.get(tc.name)
     except SovereignError as exc:
@@ -458,26 +480,160 @@ async def _invoke_tool(executor: DefaultExecutor, tc: ToolCall, session: Session
             "summary": f"unknown tool: {tc.name}",
         }
     result = await tool.execute(**(tc.arguments or {}))
-    # Trace the call.
+    _trace_invocation(
+        executor,
+        session,
+        tc,
+        success=result.success,
+        summary=result.summary,
+        capability_id=None,
+        request_digest=arguments_digest(tc.arguments or {}),
+        result_digest=None,
+        artifact_refs=[],
+        redactions=[],
+        outcome="success" if result.success else "error",
+    )
+    return result.to_dict()
+
+
+async def _invoke_surface(
+    executor: DefaultExecutor,
+    tc: ToolCall,
+    session: Session,
+    surface: CallableSurface,
+) -> dict:
+    if tc.name in surface.commands.names():
+        command = surface.commands.get(tc.name)
+        try:
+            output = command.handler(tc.arguments or {}, session)
+            payload = {
+                "success": True,
+                "output": output,
+                "summary": f"{tc.name} completed",
+            }
+        except Exception as exc:  # noqa: BLE001
+            payload = {
+                "success": False,
+                "output": {},
+                "summary": f"{tc.name} failed: {exc}",
+            }
+        _trace_invocation(
+            executor,
+            session,
+            tc,
+            success=bool(payload["success"]),
+            summary=str(payload["summary"]),
+            capability_id=None,
+            request_digest=arguments_digest(tc.arguments or {}),
+            result_digest=None,
+            artifact_refs=[],
+            redactions=[],
+            outcome="success" if payload["success"] else "error",
+        )
+        return payload
+
+    from sovereign_agent.capabilities.context import ExecutionScope
+    from sovereign_agent.capabilities.executor import CapabilityExecutor
+    from sovereign_agent.capabilities.surface import (
+        empty_runtime_manifest,
+        session_execution_services,
+    )
+
+    catalog = surface.freeze()
+    cap_executor = CapabilityExecutor(surface.capabilities, catalog=catalog)
+    scope = ExecutionScope(
+        id=session.session_id,
+        work_dir=session.workspace_dir if hasattr(session, "workspace_dir") else session.directory,
+        output_dir=session.directory,
+        runtime_manifest=empty_runtime_manifest(),
+        services=session_execution_services(session),
+        catalog_digest=catalog.digest,
+    )
     try:
+        invoked = await cap_executor.invoke(execution=scope, provider_call=tc)
+    except Exception as exc:  # noqa: BLE001
+        return {"success": False, "output": {}, "summary": f"unknown tool: {tc.name}: {exc}"}
+    payload = invoked.provider_response
+    record = invoked.record
+    _trace_invocation(
+        executor,
+        session,
+        tc,
+        success=bool(payload.get("success")),
+        summary=str(payload.get("summary", "")),
+        capability_id=None if record is None else record.capability_id.canonical(),
+        request_digest=None if record is None else record.request_digest,
+        result_digest=None if record is None else record.result_digest,
+        artifact_refs=[] if record is None else [str(ref) for ref in record.artifact_refs],
+        redactions=[] if record is None else list(record.redactions),
+        outcome="success"
+        if payload.get("success")
+        else (None if record is None else record.outcome.value),
+    )
+    return payload
+
+
+def _trace_invocation(
+    executor: DefaultExecutor,
+    session: Session,
+    tc: ToolCall,
+    *,
+    success: bool,
+    summary: str,
+    capability_id: str | None,
+    request_digest: str | None,
+    result_digest: str | None,
+    artifact_refs: list[str],
+    redactions: list[str],
+    outcome: str | None,
+) -> None:
+    try:
+        event_type = "executor.capability_invoked" if capability_id else "executor.tool_called"
+        payload: dict = {
+            "execution_id": session.session_id,
+            "capability_id": capability_id or tc.name,
+            "request_digest": request_digest or arguments_digest(tc.arguments or {}),
+            "result_digest": result_digest,
+            "outcome": outcome,
+            "artifact_refs": artifact_refs,
+            "redactions": redactions,
+            "success": success,
+            "summary": summary,
+        }
+        if capability_id is None:
+            payload["tool"] = tc.name
         session.append_trace_event(
             {
-                "event_type": "executor.tool_called",
+                "event_type": event_type,
                 "actor": executor.name,
                 "ticket_id": None,
                 "timestamp": now_utc().isoformat(),
-                "payload": {
-                    "tool": tc.name,
-                    "arguments": tc.arguments,
-                    "success": result.success,
-                    "summary": result.summary,
-                },
+                "payload": payload,
             }
         )
+        if capability_id is not None:
+            session.append_trace_event(
+                {
+                    "event_type": "executor.tool_called",
+                    "actor": executor.name,
+                    "ticket_id": None,
+                    "timestamp": now_utc().isoformat(),
+                    "payload": {
+                        "tool": tc.name,
+                        "request_digest": payload["request_digest"],
+                        "success": success,
+                        "summary": summary,
+                    },
+                }
+            )
     except Exception:  # noqa: BLE001
-        # Tracing is best-effort; never let trace failures take down the agent.
         log.exception("failed to append trace event for tool_called")
-    return result.to_dict()
+
+
+def _callable_surface_to_openai_tools(executor: DefaultExecutor) -> list[dict]:
+    if executor.callable_surface is not None:
+        return executor.callable_surface.project_openai()
+    return _registry_to_openai_tools(executor.tools)
 
 
 def _registry_to_openai_tools(registry: ToolRegistry) -> list[dict]:
@@ -575,7 +731,7 @@ async def resume_from_approval(
             "exists."
         )
 
-    tools_as_openai = _registry_to_openai_tools(executor.tools)
+    tools_as_openai = _callable_surface_to_openai_tools(executor)
     messages: list[ChatMessage] = [
         ChatMessage(role="system", content=executor.system_prompt),
         ChatMessage(

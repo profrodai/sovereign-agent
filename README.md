@@ -21,6 +21,11 @@ Debug by `cat`. Crash-recover by `ls`. Teach by reading the same code that runs 
 pip install sovereign-agent
 ```
 
+Reusable actions are ZeoCore capabilities (`@capability`). Session control
+(`complete_task`, `handoff_to_structured`) is a Sovereign runtime command.
+`make_session_callable_surface` merges both for the model. `@register_tool`
+still works during the compatibility window and is deprecated.
+
 ```python
 from sovereign_agent import run_task, register_tool
 
@@ -35,6 +40,9 @@ print(result.summary)
 ```
 
 The agent ran a planner, called `get_weather`, wrote a trace, and saved every artifact to `sessions/sess_<id>/`. Inspect it with `ls -R sessions/sess_<id>`. That's not a metaphor — it's how you debug this system.
+
+See [v0.5 Unit 4](docs/v0.5-unit4-builtins.md) for session filesystem capabilities
+(`read_file` / `write_file` / `list_files`) and runtime commands.
 
 ---
 
@@ -104,7 +112,7 @@ Development tooling lives in the PEP 735 `dev` dependency *group*, not an extra 
 so it is `uv sync --group dev` (or `pip install -e . --group dev`), not
 `pip install "sovereign-agent[dev]"`.
 
-Requires Python 3.12+.
+Requires Python 3.13+.
 
 **Docker is not available.** There is a `docker` extra, but it only installs the
 Docker SDK; `DockerWorker` is a stub that raises `NotImplementedError` on
