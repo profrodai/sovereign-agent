@@ -256,7 +256,7 @@ def test_sandbox_exec_profile_grants_rw_on_session(tmp_path: Path) -> None:
     assert "(version 1)" in profile
     assert "(deny default)" in profile
     # RW allow on the session dir.
-    assert f'file-write* (subpath "{session_dir.resolve()}")' in profile
+    assert f'file-write* (subpath "{_sb_escape(session_dir)}")' in profile
     # Network allowed.
     assert "(allow network*)" in profile
 
