@@ -18,6 +18,7 @@ import typer
 from sovereign_agent.cli.v04 import register_v04_commands
 from sovereign_agent.config import Config
 from sovereign_agent.execution.cli import register_execution_commands
+from sovereign_agent.fleet.cli import register_fleet_commands
 from sovereign_agent.observability.report import generate_session_report
 from sovereign_agent.orchestrator import Orchestrator, run_task
 from sovereign_agent.session.directory import (
@@ -38,8 +39,6 @@ app.add_typer(sessions_app, name="sessions")
 
 register_execution_commands(app)
 register_v04_commands(app)
-from sovereign_agent.fleet.cli import register_fleet_commands
-
 register_fleet_commands(app)
 
 

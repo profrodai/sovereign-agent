@@ -4,9 +4,10 @@ from __future__ import annotations
 
 import secrets
 import time
+from collections.abc import Mapping
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Any, Mapping
+from typing import Any
 
 from sovereign_agent.fleet.metrics import FleetMetrics
 from sovereign_agent.fleet.placement import PlacementDecision, PlacementEngine, PlacementRefusal
@@ -18,9 +19,9 @@ from sovereign_agent.fleet.protocol import (
     WorkerLease,
 )
 from sovereign_agent.fleet.reconciliation import (
+    ExecutionObservation,
     Observation,
     ReconciliationEngine,
-    ExecutionObservation,
     RetrySafety,
 )
 from sovereign_agent.fleet.registry import WorkerRecord, WorkerRegistry
@@ -51,14 +52,18 @@ class FleetCoordinator:
         self._leases: dict[str, WorkerLease] = {}
         self._finalized: set[str] = set()
 
-    def register_worker(self, identity: WorkerIdentity, manifest: Mapping[str, Any]) -> WorkerRecord:
+    def register_worker(
+        self, identity: WorkerIdentity, manifest: Mapping[str, Any]
+    ) -> WorkerRecord:
         record = self.registry.register(identity, manifest)
         self._sessions[identity.worker_id] = ProtocolSession(identity, now_s=time.time())
         return record
 
     def admit_worker(self, worker_id: str) -> WorkerRecord:
         record = self.registry.admit(worker_id)
-        self.metrics.workers_admitted = len([item for item in self.registry.list() if item.admitted])
+        self.metrics.workers_admitted = len(
+            [item for item in self.registry.list() if item.admitted]
+        )
         return record
 
     def expire_worker(self, worker_id: str) -> WorkerRecord:
@@ -150,7 +155,9 @@ class FleetCoordinator:
         if fencing_raw is None and lease is not None:
             fencing_raw = lease.fencing.to_dict()
         if fencing_raw is not None:
-            self.registry.heartbeat(worker_id, FencingToken.from_dict(fencing_raw), int(payload["seq"]))
+            self.registry.heartbeat(
+                worker_id, FencingToken.from_dict(fencing_raw), int(payload["seq"])
+            )
         return {"ack": ack.to_dict(), "quarantined": False}
 
     def locate(self, execution_id: str) -> dict[str, Any]:

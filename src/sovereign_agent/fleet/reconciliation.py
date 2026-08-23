@@ -2,9 +2,10 @@
 
 from __future__ import annotations
 
+from collections.abc import Mapping
 from dataclasses import dataclass, field
 from enum import StrEnum
-from typing import Any, Mapping
+from typing import Any
 
 
 class Observation(StrEnum):
@@ -84,7 +85,9 @@ class ReconciliationEngine:
                     execution_id=observation.execution_id,
                     canonical_status=current["status"],
                     quarantined=True,
-                    diagnostics=["late or duplicate completion quarantined; canonical receipt unchanged"],
+                    diagnostics=[
+                        "late or duplicate completion quarantined; canonical receipt unchanged"
+                    ],
                 )
             if observation.fencing_generation < int(current["fencing_generation"]):
                 raise PermissionError("stale worker cannot finalize")

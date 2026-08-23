@@ -4,8 +4,8 @@ from __future__ import annotations
 
 import secrets
 import time
-from dataclasses import dataclass, field
-from typing import Mapping
+from collections.abc import Mapping
+from dataclasses import dataclass
 
 
 class SecretError(RuntimeError):
@@ -35,7 +35,9 @@ class SecretBroker:
             raise SecretError("only env and file providers are first-party")
         self._providers[name] = dict(values)
 
-    def issue(self, execution_id: str, refs: Mapping[str, str], *, ttl_s: float = 30.0) -> SecretLease:
+    def issue(
+        self, execution_id: str, refs: Mapping[str, str], *, ttl_s: float = 30.0
+    ) -> SecretLease:
         resolved: dict[str, str] = {}
         for alias, spec in refs.items():
             provider, _, key = spec.partition(":")
@@ -74,5 +76,6 @@ class SecretBroker:
         for lease_id, lease in list(self._leases.items()):
             if lease.execution_id == execution_id:
                 self.revoke(lease_id)
+
 
 SecretBroker = SecretBroker

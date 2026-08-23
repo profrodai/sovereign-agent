@@ -6,10 +6,10 @@ import hashlib
 import json
 import shutil
 import subprocess
-import time
+from collections.abc import Mapping
 from dataclasses import dataclass, field
 from pathlib import Path
-from typing import Any, Mapping, Protocol
+from typing import Any, Protocol
 
 from sovereign_agent.contracts.capabilities import (
     EvidenceLevel,
@@ -67,7 +67,9 @@ class ScriptedEngine:
 
     def run(self, spec: Mapping[str, Any]) -> dict[str, Any]:
         argv = list(spec.get("argv") or [])
-        if any(item == "/var/run/docker.sock" or str(item).endswith("docker.sock") for item in argv):
+        if any(
+            item == "/var/run/docker.sock" or str(item).endswith("docker.sock") for item in argv
+        ):
             raise IsolationUnavailable("container must not receive the engine socket")
         self.calls.append({"op": "run", "argv": argv, "spec": dict(spec)})
         digest = hashlib.sha256(json.dumps(argv, sort_keys=True).encode()).hexdigest()[:12]
@@ -157,7 +159,9 @@ class ContainerWorker:
         metadata = getattr(request, "metadata", {}) or {}
         if hasattr(metadata, "get"):
             fencing = str(metadata.get("fencing") or "")
-        network = str(metadata.get("network_mode") or "none") if hasattr(metadata, "get") else "none"
+        network = (
+            str(metadata.get("network_mode") or "none") if hasattr(metadata, "get") else "none"
+        )
         argv = [
             getattr(self.engine, "binary", self.name),
             "run",
@@ -171,7 +175,9 @@ class ContainerWorker:
             "--pids-limit",
             str(metadata.get("pids") or 128) if hasattr(metadata, "get") else "128",
             "--memory",
-            str(metadata.get("memory_bytes") or 268435456) if hasattr(metadata, "get") else "268435456",
+            str(metadata.get("memory_bytes") or 268435456)
+            if hasattr(metadata, "get")
+            else "268435456",
             "--network",
             network,
             "--label",
@@ -209,7 +215,9 @@ class ContainerWorker:
             value=result,
         )
 
-    async def close(self, handle: RuntimeHandle | None = None, preserve: bool = False) -> CloseResult:
+    async def close(
+        self, handle: RuntimeHandle | None = None, preserve: bool = False
+    ) -> CloseResult:
         if handle is not None:
             container_id = handle.state.get("container_id")
             metadata = getattr(handle.request, "metadata", {}) or {}
@@ -307,7 +315,9 @@ class SshWorker:
     ) -> ExecResult:
         command = tuple(getattr(invocation, "command", ()) or ("true",))
         try:
-            completed = subprocess.run(self._argv(command), check=False, capture_output=True, text=True)
+            completed = subprocess.run(
+                self._argv(command), check=False, capture_output=True, text=True
+            )
         except OSError:
             handle.state["unknown"] = True
             return ExecResult(returncode=None, stderr="disconnect")
@@ -315,7 +325,9 @@ class SshWorker:
             returncode=completed.returncode, stdout=completed.stdout, stderr=completed.stderr
         )
 
-    async def close(self, handle: RuntimeHandle | None = None, preserve: bool = False) -> CloseResult:
+    async def close(
+        self, handle: RuntimeHandle | None = None, preserve: bool = False
+    ) -> CloseResult:
         if handle is not None:
             handle.closed = True
         return CloseResult(closed=True, preserved=preserve)
@@ -356,7 +368,9 @@ class FaultWorker:
             handle.state["forged_fencing"] = True
         return ExecResult(returncode=0, stdout="ok")
 
-    async def close(self, handle: RuntimeHandle | None = None, preserve: bool = False) -> CloseResult:
+    async def close(
+        self, handle: RuntimeHandle | None = None, preserve: bool = False
+    ) -> CloseResult:
         if handle is not None:
             handle.closed = True
         return CloseResult(closed=True, preserved=preserve)

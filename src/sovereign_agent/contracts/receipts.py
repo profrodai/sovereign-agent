@@ -623,7 +623,9 @@ class ExecutionReceipt:
             usage=None if usage_raw is None else UsageRecord.from_dict(usage_raw),
             artifact_refs=tuple(known.get("artifact_refs") or ()),
             warnings=tuple(known.get("warnings") or ()),
-            fleet=None if known.get("fleet") is None else freeze_json(require_object(known.get("fleet"), "fleet")),
+            fleet=None
+            if known.get("fleet") is None
+            else freeze_json(require_object(known.get("fleet"), "fleet")),
             unknown_fields=unknown,
         )
 

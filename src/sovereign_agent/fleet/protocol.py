@@ -4,9 +4,10 @@ from __future__ import annotations
 
 import json
 import secrets
+from collections.abc import Mapping
 from dataclasses import dataclass, field
 from enum import StrEnum
-from typing import Any, Mapping
+from typing import Any
 
 PROTOCOL_VERSION = "1.0"
 PROTOCOL_VERSIONS_SUPPORTED = frozenset({"1.0"})

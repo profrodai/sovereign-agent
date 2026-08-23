@@ -3,9 +3,10 @@
 from __future__ import annotations
 
 import json
+from collections.abc import Mapping
 from dataclasses import dataclass, replace
 from pathlib import Path
-from typing import Any, Mapping
+from typing import Any
 
 from sovereign_agent._internal.atomic import atomic_write_json
 from sovereign_agent._internal.file_lock import exclusive_file_lock
@@ -61,7 +62,15 @@ class ResourceVector:
         )
 
     def exceeds(self, limit: ResourceVector) -> str | None:
-        for name in ("cpu", "memory_bytes", "disk_bytes", "pids", "wall_time_s", "concurrency", "tokens"):
+        for name in (
+            "cpu",
+            "memory_bytes",
+            "disk_bytes",
+            "pids",
+            "wall_time_s",
+            "concurrency",
+            "tokens",
+        ):
             if getattr(self, name) > getattr(limit, name) > 0:
                 return name
         return None
@@ -96,8 +105,13 @@ class ReservationLedger:
         self._path = self.root / "reservations.json"
         self._lock = self.root / "reservations.lock"
         self.limit = limit or ResourceVector(
-            cpu=32, memory_bytes=32 * 1024**3, disk_bytes=100 * 1024**3,
-            pids=4096, wall_time_s=24 * 3600, concurrency=32, tokens=1_000_000,
+            cpu=32,
+            memory_bytes=32 * 1024**3,
+            disk_bytes=100 * 1024**3,
+            pids=4096,
+            wall_time_s=24 * 3600,
+            concurrency=32,
+            tokens=1_000_000,
         )
         self._items: dict[str, Reservation] = {}
         self._load()
@@ -130,7 +144,9 @@ class ReservationLedger:
                 held = held.plus(item.reserved)
         return held
 
-    def reserve(self, reservation_id: str, execution_id: str, requested: ResourceVector) -> Reservation:
+    def reserve(
+        self, reservation_id: str, execution_id: str, requested: ResourceVector
+    ) -> Reservation:
         with exclusive_file_lock(self._lock):
             existing = self._items.get(reservation_id)
             if existing is not None:

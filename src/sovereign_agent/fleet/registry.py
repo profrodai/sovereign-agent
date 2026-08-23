@@ -3,9 +3,10 @@
 from __future__ import annotations
 
 import time
+from collections.abc import Mapping
 from dataclasses import dataclass, field
 from pathlib import Path
-from typing import Any, Mapping
+from typing import Any
 
 from sovereign_agent._internal.atomic import atomic_write_json
 from sovereign_agent._internal.file_lock import exclusive_file_lock
@@ -80,7 +81,10 @@ class WorkerRegistry:
             existing = self._records.get(identity.worker_id)
             if existing is not None and existing.identity.fencing.dominates(identity.fencing):
                 raise ProtocolError("registration rejected: stale fencing token")
-            if existing is not None and existing.identity.process_instance != identity.process_instance:
+            if (
+                existing is not None
+                and existing.identity.process_instance != identity.process_instance
+            ):
                 identity = WorkerIdentity(
                     worker_id=identity.worker_id,
                     process_instance=identity.process_instance,
@@ -146,7 +150,9 @@ class WorkerRegistry:
         raw = record.manifest.get("capabilities") or record.manifest
         if isinstance(raw, RuntimeCapabilityManifest):
             return raw
-        return RuntimeCapabilityManifest.from_dict({"capabilities": raw} if "capabilities" not in raw else raw)
+        return RuntimeCapabilityManifest.from_dict(
+            {"capabilities": raw} if "capabilities" not in raw else raw
+        )
 
 
 def enforced(manifest: RuntimeCapabilityManifest, name: str) -> bool:

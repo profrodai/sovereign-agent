@@ -4,9 +4,10 @@ from __future__ import annotations
 
 import hashlib
 import json
+from collections.abc import Mapping
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Any, Mapping
+from typing import Any
 
 from sovereign_agent._internal.atomic import atomic_write_bytes, atomic_write_json
 
@@ -85,7 +86,9 @@ class ArtifactStore:
             path=str(blob),
         )
         self._items[digest] = record
-        atomic_write_json(self._index, {"artifacts": [item.to_dict() for item in self._items.values()]})
+        atomic_write_json(
+            self._index, {"artifacts": [item.to_dict() for item in self._items.values()]}
+        )
         return record
 
     def get(self, digest: str) -> ArtifactRecord:

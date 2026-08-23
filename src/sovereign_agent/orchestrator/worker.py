@@ -179,7 +179,6 @@ class IsolationUnavailable(RuntimeError):
     terminal_reason = TerminalReason.ISOLATION_UNAVAILABLE
 
 
-
 IsolationUnavailable = IsolationUnavailable
 IsolationUnavailable = IsolationUnavailable
 

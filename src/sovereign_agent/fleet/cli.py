@@ -3,7 +3,6 @@
 from __future__ import annotations
 
 from pathlib import Path
-from typing import Any
 
 import typer
 
@@ -11,7 +10,9 @@ from sovereign_agent.execution.cli import _json
 
 fleet_app = typer.Typer(name="fleet", help="Bounded execution fleet.", no_args_is_help=True)
 worker_app = typer.Typer(name="worker", help="Worker registry.", no_args_is_help=True)
-execution_app = typer.Typer(name="execution", help="Execution locate/reconcile.", no_args_is_help=True)
+execution_app = typer.Typer(
+    name="execution", help="Execution locate/reconcile.", no_args_is_help=True
+)
 fleet_app.add_typer(worker_app, name="worker")
 fleet_app.add_typer(execution_app, name="execution")
 

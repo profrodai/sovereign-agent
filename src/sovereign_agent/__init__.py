@@ -72,6 +72,7 @@ from sovereign_agent.execution import (
     GovernedExecutionEngine,
 )
 from sovereign_agent.executor import DefaultExecutor, Executor, ExecutorResult
+from sovereign_agent.fleet.coordinator import FleetCoordinator as FleetCoordinator
 
 # Halves
 from sovereign_agent.halves import Half, HalfResult
@@ -150,8 +151,6 @@ from sovereign_agent.orchestrator.worker import (
 from sovereign_agent.orchestrator.worker import (
     WorkerOutcome as WorkerOutcome,
 )
-from sovereign_agent.fleet.coordinator import FleetCoordinator as FleetCoordinator
-from sovereign_agent.secrets import SecretBroker as SecretBroker
 
 # Planner / Executor
 from sovereign_agent.planner import DefaultPlanner, Planner, Subgoal
@@ -235,6 +234,7 @@ from sovereign_agent.repository import (
 
 # Scheduler (Decision 6)
 from sovereign_agent.scheduler import DriftCorrectedScheduler, ScheduledTask
+from sovereign_agent.secrets import SecretBroker as SecretBroker
 
 # Session (Decision 1)
 from sovereign_agent.session import (

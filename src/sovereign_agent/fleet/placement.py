@@ -2,8 +2,9 @@
 
 from __future__ import annotations
 
-from dataclasses import dataclass, field
-from typing import Any, Mapping
+from collections.abc import Mapping
+from dataclasses import dataclass
+from typing import Any
 
 from sovereign_agent.contracts.capabilities import EvidenceLevel, RuntimeCapabilityManifest
 from sovereign_agent.contracts.execution import NetworkPolicy, SandboxMinimum
@@ -131,5 +132,6 @@ def _network(constraints: Mapping[str, Any]) -> NetworkPolicy:
     if isinstance(value, NetworkPolicy):
         return value
     return NetworkPolicy(str(value))
+
 
 PlacementEngine = PlacementEngine
