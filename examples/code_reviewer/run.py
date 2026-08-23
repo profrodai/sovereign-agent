@@ -134,7 +134,9 @@ class CheckPythonResponse(BaseModel):
         ),
     ),
 )
-def check_python_file(request: CheckPythonRequest, ctx: ToolContext) -> CapabilityResult[CheckPythonResponse]:
+def check_python_file(
+    request: CheckPythonRequest, ctx: ToolContext
+) -> CapabilityResult[CheckPythonResponse]:
     result = _check_python(request.source)
     _TOOL_CALL_LOG.append(
         {
@@ -146,7 +148,9 @@ def check_python_file(request: CheckPythonRequest, ctx: ToolContext) -> Capabili
             "line_count": result.output["line_count"],
         }
     )
-    return CapabilityResult.ok(data=CheckPythonResponse.model_validate(result.output), msg=result.summary)
+    return CapabilityResult.ok(
+        data=CheckPythonResponse.model_validate(result.output), msg=result.summary
+    )
 
 
 def _build_surface(session):
