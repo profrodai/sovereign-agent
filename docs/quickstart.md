@@ -1,115 +1,152 @@
 # Quickstart
 
-## Install
+This guide verifies the installation offline, runs a deterministic agent, then
+connects a model and gives it one typed capability. You need basic Python, a
+terminal, and Python 3.13 or newer.
+
+## 1. Install
+
+=== "macOS and Linux"
+
+    ```bash
+    python3.13 -m venv .venv
+    source .venv/bin/activate
+    python -m pip install "sovereign-agent~=0.7.0"
+    ```
+
+=== "Windows PowerShell"
+
+    ```powershell
+    py -3.13 -m venv .venv
+    .venv\Scripts\Activate.ps1
+    python -m pip install "sovereign-agent~=0.7.0"
+    ```
+
+Confirm the package and local environment without credentials or network calls:
 
 ```bash
-pip install sovereign-agent            # core
+sovereign-agent version
+sovereign-agent doctor --skip-llm
 ```
 
-Requires Python 3.13+. `zeocore>=0.5,<0.6` is required.
+`doctor --skip-llm` checks Python, configuration, disk space, and writable
+runtime paths. It intentionally does not require an API key.
 
-Dev tooling is a PEP 735 dependency *group*, not an extra, so there is no
-`[dev]` to install. From a checkout:
+## 2. See an agent work offline
+
+The repository includes scripted model responses so you can observe the full
+planner/executor flow without spending money:
 
 ```bash
-uv sync --group dev                    # or: pip install -e . --group dev
+git clone https://github.com/zeroemployeeorg/sovereign-agent.git
+cd sovereign-agent
+python -m pip install -e .
+python -m examples.research_assistant.run
 ```
 
-Optional extras that do something: `[evidently]`, `[otel]`, `[voice]`, `[rasa]` —
-and note that the Evidently and OTel backends are stubs today. The `[docker]`
-extra installs the Docker SDK but there is no working Docker code path; see
-[non-goals](non-goals.md).
+The example plans a research task, calls a deterministic lookup capability,
+writes a report, and audits that every cited paper came from the lookup result.
+The final output tells you where artifacts were written.
 
-## Preflight
+!!! note
+    Offline examples run from a source checkout because their scripted fixtures
+    are teaching material, not part of the installed wheel.
+
+## 3. Configure a model
+
+Nebius is the default OpenAI-compatible provider:
 
 ```bash
-export NEBIUS_KEY="your-nebius-api-key"
+export NEBIUS_KEY="your-key"
 sovereign-agent doctor
 ```
 
-Doctor checks your Python version, API key, disk space, mount allowlist, and (unless you pass `--skip-llm`) makes one real LLM call. If everything reads ✓, you're ready.
+For another OpenAI-compatible provider, set the endpoint, key variable name,
+and models:
 
-## Minimal agent
+```bash
+export OPENAI_API_KEY="..."
+export SOVEREIGN_AGENT_LLM_BASE_URL="https://api.openai.com/v1/"
+export SOVEREIGN_AGENT_LLM_API_KEY_ENV="OPENAI_API_KEY"
+export SOVEREIGN_AGENT_LLM_PLANNER_MODEL="gpt-4o"
+export SOVEREIGN_AGENT_LLM_EXECUTOR_MODEL="gpt-4o-mini"
+```
 
-New work should author reusable actions with ZeoCore `@capability` and merge
-them with Sovereign runtime commands via `make_session_callable_surface`.
-`@register_tool` still runs through `run_task` and is deprecated.
+See [Configuration and providers](how-to/configuration.md), including local
+Ollama setup. A normal `doctor` call makes one small model request.
+
+## 4. Give the agent a capability
+
+Create `weather_agent.py`:
 
 ```python
 from pydantic import BaseModel
+from sovereign_agent import Config, run_task
 from zeo_core.contracts import CapabilityResult, EffectKind
 from zeo_core.tools import ToolContext, bound_capability_of, capability
-from sovereign_agent import run_task, Config
+
 
 class WeatherQuery(BaseModel):
     city: str
 
+
 @capability(
-    id="demo.weather.get@1.0.0",
+    id="tutorial.weather.get@1.0.0",
     description="Get the current weather for a city.",
     effects={EffectKind.READ},
 )
 def get_weather(request: WeatherQuery, ctx: ToolContext) -> CapabilityResult:
+    # Replace this fixture with an API call after the flow works.
     return CapabilityResult.ok(
-        data={"city": request.city, "temperature": 18, "condition": "rainy"},
-        msg="ok",
+        data={"city": request.city, "temperature_c": 18, "condition": "rainy"},
+        msg="Weather fixture returned.",
     )
 
-config = Config.from_env()
+
 result = run_task(
-    "What's the weather in Edinburgh?",
-    config=config,
+    "What is the weather in Edinburgh?",
+    config=Config.from_env(),
     extra_capabilities=[bound_capability_of(get_weather)],
 )
+
 print(result.summary)
+print(f"Session: {result.session_id}")
+print(f"Files: {result.session_dir}")
 ```
 
-Under the hood this creates a session directory at `sessions/sess_<id>/`, runs a
-planner, runs an executor against the callable surface, and returns a summary.
-Each invocation is an audit-traceable ticket.
+Run it:
 
-## Inspect what happened
+```bash
+python weather_agent.py
+```
+
+The model can call only capabilities and runtime commands exposed to it. The
+description helps it choose an action; the typed request validates arguments;
+the effect classification becomes policy and evidence.
+
+## 5. Inspect the run
 
 ```bash
 sovereign-agent sessions list
-sovereign-agent sessions show <session_id>
-sovereign-agent report <session_id>
+sovereign-agent sessions show <session-id>
+sovereign-agent report <session-id> --output report.md
 ```
 
-The report command renders the complete session trace as markdown — timeline, tickets, handoffs, final result.
+Or inspect the files directly:
 
-## Next steps
-
-- Walk through the [chapters](chapters/index.md) to see how the framework is built from scratch.
-- Read the [architecture doc](architecture.md) for the full rationale.
-- Look at `examples/research_assistant/`, `examples/code_reviewer/`, `examples/pub_booking/` in the repo for end-to-end scenarios you can clone and modify.
-
-## Swapping providers
-
-Any OpenAI-compatible endpoint works:
-
-```python
-from sovereign_agent import Config
-
-config = Config(
-    llm_base_url="https://api.openai.com/v1/",
-    llm_api_key_env="OPENAI_API_KEY",
-    llm_planner_model="gpt-4",
-    llm_executor_model="gpt-4o-mini",
-)
+```bash
+ls sessions/<session-id>
+cat sessions/<session-id>/logs/trace.jsonl
 ```
 
-## Offline testing
+Every run has lifecycle state, task context, workspace artifacts, tickets,
+manifests, and a JSONL trace. See
+[Sessions and traces](tutorials/sessions-and-traces.md).
 
-```python
-from sovereign_agent._internal.llm_client import FakeLLMClient, ScriptedResponse
-from sovereign_agent.planner import DefaultPlanner
+## What next?
 
-client = FakeLLMClient([
-    ScriptedResponse(content='[{"id": "sg_1", ...}]'),
-    # ...
-])
-planner = DefaultPlanner(model="fake", client=client)
-```
-
-This is how every sovereign-agent test runs — deterministic, offline, fast.
+- [Build a complete first agent](tutorials/first-agent.md).
+- [Learn to author capabilities](tutorials/capabilities.md).
+- [Test an agent deterministically](tutorials/testing.md).
+- Browse all [nine examples](https://github.com/zeroemployeeorg/sovereign-agent/tree/main/examples).
+- Learn the architecture through the [five chapters](chapters/index.md).

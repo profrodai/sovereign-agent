@@ -197,6 +197,27 @@ from sovereign_agent import (
 | `"podman"` | Rootless Podman sharing the Docker contract. |
 | `"ssh"` | Identity-pinned remote worker. Disconnect is unknown until reconcile. |
 
+## Fleet execution (v0.7)
+
+```python
+from sovereign_agent import (
+    FleetCoordinator,
+    PodmanWorker,
+    SecretBroker,
+    SshWorker,
+)
+```
+
+`FleetCoordinator` owns worker registration, admission, placement,
+reservations, dispatch, and reconciliation. `PodmanWorker` follows the
+digest-pinned container contract. `SshWorker` requires pinned host identity and
+refuses trust-on-first-use. `SecretBroker` resolves short-lived secret leases
+at spawn time; secret values must never be persisted in requests, tickets, or
+receipts.
+
+These are operator-facing primitives. Begin with the
+[v0.7 operator guide](v0.7-operator.md), not raw construction.
+
 ## Governed execution
 
 ```python
@@ -237,3 +258,7 @@ from sovereign_agent import CHANNEL_REGISTRY
 ## LLM client (internal)
 
 The `LLMClient` protocol and its two implementations (`OpenAICompatibleClient` and `FakeLLMClient`) live under `sovereign_agent._internal.llm_client`. Marked internal because the protocol may change as we add streaming and richer tool-call support. Use via the `DefaultPlanner` / `DefaultExecutor` wrappers rather than directly.
+
+For signatures and source docstrings, use the
+[generated Python API](reference/index.md). The authoritative compatibility
+list remains [API Stability](API.md).

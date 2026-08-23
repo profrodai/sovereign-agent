@@ -52,7 +52,9 @@ class Config:
     # v0.3 Module 4a: worker backend selection.
     #   bare       — in-process, no isolation. v0.2 default.
     #   subprocess — sandboxed via Landlock (Linux) or sandbox-exec (macOS).
-    #   docker     — unavailable placeholder; raises on use.
+    #   docker     — digest-pinned container worker; fails closed without engine/image.
+    #   podman     — rootless container worker using the Docker placement contract.
+    #   ssh        — remote worker with pinned host identity.
     # Fails loud at orchestrator init if 'subprocess' is selected on a host
     # without a usable isolation primitive.
     worker_backend: Literal["bare", "subprocess", "docker", "podman", "ssh"] = "bare"

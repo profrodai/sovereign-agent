@@ -2,7 +2,7 @@
 
 A git tag is not a public release. Run this after Trusted Publisher upload:
 
-    make verify-pypi VERSION=0.6.0
+    make verify-pypi VERSION=0.7.0
 
 This script talks to pypi.org only. It does not publish, tag, or use credentials.
 """

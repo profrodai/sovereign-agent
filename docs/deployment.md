@@ -1,13 +1,18 @@
 # Deployment
 
-sovereign-agent is meant to run on a single host: a Linux box, a Mac Mini, a laptop. That's the deliberate scope of "sovereign" — you own the compute, the data, and the failure modes.
+sovereign-agent can run as a single-host service on a Linux box, Mac Mini, or
+laptop. v0.7 also supports bounded Docker, Podman, and identity-pinned SSH
+workers coordinated by an operator-owned control host.
 
-This page collects the operational advice for that case. Multi-machine and hosted deployments are out of scope — see [v0.3 non-goals](v0.3-non-goals.md).
+This page covers the beginner single-host case. For fleet placement,
+reconciliation, quotas, secrets, and remote workers, use the
+[v0.7 operator guide](v0.7-operator.md).
 
 !!! warning "Alpha"
-    The package version is `0.3.0` and the project is alpha. There is no
-    container image, no Helm chart, and no supported multi-host topology. Deploy
-    this only where you are willing to read the code when it misbehaves.
+    The package version is `0.7.0` and the project is alpha. There is no
+    official container image, Helm chart, Kubernetes control plane, or hosted
+    service. Deploy it only where you are willing to read the code when it
+    misbehaves.
 
 ## Single-host layout
 

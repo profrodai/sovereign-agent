@@ -54,8 +54,10 @@ sovereign-agent = "sovereign_agent.cli:app"
 
 [project.urls]
 Homepage = "https://github.com/zeroemployeeorg/sovereign-agent"
+Documentation = "https://zeroemployeeorg.github.io/sovereign-agent/"
 Repository = "https://github.com/zeroemployeeorg/sovereign-agent"
 Issues = "https://github.com/zeroemployeeorg/sovereign-agent/issues"
+Changelog = "https://github.com/zeroemployeeorg/sovereign-agent/blob/main/CHANGELOG.md"
 
 # Dev tooling lives in dependency groups (PEP 735). Never shipped on PyPI.
 # Install with `uv sync --all-groups` or `uv sync --group dev`.
@@ -70,6 +72,7 @@ dev = [
   "mkdocs-material>=9.5",
   "pyyaml>=6",
   "jsonschema>=4.26.0",
+  "mkdocstrings[python]>=1.0.6",
 ]
 
 # Build backend. Setuptools is still fine for this layout; uv will use it
