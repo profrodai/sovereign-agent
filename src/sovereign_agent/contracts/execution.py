@@ -61,6 +61,7 @@ class NetworkPolicy(StrEnum):
     UNRESTRICTED = "unrestricted"
     RESTRICTED = "restricted"
     DENIED = "denied"
+    DISABLED = "disabled"
 
 
 def _string_tuple(value: object, name: str) -> tuple[str, ...]:

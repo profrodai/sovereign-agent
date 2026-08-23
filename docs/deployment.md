@@ -116,7 +116,9 @@ Both backends read from `trace.jsonl` rather than replacing it, so the local fil
 
 - `"bare"` (default) — in-process. No isolation. Fine for single-tenant hosts.
 - `"subprocess"` — a separate Python process, confined by Landlock on Linux ≥ 5.13 or `sandbox-exec` on macOS. This is the supported isolated backend. `make_worker_backend()` raises rather than silently degrading if the host offers neither primitive.
-- `"docker"` — **not available.** `DockerWorker` is a stub: it constructs and logs a warning, then raises `NotImplementedError` from `run_session()`. There is no Dockerfile, no image, and no container path in this repository. The `docker` pip extra installs only the SDK and is deliberately excluded from `[all]`.
+- `"docker"` — digest-pinned container worker. Refuses without an engine or image digest. Execution containers never receive the engine socket. The `docker` extra stays optional and is excluded from `[all]`.
+- `"podman"` — rootless Podman sharing the Docker contract.
+- `"ssh"` — identity-pinned remote worker; disconnect is unknown until reconcile.
 
 If you were planning to isolate workers with containers, use `"subprocess"`.
 

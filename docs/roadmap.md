@@ -11,6 +11,8 @@ Recorded as of 2026-08-23:
   public release.
 - v0.6.0 is the capability-native single-node default. A git tag is not a
   public release.
+- v0.7.0 is the bounded production execution fleet. A git tag is not a
+  public release.
 - ZeoCore owns reusable capability definitions, schemas, guards, effects,
   requirements, concurrency declarations, projections, and invocation records.
 - Sovereign Agent owns runtime commands, admission, approvals, locks,
@@ -66,7 +68,7 @@ authority.
   identity.
 
 The previous supported package pair is **sovereign-agent 0.2.0** (no ZeoCore,
-Python 3.12) versus **sovereign-agent 0.6.0** (`zeocore>=0.5,<0.6`, Python
+Python 3.12) versus **sovereign-agent 0.7.0** (`zeocore>=0.5,<0.6`, Python
 3.13). That pair is recorded in the shipped fixture
 `compatibility-matrix.json`.
 

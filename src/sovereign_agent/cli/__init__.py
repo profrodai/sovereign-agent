@@ -38,6 +38,9 @@ app.add_typer(sessions_app, name="sessions")
 
 register_execution_commands(app)
 register_v04_commands(app)
+from sovereign_agent.fleet.cli import register_fleet_commands
+
+register_fleet_commands(app)
 
 
 # ---------------------------------------------------------------------------

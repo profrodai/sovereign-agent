@@ -1,6 +1,6 @@
 [project]
 name = "sovereign-agent"
-version = "0.6.0"
+version = "0.7.0"
 description = "A framework for building always-on AI agents that you actually own"
 readme = "README.md"
 requires-python = ">=3.13"
@@ -32,12 +32,9 @@ dependencies = [
 # or:
 #   uv add sovereign-agent --extra rasa
 #
-# `docker` is also NOT in `all`, for a different reason: there is no working
-# Docker code path to install it for. DockerWorker is a stub whose
-# run_session() raises NotImplementedError, so pulling the Docker SDK into
-# `all` would advertise a capability that does not exist. The extra is kept
-# so the dependency is declared in one place when the backend is actually
-# implemented. See docs/v0.3-non-goals.md.
+# `docker` remains optional and is not in `all`: the CLI-backed Docker/Podman
+# workers run without the SDK. Install `sovereign-agent[docker]` only when you
+# want the Docker SDK on the host agent, never inside an execution container.
 [project.optional-dependencies]
 evidently = ["evidently>=0.4"]
 otel = [

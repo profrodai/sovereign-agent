@@ -10,6 +10,7 @@ from scripts.verify_release import (
     API_V04,
     API_V05,
     API_V06,
+    API_V07,
     EXPECTED_VERSION,
     REQUIRED_FIXTURES,
     ZEOCORE_RANGE,
@@ -35,9 +36,11 @@ def test_v02_api_is_preserved_in_v03_manifest() -> None:
     v04 = set(_manifest(API_V04))
     v05 = set(_manifest(API_V05))
     v06 = set(_manifest(API_V06))
+    v07 = set(_manifest(API_V07))
     assert len(v02) == 67
     assert len(v03) == 152
-    assert v02 <= v03 == v04 <= v05 == v06
+    assert v02 <= v03 == v04 <= v05 == v06 <= v07
+    assert len(v07) == 165
     assert sorted(sovereign_agent.__all__) == _source_exports()
 
 

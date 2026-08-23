@@ -134,11 +134,12 @@ so it is `uv sync --group dev` (or `pip install -e . --group dev`), not
 
 Requires Python 3.13+. `zeocore>=0.5,<0.6` is a required dependency.
 
-**Docker is not available.** There is a `docker` extra, but it only installs the
-Docker SDK; `DockerWorker` is a stub that raises `NotImplementedError` on
-`run_session()`. The supported isolated backend is `worker_backend='subprocess'`
-(Landlock on Linux ≥ 5.13, `sandbox-exec` on macOS). See
-[v0.3 non-goals](docs/v0.3-non-goals.md).
+**Docker and Podman are optional.** Install `sovereign-agent[docker]` when the
+host agent should talk to a local engine. Execution containers never receive
+the engine socket. Pin images by `sha256:` digest. Without an engine or
+digest, `DockerWorker` refuses closed. The OS-isolated backend remains
+`worker_backend='subprocess'` (Landlock on Linux ≥ 5.13, `sandbox-exec` on
+macOS). See [v0.7 operator notes](docs/v0.7-operator.md).
 
 ---
 
@@ -381,12 +382,13 @@ Override via `SOVEREIGN_AGENT_DATA_DIR=<path>`.
 
 ## Status
 
-**v0.6.0.** The package exports **161** symbols in `sovereign_agent.__all__`
-(the 152-symbol v0.4 surface plus nine capability-adapter names). Python 3.13
-is the floor; `zeocore>=0.5,<0.6` is required. The capability-native callable
-surface is the default `run_task` path. Git tags `v0.5.0` and `v0.5.1` are
-immutable. A git tag is not a public release — announce v0.6 as published
-only after this version is on PyPI.
+**v0.7.0.** The package exports **165** symbols in `sovereign_agent.__all__`
+(the 161-symbol v0.6 surface plus `FleetCoordinator`, `PodmanWorker`,
+`SshWorker`, and `SecretBroker`). Python 3.13 is the floor;
+`zeocore>=0.5,<0.6` is required. The capability-native callable surface is
+the default `run_task` path. Git tags `v0.5.0` and `v0.5.1` are immutable.
+A git tag is not a public release — announce v0.7 as published only after
+this version is on PyPI.
 See [`docs/API.md`](docs/API.md), [`docs/roadmap.md`](docs/roadmap.md), and
 [`docs/v0.4-operator-guide.md`](docs/v0.4-operator-guide.md).
 
@@ -396,7 +398,7 @@ See [`docs/API.md`](docs/API.md), [`docs/roadmap.md`](docs/roadmap.md), and
 - ✅ 5 tutorial chapters, drift-checked against production code in CI
 - 🚧 Voice pipeline, observability backends (Evidently/OTel) — skeletons, not implementations
 - ✅ Channels, native Codex/Claude CLI providers, plugin registries, worker lifecycle, governed repository execution, durable seat registry and relay
-- ❌ Docker worker backend — stub only; `DockerWorker.run_session()` raises `NotImplementedError`
+- ✅ Docker/Podman/SSH workers with fail-closed placement, fencing, and reconciliation
 - ❌ Vector-DB memory backends — not started, and a [v0.3 non-goal](docs/v0.3-non-goals.md)
 
 Nothing in this repository is load-bearing for a production deployment you have

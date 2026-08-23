@@ -55,7 +55,9 @@ atomic commits are out of scope.
 ## No silent isolation or network downgrade
 
 If a caller requested a sandbox minimum or network policy, the runtime fails
-closed rather than silently running weaker. `DockerWorker` remains a stub.
+closed rather than silently running weaker. Isolation and network claims must
+be ENFORCED. `DockerWorker` is a real digest-pinned backend; absence of an
+engine or digest is still a refusal, never a silent downgrade.
 
 ## How to change this list
 

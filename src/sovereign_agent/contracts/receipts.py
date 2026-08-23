@@ -218,7 +218,7 @@ class ExecutionReceipt:
     receipt linked by ``supersedes_sha256``.
     """
 
-    SCHEMA_VERSION: ClassVar[str] = "1.0"
+    SCHEMA_VERSION: ClassVar[str] = "1.1"
 
     execution_id: ExecutionId
     invocation_id: InvocationId
@@ -251,6 +251,7 @@ class ExecutionReceipt:
     usage: UsageRecord | None = None
     artifact_refs: tuple[str, ...] = ()
     warnings: tuple[str, ...] = ()
+    fleet: FrozenDict | None = None
     schema_version: str = SCHEMA_VERSION
     unknown_fields: FrozenDict = field(default_factory=FrozenDict, repr=False)
 
@@ -288,6 +289,7 @@ class ExecutionReceipt:
             "usage",
             "artifact_refs",
             "warnings",
+            "fleet",
         }
     )
 
@@ -298,8 +300,8 @@ class ExecutionReceipt:
             raise ContractValidationError("invocation_id must be InvocationId")
         if not isinstance(self.status, ReceiptStatus):
             raise ContractValidationError("status must be ReceiptStatus")
-        if self.schema_version != self.SCHEMA_VERSION:
-            raise ContractValidationError(f"schema_version must be {self.SCHEMA_VERSION!r}")
+        if self.schema_version not in {"1.0", "1.1"}:
+            raise ContractValidationError("schema_version must be '1.0' or '1.1'")
         termination = self.termination
         if termination is None:
             termination = default_termination(self.status)
@@ -393,6 +395,12 @@ class ExecutionReceipt:
                 require_object(self.unknown_fields, "unknown_fields"), path="unknown_fields"
             ),
         )
+        if self.fleet is not None:
+            object.__setattr__(
+                self,
+                "fleet",
+                freeze_json(require_object(self.fleet, "fleet"), path="fleet"),
+            )
         if self.evidence_sha256 is not None and not self.verify_evidence():
             raise ContractValidationError("evidence_sha256 does not match receipt contents")
 
@@ -520,6 +528,8 @@ class ExecutionReceipt:
             "artifact_refs": list(self.artifact_refs),
             "warnings": list(self.warnings),
         }
+        if self.fleet is not None:
+            known["fleet"] = thaw_json(self.fleet)
         if self.capability_catalog_digest:
             known["capability_catalog_digest"] = self.capability_catalog_digest
         if self.capability_invocation_refs:
@@ -555,6 +565,7 @@ class ExecutionReceipt:
             "usage",
             "artifact_refs",
             "warnings",
+            "fleet",
         }
         missing = sorted(required - known.keys())
         if missing:
@@ -612,6 +623,7 @@ class ExecutionReceipt:
             usage=None if usage_raw is None else UsageRecord.from_dict(usage_raw),
             artifact_refs=tuple(known.get("artifact_refs") or ()),
             warnings=tuple(known.get("warnings") or ()),
+            fleet=None if known.get("fleet") is None else freeze_json(require_object(known.get("fleet"), "fleet")),
             unknown_fields=unknown,
         )
 
