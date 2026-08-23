@@ -44,11 +44,16 @@ import json
 import tempfile
 from pathlib import Path
 
+from pydantic import BaseModel, ConfigDict
+from zeo_core.contracts import CapabilityExample, CapabilityResult, EffectKind
+from zeo_core.tools import ToolContext, bound_capability_of, capability
+
 from sovereign_agent._internal.llm_client import (
     FakeLLMClient,
     ScriptedResponse,
     ToolCall,
 )
+from sovereign_agent.capabilities.surface import make_session_callable_surface
 from sovereign_agent.executor import DefaultExecutor, resume_from_approval
 from sovereign_agent.ipc.approval import (
     find_decision,
@@ -56,7 +61,7 @@ from sovereign_agent.ipc.approval import (
 )
 from sovereign_agent.planner import Subgoal
 from sovereign_agent.session.directory import Session, create_session
-from sovereign_agent.tools.registry import ToolRegistry, ToolResult, _RegisteredTool
+from sovereign_agent.tools.registry import ToolRegistry
 
 # ---------------------------------------------------------------------------
 # The tool that asks for human approval when the deposit is large
@@ -66,67 +71,55 @@ from sovereign_agent.tools.registry import ToolRegistry, ToolResult, _Registered
 AUTO_APPROVE_CEILING_GBP = 300
 
 
-def _commit_booking_with_deposit(venue_id: str, deposit_gbp: int) -> ToolResult:
-    """Propose a booking that commits a deposit. Deposits above the
-    auto-approve ceiling require human sign-off before committing."""
-    needs_approval = deposit_gbp > AUTO_APPROVE_CEILING_GBP
+class DepositRequest(BaseModel):
+    venue_id: str
+    deposit_gbp: int
+
+
+class DepositResponse(BaseModel):
+    model_config = ConfigDict(extra="allow")
+
+
+@capability(
+    id="example.hitl.commit_deposit@1.0.0",
+    description="Book a venue, committing a deposit. Large deposits require human sign-off.",
+    effects={EffectKind.WRITE},
+    projection_name="commit_booking_with_deposit",
+    examples=(
+        CapabilityExample(
+            request={"venue_id": "venue_hay", "deposit_gbp": 100},
+            response={"status": "committed"},
+        ),
+    ),
+)
+def commit_booking_with_deposit(request: DepositRequest, ctx: ToolContext) -> CapabilityResult[DepositResponse]:
+    needs_approval = request.deposit_gbp > AUTO_APPROVE_CEILING_GBP
     proposed = {
-        "venue_id": venue_id,
-        "deposit_gbp": deposit_gbp,
+        "venue_id": request.venue_id,
+        "deposit_gbp": request.deposit_gbp,
         "status": "proposed" if needs_approval else "committed",
-        # IMPORTANT: approval_reason goes inside `output` so the
-        # framework can surface it in the request file and in the
-        # approver's CLI output. Putting it at ToolResult level
-        # would NOT be picked up — classic pitfall.
         "approval_reason": (
-            f"Deposit £{deposit_gbp} exceeds the £{AUTO_APPROVE_CEILING_GBP} auto-approve ceiling."
+            f"Deposit £{request.deposit_gbp} exceeds the £{AUTO_APPROVE_CEILING_GBP} auto-approve ceiling."
             if needs_approval
             else ""
         ),
     }
     summary = (
-        f"proposed £{deposit_gbp} booking at {venue_id} (awaiting approval)"
+        f"proposed £{request.deposit_gbp} booking at {request.venue_id} (awaiting approval)"
         if needs_approval
-        else f"committed £{deposit_gbp} booking at {venue_id} (auto-approved)"
+        else f"committed £{request.deposit_gbp} booking at {request.venue_id} (auto-approved)"
     )
-    return ToolResult(
-        success=True,
-        output=proposed,
-        summary=summary,
-        requires_human_approval=needs_approval,
+    return CapabilityResult.ok(
+        data=DepositResponse.model_validate(proposed),
+        msg=summary,
+        metadata={"requires_human_approval": needs_approval},
     )
 
 
-def _build_tool_registry() -> ToolRegistry:
-    reg = ToolRegistry()
-    reg.register(
-        _RegisteredTool(
-            name="commit_booking_with_deposit",
-            description=(
-                "Book a venue, committing a deposit. Deposits above "
-                f"£{AUTO_APPROVE_CEILING_GBP} require human sign-off."
-            ),
-            fn=_commit_booking_with_deposit,
-            parameters_schema={
-                "type": "object",
-                "properties": {
-                    "venue_id": {"type": "string"},
-                    "deposit_gbp": {"type": "integer"},
-                },
-                "required": ["venue_id", "deposit_gbp"],
-            },
-            returns_schema={"type": "object"},
-            is_async=False,
-            parallel_safe=False,  # writes — must run alone
-            examples=[
-                {
-                    "input": {"venue_id": "venue_hay", "deposit_gbp": 100},
-                    "output": {"status": "committed"},
-                }
-            ],
-        )
-    )
-    return reg
+def _build_surface(session: Session):
+    surface = make_session_callable_surface(session)
+    surface.capabilities.register(bound_capability_of(commit_booking_with_deposit))
+    return surface
 
 
 # ---------------------------------------------------------------------------
@@ -266,7 +259,7 @@ async def run_grant_path(sessions_dir: Path, real: bool = False) -> None:
         sessions_dir=sessions_dir,
     )
     print(f"session: {session.session_id}")
-    tools = _build_tool_registry()
+    surface = _build_surface(session)
 
     # Build clients + model. In real mode, both phase-1 and phase-2
     # use the SAME live LLM — the claim is that a real model, on
@@ -283,7 +276,8 @@ async def run_grant_path(sessions_dir: Path, real: bool = False) -> None:
     executor1 = DefaultExecutor(
         model=model,
         client=client1,
-        tools=tools,
+        tools=ToolRegistry(),
+        callable_surface=surface,
     )
     result1 = await executor1.execute(_subgoal(), session, max_turns=4)
 
@@ -313,7 +307,8 @@ async def run_grant_path(sessions_dir: Path, real: bool = False) -> None:
     executor2 = DefaultExecutor(
         model=model,
         client=client2,
-        tools=tools,
+        tools=ToolRegistry(),
+        callable_surface=surface,
     )
     result2 = await resume_from_approval(
         executor2, _subgoal(), session, request_id=request_id, max_turns=4
@@ -366,7 +361,7 @@ async def run_deny_path(sessions_dir: Path, real: bool = False) -> None:
         sessions_dir=sessions_dir,
     )
     print(f"session: {session.session_id}")
-    tools = _build_tool_registry()
+    surface = _build_surface(session)
 
     if real:
         client1, client2, model = _build_real_clients()
@@ -378,7 +373,8 @@ async def run_deny_path(sessions_dir: Path, real: bool = False) -> None:
     executor1 = DefaultExecutor(
         model=model,
         client=client1,
-        tools=tools,
+        tools=ToolRegistry(),
+        callable_surface=surface,
     )
     result1 = await executor1.execute(_subgoal(), session, max_turns=4)
     assert result1.awaiting_approval is not None
@@ -396,7 +392,8 @@ async def run_deny_path(sessions_dir: Path, real: bool = False) -> None:
     executor2 = DefaultExecutor(
         model=model,
         client=client2,
-        tools=tools,
+        tools=ToolRegistry(),
+        callable_surface=surface,
     )
     result2 = await resume_from_approval(
         executor2, _subgoal(), session, request_id=request_id, max_turns=4
@@ -579,13 +576,15 @@ async def run_real_hitl(
         sessions_dir=sessions_dir,
     )
     print(f"session: {session.session_id}")
-    tools = _build_tool_registry()
+    surface = _build_surface(session)
 
     client1, client2, model = _build_real_clients()
     print(f"  model:    {model}")
 
     # ── Phase 1 ─────────────────────────────────────────────────────
-    executor1 = DefaultExecutor(model=model, client=client1, tools=tools)
+    executor1 = DefaultExecutor(
+        model=model, client=client1, tools=ToolRegistry(), callable_surface=surface
+    )
     result1 = await executor1.execute(_subgoal(), session, max_turns=4)
 
     if result1.awaiting_approval is None:
@@ -669,7 +668,9 @@ async def run_real_hitl(
     print(f"  reason:   {reason}")
     print()
 
-    executor2 = DefaultExecutor(model=model, client=client2, tools=tools)
+    executor2 = DefaultExecutor(
+        model=model, client=client2, tools=ToolRegistry(), callable_surface=surface
+    )
     result2 = await resume_from_approval(
         executor2, _subgoal(), session, request_id=request_id, max_turns=4
     )

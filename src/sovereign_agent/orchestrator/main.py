@@ -21,7 +21,10 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import TYPE_CHECKING, Literal, cast
 
+from zeo_core.tools import BoundCapability
+
 from sovereign_agent._internal.llm_client import LLMClient, OpenAICompatibleClient
+from sovereign_agent.capabilities.surface import make_session_callable_surface
 from sovereign_agent.config import Config
 from sovereign_agent.contracts import ExecutionId, FrozenDict, InvocationId
 from sovereign_agent.contracts._core import thaw_json
@@ -89,12 +92,14 @@ class Orchestrator:
         *,
         llm_client: LLMClient | None = None,
         extra_tools: ToolRegistry | None = None,
+        extra_capabilities: list[BoundCapability] | None = None,
         adapters: list[ChannelAdapter] | None = None,
     ) -> None:
         self.config = config
         self.credentials = CredentialGateway()
         self._llm_client = llm_client
         self._extra_tools = extra_tools
+        self._extra_capabilities = extra_capabilities or []
         self.queue = SessionQueue(max_concurrent=config.max_concurrent)
         self.queue.set_process_fn(self.process_session)
         self.watcher = IpcWatcher(
@@ -419,9 +424,15 @@ class Orchestrator:
             # not be reused across sovereign sessions.
             llm = self._ensure_llm_client()
             tools = self._tools_for(session)
+            surface = make_session_callable_surface(session, extra_tools=self._extra_tools)
+            for bound in self._extra_capabilities:
+                surface.capabilities.register(bound)
             planner = DefaultPlanner(model=self.config.llm_planner_model, client=llm)
             executor = DefaultExecutor(
-                model=self.config.llm_executor_model, client=llm, tools=tools
+                model=self.config.llm_executor_model,
+                client=llm,
+                tools=tools,
+                callable_surface=surface,
             )
             return NativeProvider(planner=planner, executor=executor)
         if name in self.providers:
@@ -530,6 +541,7 @@ def run_task(
     user_id: str | None = None,
     llm_client: LLMClient | None = None,
     extra_tools: ToolRegistry | None = None,
+    extra_capabilities: list[BoundCapability] | None = None,
 ) -> TaskResult:
     """Create a session, run one task to completion, return the result.
 
@@ -543,7 +555,12 @@ def run_task(
     )
 
     async def _main() -> TaskResult:
-        orch = Orchestrator(cfg, llm_client=llm_client, extra_tools=extra_tools)
+        orch = Orchestrator(
+            cfg,
+            llm_client=llm_client,
+            extra_tools=extra_tools,
+            extra_capabilities=extra_capabilities,
+        )
         # Drive one session through to a terminal state.
         success = await orch.process_session(session.session_id)
         # Reload to get the final state.

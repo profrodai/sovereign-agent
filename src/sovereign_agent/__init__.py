@@ -1,8 +1,9 @@
 """sovereign-agent: a framework for building always-on AI agents that you actually own.
 
-Alpha. The declared version is 0.5.1.
+Alpha. The declared version is 0.6.0.
 
-The 152 names in the v0.4 public API remain; v0.5 adds capability-adapter symbols.
+The 161 names in the v0.5 public API remain; v0.6 hardens the capability-native
+default path without removing the compatibility window.
 All 67 symbols published in v0.2.0 remain covered by the compatibility contract. Anything not
 in __all__ is internal and may change between any two releases -- including
 names that happen to be importable from this module, such as the channel adapter
@@ -265,7 +266,7 @@ from sovereign_agent.tools import (
     register_tool,
 )
 
-__version__ = "0.5.1"
+__version__ = "0.6.0"
 
 __all__ = [
     # errors

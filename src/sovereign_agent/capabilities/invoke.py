@@ -1,11 +1,15 @@
 """Cancellable invocation that does not swallow CancelledError.
 
-ZeoCore 0.5.0 ``invoke_async`` catches ``BaseException``. Until 0.5.1,
-Sovereign Agent invokes the bound function through this helper.
+ZeoCore 0.5.0 ``invoke_async`` catches ``BaseException`` and converts
+``CancelledError``, ``KeyboardInterrupt``, and ``SystemExit`` into
+``ZEO_CAP_UNEXPECTED``. This helper is the Sovereign-owned workaround.
+It is not a monkey-patch. When an allowed ZeoCore release stops swallowing
+those exceptions, ``invoke_capability`` uses upstream ``invoke_async``.
 """
 
 from __future__ import annotations
 
+import asyncio
 import inspect
 
 from pydantic import BaseModel, ValidationError
@@ -13,9 +17,16 @@ from zeo_core.contracts import CapabilityOutcome, CapabilityResult, GuardResult
 from zeo_core.tools import BoundCapability, ToolContext
 from zeo_core.tools.invoke import (
     context_cancellation,
+    invoke_async,
     missing_requirements,
     requirements_available,
 )
+
+
+def zeocore_swallows_cancel() -> bool:
+    """True while upstream ``invoke_async`` catches BaseException without re-raise."""
+    source = inspect.getsource(invoke_async)
+    return "except BaseException" in source and "CancelledError" not in source
 
 
 def _run_guards(capability: BoundCapability, request: BaseModel) -> GuardResult:
@@ -98,7 +109,7 @@ async def invoke_cancellable(
         if inspect.isawaitable(raw):
             raw = await raw
         return _normalize_return(raw, cancelled=context_cancellation(ctx).is_cancelled())
-    except (KeyboardInterrupt, SystemExit):
+    except (KeyboardInterrupt, SystemExit, asyncio.CancelledError):
         raise
     except Exception as exc:
         if context_cancellation(ctx).is_cancelled():
@@ -109,3 +120,14 @@ async def invoke_cancellable(
                 outcome=CapabilityOutcome.cancelled,
             )
         return _exception_result(exc)
+
+
+async def invoke_capability(
+    capability: BoundCapability,
+    request: BaseModel,
+    ctx: ToolContext,
+) -> CapabilityResult:
+    """Prefer upstream invoke when it no longer swallows cancellation."""
+    if not zeocore_swallows_cancel():
+        return await invoke_async(capability, request, ctx)
+    return await invoke_cancellable(capability, request, ctx)

@@ -33,10 +33,11 @@ def test_installed_fixtures_round_trip_typed_contracts() -> None:
 
 def test_compatibility_matrix_includes_previous_published_pair() -> None:
     matrix = load_fixture("compatibility-matrix.json")
-    previous, current = matrix["pairs"]
+    previous, *rest = matrix["pairs"]
+    current = rest[-1]
     assert previous["sovereign_agent"] == "0.2.0"
     assert previous["zeocore"] is None
-    assert current["sovereign_agent"] == "0.5.1"
+    assert current["sovereign_agent"] == "0.6.0"
     assert current["zeocore"] == ">=0.5,<0.6"
     assert current["python"] == ">=3.13"
 

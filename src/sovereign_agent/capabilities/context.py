@@ -37,6 +37,12 @@ class ExecutionScope:
     fs: Any = None
     session: Session | None = None
     catalog_digest: str | None = None
+    seat: str | None = None
+    repository: str | None = None
+    channel: str | None = None
+    invoke_timeout: float = 30.0
+    complete_timeout: float = 5.0
+    teardown_timeout: float = 5.0
 
 
 class CapabilityContextFactory:

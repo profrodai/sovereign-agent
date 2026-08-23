@@ -30,6 +30,15 @@ import asyncio
 import sys
 import time
 
+from pydantic import BaseModel
+from zeo_core.contracts import (
+    CapabilityExample,
+    CapabilityResult,
+    ConcurrencyMode,
+    EffectKind,
+)
+from zeo_core.tools import ToolContext, bound_capability_of, capability
+
 from sovereign_agent._internal.llm_client import (
     FakeLLMClient,
     OpenAICompatibleClient,
@@ -37,6 +46,7 @@ from sovereign_agent._internal.llm_client import (
     ToolCall,
 )
 from sovereign_agent._internal.paths import example_sessions_dir
+from sovereign_agent.capabilities.surface import make_session_callable_surface
 from sovereign_agent.executor import (
     PARALLELISM_POLICY_DEFAULT,
     PARALLELISM_POLICY_NEVER,
@@ -44,7 +54,7 @@ from sovereign_agent.executor import (
 )
 from sovereign_agent.planner import Subgoal
 from sovereign_agent.session.directory import create_session
-from sovereign_agent.tools.registry import ToolRegistry, ToolResult, _RegisteredTool
+from sovereign_agent.tools.registry import ToolRegistry
 
 # ---------------------------------------------------------------------------
 # Tool: a fake arXiv lookup that sleeps to simulate a real network call
@@ -67,56 +77,45 @@ _FAKE_ARXIV: dict[str, dict] = {
 _TOOL_CALL_LOG: list[dict] = []
 
 
-async def _fetch_arxiv_paper(paper_id: str) -> ToolResult:
-    """Simulate a remote arXiv API call. Sleeps 0.3s to model network latency."""
+class FetchArxivRequest(BaseModel):
+    paper_id: str
+
+
+class FetchArxivResponse(BaseModel):
+    paper_id: str
+    title: str | None = None
+    year: int | None = None
+
+
+@capability(
+    id="example.research.fetch_arxiv@1.0.0",
+    description="Look up metadata for one arXiv paper by its ID.",
+    effects={EffectKind.READ},
+    concurrency=ConcurrencyMode.PARALLEL_SAFE,
+    projection_name="fetch_arxiv_paper",
+    examples=(
+        CapabilityExample(request={"paper_id": "2401.00001"}, response={"paper_id": "2401.00001"}),
+    ),
+)
+async def fetch_arxiv_paper(
+    request: FetchArxivRequest, ctx: ToolContext
+) -> CapabilityResult[FetchArxivResponse]:
     await asyncio.sleep(0.3)
-    if paper_id not in _FAKE_ARXIV:
-        _TOOL_CALL_LOG.append({"paper_id": paper_id, "hit": False})
-        return ToolResult(
-            success=False,
-            output={"paper_id": paper_id},
-            summary=f"arxiv lookup failed: {paper_id} not found",
-        )
-    meta = _FAKE_ARXIV[paper_id]
-    _TOOL_CALL_LOG.append({"paper_id": paper_id, "hit": True, "title": meta["title"]})
-    return ToolResult(
-        success=True,
-        output={"paper_id": paper_id, **meta},
-        summary=f"arxiv {paper_id}: {meta['title']!r}",
+    if request.paper_id not in _FAKE_ARXIV:
+        _TOOL_CALL_LOG.append({"paper_id": request.paper_id, "hit": False})
+        return CapabilityResult.fail(msg=f"arxiv lookup failed: {request.paper_id} not found")
+    meta = _FAKE_ARXIV[request.paper_id]
+    _TOOL_CALL_LOG.append({"paper_id": request.paper_id, "hit": True, "title": meta["title"]})
+    return CapabilityResult.ok(
+        data=FetchArxivResponse(paper_id=request.paper_id, **meta),
+        msg=f"arxiv {request.paper_id}: {meta['title']!r}",
     )
 
 
-def _build_tool_registry() -> ToolRegistry:
-    reg = ToolRegistry()
-    reg.register(
-        _RegisteredTool(
-            name="fetch_arxiv_paper",
-            description=(
-                "Look up metadata for one arXiv paper by its ID. "
-                "Read-only HTTP. Safe to call concurrently with other lookups."
-            ),
-            fn=_fetch_arxiv_paper,
-            parameters_schema={
-                "type": "object",
-                "properties": {"paper_id": {"type": "string"}},
-                "required": ["paper_id"],
-            },
-            returns_schema={"type": "object"},
-            is_async=True,
-            # *** THE KEY LINE ***
-            # Without this, the executor runs the calls sequentially.
-            # With this, contiguous parallel_safe calls are batched via
-            # asyncio.gather in a single ReAct turn.
-            parallel_safe=True,
-            examples=[
-                {
-                    "input": {"paper_id": "2401.00001"},
-                    "output": {"paper_id": "2401.00001", "title": "..."},
-                }
-            ],
-        )
-    )
-    return reg
+def _build_surface(session):
+    surface = make_session_callable_surface(session)
+    surface.capabilities.register(bound_capability_of(fetch_arxiv_paper))
+    return surface
 
 
 # ---------------------------------------------------------------------------
@@ -179,13 +178,14 @@ async def run_scenario(*, real: bool, force_sequential: bool) -> None:
             client = _build_fake_client()
             executor_model = "fake"
 
-        tools = _build_tool_registry()
+        surface = _build_surface(session)
 
         policy = PARALLELISM_POLICY_NEVER if force_sequential else PARALLELISM_POLICY_DEFAULT
         executor = DefaultExecutor(
             model=executor_model,
             client=client,  # type: ignore[arg-type]
-            tools=tools,
+            tools=ToolRegistry(),
+            callable_surface=surface,
             parallelism_policy=policy,
         )
         print(f"  parallelism_policy: {policy}")

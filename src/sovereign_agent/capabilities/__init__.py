@@ -2,6 +2,7 @@
 
 from sovereign_agent.capabilities.approval import ApprovalDisposition, ApprovalPolicy
 from sovereign_agent.capabilities.catalog import (
+    CatalogMismatch,
     FrozenExecutionCatalog,
     ProjectedCapability,
     freeze_catalog,
@@ -15,6 +16,7 @@ from sovereign_agent.capabilities.surface import CallableSurface, make_session_c
 __all__ = [
     "ApprovalDisposition",
     "ApprovalPolicy",
+    "CatalogMismatch",
     "CallableSurface",
     "CapabilityContextFactory",
     "CapabilityExecutor",

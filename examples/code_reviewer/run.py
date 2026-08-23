@@ -12,6 +12,10 @@ import json
 import re
 import sys
 
+from pydantic import BaseModel, ConfigDict
+from zeo_core.contracts import CapabilityExample, CapabilityResult, EffectKind
+from zeo_core.tools import ToolContext, bound_capability_of, capability
+
 from sovereign_agent._internal.llm_client import (
     FakeLLMClient,
     OpenAICompatibleClient,
@@ -19,12 +23,12 @@ from sovereign_agent._internal.llm_client import (
     ToolCall,
 )
 from sovereign_agent._internal.paths import example_sessions_dir
+from sovereign_agent.capabilities.surface import make_session_callable_surface
 from sovereign_agent.executor import DefaultExecutor
 from sovereign_agent.halves.loop import LoopHalf
 from sovereign_agent.planner import DefaultPlanner
 from sovereign_agent.session.directory import create_session
-from sovereign_agent.tools.builtin import make_builtin_registry
-from sovereign_agent.tools.registry import ToolResult, _RegisteredTool
+from sovereign_agent.tools.registry import ToolRegistry, ToolResult
 
 # Sample file the agent "reviews". In a real scenario it'd be read from disk.
 _SAMPLE_FILE = """\
@@ -110,52 +114,45 @@ def _check_python(source: str) -> ToolResult:
     )
 
 
-def _build_tool_registry(session) -> object:
-    reg = make_builtin_registry(session)
+class CheckPythonRequest(BaseModel):
+    source: str
 
-    def check_python_file(source: str) -> ToolResult:
-        """Check a Python source file for common smells and style issues."""
-        result = _check_python(source)
-        # Dataflow integrity log — capture what the tool actually saw
-        # and what it returned. The post-run audit cross-checks this
-        # against the written review.
-        _TOOL_CALL_LOG.append(
-            {
-                "tool": "check_python_file",
-                "source_preview": source[:80],
-                "source_matches_sample": source.strip() == _SAMPLE_FILE.strip(),
-                "findings": result.output["findings"],
-                "finding_issues": [f["issue"] for f in result.output["findings"]],
-                "line_count": result.output["line_count"],
-            }
-        )
-        return result
 
-    reg.register(
-        _RegisteredTool(
-            name="check_python_file",
-            description="Scan a Python source string for common smells. Returns structured findings.",
-            fn=check_python_file,
-            parameters_schema={
-                "type": "object",
-                "properties": {"source": {"type": "string"}},
-                "required": ["source"],
-            },
-            returns_schema={"type": "object"},
-            is_async=False,
-            error_codes=[],
-            examples=[
-                {
-                    "input": {"source": "print('hi')\nprint('hi')\nprint('hi')\n"},
-                    "output": {
-                        "findings": [{"severity": "info", "issue": "many_prints", "note": "..."}],
-                        "line_count": 3,
-                    },
-                }
-            ],
-        )
+class CheckPythonResponse(BaseModel):
+    model_config = ConfigDict(extra="allow")
+
+
+@capability(
+    id="example.review.check_python@1.0.0",
+    description="Scan a Python source string for common smells. Returns structured findings.",
+    effects={EffectKind.READ},
+    projection_name="check_python_file",
+    examples=(
+        CapabilityExample(
+            request={"source": "print('hi')\n"},
+            response={"findings": [], "line_count": 1},
+        ),
+    ),
+)
+def check_python_file(request: CheckPythonRequest, ctx: ToolContext) -> CapabilityResult[CheckPythonResponse]:
+    result = _check_python(request.source)
+    _TOOL_CALL_LOG.append(
+        {
+            "tool": "check_python_file",
+            "source_preview": request.source[:80],
+            "source_matches_sample": request.source.strip() == _SAMPLE_FILE.strip(),
+            "findings": result.output["findings"],
+            "finding_issues": [f["issue"] for f in result.output["findings"]],
+            "line_count": result.output["line_count"],
+        }
     )
-    return reg
+    return CapabilityResult.ok(data=CheckPythonResponse.model_validate(result.output), msg=result.summary)
+
+
+def _build_surface(session):
+    surface = make_session_callable_surface(session)
+    surface.capabilities.register(bound_capability_of(check_python_file))
+    return surface
 
 
 def _render_review_md(findings: list[dict], line_count: int) -> str:
@@ -242,10 +239,12 @@ async def run_scenario(real: bool) -> None:
             client = _build_fake_client()
             planner_model = executor_model = "fake"
 
-        tools = _build_tool_registry(session)
+        surface = _build_surface(session)
         half = LoopHalf(
             planner=DefaultPlanner(model=planner_model, client=client),
-            executor=DefaultExecutor(model=executor_model, client=client, tools=tools),  # type: ignore[arg-type]
+            executor=DefaultExecutor(
+                model=executor_model, client=client, tools=ToolRegistry(), callable_surface=surface
+            ),
         )
         result = await half.run(session, {"task": "review the sample file"})
         print(f"outcome: {result.next_action}")

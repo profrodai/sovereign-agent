@@ -4,10 +4,10 @@ The public API of `sovereign_agent`. Anything not listed here is internal and ma
 
 Full docstrings are on the classes themselves; this page is an overview. For the definitive reference, read the source — every public class has a docstring that explains its purpose, parameters, and behaviour.
 
-The authoritative v0.5.1 contract is [API Stability](API.md) and its
+The authoritative v0.6.0 contract is [API Stability](API.md) and its
 machine-checked 161-symbol manifest. All listed top-level exports are stable
-within the v0.5 series. Prefer ZeoCore `@capability` for new reusable actions;
-`@register_tool` remains exported and deprecated.
+within the v0.6 series. Prefer ZeoCore `@capability` for new reusable actions;
+`@register_tool` remains exported and deprecated until 2027-02-23.
 
 ## Errors (Pattern C)
 

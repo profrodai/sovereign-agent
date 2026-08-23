@@ -134,6 +134,7 @@ def test_run_task_signature_and_result_are_backward_compatible(tmp_path: Path) -
         "user_id",
         "llm_client",
         "extra_tools",
+        "extra_capabilities",
     ]
     assert signature.parameters["task"].kind is inspect.Parameter.POSITIONAL_OR_KEYWORD
     assert all(

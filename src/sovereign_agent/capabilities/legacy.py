@@ -13,6 +13,14 @@ from zeo_core.tools.compat.sovereign_style import sovereign_style_capability
 
 from sovereign_agent.tools.registry import ToolResult, _RegisteredTool
 
+_RUNTIME_COMMAND_NAMES = frozenset(
+    {"complete_task", "handoff_to_structured", "abort_execution", "session_status"}
+)
+
+
+class UnrepresentableLegacyTool(ValueError):
+    """Legacy semantics that cannot be adapted truthfully into ZeoCore."""
+
 
 def _capability_id_for(name: str, version: str) -> str:
     slug = name.replace("-", "_")
@@ -21,6 +29,17 @@ def _capability_id_for(name: str, version: str) -> str:
 
 def registered_tool_to_bound(tool: _RegisteredTool) -> BoundCapability:
     """Wrap a legacy registered tool as a BoundCapability. Migration only."""
+    if tool.name in _RUNTIME_COMMAND_NAMES:
+        raise UnrepresentableLegacyTool(
+            f"{tool.name!r} is a runtime command and cannot be adapted as a ZeoCore capability"
+        )
+    if tool.verify_args is not None:
+        raise UnrepresentableLegacyTool(
+            f"{tool.name!r} uses verify_args, which has no truthful ZeoCore guard mapping"
+        )
+    schema = tool.parameters_schema or {}
+    if schema.get("type") not in {None, "object"}:
+        raise UnrepresentableLegacyTool(f"{tool.name!r} parameters are not a JSON object schema")
     effects = (EffectKind.READ,) if tool.parallel_safe else (EffectKind.WRITE,)
     concurrency = (
         ConcurrencyMode.PARALLEL_SAFE
@@ -55,7 +74,8 @@ def registered_tool_to_bound(tool: _RegisteredTool) -> BoundCapability:
 def warn_legacy_register(name: str) -> None:
     warnings.warn(
         f"register_tool({name!r}) is deprecated; author a ZeoCore @capability. "
-        "The legacy surface remains through v0.5.",
+        "The legacy surface remains compatibility-only through 2027-02-23 "
+        "(v0.7 breaking-change window).",
         DeprecationWarning,
         stacklevel=3,
     )

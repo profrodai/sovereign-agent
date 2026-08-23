@@ -98,6 +98,43 @@ def bind_session_commands(session: Session) -> RuntimeCommandRegistry:
             handler=handoff_to_structured,
         )
     )
+
+    def abort_execution(arguments: dict[str, Any], bound: Session) -> dict[str, Any]:
+        payload = {
+            "session_id": bound.session_id,
+            "reason": arguments.get("reason", "operator abort"),
+            "aborted_at": datetime.now(tz=UTC).isoformat(),
+        }
+        atomic_write_json(bound.ipc_dir / "execution_aborted.json", payload)
+        return {"aborted": True}
+
+    def session_status(arguments: dict[str, Any], bound: Session) -> dict[str, Any]:
+        del arguments
+        return {
+            "session_id": bound.session_id,
+            "state": bound.state.state,
+            "directory": str(bound.directory),
+        }
+
+    registry.register(
+        RuntimeCommand(
+            name="abort_execution",
+            description="Abort the current session execution without invoking a capability.",
+            parameters_schema={
+                "type": "object",
+                "properties": {"reason": {"type": "string"}},
+            },
+            handler=abort_execution,
+        )
+    )
+    registry.register(
+        RuntimeCommand(
+            name="session_status",
+            description="Report current session identity and lifecycle state.",
+            parameters_schema={"type": "object", "properties": {}},
+            handler=session_status,
+        )
+    )
     registry.register(
         RuntimeCommand(
             name="complete_task",
