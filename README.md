@@ -29,7 +29,7 @@ still works during the compatibility window and is deprecated.
 ```python
 from pydantic import BaseModel
 from zeo_core.contracts import CapabilityResult, EffectKind
-from zeo_core.tools import ToolContext, capability
+from zeo_core.tools import ToolContext, bound_capability_of, capability
 from sovereign_agent import run_task
 
 class WeatherQuery(BaseModel):
@@ -46,7 +46,10 @@ def get_weather(request: WeatherQuery, ctx: ToolContext) -> CapabilityResult:
         msg="ok",
     )
 
-result = run_task("What's the weather in Edinburgh?")
+result = run_task(
+    "What's the weather in Edinburgh?",
+    extra_capabilities=[bound_capability_of(get_weather)],
+)
 print(result.summary)
 # → "Weather in Edinburgh: 18°C, rainy."
 ```
@@ -378,16 +381,17 @@ Override via `SOVEREIGN_AGENT_DATA_DIR=<path>`.
 
 ## Status
 
-**v0.5.1.** The package exports **161** symbols in `sovereign_agent.__all__`
+**v0.6.0.** The package exports **161** symbols in `sovereign_agent.__all__`
 (the 152-symbol v0.4 surface plus nine capability-adapter names). Python 3.13
-is the floor; `zeocore>=0.5,<0.6` is required. Git tag `v0.5.0` is the
-capability-migration snapshot and is not moved. A git tag is not a public
-release — announce v0.5 as published only after this version is on PyPI.
+is the floor; `zeocore>=0.5,<0.6` is required. The capability-native callable
+surface is the default `run_task` path. Git tags `v0.5.0` and `v0.5.1` are
+immutable. A git tag is not a public release — announce v0.6 as published
+only after this version is on PyPI.
 See [`docs/API.md`](docs/API.md), [`docs/roadmap.md`](docs/roadmap.md), and
 [`docs/v0.4-operator-guide.md`](docs/v0.4-operator-guide.md).
 
 - ✅ Framework: sessions, tickets, IPC, parallelism, isolation, resume, verifiers, HITL
-- ✅ 522 tests collected — 519 pass, 3 opt-in/platform skips
+- ✅ 553 tests collected — 550 pass, 3 opt-in/platform skips
 - ✅ 8 reference scenarios, all with dataflow integrity checks
 - ✅ 5 tutorial chapters, drift-checked against production code in CI
 - 🚧 Voice pipeline, observability backends (Evidently/OTel) — skeletons, not implementations

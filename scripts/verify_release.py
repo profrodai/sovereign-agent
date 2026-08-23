@@ -1,4 +1,4 @@
-"""Deterministic v0.5 distribution and compatibility verification.
+"""Deterministic v0.6 distribution and compatibility verification.
 
 This gate never publishes, contacts a provider, or reads credentials.  It proves
 that the declared API and version match the documentation, that the distributions
@@ -25,7 +25,8 @@ API_V02 = ROOT / "docs" / "public-api-v0.2.txt"
 API_V03 = ROOT / "docs" / "public-api-v0.3.txt"
 API_V04 = ROOT / "docs" / "public-api-v0.4.txt"
 API_V05 = ROOT / "docs" / "public-api-v0.5.txt"
-EXPECTED_VERSION = "0.5.1"
+API_V06 = ROOT / "docs" / "public-api-v0.6.txt"
+EXPECTED_VERSION = "0.6.0"
 ZEOCORE_RANGE = "zeocore>=0.5,<0.6"
 REQUIRED_SCHEMAS = {
     "sovereign_agent/contracts/schemas/capability-manifest.schema.json",
@@ -199,8 +200,8 @@ ExecutionReceipt.from_dict(load_fixture("execution-receipt.valid.json"))
 matrix = load_fixture("compatibility-matrix.json")
 assert matrix["pairs"][0]["sovereign_agent"] == "0.2.0"
 assert matrix["pairs"][0]["zeocore"] is None
-assert matrix["pairs"][1]["sovereign_agent"] == os.environ["SOVEREIGN_EXPECTED_VERSION"]
-assert matrix["pairs"][1]["zeocore"] == ">=0.5,<0.6"
+assert matrix["pairs"][-1]["sovereign_agent"] == os.environ["SOVEREIGN_EXPECTED_VERSION"]
+assert matrix["pairs"][-1]["zeocore"] == ">=0.5,<0.6"
 print(json.dumps({"version": sa.__version__, "exports": len(sa.__all__)}))
 """.lstrip(),
             encoding="utf-8",
@@ -244,17 +245,20 @@ def verify_source() -> None:
     v03 = _manifest(API_V03)
     v04 = _manifest(API_V04)
     v05 = _manifest(API_V05)
+    v06 = _manifest(API_V06)
     assert v02 == sorted(v02), "v0.2 API manifest must be sorted"
     assert v03 == sorted(v03), "v0.3 API manifest must be sorted"
     assert v04 == sorted(v04), "v0.4 API manifest must be sorted"
     assert v05 == sorted(v05), "v0.5 API manifest must be sorted"
+    assert v06 == sorted(v06), "v0.6 API manifest must be sorted"
     assert len(v02) == 67 and len(v02) == len(set(v02))
     assert len(v03) == 152 and len(v03) == len(set(v03))
     assert v03 == v04
     assert len(v05) == 161 and len(v05) == len(set(v05))
+    assert v05 == v06
     assert set(v02) <= set(v03), "v0.3 removed a stable v0.2 symbol"
     assert set(v04) <= set(v05), "v0.5 removed a stable v0.4 symbol"
-    assert _source_exports() == v05, "documented v0.5 API differs from __all__"
+    assert _source_exports() == v06, "documented v0.6 API differs from __all__"
 
     for required in (
         ROOT / "docs" / "migration-v0.2-to-v0.3.md",
@@ -265,11 +269,16 @@ def verify_source() -> None:
         ROOT / "docs" / "release-notes" / "0.4.0.md",
         ROOT / "docs" / "release-notes" / "0.5.0.md",
         ROOT / "docs" / "release-notes" / "0.5.1.md",
+        ROOT / "docs" / "release-notes" / "0.6.0.md",
+        ROOT / "docs" / "migration-v0.5-to-v0.6.md",
         ROOT / "docs" / "roadmap.md",
         ROOT / "docs" / "non-goals.md",
         ROOT / "docs" / "compatibility.md",
         ROOT / "docs" / "teaching-surface.md",
         ROOT / "docs" / "v0.4-operator-guide.md",
+        ROOT / "docs" / "v0.6-operator.md",
+        ROOT / "docs" / "v0.6-soak.md",
+        ROOT / "docs" / "v0.6-unit8-legacy.md",
     ):
         assert required.is_file(), f"missing release document: {required.relative_to(ROOT)}"
 

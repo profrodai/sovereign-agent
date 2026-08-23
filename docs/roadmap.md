@@ -9,9 +9,8 @@ Recorded as of 2026-08-23:
 - v0.4 established governed, durable single-node operation.
 - v0.5.0 is tagged as the ZeoCore capability migration. A git tag is not a
   public release.
-- v0.5.1 is the first truthful public 0.5 line (Python floor, ZeoCore
-  constraint, README, and metadata agree). Do not announce v0.5 as published
-  until that version is visible on PyPI.
+- v0.6.0 is the capability-native single-node default. A git tag is not a
+  public release.
 - ZeoCore owns reusable capability definitions, schemas, guards, effects,
   requirements, concurrency declarations, projections, and invocation records.
 - Sovereign Agent owns runtime commands, admission, approvals, locks,
@@ -67,7 +66,7 @@ authority.
   identity.
 
 The previous supported package pair is **sovereign-agent 0.2.0** (no ZeoCore,
-Python 3.12) versus **sovereign-agent 0.5.1+** (`zeocore>=0.5,<0.6`, Python
+Python 3.12) versus **sovereign-agent 0.6.0** (`zeocore>=0.5,<0.6`, Python
 3.13). That pair is recorded in the shipped fixture
 `compatibility-matrix.json`.
 

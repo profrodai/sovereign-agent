@@ -38,7 +38,7 @@ them with Sovereign runtime commands via `make_session_callable_surface`.
 ```python
 from pydantic import BaseModel
 from zeo_core.contracts import CapabilityResult, EffectKind
-from zeo_core.tools import ToolContext, capability
+from zeo_core.tools import ToolContext, bound_capability_of, capability
 from sovereign_agent import run_task, Config
 
 class WeatherQuery(BaseModel):
@@ -56,7 +56,11 @@ def get_weather(request: WeatherQuery, ctx: ToolContext) -> CapabilityResult:
     )
 
 config = Config.from_env()
-result = run_task("What's the weather in Edinburgh?", config=config)
+result = run_task(
+    "What's the weather in Edinburgh?",
+    config=config,
+    extra_capabilities=[bound_capability_of(get_weather)],
+)
 print(result.summary)
 ```
 

@@ -15,6 +15,10 @@ import asyncio
 import json
 import sys
 
+from pydantic import BaseModel
+from zeo_core.contracts import CapabilityExample, CapabilityResult, EffectKind
+from zeo_core.tools import ToolContext, bound_capability_of, capability
+
 from sovereign_agent._internal.llm_client import (
     FakeLLMClient,
     OpenAICompatibleClient,
@@ -22,13 +26,13 @@ from sovereign_agent._internal.llm_client import (
     ToolCall,
 )
 from sovereign_agent._internal.paths import example_sessions_dir
+from sovereign_agent.capabilities.surface import make_session_callable_surface
 from sovereign_agent.executor import DefaultExecutor
 from sovereign_agent.halves.loop import LoopHalf
 from sovereign_agent.planner import DefaultPlanner
 from sovereign_agent.session.directory import create_session
 from sovereign_agent.tickets.ticket import list_tickets
-from sovereign_agent.tools.builtin import make_builtin_registry
-from sovereign_agent.tools.registry import ToolResult, _RegisteredTool
+from sovereign_agent.tools.registry import ToolRegistry
 
 # ---------------------------------------------------------------------------
 # A mock web_lookup tool — scripted, deterministic, offline
@@ -109,53 +113,48 @@ def _match_fixture(query: str) -> list[dict]:
 _TOOL_CALL_LOG: list[dict] = []
 
 
-def _web_lookup(query: str) -> ToolResult:
-    """Look up papers relevant to the query (scripted fixture for demo)."""
-    hits = _match_fixture(query)
+class WebLookupRequest(BaseModel):
+    query: str
+
+
+class WebLookupResponse(BaseModel):
+    query: str
+    results: list[dict]
+    count: int
+
+
+@capability(
+    id="example.research.web_lookup@1.0.0",
+    description="Look up recent papers matching a topic query.",
+    effects={EffectKind.READ},
+    projection_name="web_lookup",
+    examples=(
+        CapabilityExample(
+            request={"query": "retrieval augmented generation"},
+            response={"query": "retrieval augmented generation", "results": [], "count": 0},
+        ),
+    ),
+)
+def web_lookup(request: WebLookupRequest, ctx: ToolContext) -> CapabilityResult[WebLookupResponse]:
+    hits = _match_fixture(request.query)
     _TOOL_CALL_LOG.append(
         {
-            "query": query,
+            "query": request.query,
             "hit_count": len(hits),
             "arxiv_ids": [p["arxiv"] for p in hits],
             "titles": [p["title"] for p in hits],
         }
     )
-    return ToolResult(
-        success=True,
-        output={"query": query, "results": hits, "count": len(hits)},
-        summary=f"web_lookup({query!r}) → {len(hits)} result(s)",
+    return CapabilityResult.ok(
+        data=WebLookupResponse(query=request.query, results=hits, count=len(hits)),
+        msg=f"web_lookup({request.query!r}) → {len(hits)} result(s)",
     )
 
 
-def _build_tool_registry(session) -> object:
-    """Build a session-scoped tool registry that includes web_lookup on top of builtins."""
-    reg = make_builtin_registry(session)
-    reg.register(
-        _RegisteredTool(
-            name="web_lookup",
-            description="Look up recent papers matching a topic query.",
-            fn=_web_lookup,
-            parameters_schema={
-                "type": "object",
-                "properties": {"query": {"type": "string"}},
-                "required": ["query"],
-            },
-            returns_schema={"type": "object"},
-            is_async=False,
-            error_codes=[],
-            examples=[
-                {
-                    "input": {"query": "retrieval augmented generation"},
-                    "output": {
-                        "query": "retrieval augmented generation",
-                        "results": [],
-                        "count": 0,
-                    },
-                }
-            ],
-        )
-    )
-    return reg
+def _build_surface(session):
+    surface = make_session_callable_surface(session)
+    surface.capabilities.register(bound_capability_of(web_lookup))
+    return surface
 
 
 # ---------------------------------------------------------------------------
@@ -265,9 +264,11 @@ async def run_scenario(topic: str, real: bool) -> None:
             client = _build_fake_client(topic)
             planner_model = executor_model = "fake"
 
-        tools = _build_tool_registry(session)
+        surface = _build_surface(session)
         planner = DefaultPlanner(model=planner_model, client=client)
-        executor = DefaultExecutor(model=executor_model, client=client, tools=tools)  # type: ignore[arg-type]
+        executor = DefaultExecutor(
+            model=executor_model, client=client, tools=ToolRegistry(), callable_surface=surface
+        )
         half = LoopHalf(planner=planner, executor=executor)
 
         result = await half.run(session, {"task": f"research papers on {topic}"})

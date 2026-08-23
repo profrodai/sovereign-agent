@@ -14,6 +14,10 @@ import asyncio
 import json
 import sys
 
+from pydantic import BaseModel, ConfigDict
+from zeo_core.contracts import CapabilityExample, CapabilityResult, EffectKind
+from zeo_core.tools import ToolContext, bound_capability_of, capability
+
 from sovereign_agent._internal.atomic import atomic_write_text
 from sovereign_agent._internal.llm_client import (
     FakeLLMClient,
@@ -22,14 +26,14 @@ from sovereign_agent._internal.llm_client import (
     ToolCall,
 )
 from sovereign_agent._internal.paths import example_sessions_dir
+from sovereign_agent.capabilities.surface import make_session_callable_surface
 from sovereign_agent.executor import DefaultExecutor
 from sovereign_agent.halves.loop import LoopHalf
 from sovereign_agent.halves.structured import Rule, StructuredHalf
 from sovereign_agent.planner import DefaultPlanner
 from sovereign_agent.session.directory import create_session
 from sovereign_agent.tickets.ticket import list_tickets
-from sovereign_agent.tools.builtin import make_builtin_registry
-from sovereign_agent.tools.registry import ToolResult, _RegisteredTool
+from sovereign_agent.tools.registry import ToolRegistry, ToolResult
 
 # ---------------------------------------------------------------------------
 # Fixture: a small curated list of Edinburgh pubs
@@ -113,86 +117,85 @@ def _pub_availability(pub_id: str, party: int, time: str) -> ToolResult:
     )
 
 
-def _build_tool_registry(session) -> object:
-    reg = make_builtin_registry(session)
+class PubSearchRequest(BaseModel):
+    city: str
+    near: str = ""
+    open_now: bool = True
 
-    def pub_search(city: str, near: str = "", open_now: bool = True) -> ToolResult:
-        """Search pubs by city, optionally filtered by area and open-now status."""
-        result = _pub_search(city, near, open_now)
-        _TOOL_CALL_LOG.append(
-            {
-                "tool": "pub_search",
-                "args": {"city": city, "near": near, "open_now": open_now},
-                "pub_ids": [p["id"] for p in result.output.get("results", [])],
-                "pub_names": [p["name"] for p in result.output.get("results", [])],
-            }
-        )
-        return result
 
-    def pub_availability(pub_id: str, party: int, time: str) -> ToolResult:
-        """Check whether a pub can seat a party at a given time."""
-        result = _pub_availability(pub_id, party, time)
-        _TOOL_CALL_LOG.append(
-            {
-                "tool": "pub_availability",
-                "args": {"pub_id": pub_id, "party": party, "time": time},
-                "available": result.output.get("available", False),
-                "pub_name": result.output.get("pub_name"),
-            }
-        )
-        return result
+class PubAvailabilityRequest(BaseModel):
+    pub_id: str
+    party: int
+    time: str
 
-    reg.register(
-        _RegisteredTool(
-            name="pub_search",
-            description="Search pubs by city, area, open-now status.",
-            fn=pub_search,
-            parameters_schema={
-                "type": "object",
-                "properties": {
-                    "city": {"type": "string"},
-                    "near": {"type": "string", "default": ""},
-                    "open_now": {"type": "boolean", "default": True},
-                },
-                "required": ["city"],
+
+class PubOut(BaseModel):
+    model_config = ConfigDict(extra="allow")
+
+
+@capability(
+    id="example.pub.search@1.0.0",
+    description="Search pubs by city, area, open-now status.",
+    effects={EffectKind.READ},
+    projection_name="pub_search",
+    examples=(
+        CapabilityExample(
+            request={"city": "Edinburgh", "near": "Haymarket", "open_now": True},
+            response={"count": 1, "results": [{"id": "haymarket_tap"}]},
+        ),
+    ),
+)
+def pub_search(request: PubSearchRequest, ctx: ToolContext) -> CapabilityResult[PubOut]:
+    result = _pub_search(request.city, request.near, request.open_now)
+    _TOOL_CALL_LOG.append(
+        {
+            "tool": "pub_search",
+            "args": {
+                "city": request.city,
+                "near": request.near,
+                "open_now": request.open_now,
             },
-            returns_schema={"type": "object"},
-            is_async=False,
-            error_codes=[],
-            examples=[
-                {
-                    "input": {"city": "Edinburgh", "near": "Haymarket", "open_now": True},
-                    "output": {"count": 1, "results": [{"id": "haymarket_tap"}]},
-                }
-            ],
-        )
+            "pub_ids": [p["id"] for p in result.output.get("results", [])],
+            "pub_names": [p["name"] for p in result.output.get("results", [])],
+        }
     )
-    reg.register(
-        _RegisteredTool(
-            name="pub_availability",
-            description="Check whether a specific pub can seat a party at a time.",
-            fn=pub_availability,
-            parameters_schema={
-                "type": "object",
-                "properties": {
-                    "pub_id": {"type": "string"},
-                    "party": {"type": "integer"},
-                    "time": {"type": "string"},
-                },
-                "required": ["pub_id", "party", "time"],
-            },
-            returns_schema={"type": "object"},
-            is_async=False,
-            error_codes=[],
-            examples=[
-                {
-                    "input": {"pub_id": "haymarket_tap", "party": 4, "time": "19:30"},
-                    "output": {"available": True, "seats_reported": 12},
-                }
-            ],
-        )
+    if not result.success:
+        return CapabilityResult.fail(msg=result.summary)
+    return CapabilityResult.ok(data=PubOut.model_validate(result.output), msg=result.summary)
+
+
+@capability(
+    id="example.pub.availability@1.0.0",
+    description="Check whether a specific pub can seat a party at a time.",
+    effects={EffectKind.READ},
+    projection_name="pub_availability",
+    examples=(
+        CapabilityExample(
+            request={"pub_id": "haymarket_tap", "party": 4, "time": "19:30"},
+            response={"available": True, "seats_reported": 12},
+        ),
+    ),
+)
+def pub_availability(request: PubAvailabilityRequest, ctx: ToolContext) -> CapabilityResult[PubOut]:
+    result = _pub_availability(request.pub_id, request.party, request.time)
+    _TOOL_CALL_LOG.append(
+        {
+            "tool": "pub_availability",
+            "args": {"pub_id": request.pub_id, "party": request.party, "time": request.time},
+            "available": result.output.get("available", False),
+            "pub_name": result.output.get("pub_name"),
+        }
     )
-    return reg
+    if not result.success:
+        return CapabilityResult.fail(msg=result.summary)
+    return CapabilityResult.ok(data=PubOut.model_validate(result.output), msg=result.summary)
+
+
+def _build_surface(session):
+    surface = make_session_callable_surface(session)
+    surface.capabilities.register(bound_capability_of(pub_search))
+    surface.capabilities.register(bound_capability_of(pub_availability))
+    return surface
 
 
 # ---------------------------------------------------------------------------
@@ -333,10 +336,12 @@ async def run_scenario(real: bool, party: int = 4) -> None:
             planner_model = executor_model = "fake"
 
         # ---- Loop half (research) ---------------------------------------
-        tools = _build_tool_registry(session)
+        surface = _build_surface(session)
         loop_half = LoopHalf(
             planner=DefaultPlanner(model=planner_model, client=client),
-            executor=DefaultExecutor(model=executor_model, client=client, tools=tools),  # type: ignore[arg-type]
+            executor=DefaultExecutor(
+                model=executor_model, client=client, tools=ToolRegistry(), callable_surface=surface
+            ),
         )
         loop_result = await loop_half.run(
             session, {"task": "find and confirm an Edinburgh pub near Haymarket"}

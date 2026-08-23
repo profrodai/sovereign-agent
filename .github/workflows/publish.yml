@@ -25,11 +25,11 @@ name: publish
 #
 # Release flow:
 #   make ready-to-ship                   # local truth gate (no publish)
-#   git tag v0.5.1 && git push origin v0.5.1
+#   git tag v0.6.0 && git push origin v0.6.0
 #   → GitHub Actions runs this workflow
 #   → Builds wheel + sdist, verifies they install
 #   → Publishes to the appropriate index
-#   make verify-pypi VERSION=0.5.1       # live PyPI JSON + README + provenance
+#   make verify-pypi VERSION=0.6.0       # live PyPI JSON + README + provenance
 #
 # A git tag is not a public release until verify-pypi succeeds.
 

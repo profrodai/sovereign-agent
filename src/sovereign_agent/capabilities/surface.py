@@ -13,12 +13,14 @@ from sovereign_agent.capabilities.catalog import (
     openai_tools_from_registry,
 )
 from sovereign_agent.capabilities.commands import RuntimeCommandRegistry, bind_session_commands
+from sovereign_agent.capabilities.legacy import registered_tool_to_bound
 from sovereign_agent.capabilities.session_fs import (
     SessionFilesystem,
     bind_session_file_capabilities,
 )
 from sovereign_agent.contracts import FrozenDict, RuntimeCapabilityManifest
 from sovereign_agent.session.directory import Session
+from sovereign_agent.tools.registry import ToolRegistry
 
 
 @dataclass
@@ -41,10 +43,22 @@ class CallableSurface:
         return freeze_catalog(self.capabilities, extra_names=self.commands.names())
 
 
-def make_session_callable_surface(session: Session) -> CallableSurface:
+def make_session_callable_surface(
+    session: Session,
+    extra_tools: ToolRegistry | None = None,
+) -> CallableSurface:
     registry = CapabilityRegistry()
+    command_names = bind_session_commands(session).names()
     for bound in bind_session_file_capabilities():
         registry.register(bound)
+    if extra_tools is not None:
+        reserved = set(command_names)
+        for bound in registry.list_all():
+            reserved.add(bound.definition.projection_name or bound.definition.id.name)
+        for tool in extra_tools.list():
+            if tool.name in reserved:
+                continue
+            registry.register(registered_tool_to_bound(tool))
     return CallableSurface(capabilities=registry, commands=bind_session_commands(session))
 
 

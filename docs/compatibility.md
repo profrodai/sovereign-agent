@@ -39,7 +39,20 @@ Shipped as `sovereign_agent/contracts/fixtures/compatibility-matrix.json`:
 | sovereign-agent | ZeoCore | Python |
 |---|---|---|
 | 0.2.0 (previous public PyPI line) | none | 3.12+ as published |
-| 0.5.1+ (current public 0.5 line) | `>=0.5,<0.6` | 3.13+ |
+| 0.5.1 (truthful public 0.5 line) | `>=0.5,<0.6` | 3.13+ |
+| 0.6.0 (capability-native default) | `>=0.5,<0.6` | 3.13+ |
+
+## Sovereign-owned extensions
+
+These are not ZeoCore types and are never monkey-patched into ZeoCore:
+
+- runtime commands (`complete_task`, `handoff_to_structured`, `abort_execution`, `session_status`)
+- admission and `ExecutionScope`
+- durable capability approvals
+- durable concurrency leases (ZeoCore declares mode; Sovereign acquires)
+- frozen per-execution catalog persistence
+- append-only invocation evidence linked from receipts
+- `invoke_cancellable` / `invoke_capability` until upstream stops swallowing `CancelledError`
 
 v0.4 was a git-line capability, not a public PyPI replacement for 0.2.0.
-The matrix records the last *published* pair, not every git tag.
+The matrix records published pairs plus the current line.

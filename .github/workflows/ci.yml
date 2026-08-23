@@ -65,6 +65,9 @@ jobs:
       - name: Pytest
         run: pytest -v --tb=short
 
+      - name: Compressed single-node soak
+        run: python scripts/soak_single_node.py --runtime "$RUNNER_TEMP/soak"
+
   host-capabilities:
     name: Host capabilities (${{ matrix.os }})
     runs-on: ${{ matrix.os }}
@@ -87,6 +90,7 @@ jobs:
           tests/unit/test_worker_lifecycle.py
           tests/relay/test_registry_relay.py
           tests/release/test_release_contract.py
+          tests/capabilities
       - name: Exercise real Unix socket transport
         if: runner.os != 'Windows'
         run: python -m pytest -q tests/test_channels_cli.py tests/test_channels_integration.py

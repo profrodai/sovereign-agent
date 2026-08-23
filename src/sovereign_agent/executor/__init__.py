@@ -15,7 +15,10 @@ from typing import Protocol, runtime_checkable
 
 from sovereign_agent._internal.atomic import atomic_write_json, compute_sha256
 from sovereign_agent._internal.llm_client import ChatMessage, LLMClient, ToolCall
+from sovereign_agent.capabilities.approval import ApprovalPolicy
+from sovereign_agent.capabilities.catalog import CatalogMismatch, bind_session_catalog
 from sovereign_agent.capabilities.legacy import arguments_digest
+from sovereign_agent.capabilities.locks import ConcurrencyGate, LockOwnership
 from sovereign_agent.capabilities.surface import CallableSurface
 from sovereign_agent.discovery import DiscoverySchema
 from sovereign_agent.errors import SovereignError, wrap_unexpected
@@ -99,11 +102,15 @@ class DefaultExecutor:
         parallelism_policy: str = PARALLELISM_POLICY_DEFAULT,
         callable_surface: CallableSurface | None = None,
         allow_unsafe_parallelism: bool = False,
+        require_approval_for_mutations: bool = False,
+        approval_policy: ApprovalPolicy | None = None,
     ) -> None:
         self.model = model
         self.client = client
         self.tools = tools
         self.callable_surface = callable_surface
+        self.require_approval_for_mutations = require_approval_for_mutations
+        self.approval_policy = approval_policy
         self.system_prompt = system_prompt or _DEFAULT_EXECUTOR_SYSTEM
         if parallelism_policy == PARALLELISM_POLICY_ALWAYS and not allow_unsafe_parallelism:
             raise ValueError(
@@ -539,8 +546,26 @@ async def _invoke_surface(
         session_execution_services,
     )
 
-    catalog = surface.freeze()
-    cap_executor = CapabilityExecutor(surface.capabilities, catalog=catalog)
+    try:
+        catalog = bind_session_catalog(session.directory, surface.freeze())
+    except CatalogMismatch as exc:
+        return {
+            "success": False,
+            "output": {},
+            "summary": str(exc),
+            "code": "SA_CATALOG_MISMATCH",
+            "outcome": "refused",
+            "requires_human_approval": False,
+        }
+    cap_executor = CapabilityExecutor(
+        surface.capabilities,
+        catalog=catalog,
+        approval_policy=executor.approval_policy or ApprovalPolicy(),
+        gate=ConcurrencyGate(
+            session.directory / "capabilities" / "locks",
+            ownership=LockOwnership(session=session.session_id),
+        ),
+    )
     scope = ExecutionScope(
         id=session.session_id,
         work_dir=session.workspace_dir if hasattr(session, "workspace_dir") else session.directory,
@@ -548,6 +573,8 @@ async def _invoke_surface(
         runtime_manifest=empty_runtime_manifest(),
         services=session_execution_services(session),
         catalog_digest=catalog.digest,
+        session=session,
+        require_approval_for_mutations=executor.require_approval_for_mutations,
     )
     try:
         invoked = await cap_executor.invoke(execution=scope, provider_call=tc)

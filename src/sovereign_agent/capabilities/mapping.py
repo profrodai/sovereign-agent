@@ -27,7 +27,7 @@ def capability_result_to_tool_dict(result: CapabilityResult) -> dict[str, Any]:
         "success": success,
         "output": output,
         "summary": result.human_message or result.machine_message or "",
-        "requires_human_approval": False,
+        "requires_human_approval": bool((result.metadata or {}).get("requires_human_approval")),
         "outcome": None if result.outcome is None else result.outcome.value,
         "code": result.machine_message,
     }

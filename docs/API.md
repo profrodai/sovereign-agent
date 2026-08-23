@@ -2,15 +2,16 @@
 
 **Applies from:** v0.2.0 onwards.
 **Contract version:** 2.
-**Current release surface:** v0.5.1, 161 symbols (v0.4 surface preserved plus
-nine capability-adapter names). Python 3.13+; `zeocore>=0.5,<0.6`.
+**Current release surface:** v0.6.0, 161 symbols (v0.5 surface preserved).
+Python 3.13+; `zeocore>=0.5,<0.6`.
 
 The exact, machine-checked contracts are
 [`public-api-v0.2.txt`](public-api-v0.2.txt),
 [`public-api-v0.3.txt`](public-api-v0.3.txt),
-[`public-api-v0.4.txt`](public-api-v0.4.txt), and
-[`public-api-v0.5.txt`](public-api-v0.5.txt). The release gate compares the
-v0.5 manifest with `sovereign_agent.__all__` and proves that every earlier
+[`public-api-v0.4.txt`](public-api-v0.4.txt),
+[`public-api-v0.5.txt`](public-api-v0.5.txt), and
+[`public-api-v0.6.txt`](public-api-v0.6.txt). The release gate compares the
+v0.6 manifest with `sovereign_agent.__all__` and proves that every earlier
 stable symbol is retained.
 
 This document specifies which parts of sovereign-agent are covered by the
@@ -178,22 +179,23 @@ Examples of what would stay on the minor:
 
 ## What this means for dependent projects
 
-If you `pip install sovereign-agent ~= 0.5.1` (the recommended pin for the
+If you `pip install sovereign-agent ~= 0.6.0` (the recommended pin for the
 current public line), you will:
 
-- Receive every `0.5.x` bug-fix release automatically
-- Never receive `0.6.0` or later (which may have breaking changes)
-- Be safe to run your CI against the latest `0.5.x`
+- Receive every `0.6.x` bug-fix release automatically
+- Never receive `0.7.0` or later (which may have breaking changes)
+- Be safe to run your CI against the latest `0.6.x`
 
-The previous published pair is `sovereign-agent == 0.2.0` with no ZeoCore
-dependency. See [compatibility.md](compatibility.md).
+The previous published pairs include `sovereign-agent == 0.2.0` (no ZeoCore)
+and `sovereign-agent == 0.5.1` (`zeocore>=0.5,<0.6`). See
+[compatibility.md](compatibility.md).
 
-If you pin `sovereign-agent == 0.5.1` exactly, you will:
+If you pin `sovereign-agent == 0.6.0` exactly, you will:
 
 - Receive no updates
 - Manually opt into bug fixes by bumping
 
-Most users should use `~= 0.5.1`. The five-chapter v0.2 curriculum may keep an
+Most users should use `~= 0.6.0`. The five-chapter v0.2 curriculum may keep an
 exact v0.2 pin when reproducing that historical teaching surface.
 
 ---

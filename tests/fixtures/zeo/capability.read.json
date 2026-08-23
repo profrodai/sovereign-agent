@@ -1,0 +1,8 @@
+{
+  "id": "sovereign.session.file.read@1.0.0",
+  "projection_name": "read_file",
+  "request_schema": {"type": "object", "properties": {"path": {"type": "string"}}, "required": ["path"]},
+  "effects": {"kinds": ["read"], "concurrency": "parallel_safe"},
+  "requirements": {"filesystem": {"read": true, "roles": ["workspace"]}},
+  "cancellation": {"propagates": ["CancelledError", "KeyboardInterrupt", "SystemExit"]}
+}

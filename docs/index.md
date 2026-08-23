@@ -35,7 +35,7 @@ The core idea: the agent's **session directory is the unit of everything**. Memo
 
 ## Status
 
-Alpha. The declared package and documentation version is **0.5.1**. Python
+Alpha. The declared package and documentation version is **0.6.0**. Python
 3.13 is the floor and `zeocore>=0.5,<0.6` is required. Reusable actions are
 ZeoCore capabilities; runtime commands stay in Sovereign Agent. A git tag is
 not a public release — see [the roadmap](roadmap.md).

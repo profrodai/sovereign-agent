@@ -6,9 +6,13 @@ Repository: [`zeroemployeeorg/sovereign-agent`](https://github.com/zeroemployeeo
 
 ## Unreleased
 
-v0.6 remaining work after the 0.5.1 public line: keep ZeoCore as the default
-authoring path, keep the compatibility matrix green, and close each later
-release only after the packaging-truth gate. Fleet scope stays in v0.7.
+## [0.6.0] — 2026-08-23
+
+Capability-native single-node default. `run_task` projects ZeoCore capabilities
+and Sovereign runtime commands through a frozen per-execution catalog.
+Approvals, durable concurrency leases, and invocation evidence survive restart.
+`@register_tool` remains compatibility-only through 2027-02-23. Fleet work
+stays in v0.7. A git tag is not a public release until `make verify-pypi`.
 
 ## [0.5.1] — 2026-08-23
 

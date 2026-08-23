@@ -336,7 +336,7 @@ examples: ## Run every example scenario (offline)
 	@printf "$(DIM)%s$(RESET)\n" "$(SUBRULE)"
 	@for ex in research_assistant code_reviewer pub_booking \
 	            parallel_research isolated_worker session_resume_chain \
-	            classifier_rule hitl_deposit; do \
+	            classifier_rule hitl_deposit capability_receipt; do \
 		printf "  $(CYAN)▸$(RESET) $$ex  "; \
 		if $(PY) -m examples.$$ex.run > /dev/null 2>&1; then \
 			printf "$(GREEN)ok$(RESET)\n"; \
@@ -564,9 +564,19 @@ release-verify: ci docs-strict build ## Prove API, package content, fixtures, an
 		--wheel $$(ls dist/sovereign_agent-*.whl) \
 		--sdist $$(ls dist/sovereign_agent-*.tar.gz)
 
+.PHONY: verify-installed
+verify-installed: build ## Build wheel/sdist and prove a clean install without the checkout
+	@$(PY) scripts/verify_release.py \
+		--wheel $$(ls dist/sovereign_agent-*.whl) \
+		--sdist $$(ls dist/sovereign_agent-*.tar.gz)
+
+.PHONY: soak-compressed
+soak-compressed: ## Compressed single-node soak (restart/approval/capability)
+	@$(PY) scripts/soak_single_node.py --runtime $(TRANSIENT_DIR)/soak
+
 .PHONY: verify-pypi
 verify-pypi: ## Post-publish packaging-truth check against the live PyPI JSON API
-	@$(PY) scripts/verify_pypi_release.py --version $${VERSION:-0.5.1}
+	@$(PY) scripts/verify_pypi_release.py --version $${VERSION:-0.6.0}
 
 .PHONY: build
 build: ## Build wheel + sdist into dist/ via uv build
