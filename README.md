@@ -27,22 +27,39 @@ Reusable actions are ZeoCore capabilities (`@capability`). Session control
 still works during the compatibility window and is deprecated.
 
 ```python
-from sovereign_agent import run_task, register_tool
+from pydantic import BaseModel
+from zeo_core.contracts import CapabilityResult, EffectKind
+from zeo_core.tools import ToolContext, capability
+from sovereign_agent import run_task
 
-@register_tool
-def get_weather(city: str) -> dict:
-    """Look up current weather for a city."""
-    return {"city": city, "temperature": 18, "condition": "rainy"}
+class WeatherQuery(BaseModel):
+    city: str
+
+@capability(
+    id="demo.weather.get@1.0.0",
+    description="Look up current weather for a city.",
+    effects={EffectKind.READ},
+)
+def get_weather(request: WeatherQuery, ctx: ToolContext) -> CapabilityResult:
+    return CapabilityResult.ok(
+        data={"city": request.city, "temperature": 18, "condition": "rainy"},
+        msg="ok",
+    )
 
 result = run_task("What's the weather in Edinburgh?")
 print(result.summary)
 # → "Weather in Edinburgh: 18°C, rainy."
 ```
 
-The agent ran a planner, called `get_weather`, wrote a trace, and saved every artifact to `sessions/sess_<id>/`. Inspect it with `ls -R sessions/sess_<id>`. That's not a metaphor — it's how you debug this system.
+The agent ran a planner, called into the callable surface, wrote a trace, and
+saved every artifact to `sessions/sess_<id>/`. Inspect it with
+`ls -R sessions/sess_<id>`. That's not a metaphor — it's how you debug this
+system.
 
-See [v0.5 Unit 4](docs/v0.5-unit4-builtins.md) for session filesystem capabilities
-(`read_file` / `write_file` / `list_files`) and runtime commands.
+`run_task` still accepts deprecated `@register_tool` helpers. New reusable
+actions should be ZeoCore capabilities. See [v0.5 Unit 4](docs/v0.5-unit4-builtins.md)
+for session filesystem capabilities (`read_file` / `write_file` / `list_files`)
+and runtime commands.
 
 ---
 
@@ -112,7 +129,7 @@ Development tooling lives in the PEP 735 `dev` dependency *group*, not an extra 
 so it is `uv sync --group dev` (or `pip install -e . --group dev`), not
 `pip install "sovereign-agent[dev]"`.
 
-Requires Python 3.13+.
+Requires Python 3.13+. `zeocore>=0.5,<0.6` is a required dependency.
 
 **Docker is not available.** There is a `docker` extra, but it only installs the
 Docker SDK; `DockerWorker` is a stub that raises `NotImplementedError` on
@@ -361,10 +378,13 @@ Override via `SOVEREIGN_AGENT_DATA_DIR=<path>`.
 
 ## Status
 
-**v0.4.0.** The package still exports **152** symbols in
-`sovereign_agent.__all__` (the v0.3 surface, preserved). v0.4 adds a
-governed-connectivity service as importable subpackages. See
-[`docs/API.md`](docs/API.md) and [`docs/v0.4-operator-guide.md`](docs/v0.4-operator-guide.md).
+**v0.5.1.** The package exports **161** symbols in `sovereign_agent.__all__`
+(the 152-symbol v0.4 surface plus nine capability-adapter names). Python 3.13
+is the floor; `zeocore>=0.5,<0.6` is required. Git tag `v0.5.0` is the
+capability-migration snapshot and is not moved. A git tag is not a public
+release — announce v0.5 as published only after this version is on PyPI.
+See [`docs/API.md`](docs/API.md), [`docs/roadmap.md`](docs/roadmap.md), and
+[`docs/v0.4-operator-guide.md`](docs/v0.4-operator-guide.md).
 
 - ✅ Framework: sessions, tickets, IPC, parallelism, isolation, resume, verifiers, HITL
 - ✅ 522 tests collected — 519 pass, 3 opt-in/platform skips
@@ -388,9 +408,10 @@ It's not trying to replace Claude Code for daily coding or LangGraph for orchest
 
 If you want an agent you can own, audit, reproduce, teach, and — crucially — understand at the bottom of the stack, this is probably the smallest codebase in the world that gives you all five.
 
-For what v0.3 specifically will *not* attempt, see
+For what this series will *not* attempt through v0.7, see
+[`docs/non-goals.md`](docs/non-goals.md) and
 [`docs/v0.3-non-goals.md`](docs/v0.3-non-goals.md). Those are commitments, not
-moods.
+moods. The public sequence is [`docs/roadmap.md`](docs/roadmap.md).
 
 ---
 
@@ -401,7 +422,9 @@ chain for the work done on it. There is no Statement of Work, no SOW directory,
 and no filing chain in this tree, and there never should be:
 
 - **`work_repo`** — this repository. Code that genuinely collides, so changes
-  land on branches and get merged through pull requests.
+  land on branches and get merged through pull requests. The public sequence is
+  [`docs/roadmap.md`](docs/roadmap.md); binding authorization stays in the
+  corpus.
 - **`sow_repo`** — a separate corpus repository, elsewhere. Where work is
   scoped and reported.
 
@@ -415,10 +438,12 @@ the [architecture doc](docs/architecture.md), and the
 ## Learn more
 
 - 📖 [**`docs/architecture.md`**](docs/architecture.md) — the architectural decisions in detail
-- 🧭 [**`chapters/`**](chapters/) — rebuild the framework yourself in 5 runnable chapters
+- 🧭 [**`docs/roadmap.md`**](docs/roadmap.md) — post-v0.5 sequence (v0.6 correctness, v0.7 fleet)
+- 🚫 [**`docs/non-goals.md`**](docs/non-goals.md) — durable refusals through v0.7
+- 🧭 [**`chapters/`**](chapters/) — rebuild the v0.2 substrate yourself in 5 runnable chapters
 - 🧪 [**`examples/`**](examples/) — 8 reference scenarios, each with a dataflow integrity audit
 - 📋 [**`docs/API.md`**](docs/API.md) — semver contract for the public symbols
-- 🚫 [**`docs/v0.3-non-goals.md`**](docs/v0.3-non-goals.md) — what v0.3 will not do
+- 🚫 [**`docs/v0.3-non-goals.md`**](docs/v0.3-non-goals.md) — historical v0.3 refusals that still hold
 - 🌿 [**`docs/branch-consolidation-2026-08-22.md`**](docs/branch-consolidation-2026-08-22.md) — how the pre-v0.3 branches landed
 - 📝 [**`CHANGELOG.md`**](CHANGELOG.md) — what shipped and when
 

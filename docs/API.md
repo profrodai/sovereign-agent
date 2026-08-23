@@ -2,13 +2,16 @@
 
 **Applies from:** v0.2.0 onwards.
 **Contract version:** 2.
-**Current release surface:** v0.4.0, 152 symbols (v0.3 surface preserved).
+**Current release surface:** v0.5.1, 161 symbols (v0.4 surface preserved plus
+nine capability-adapter names). Python 3.13+; `zeocore>=0.5,<0.6`.
 
 The exact, machine-checked contracts are
-[`public-api-v0.2.txt`](public-api-v0.2.txt) and
-[`public-api-v0.3.txt`](public-api-v0.3.txt). The release gate compares the
-v0.3 manifest with `sovereign_agent.__all__` and proves that every v0.2 symbol
-is retained.
+[`public-api-v0.2.txt`](public-api-v0.2.txt),
+[`public-api-v0.3.txt`](public-api-v0.3.txt),
+[`public-api-v0.4.txt`](public-api-v0.4.txt), and
+[`public-api-v0.5.txt`](public-api-v0.5.txt). The release gate compares the
+v0.5 manifest with `sovereign_agent.__all__` and proves that every earlier
+stable symbol is retained.
 
 This document specifies which parts of sovereign-agent are covered by the
 [semver](https://semver.org/) contract, what "breaking change" means in this
@@ -93,7 +96,6 @@ Category | Symbols
 **Scheduler** | `DriftCorrectedScheduler`, `ScheduledTask`
 **Session** | `Session`, `SessionState`, `create_session`, `load_session`, `list_sessions`, `archive_session`
 **Tickets** | `Ticket`, `TicketResult`, `TicketState`, `Manifest`, `OutputRecord`, `create_ticket`, `list_tickets`
-**Capabilities** (v0.5) | `CallableSurface`, `CapabilityContextFactory`, `CapabilityExecutor`, `RuntimeCommandRegistry`, `ApprovalDisposition`, `make_session_callable_surface`, `RuntimeCapabilityAssertion`, `RuntimeCapabilityManifest`
 **Tools** | `ToolRegistry`, `ToolResult`, `register_tool`, `global_registry`, `make_builtin_registry`
 **Queue** | `SessionQueue`, `TaskPriority`
 **Meta** | `__version__`
@@ -119,6 +121,16 @@ Category | Symbols
 refuses during lifecycle preparation and its legacy `run_session()` raises
 `NotImplementedError`. See
 [v0.3 non-goals](v0.3-non-goals.md).
+
+## The 9 v0.5 additions
+
+These entered the public contract in v0.5.0. They are stable within the v0.5
+series under the same rules. `@register_tool` remains public and deprecated.
+
+Category | Symbols
+---|---
+**Capabilities** | `CallableSurface`, `CapabilityContextFactory`, `CapabilityExecutor`, `RuntimeCommandRegistry`, `ApprovalDisposition`, `make_session_callable_surface`, `RuntimeCapabilityAssertion`, `RuntimeCapabilityManifest`
+**Providers** | `ProviderToolResultEvent`
 
 ### Imported but not exported
 
@@ -166,26 +178,29 @@ Examples of what would stay on the minor:
 
 ## What this means for dependent projects
 
-If you `pip install sovereign-agent ~= 0.3.0` (the recommended pin for
-downstream projects), you will:
+If you `pip install sovereign-agent ~= 0.5.1` (the recommended pin for the
+current public line), you will:
 
-- Receive every `0.3.x` bug-fix release automatically
-- Never receive `0.4.0` or later (which may have breaking changes)
-- Be safe to run your CI against the latest `0.3.x`
+- Receive every `0.5.x` bug-fix release automatically
+- Never receive `0.6.0` or later (which may have breaking changes)
+- Be safe to run your CI against the latest `0.5.x`
 
-If you pin `sovereign-agent == 0.3.0` exactly, you will:
+The previous published pair is `sovereign-agent == 0.2.0` with no ZeoCore
+dependency. See [compatibility.md](compatibility.md).
+
+If you pin `sovereign-agent == 0.5.1` exactly, you will:
 
 - Receive no updates
 - Manually opt into bug fixes by bumping
 
-Most users should use `~= 0.3.0`. The five-chapter v0.2 curriculum may keep an
+Most users should use `~= 0.5.1`. The five-chapter v0.2 curriculum may keep an
 exact v0.2 pin when reproducing that historical teaching surface.
 
 ---
 
 ## Deprecation policy
 
-v0.3.0 deprecates no public symbols. When a public symbol is to be removed:
+v0.5 deprecates `@register_tool` but does not remove it. When a public symbol is to be removed:
 
 1. A `DeprecationWarning` is added, pointing to the replacement.
 2. The symbol is documented as deprecated in `CHANGELOG.md`.

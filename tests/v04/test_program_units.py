@@ -224,9 +224,9 @@ def test_plugins_allowlist_and_incompatible_do_not_block_optional(tmp_path: Path
             return plugin
 
     points = [
-        Point("blocked-side-effect", ">=0.4,<0.5"),
-        Point("ok-plugin", ">=0.4,<0.5"),
-        Point("old-plugin", ">=0.3,<0.4"),
+        Point("blocked-side-effect", ">=0.5,<0.6"),
+        Point("ok-plugin", ">=0.5,<0.6"),
+        Point("old-plugin", ">=0.4,<0.5"),
     ]
     registry = Registry(kind_filter="channel")
     loader = PluginLoader(

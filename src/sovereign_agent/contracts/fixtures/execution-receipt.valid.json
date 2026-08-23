@@ -1,0 +1,36 @@
+{
+  "schema_version": "1.0",
+  "execution_id": "execution-01",
+  "invocation_id": "invocation-01",
+  "status": "succeeded",
+  "started_at": "2026-08-22T12:00:00Z",
+  "completed_at": "2026-08-22T12:00:02Z",
+  "result": {
+    "summary": "ok"
+  },
+  "error": null,
+  "evidence": {
+    "verification": true
+  },
+  "evidence_sha256": "c897748126716dcf5e75ca02f2f8522fa6e0f7262dc92485d044f7c22c9482f9",
+  "supersedes_sha256": null,
+  "correction_sequence": 0,
+  "termination": "completed",
+  "predecessor_execution_id": null,
+  "seat_type": null,
+  "seat_instance": null,
+  "sovereign_session": null,
+  "provider": null,
+  "provider_session": null,
+  "worker_backend": null,
+  "capability_manifest_ref": null,
+  "completion_signal_seen": null,
+  "structured_result_valid": null,
+  "technical_verification_valid": null,
+  "dataflow_integrity_valid": null,
+  "repository": null,
+  "verification": [],
+  "usage": null,
+  "artifact_refs": [],
+  "warnings": []
+}

@@ -1,4 +1,5 @@
-# Contract fixtures exchanged as files, never as Python imports.
+# Contract fixtures exchanged as files, never as Python imports between packages.
 
-Valid `GovernedExecutionRequest` JSON is produced in tests from the public
-schema shipped in `sovereign_agent.contracts.schemas`.
+Shipped wheel fixtures live in `sovereign_agent.contracts.fixtures` and must
+run from an installed environment without this checkout. Test-only provider
+transcripts remain under `tests/fixtures/providers/`.

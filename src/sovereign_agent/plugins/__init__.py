@@ -43,8 +43,16 @@ class PluginManifest:
         )
 
 
-def api_range_compatible(spec: str, version: str = "0.4.0") -> bool:
+def _package_version() -> str:
+    from sovereign_agent import __version__
+
+    return __version__
+
+
+def api_range_compatible(spec: str, version: str | None = None) -> bool:
     """Accept simple '>=X,<Y' ranges without a packaging dependency."""
+    if version is None:
+        version = _package_version()
     parts = [item.strip() for item in spec.split(",") if item.strip()]
     ver = _parse(version)
     for part in parts:
@@ -69,13 +77,13 @@ class PluginLoader:
         registry: Registry[Any],
         *,
         allowlist: Iterable[str] = (),
-        current_api: str = "0.4.0",
+        current_api: str | None = None,
         entry_points: Callable[[], Iterable[Any]] | None = None,
         setup_timeout: float = 5.0,
     ) -> None:
         self.registry = registry
         self.allowlist = set(allowlist)
-        self.current_api = current_api
+        self.current_api = current_api or _package_version()
         self._entry_points = entry_points or (
             lambda: importlib.metadata.entry_points().select(group="sovereign_agent.plugins")
         )
@@ -100,7 +108,7 @@ class PluginLoader:
                     "kind": attrs.get("kind", "channel"),
                     "package": package,
                     "package_version": version,
-                    "api_range": attrs.get("api_range", ">=0.4,<0.5"),
+                    "api_range": attrs.get("api_range", ">=0.5,<0.6"),
                     "capabilities": attrs.get("capabilities", ()),
                     "required": attrs.get("required", False),
                     "module": getattr(point, "value", ""),

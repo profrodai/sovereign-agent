@@ -8,8 +8,12 @@ The scenario is deliberately offline. The `web_lookup` tool returns scripted res
 
 It exercises the parts of sovereign-agent a new user is most likely to reach for:
 
-- Registering a custom tool with `@register_tool` (auto-generated discovery schema from the function signature).
-- Running the full loop half: planner produces subgoals, executor makes tool calls, eventually calls `write_file` and `complete_task`.
+- Authoring a reusable action as a ZeoCore `@capability` (canonical capability
+  ID, effects, typed request). The in-tree runner still uses a scripted
+  lookup for determinism; new work should follow the capability path, not
+  `@register_tool`.
+- Running the full loop half: planner produces subgoals, executor makes tool
+  calls, eventually calls `write_file` and `complete_task`.
 - Producing an auditable session directory with verified manifests on every ticket.
 
 ## Run

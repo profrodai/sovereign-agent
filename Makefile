@@ -140,10 +140,11 @@ help: ## Show this help with typical workflows and every target
 	@printf "      $(DIM)·$(RESET)  $(CYAN)make flatten$(RESET)                bundle repo into $(BOLD)$(FLATTEN_DIR)/$(RESET) for pasting\n"
 	@printf "      $(DIM)·$(RESET)  $(CYAN)make flatten SCOPE=$(PKG_DIR)$(RESET)  flatten only the package source\n"
 	@printf "\n"
-	@printf "  $(BOLD)◆ Ship to PyPI$(RESET) $(DIM)(first-time release workflow)$(RESET)\n"
+	@printf "  $(BOLD)◆ Ship to PyPI$(RESET) $(DIM)(git tag is not a public release)$(RESET)\n"
 	@printf "      $(DIM)1$(RESET)  $(CYAN)make pre-publish$(RESET)            audit for secrets, PII, forbidden files\n"
 	@printf "      $(DIM)2$(RESET)  $(CYAN)make ready-to-ship$(RESET)          preflight + pre-publish + build in one shot\n"
-	@printf "      $(DIM)3$(RESET)  $(DIM)git tag v0.3.0 && git push origin v0.3.0$(RESET)   triggers publish.yml\n"
+	@printf "      $(DIM)3$(RESET)  $(DIM)git tag v0.5.1 && git push origin v0.5.1$(RESET)   triggers publish.yml\n"
+	@printf "      $(DIM)4$(RESET)  $(CYAN)make verify-pypi$(RESET)            live PyPI JSON + provenance + README truth\n"
 	@printf "      $(DIM)·$(RESET)  $(CYAN)make build$(RESET)                  $(DIM)uv build$(RESET) wheel+sdist locally\n"
 	@printf "      $(DIM)·$(RESET)  $(CYAN)make publish-test$(RESET)           $(DIM)uv publish$(RESET) to TestPyPI (manual)\n"
 	@printf "      $(DIM)·$(RESET)  $(CYAN)make bundle$(RESET)                 tar the repo to $(BOLD)$(BUNDLE_DIR)/$(RESET)\n"
@@ -552,15 +553,20 @@ fault-inject-v04: ## v0.4 crash/restart/backup/restore fault injection
 	@$(PYTEST) tests/v04 -q --tb=short
 
 .PHONY: ready-to-ship
-ready-to-ship: preflight pre-publish release-verify fault-inject-v04 ## Deterministic, non-publishing v0.4 release proof
+ready-to-ship: preflight pre-publish release-verify fault-inject-v04 ## Deterministic, non-publishing release proof
 	@printf "\n$(GREEN)✓$(RESET) $(BOLD)Ready to ship.$(RESET)\n"
-	@printf "  $(DIM)No publish, tag, push, live provider, or credential action was performed.$(RESET)\n\n"
+	@printf "  $(DIM)No publish, tag, push, live provider, or credential action was performed.$(RESET)\n"
+	@printf "  $(DIM)A git tag is not a public release. After Trusted Publisher upload, run $(RESET)$(CYAN)make verify-pypi$(RESET)$(DIM).$(RESET)\n\n"
 
 .PHONY: release-verify
-release-verify: ci docs-strict build ## Prove API, package content, and clean core install
+release-verify: ci docs-strict build ## Prove API, package content, fixtures, and clean core install
 	@$(PY) scripts/verify_release.py \
-		--wheel dist/sovereign_agent-0.4.0-py3-none-any.whl \
-		--sdist dist/sovereign_agent-0.4.0.tar.gz
+		--wheel $$(ls dist/sovereign_agent-*.whl) \
+		--sdist $$(ls dist/sovereign_agent-*.tar.gz)
+
+.PHONY: verify-pypi
+verify-pypi: ## Post-publish packaging-truth check against the live PyPI JSON API
+	@$(PY) scripts/verify_pypi_release.py --version $${VERSION:-0.5.1}
 
 .PHONY: build
 build: ## Build wheel + sdist into dist/ via uv build
