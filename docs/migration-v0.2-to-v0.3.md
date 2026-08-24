@@ -1,5 +1,9 @@
 # Migrating from v0.2 to v0.3
 
+!!! note "Historical migration"
+    This guide describes v0.3 behavior. Container and fleet support changed in
+    v0.7; follow the later migration guides for current operational behavior.
+
 v0.3.0 is additive at the top-level Python API: all 67 symbols published in
 `sovereign_agent.__all__` at v0.2.0 remain exported with compatible signatures.
 The machine-checked manifests are

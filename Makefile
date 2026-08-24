@@ -143,7 +143,7 @@ help: ## Show this help with typical workflows and every target
 	@printf "  $(BOLD)◆ Ship to PyPI$(RESET) $(DIM)(git tag is not a public release)$(RESET)\n"
 	@printf "      $(DIM)1$(RESET)  $(CYAN)make pre-publish$(RESET)            audit for secrets, PII, forbidden files\n"
 	@printf "      $(DIM)2$(RESET)  $(CYAN)make ready-to-ship$(RESET)          preflight + pre-publish + build in one shot\n"
-	@printf "      $(DIM)3$(RESET)  $(DIM)git tag v0.5.1 && git push origin v0.5.1$(RESET)   triggers publish.yml\n"
+	@printf "      $(DIM)3$(RESET)  $(DIM)git tag v0.7.0 && git push origin v0.7.0$(RESET)   triggers publish.yml\n"
 	@printf "      $(DIM)4$(RESET)  $(CYAN)make verify-pypi$(RESET)            live PyPI JSON + provenance + README truth\n"
 	@printf "      $(DIM)·$(RESET)  $(CYAN)make build$(RESET)                  $(DIM)uv build$(RESET) wheel+sdist locally\n"
 	@printf "      $(DIM)·$(RESET)  $(CYAN)make publish-test$(RESET)           $(DIM)uv publish$(RESET) to TestPyPI (manual)\n"
@@ -218,7 +218,7 @@ doctor-basic: ## The older sovereign-agent CLI doctor (subset of what `make doct
 	else \
 		printf "$(DIM)NEBIUS_KEY not in shell env; running with --skip-llm.$(RESET)\n"; \
 		printf "$(DIM)(If it's in .env, the real doctor will find it — run $(RESET)$(CYAN)$(SOVEREIGN_AGENT) doctor$(RESET)$(DIM) directly.)$(RESET)\n\n"; \
-		NEBIUS_KEY=fake $(SOVEREIGN_AGENT) doctor --skip-llm; \
+		$(SOVEREIGN_AGENT) doctor --skip-llm; \
 	fi
 
 .PHONY: preflight
@@ -576,7 +576,7 @@ soak-compressed: ## Compressed single-node soak (restart/approval/capability)
 
 .PHONY: verify-pypi
 verify-pypi: ## Post-publish packaging-truth check against the live PyPI JSON API
-	@$(PY) scripts/verify_pypi_release.py --version $${VERSION:-0.6.0}
+	@$(PY) scripts/verify_pypi_release.py --version $${VERSION:-0.7.0}
 
 .PHONY: build
 build: ## Build wheel + sdist into dist/ via uv build

@@ -1,5 +1,5 @@
 site_name: sovereign-agent
-site_description: A framework for building always-on AI agents that you actually own
+site_description: Build auditable AI agents on infrastructure you control
 site_url: https://zeroemployeeorg.github.io/sovereign-agent/
 repo_url: https://github.com/zeroemployeeorg/sovereign-agent
 repo_name: zeroemployeeorg/sovereign-agent
@@ -11,7 +11,9 @@ theme:
     - navigation.tabs
     - navigation.sections
     - navigation.top
+    - navigation.footer
     - search.highlight
+    - search.suggest
     - content.code.copy
     - content.code.annotate
   palette:
@@ -28,8 +30,20 @@ theme:
         icon: material/brightness-4
         name: Switch to light mode
 
+plugins:
+  - search
+  - mkdocstrings:
+      handlers:
+        python:
+          options:
+            docstring_style: google
+            show_root_heading: true
+            show_source: true
+            members_order: source
+
 markdown_extensions:
   - admonition
+  - attr_list
   - pymdownx.details
   - pymdownx.superfences
   - pymdownx.inlinehilite
@@ -40,61 +54,92 @@ markdown_extensions:
 
 nav:
   - Home: index.md
-  - Quickstart: quickstart.md
-  - Architecture:
-      - Overview: architecture.md
-  - API Reference: api_reference.md
-  - API Stability: API.md
-  - Migration from v0.2: migration-v0.2-to-v0.3.md
-  - Migration from v0.3: migration-v0.3-to-v0.4.md
-  - Migration from v0.4: migration-v0.4-to-v0.5.md
-  - Migration from v0.5: migration-v0.5-to-v0.6.md
-  - Migration from v0.6: migration-v0.6-to-v0.7.md
-  - Roadmap: roadmap.md
-  - Compatibility: compatibility.md
-  - Non-Goals: non-goals.md
-  - Threat Model: threat-model.md
-  - Chapters:
-      - Overview: chapters/index.md
-      - Teaching Surface: teaching-surface.md
-  - Deployment: deployment.md
-  - Project:
-      - v0.7.0 Release Notes: release-notes/0.7.0.md
-      - v0.7 Operator Notes: v0.7-operator.md
-      - v0.7 Unit 1 Protocol: v0.7-unit1-protocol.md
-      - v0.7 Unit 12 Conformance: v0.7-unit12-conformance.md
-      - v0.6.0 Release Notes: release-notes/0.6.0.md
-      - v0.6 Operator Notes: v0.6-operator.md
-      - v0.6 Soak: v0.6-soak.md
-      - v0.6 Unit 8 Legacy: v0.6-unit8-legacy.md
-      - v0.5.1 Release Notes: release-notes/0.5.1.md
-      - v0.5.0 Release Notes: release-notes/0.5.0.md
-      - v0.5 Unit 1 Foundation: v0.5-unit1-foundation.md
-      - v0.5 Unit 2 Adapter: v0.5-unit2-adapter.md
-      - v0.5 Unit 3 Registry: v0.5-unit3-registry.md
-      - v0.5 Unit 4 Builtins: v0.5-unit4-builtins.md
-      - v0.5 Unit 5 Policy: v0.5-unit5-policy.md
-      - v0.5 Unit 6 Evidence: v0.5-unit6-evidence.md
-      - v0.5 Unit 7 Compat: v0.5-unit7-compat.md
-      - v0.5 Unit 8 Removal Gate: v0.5-unit8-removal-gate.md
-      - v0.4.0 Release Notes: release-notes/0.4.0.md
-      - v0.4 Operator Guide: v0.4-operator-guide.md
-      - v0.4 Unit 1 Protocol: v0.4-unit1-protocol.md
-      - v0.4 Unit 2 Connector: v0.4-unit2-connector.md
-      - v0.4 Unit 3 Relay: v0.4-unit3-relay.md
-      - v0.4 Unit 4 Seats: v0.4-unit4-seats.md
-      - v0.4 Unit 5 Approvals: v0.4-unit5-approvals.md
-      - v0.4 Unit 6 Channels: v0.4-unit6-channels.md
-      - v0.4 Unit 7 Plugins: v0.4-unit7-plugins.md
-      - v0.4 Unit 8 Service: v0.4-unit8-service.md
-      - v0.4 Unit 9 Release: v0.4-unit9-release.md
-      - v0.3.0 Release Notes: release-notes/0.3.0.md
-      - v0.3 Unit 1 Contracts: v0.3-unit1-contracts.md
-      - v0.3 Unit 2 Native Provider: v0.3-unit2-native-provider.md
-      - v0.3 Unit 3 Worker Lifecycle: v0.3-unit3-worker-lifecycle.md
-      - v0.3 Unit 4 CLI Providers: v0.3-unit4-cli-providers.md
-      - v0.3 Unit 5 Repository Execution: v0.3-unit5-repository.md
-      - v0.3 Unit 6 Registry and Relay: v0.3-unit6-registry-relay.md
-      - v0.3 Unit 7 Governed Execution: v0.3-unit7-governed-execution.md
-      - v0.3 Non-Goals: v0.3-non-goals.md
-      - Branch Consolidation (2026-08-22): branch-consolidation-2026-08-22.md
+  - Get started:
+      - Quickstart: quickstart.md
+      - Configuration and providers: how-to/configuration.md
+      - Common problems: how-to/troubleshooting.md
+  - Tutorials:
+      - Learning path: tutorials/index.md
+      - Build your first agent: tutorials/first-agent.md
+      - Author typed capabilities: tutorials/capabilities.md
+      - Inspect sessions and traces: tutorials/sessions-and-traces.md
+      - Test without tokens: tutorials/testing.md
+      - Rules and human approval: tutorials/structured-and-approval.md
+      - Build from scratch: chapters/index.md
+      - Teaching surface: teaching-surface.md
+  - How-to:
+      - CLI and sessions: how-to/cli-sessions.md
+      - Debug a run: how-to/debugging.md
+      - Approvals and resume: how-to/approvals-and-resume.md
+      - Worker isolation: how-to/worker-isolation.md
+      - Deploy a service: deployment.md
+  - Concepts:
+      - Core concepts: concepts/index.md
+      - Architecture: architecture.md
+      - Threat model: threat-model.md
+      - Non-goals: non-goals.md
+  - Reference:
+      - API overview: api_reference.md
+      - Generated Python API: reference/index.md
+      - API stability: API.md
+      - Compatibility: compatibility.md
+  - Operations:
+      - v0.7 operator guide: v0.7-operator.md
+      - v0.7 implementation map: v0.7-units.md
+      - "Unit 1: Protocol and fencing": v0.7-unit1-protocol.md
+      - "Unit 2: Placement": v0.7-unit2-placement.md
+      - "Unit 3: Docker": v0.7-unit3-docker.md
+      - "Unit 4: Podman": v0.7-unit4-podman.md
+      - "Unit 5: SSH": v0.7-unit5-ssh.md
+      - "Unit 6: Quotas": v0.7-unit6-quotas.md
+      - "Unit 7: Secrets": v0.7-unit7-secrets.md
+      - "Unit 8: Network": v0.7-unit8-network.md
+      - "Unit 9: Artifacts": v0.7-unit9-artifacts.md
+      - "Unit 10: Reconciliation": v0.7-unit10-reconciliation.md
+      - "Unit 11: Operations": v0.7-unit11-ops.md
+      - "Unit 12: Conformance": v0.7-unit12-conformance.md
+      - v0.6 operator guide: v0.6-operator.md
+      - v0.6 soak: v0.6-soak.md
+      - v0.6 legacy boundary: v0.6-unit8-legacy.md
+      - v0.4 operator guide: v0.4-operator-guide.md
+  - Versions:
+      - Roadmap: roadmap.md
+      - Migrate v0.6 to v0.7: migration-v0.6-to-v0.7.md
+      - Migrate v0.5 to v0.6: migration-v0.5-to-v0.6.md
+      - Migrate v0.4 to v0.5: migration-v0.4-to-v0.5.md
+      - Migrate v0.3 to v0.4: migration-v0.3-to-v0.4.md
+      - Migrate v0.2 to v0.3: migration-v0.2-to-v0.3.md
+      - Release notes:
+          - v0.7.0: release-notes/0.7.0.md
+          - v0.6.0: release-notes/0.6.0.md
+          - v0.5.1: release-notes/0.5.1.md
+          - v0.5.0: release-notes/0.5.0.md
+          - v0.4.0: release-notes/0.4.0.md
+          - v0.3.0: release-notes/0.3.0.md
+      - Historical implementation notes:
+          - v0.5 foundation: v0.5-unit1-foundation.md
+          - v0.5 adapter: v0.5-unit2-adapter.md
+          - v0.5 registry: v0.5-unit3-registry.md
+          - v0.5 built-ins: v0.5-unit4-builtins.md
+          - v0.5 policy: v0.5-unit5-policy.md
+          - v0.5 evidence: v0.5-unit6-evidence.md
+          - v0.5 compatibility: v0.5-unit7-compat.md
+          - v0.5 removal gate: v0.5-unit8-removal-gate.md
+          - v0.4 protocol: v0.4-unit1-protocol.md
+          - v0.4 connector: v0.4-unit2-connector.md
+          - v0.4 relay: v0.4-unit3-relay.md
+          - v0.4 seats: v0.4-unit4-seats.md
+          - v0.4 approvals: v0.4-unit5-approvals.md
+          - v0.4 channels: v0.4-unit6-channels.md
+          - v0.4 plugins: v0.4-unit7-plugins.md
+          - v0.4 service: v0.4-unit8-service.md
+          - v0.4 release: v0.4-unit9-release.md
+          - v0.3 contracts: v0.3-unit1-contracts.md
+          - v0.3 native provider: v0.3-unit2-native-provider.md
+          - v0.3 worker lifecycle: v0.3-unit3-worker-lifecycle.md
+          - v0.3 CLI providers: v0.3-unit4-cli-providers.md
+          - v0.3 repository execution: v0.3-unit5-repository.md
+          - v0.3 registry and relay: v0.3-unit6-registry-relay.md
+          - v0.3 governed execution: v0.3-unit7-governed-execution.md
+          - v0.3 non-goals: v0.3-non-goals.md
+          - Branch consolidation: branch-consolidation-2026-08-22.md

@@ -84,9 +84,11 @@ def doctor(
         issues.append(f"Config failed to load: {exc}")
         cfg = Config()
 
-    # API key
+    # API key. Offline verification deliberately does not require credentials.
     if os.environ.get(cfg.llm_api_key_env):
         _ok(f"LLM API key present ({cfg.llm_api_key_env})")
+    elif skip_llm:
+        _ok(f"LLM API key skipped ({cfg.llm_api_key_env})")
     else:
         issues.append(f"LLM API key not set. Export {cfg.llm_api_key_env} and retry.")
 
@@ -118,6 +120,8 @@ def doctor(
 
     # Config.validate() self-check
     for msg in cfg.validate():
+        if skip_llm and msg == f"LLM API key env var {cfg.llm_api_key_env!r} is not set":
+            continue
         issues.append(msg)
 
     # v0.3 Module 1: the CLI channel socket directory must be writable,

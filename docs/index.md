@@ -1,55 +1,70 @@
-# sovereign-agent
+# sovereign-agent documentation
 
-**A framework for building always-on AI agents that you actually own.**
+Build auditable AI agents whose state, work, and evidence stay on infrastructure
+you control.
 
-## What is it
+Sovereign Agent stores each run as a directory of plain files. It combines
+typed ZeoCore capabilities with planning, execution, policy rules, approvals,
+and bounded workers. The result is an agent you can inspect, test offline,
+resume after a crash, and operate without a hosted control plane.
 
-Two things in one codebase, plus one that is scaffolding only:
+!!! warning "v0.7 is alpha"
+    Pin `sovereign-agent~=0.7.0`, read the
+    [non-goals and limitations](non-goals.md), and review code before
+    making it load-bearing.
 
-1. An **alpha Python framework** for always-on agents. `pip install sovereign-agent` and go — with the alpha caveats in [Status](#status) read first.
-2. A **build-from-scratch tutorial** that reconstructs the framework in five runnable chapters, drift-checked against the library in CI.
-3. A **research-vehicle scaffold** under `lessons/`. This is currently a template (`lessons/_template/`) and a rationale README. No lesson has been written yet, so treat it as intent rather than content.
+## Start here
 
-The core idea: the agent's **session directory is the unit of everything**. Memory, work queue, logs, tickets — all live as files under `sessions/sess_<id>/`. Nothing important lives in a database. This makes agents debuggable, recoverable from crashes, and portable between machines.
+1. [Install and run the Quickstart](quickstart.md).
+2. [Build your first agent](tutorials/first-agent.md).
+3. [Inspect and debug its session](tutorials/sessions-and-traces.md).
+4. Choose the next path below.
 
-## Where to start
+The install check and repository examples work without an API key. Networked
+steps are labeled before they can spend tokens.
 
-| If you want to... | Start here |
-|---|---|
-| Install and run a task in 5 minutes | [Quickstart](quickstart.md) |
-| Understand the architecture | [Architecture](architecture.md) |
-| Learn by building it from scratch | [Chapters](chapters/index.md) |
-| Look up a class or function | [API Reference](api_reference.md) |
-| Know what is actually stable | [API Stability](API.md) |
-| Deploy it on a real machine | [Deployment](deployment.md) |
-| Know what is deliberately out of scope | [Non-Goals](non-goals.md) |
-| See the post-v0.5 sequence | [Roadmap](roadmap.md) |
+## Choose your path
 
-## Key properties
+### Build agents
 
-- **Offline-testable.** The framework ships with `FakeLLMClient` so you can write deterministic tests for your agent's trajectory without burning API credits.
-- **Auditable by default.** Every action the agent takes produces a ticket with a verified manifest. `cat`ing the session directory tells you exactly what happened.
-- **Provider-agnostic.** Any OpenAI-compatible endpoint works. Nebius Token Factory is the default.
-- **Explicit surface area.** 165 public names in `sovereign_agent.__all__`, checked
-  against a versioned manifest.
+- [Quickstart](quickstart.md) — installation to a real typed capability.
+- [Tutorials](tutorials/index.md) — a progressive course for Python users.
+- [Configuration and providers](how-to/configuration.md).
+- [CLI and session management](how-to/cli-sessions.md).
+- [Common problems](how-to/troubleshooting.md).
 
-## Status
+### Learn the internals
 
-Alpha. The declared package and documentation version is **0.7.0**. Python
-3.13 is the floor and `zeocore>=0.5,<0.6` is required. Reusable actions are
-ZeoCore capabilities; runtime commands stay in Sovereign Agent. A git tag is
-not a public release — see [the roadmap](roadmap.md).
+- [Core concepts](concepts/index.md) — sessions, tickets, halves, capabilities,
+  and dataflow integrity.
+- [Architecture](architecture.md) — design rationale and implementation map.
+- [Build-from-scratch chapters](chapters/index.md) — five tested exercises
+  covering the original substrate.
 
-The spine is covered by deterministic contract, unit, and integration tests.
-Memory, voice, and the observability backends (Evidently, OTel) are
-skeletons with clear TODOs, not implementations. The Rasa-based structured half is
-an optional extra with no implementation in this tree. Docker and Podman
-workers are digest-pinned and fail closed when the engine is absent.
+### Operate and integrate
 
-See the [CHANGELOG](https://github.com/zeroemployeeorg/sovereign-agent/blob/main/CHANGELOG.md)
-for what shipped, [API Stability](API.md) for what is promised, and
-[Non-Goals](non-goals.md) for what will not be attempted through v0.7.
+- [Deployment](deployment.md) — single-host service operation.
+- [v0.7 fleet operator guide](v0.7-operator.md) — Docker, Podman, SSH,
+  placement, quotas, secrets, and reconciliation.
+- [Threat model](threat-model.md) and [compatibility](compatibility.md).
 
-## License
+### Look something up
 
-Apache 2.0.
+- [API reference](api_reference.md) — task-oriented public API map.
+- [Generated reference](reference/index.md) — signatures and docstrings.
+- [API stability](API.md) — the semver contract.
+- [Example catalog](https://github.com/zeroemployeeorg/sovereign-agent/tree/main/examples).
+
+## The mental model
+
+```text
+task
+  -> planner
+  -> executor
+  -> typed capabilities and runtime commands
+  -> tickets + trace + artifacts
+  -> sessions/sess_<id>/
+```
+
+The model proposes actions. Python code defines what exists and what is
+allowed. Durable files record what happened.

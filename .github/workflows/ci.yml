@@ -212,7 +212,7 @@ jobs:
         run: pytest -v tests/integration/test_examples.py
 
   doctor:
-    name: CLI doctor (with fake key, --skip-llm)
+    name: Offline onboarding and docs
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -222,13 +222,21 @@ jobs:
           python-version: "3.13"
           cache: pip
 
-      - name: Install package
+      - name: Install package + documentation tools
         run: |
           python -m pip install --upgrade pip
-          python -m pip install -e .
+          python -m pip install -e . --group dev
 
-      - name: Run doctor
-        run: NEBIUS_KEY=fake sovereign-agent doctor --skip-llm
+      - name: Run credential-free install check
+        run: |
+          env -u NEBIUS_KEY sovereign-agent version
+          env -u NEBIUS_KEY sovereign-agent doctor --skip-llm
+
+      - name: Run the first offline example
+        run: python -m examples.research_assistant.run
+
+      - name: Build documentation strictly
+        run: mkdocs build --strict
 
   zeocore-compat:
     name: ZeoCore ${{ matrix.zeocore }}
