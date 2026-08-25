@@ -9,7 +9,7 @@ from contextlib import contextmanager
 from pathlib import Path
 from typing import Any
 
-SCHEMA = """
+MIGRATION_1 = """
 PRAGMA foreign_keys = ON;
 CREATE TABLE IF NOT EXISTS schema_migrations (
     version INTEGER PRIMARY KEY,
@@ -93,6 +93,39 @@ CREATE TABLE IF NOT EXISTS signals (
 );
 """
 
+MIGRATION_2 = """
+-- Append-only enforcement lives at the database boundary, not in Python habit.
+-- Without these, `UPDATE events` and `DELETE FROM events` both succeed.
+CREATE TRIGGER IF NOT EXISTS events_no_update
+BEFORE UPDATE ON events
+BEGIN
+    SELECT RAISE(ABORT, 'events are append-only: update refused');
+END;
+CREATE TRIGGER IF NOT EXISTS events_no_delete
+BEFORE DELETE ON events
+BEGIN
+    SELECT RAISE(ABORT, 'events are append-only: delete refused');
+END;
+
+-- Evidence must be bound to what it proves. Columns are indexed rather than
+-- buried in the JSON record so acceptance can query bindings directly.
+-- REFERENCES on ALTER ADD COLUMN IS enforced by SQLite: a fabricated
+-- outcome id is refused by the database, not merely by Python.
+ALTER TABLE evidence ADD COLUMN outcome_id TEXT REFERENCES outcomes(id);
+ALTER TABLE evidence ADD COLUMN check_id TEXT NOT NULL DEFAULT '';
+ALTER TABLE evidence ADD COLUMN success INTEGER NOT NULL DEFAULT 0;
+-- Digest of the exact inputs the check read. An event counter cannot detect a
+-- silent UPDATE to inventory, so staleness is measured over the read state itself.
+ALTER TABLE evidence ADD COLUMN state_digest TEXT NOT NULL DEFAULT '';
+CREATE INDEX IF NOT EXISTS evidence_binding
+    ON evidence(outcome_id, check_id);
+"""
+
+MIGRATIONS: tuple[tuple[int, str], ...] = (
+    (1, MIGRATION_1),
+    (2, MIGRATION_2),
+)
+
 
 class Database:
     def __init__(self, path: Path) -> None:
@@ -102,19 +135,41 @@ class Database:
         self.connection.row_factory = sqlite3.Row
         self.connection.execute("PRAGMA foreign_keys = ON")
         self.connection.execute("PRAGMA journal_mode = WAL")
+        # Without recursive triggers, `INSERT OR REPLACE` deletes the old row
+        # WITHOUT firing the BEFORE DELETE guard, silently defeating append-only.
+        self.connection.execute("PRAGMA recursive_triggers = ON")
         self.migrate()
 
+    def applied_versions(self) -> set[int]:
+        """Versions already recorded. Empty when the ledger table does not exist yet."""
+        try:
+            rows = self.connection.execute("SELECT version FROM schema_migrations").fetchall()
+        except sqlite3.OperationalError:
+            return set()
+        return {int(row["version"]) for row in rows}
+
     def migrate(self) -> None:
-        self.connection.executescript(SCHEMA)
-        applied = {
-            int(row["version"])
-            for row in self.connection.execute("SELECT version FROM schema_migrations")
-        }
-        if 1 not in applied:
-            self.connection.execute(
-                "INSERT INTO schema_migrations(version, applied_at) VALUES (1, datetime('now'))"
-            )
-            self.connection.commit()
+        """Apply pending migrations in order. Forward-only; never downgrades.
+
+        Each migration commits with its own version stamp, so a failure part way
+        through leaves every earlier migration applied and recorded, and the
+        failing one fully rolled back. The database stays openable.
+        """
+        applied = self.applied_versions()
+        for version, script in MIGRATIONS:
+            if version in applied:
+                continue
+            try:
+                self.connection.executescript(script)
+                self.connection.execute(
+                    "INSERT INTO schema_migrations(version, applied_at) "
+                    "VALUES (?, datetime('now'))",
+                    (version,),
+                )
+                self.connection.commit()
+            except Exception:
+                self.connection.rollback()
+                raise
 
     @contextmanager
     def transaction(self) -> Iterator[sqlite3.Connection]:

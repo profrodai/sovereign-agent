@@ -103,11 +103,22 @@ def complete(db: Database, message_id: str, actor_id: str) -> Message:
 
 
 def dead_letter(db: Database, message: Message) -> Message:
+    """Retry a failed delivery, or park it as DEAD after MAX_RETRIES.
+
+    The write is inside a transaction and appends an event, like every other
+    state change. It previously wrote outside one, so a crash mid-call could
+    leave a message with no record of why it moved.
+    """
     if message.retry_count < MAX_RETRIES:
         message.retry_count += 1
         message.state = MessageState.NEW
         message.claim_owner = None
+        message.claim_expires_at = None
+        kind = "message.retried"
     else:
         message.state = MessageState.DEAD
-    db.put("messages", message.id, message.model_dump(mode="json"))
+        kind = "message.dead_lettered"
+    with db.transaction():
+        db.put("messages", message.id, message.model_dump(mode="json"))
+        append_event(db, kind, {"id": message.id, "retry_count": message.retry_count})
     return message
