@@ -8,6 +8,7 @@ status: DESIGN
 lifecycle: DESIGN-MEMO
 created: 2026-08-25
 updated: 2026-08-25
+sequencing: unit-5-manual-slice; unit-9-first-pulse; unit-10-ch0-7; unit-11-ch8-12
 work_repo: https://github.com/zeroemployeeorg/sovereign-agent
 sow_repo: TBD
 done_when: >-
@@ -47,12 +48,27 @@ ready for production.
    (`Product`, `InventoryPosition`, `CashEntry`, transactional mutations,
    scripted sale, inventory signal, replenishment SOW). Unit 11 expands that
    skeleton; it does not create the store from nothing.
-2. Develop the curriculum **alongside** implementation units. Unit 10 completes
-   and drift-checks the book; it is not the first moment chapters exist.
-   Checkpoint tags `book-v1-ch00` through `book-v1-ch12` must keep the commits
-   they name.
+2. Develop the curriculum **alongside** implementation units. Checkpoint tags
+   name **commits**, not branches. Preserve those tagged commits in the
+   eventual `main` ancestry. Do not maintain chapter-specific branches.
 3. Persistence wording: JSON/TOML is canonical for committed governance;
    SQLite is canonical for operational state; Markdown is generated.
+4. **Unit 5 is not proactive.** Pulse does not exist yet. The Unit 5 offline
+   slice is: sale → inventory signal persisted → manually dispatched
+   replenishment SOW → Scripted Operator → evidence → Sparring → acceptance.
+5. **Unit 9 is the first fully proactive milestone:** sale → inventory signal
+   → deterministic wake gate → pulse → replenishment work created without a
+   human prompt → Scripted Operator → evidence → Sparring → acceptance.
+6. **Curriculum completion is staged.** Unit 10 completes and verifies
+   Chapters 0–7 and establishes instructor-note and drift-verification
+   machinery. It does not claim Chapters 8–12 exist. Unit 11 expands the
+   Store and lands Chapters 8–12 alongside those features, then starts the
+   30-day pilot. Unit 12 finishes the pilot, completes all curriculum
+   verification, conducts Andrea-profile soaks, runs provider smokes, and
+   releases.
+7. Unit 1 may add the Chapter 0 directory and narrative shell.
+   `book-v1-ch00` is tagged only when the scripted first-success experience
+   actually works (expected: Unit 5).
 
 ## Related documents
 
