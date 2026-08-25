@@ -96,7 +96,12 @@ class Organization:
         return actor
 
     def create_outcome(
-        self, title: str, desired_state: str, checks: list[str], owner: str
+        self,
+        title: str,
+        desired_state: str,
+        checks: list[str],
+        owner: str,
+        subject: str = "",
     ) -> Outcome:
         actor = self.actor(owner)
         require_authority(actor.role, "define_outcome")
@@ -104,6 +109,7 @@ class Organization:
             id=new_id("out"),
             title=title,
             desired_state=desired_state,
+            subject=subject,
             acceptance_checks=checks,
             state=OutcomeState.PROPOSED,
             owner_actor_id=owner,
@@ -246,9 +252,7 @@ class Organization:
         self._save_sow(sow, "sow.reviewed")
         return sow
 
-    def verify_outcome(
-        self, outcome_id: str, verifier_id: str, subject: str = "SKU-TEA"
-    ) -> list[CheckResult]:
+    def verify_outcome(self, outcome_id: str, verifier_id: str) -> list[CheckResult]:
         """Actually execute every declared acceptance check and persist evidence.
 
         This used to advance a state field and nothing else. A verification that
@@ -266,6 +270,9 @@ class Organization:
             self._save_outcome(outcome, "outcome.verifying")
 
         execution_id = self._latest_assignment_id(outcome_id)
+        # The SUBJECT comes from the outcome, never from the caller. A caller
+        # that picks the subject picks which world gets inspected.
+        subject = outcome.subject
         results = [run_check(self.db, check_id, subject) for check_id in outcome.acceptance_checks]
         with self.db.transaction():
             for result in results:
@@ -338,7 +345,7 @@ class Organization:
         rows = self.db.connection.execute("SELECT sow_id, actor_id FROM assignments").fetchall()
         return {str(row["actor_id"]) for row in rows if row["sow_id"] in sow_ids}
 
-    def accept(self, outcome_id: str, accepter_id: str, subject: str = "SKU-TEA") -> Acceptance:
+    def accept(self, outcome_id: str, accepter_id: str) -> Acceptance:
         """Accept only if the declared outcome is TRUE RIGHT NOW.
 
         Acceptance does not trust a list of evidence ids handed to it. A caller
@@ -389,8 +396,10 @@ class Organization:
             )
 
         execution_id = self._latest_assignment_id(outcome_id)
+        # Subject is read from the outcome, not supplied. Otherwise acceptance
+        # could be pointed at a healthy product while the real one sits empty.
         current = {
-            check_id: run_check(self.db, check_id, subject)
+            check_id: run_check(self.db, check_id, outcome.subject)
             for check_id in outcome.acceptance_checks
         }
         failed_now = sorted(cid for cid, result in current.items() if not result.success)

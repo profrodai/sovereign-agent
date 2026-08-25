@@ -76,7 +76,7 @@ org.db.connection.execute(
 org.db.connection.commit()
 
 try:
-    org.accept(outcome_id, "principal-human", "SKU-TEA")
+    org.accept(outcome_id, "principal-human")
     print("ACCEPTED  <-- this would be a bug")
 except Refusal as refusal:
     print("REFUSED:", str(refusal).splitlines()[0])

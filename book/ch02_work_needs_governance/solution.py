@@ -30,7 +30,7 @@ def _reopen(org: Organization, outcome_id: str) -> None:
 def _attempt(org: Organization, outcome_id: str, accepter: str = "principal-human") -> str:
     _reopen(org, outcome_id)
     try:
-        org.accept(outcome_id, accepter, SKU)
+        org.accept(outcome_id, accepter)
     except Refusal as refusal:
         return f"refused: {str(refusal).splitlines()[0]}"
     return "ACCEPTED (this would be a bug)"

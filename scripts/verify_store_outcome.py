@@ -35,6 +35,7 @@ def verify(root: Path) -> list[str]:
         return ["no outcome exists"]
     outcome_id = str(row["id"])
     outcome = org._outcome(outcome_id)  # noqa: SLF001
+    subject = outcome.subject or SKU
 
     def fail(message: str) -> None:
         failures.append(message)
@@ -45,16 +46,16 @@ def verify(root: Path) -> list[str]:
 
     # 2. Every declared check passes RIGHT NOW, re-executed against live state.
     for check_id in outcome.acceptance_checks:
-        result = run_check(db, check_id, SKU)
+        result = run_check(db, check_id, subject)
         if not result.success:
             fail(f"check '{check_id}' does not hold now: {result.detail}")
 
     # 3. Inventory is at or above the reorder point.
     inventory = db.connection.execute(
-        "SELECT on_hand, reorder_point FROM inventory WHERE sku = ?", (SKU,)
+        "SELECT on_hand, reorder_point FROM inventory WHERE sku = ?", (subject,)
     ).fetchone()
     if inventory is None:
-        fail(f"no inventory row for {SKU}")
+        fail(f"no inventory row for {subject}")
     elif int(inventory["on_hand"]) < int(inventory["reorder_point"]):
         fail(
             f"inventory {inventory['on_hand']} is below reorder point {inventory['reorder_point']}"
@@ -96,7 +97,7 @@ def verify(root: Path) -> list[str]:
 
     # 8. Evidence is not stale relative to current state.
     for check_id in outcome.acceptance_checks:
-        current = run_check(db, check_id, SKU)
+        current = run_check(db, check_id, subject)
         digests = {str(row["state_digest"]) for row in evidence if str(row["check_id"]) == check_id}
         if digests and current.state_digest not in digests:
             fail(f"evidence for '{check_id}' is stale relative to current state")

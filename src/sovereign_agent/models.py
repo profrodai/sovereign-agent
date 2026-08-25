@@ -62,9 +62,18 @@ class Role(StrEnum):
 
 
 class Outcome(StrictModel):
+    """A state of the world someone wants, and how to check it.
+
+    `subject` is what the checks are ABOUT — the SKU, in the store. It lives on
+    the outcome rather than being passed in at verification time, because a
+    caller who chooses the subject chooses which world gets inspected, and can
+    point acceptance at a healthy product while the real one sits empty.
+    """
+
     id: str
     title: str
     desired_state: str
+    subject: str = ""
     acceptance_checks: list[str]
     state: OutcomeState
     owner_actor_id: str

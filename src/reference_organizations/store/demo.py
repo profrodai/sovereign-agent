@@ -81,6 +81,7 @@ def run_simulated(root: Path) -> str:
             "replenishment_event_exists",
         ],
         owner="principal-human",
+        subject=SKU,
     )
     org.activate(outcome.id, "master-course")
 
@@ -106,6 +107,6 @@ def run_simulated(root: Path) -> str:
     apply_restock(org.db, proposal, assignment.id, signal.id)
 
     org.review(sow.id, "sparring-course", "operator-course")
-    org.verify_outcome(outcome.id, "verifier-course", SKU)
-    org.accept(outcome.id, "principal-human", SKU)
+    org.verify_outcome(outcome.id, "verifier-course")
+    org.accept(outcome.id, "principal-human")
     return org.status_text(outcome.id)

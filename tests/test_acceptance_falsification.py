@@ -42,7 +42,7 @@ def test_refuses_when_inventory_is_below_reorder_point(tmp_path: Path) -> None:
     org.db.connection.commit()
     reopen_for_acceptance(org, outcome_id)
     with pytest.raises(Refusal, match="failing at acceptance time"):
-        org.accept(outcome_id, "principal-human", "SKU-TEA")
+        org.accept(outcome_id, "principal-human")
 
 
 def test_refuses_when_evidence_reports_failure(tmp_path: Path) -> None:
@@ -51,7 +51,7 @@ def test_refuses_when_evidence_reports_failure(tmp_path: Path) -> None:
     org.db.connection.commit()
     reopen_for_acceptance(org, outcome_id)
     with pytest.raises(Refusal, match="reports failure"):
-        org.accept(outcome_id, "principal-human", "SKU-TEA")
+        org.accept(outcome_id, "principal-human")
 
 
 def test_refuses_when_a_required_check_has_no_evidence(tmp_path: Path) -> None:
@@ -60,7 +60,7 @@ def test_refuses_when_a_required_check_has_no_evidence(tmp_path: Path) -> None:
     org.db.connection.commit()
     reopen_for_acceptance(org, outcome_id)
     with pytest.raises(Refusal, match="No evidence for declared check"):
-        org.accept(outcome_id, "principal-human", "SKU-TEA")
+        org.accept(outcome_id, "principal-human")
 
 
 def test_refuses_stale_evidence_even_when_checks_still_pass(tmp_path: Path) -> None:
@@ -75,7 +75,7 @@ def test_refuses_stale_evidence_even_when_checks_still_pass(tmp_path: Path) -> N
     org.db.connection.commit()
     reopen_for_acceptance(org, outcome_id)
     with pytest.raises(Refusal, match="stale"):
-        org.accept(outcome_id, "principal-human", "SKU-TEA")
+        org.accept(outcome_id, "principal-human")
 
 
 def test_refuses_evidence_bound_to_another_execution(tmp_path: Path) -> None:
@@ -84,7 +84,7 @@ def test_refuses_evidence_bound_to_another_execution(tmp_path: Path) -> None:
     org.db.connection.commit()
     reopen_for_acceptance(org, outcome_id)
     with pytest.raises(Refusal, match="not bound to this execution"):
-        org.accept(outcome_id, "principal-human", "SKU-TEA")
+        org.accept(outcome_id, "principal-human")
 
 
 def test_refuses_evidence_belonging_to_another_outcome(tmp_path: Path) -> None:
@@ -96,7 +96,7 @@ def test_refuses_evidence_belonging_to_another_outcome(tmp_path: Path) -> None:
     org.db.connection.commit()
     reopen_for_acceptance(org, outcome_id)
     with pytest.raises(Refusal, match="No evidence for declared check"):
-        org.accept(outcome_id, "principal-human", "SKU-TEA")
+        org.accept(outcome_id, "principal-human")
 
 
 def test_fabricated_evidence_row_is_refused_by_the_database(tmp_path: Path) -> None:
@@ -115,7 +115,7 @@ def test_operator_cannot_accept_its_own_work(tmp_path: Path) -> None:
     org, outcome_id = accepted_org(tmp_path)
     reopen_for_acceptance(org, outcome_id)
     with pytest.raises(Refusal):
-        org.accept(outcome_id, "operator-course", "SKU-TEA")
+        org.accept(outcome_id, "operator-course")
 
 
 def test_performer_is_derived_from_the_ledger_not_supplied(tmp_path: Path) -> None:
@@ -133,7 +133,7 @@ def test_refuses_an_outcome_with_no_sows(tmp_path: Path) -> None:
     outcome = org.create_outcome("t", "d", ["cash_reconciles"], "principal-human")
     org.activate(outcome.id, "master-course")
     with pytest.raises(Refusal, match="No SOW exists"):
-        org.accept(outcome.id, "principal-human", "SKU-TEA")
+        org.accept(outcome.id, "principal-human")
 
 
 def test_malformed_provider_report_is_refused(tmp_path: Path) -> None:
@@ -186,3 +186,44 @@ def test_replenishment_is_idempotent_per_assignment(tmp_path: Path) -> None:
         "SELECT COUNT(*) AS c FROM events WHERE kind = 'replenishment.committed'"
     ).fetchone()
     assert row["c"] == 1, "a replayed assignment must not order stock twice"
+
+
+def test_acceptance_cannot_be_pointed_at_a_different_subject(tmp_path: Path) -> None:
+    """The outcome owns its subject; the caller does not get to choose it.
+
+    Found by the Master while attacking its own fix. An earlier version took the
+    SKU as a parameter to verify/accept. With a second, well-stocked product in
+    the catalogue you could accept the tea outcome by pointing acceptance at the
+    decoy while the tea shelf sat at zero — the same defect this unit exists to
+    fix, reintroduced one level up.
+    """
+    import json
+
+    org, outcome_id = accepted_org(tmp_path)
+
+    org.db.connection.execute(
+        "INSERT OR REPLACE INTO products(sku, record) VALUES ('SKU-DECOY', ?)",
+        (json.dumps({"sku": "SKU-DECOY", "name": "d", "unit_cost_cents": 1, "price_cents": 2}),),
+    )
+    org.db.connection.execute(
+        "INSERT OR REPLACE INTO inventory(sku, on_hand, reserved, reorder_point, record) "
+        "VALUES ('SKU-DECOY', 1, 0, 1, '{}')"
+    )
+    org.db.connection.commit()
+    apply_restock(org.db, RestockProposal("SKU-DECOY", 5), "asg_decoy")
+
+    org.db.connection.execute("UPDATE inventory SET on_hand = 0 WHERE sku = 'SKU-TEA'")
+    org.db.connection.commit()
+    reopen_for_acceptance(org, outcome_id)
+
+    assert org._outcome(outcome_id).subject == "SKU-TEA"  # noqa: SLF001
+    with pytest.raises(Refusal, match="inventory_at_or_above_reorder_point"):
+        org.accept(outcome_id, "principal-human")
+
+
+def test_verify_and_accept_take_no_subject_argument() -> None:
+    """A caller-supplied subject is a caller-supplied world. Keep it out."""
+    import inspect
+
+    for method in (Organization.verify_outcome, Organization.accept):
+        assert "subject" not in inspect.signature(method).parameters
