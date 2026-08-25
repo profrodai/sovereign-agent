@@ -1,29 +1,31 @@
 # Chapter 0 — Andrea's first shift
 
-## Status: narrative shell
+## Status: runnable (manual replenishment, no Pulse)
 
-This chapter will become the first runnable shift in Unit 5. It is intentionally
-not tagged `book-v1-ch00` yet: a checkpoint names working software, not an
-outline.
-
-For now, verify the learning environment:
+Complete the first shift without provider tokens:
 
 ```bash
 sovereign-agent doctor
+sovereign-agent demo store --mode simulated --root /tmp/andrea-shift
 ```
 
-You should learn that the core course:
+You should see `outcome ACCEPTED`.
 
-- runs on Python 3.14;
-- has Pydantic as its only direct runtime dependency;
-- needs neither a network connection nor provider tokens.
-
-The complete first shift will later show:
+The path is:
 
 ```text
 sale → inventory signal persisted → manually dispatched replenishment SOW
 → Scripted Operator → evidence → Sparring → acceptance
 ```
 
-Pulse is not part of this chapter checkpoint. Proactive wake behavior arrives
-in Chapter 7 and Unit 9.
+Pulse is not part of this chapter. The organization does not wake itself yet;
+the demo dispatches the replenishment SOW explicitly. Proactive wake behavior
+arrives in Chapter 7 / Unit 9.
+
+Inspect:
+
+- `governance/outcomes/*/outcome.json` and `README.md`
+- `.sovereign/organization.db`
+- `.sovereign/runs/*/.sovereign-out/report.json`
+
+`solution.py` imports the production demo rather than copying it.

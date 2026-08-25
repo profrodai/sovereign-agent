@@ -33,8 +33,13 @@ Sovereign Agent doctor
 Ready for the offline curriculum.
 ```
 
-Chapter 0 is a narrative shell until the scripted first-success flow lands in
-Unit 5. Start at [`book/ch00_first_shift`](book/ch00_first_shift/README.md).
+Chapter 0 is runnable as a **manually dispatched** store shift (no Pulse):
+
+```bash
+sovereign-agent demo store --mode simulated
+```
+
+See [`book/ch00_first_shift`](book/ch00_first_shift/README.md).
 
 ## Product vocabulary
 
