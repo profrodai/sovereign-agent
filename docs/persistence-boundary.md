@@ -116,6 +116,15 @@ organization's memory. But "ACCEPTED means the outcome is true now" is exactly
 the claim this falsifies, so it is recorded here rather than left for a reader
 to discover.
 
+A related property, verified rather than assumed: `DROP TRIGGER` succeeds from
+an outside connection, and reopening does not restore the trigger, because the
+migration that created it is already stamped as applied. This is true of the
+migration-2 guards as much as the migration-3 one, so it is a pre-existing
+property of the trust boundary rather than something the append-only work
+introduced. It is the same statement as above in a different key: everything
+here protects the ledger from *mistakes and ordinary tools*, not from an actor
+with arbitrary write access to the database file.
+
 The durable fix — binding `subject` into the evidence `state_digest`, so that a
 post-verification subject swap presents as staleness — is deliberately **not**
 done in Unit 6.5. It changes the digest contract, and this unit has already
