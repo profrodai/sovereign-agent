@@ -183,3 +183,37 @@ def test_signal_is_recorded_with_the_sale(tmp_path: Path) -> None:
         "SELECT COUNT(*) AS c FROM signals WHERE id = ?", (signal.id,)
     ).fetchone()
     assert row["c"] == 1
+
+
+def test_idempotency_is_scoped_to_assignment_and_sku(tmp_path: Path) -> None:
+    """Replay protection must not silently swallow a different product's restock.
+
+    Keyed on the assignment alone, a replenishment of SKU-B would make a later
+    restock of SKU-TEA under the same assignment return "already done" while the
+    tea shelf stayed empty.
+    """
+    import json
+
+    org = Organization.init(tmp_path)
+    seed(org.db)
+    signal = record_sale(org.db, "SKU-TEA", 2, 400)
+    org.db.connection.execute(
+        "INSERT OR REPLACE INTO products(sku, record) VALUES ('SKU-B', ?)",
+        (json.dumps({"sku": "SKU-B", "name": "b", "unit_cost_cents": 10, "price_cents": 20}),),
+    )
+    org.db.connection.execute(
+        "INSERT OR REPLACE INTO inventory(sku, on_hand, reserved, reorder_point, record) "
+        "VALUES ('SKU-B', 0, 0, 1, '{}')"
+    )
+    org.db.connection.commit()
+
+    apply_restock(org.db, RestockProposal("SKU-B", 3), "asg_shared")
+    result = apply_restock(org.db, RestockProposal("SKU-TEA", 6), "asg_shared", signal.id)
+    assert result.get("idempotent_replay") is None, "a different SKU was treated as a replay"
+    row = org.db.connection.execute(
+        "SELECT on_hand FROM inventory WHERE sku = 'SKU-TEA'"
+    ).fetchone()
+    assert int(row["on_hand"]) == 8
+
+    replay = apply_restock(org.db, RestockProposal("SKU-TEA", 6), "asg_shared", signal.id)
+    assert replay.get("idempotent_replay") is True, "same assignment and SKU must still be a no-op"

@@ -212,12 +212,18 @@ def apply_restock(
     Idempotent per assignment: replaying the same assignment is a no-op, so a
     retried execution cannot double-order stock.
     """
+    # Idempotency is keyed on (assignment, sku). Keying on the assignment alone
+    # would let a replay for one product silently report success for another.
     existing = db.connection.execute(
         "SELECT payload FROM events WHERE kind = 'replenishment.committed'"
     ).fetchall()
     for row in existing:
-        if json.loads(row["payload"]).get("assignment_id") == assignment_id:
-            return {**json.loads(row["payload"]), "idempotent_replay": True}
+        payload = json.loads(row["payload"])
+        if (payload.get("assignment_id"), payload.get("sku")) == (
+            assignment_id,
+            proposal.sku,
+        ):
+            return {**payload, "idempotent_replay": True}
 
     unit_cost, total = validate_restock(db, proposal)
     cash_id = new_id("cash")
