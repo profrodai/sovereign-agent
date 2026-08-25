@@ -45,7 +45,7 @@ include = ["sovereign_agent*", "reference_organizations*"]
 testpaths = ["tests"]
 addopts = "-ra -m 'not live'"
 markers = [
-  "live: installed provider CLI probes; excluded from default CI",
+  "live: installed provider probes/assignments; excluded from default CI",
 ]
 
 [tool.ruff]

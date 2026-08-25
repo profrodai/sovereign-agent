@@ -1,4 +1,5 @@
 {"type":"thread.started","thread_id":"thread_offline"}
-{"type":"item.completed","item":{"type":"agent_message","text":"replenish tea"}}
-not valid json
-{"kind":"usage","input_tokens":12}
+{"type":"turn.started"}
+{"type":"item.completed","item":{"id":"item_1","type":"agent_message","text":"replenish tea"}}
+{"type":"future.event","redacted":true}
+{"type":"turn.completed","usage":{"input_tokens":12,"cached_input_tokens":0,"output_tokens":4,"reasoning_output_tokens":0}}

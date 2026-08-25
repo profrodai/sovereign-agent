@@ -57,6 +57,12 @@ See [`book/ch00_first_shift`](book/ch00_first_shift/README.md) and
 | Intelligence CLI | `provider` |
 | Governed identity | `actor` |
 
+An actor is not a model. Every provider receives the same governed assignment
+envelope and must emit a valid terminal event and write the exact
+`ActorReport`. A zero exit without both is a failed receipt. Cursor's
+`--workspace` is directory selection, not sandboxing; isolation belongs to
+Sovereign Agent's disposable workspace.
+
 ## Unit 1 gates
 
 ```bash

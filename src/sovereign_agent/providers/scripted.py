@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import json
 from pathlib import Path
 
 from sovereign_agent.models import ActorReport
@@ -17,9 +18,15 @@ from sovereign_agent.providers.base import (
 class ScriptedProvider:
     name = "scripted"
     executable = "python"
+    requires_terminal_event = False
 
     def probe(self) -> ProviderCapabilities:
-        return ProviderCapabilities(available=True, streaming=True, structured_result=True)
+        return ProviderCapabilities(
+            available=True,
+            print_mode=True,
+            streaming=True,
+            structured_result=True,
+        )
 
     def build_invocation(self, request: InvocationRequest) -> InvocationSpec:
         return InvocationSpec(
@@ -40,8 +47,13 @@ class ScriptedProvider:
 def write_scripted_report(output: Path, prompt: str) -> ActorReport:
     output.mkdir(parents=True, exist_ok=True)
     (output / "messages").mkdir(exist_ok=True)
+    try:
+        envelope = json.loads(prompt)
+        scope = str(envelope["statement_of_work"]["scope"])
+    except (json.JSONDecodeError, KeyError, TypeError):
+        scope = prompt
     report = ActorReport(
-        status="completed" if "fail" not in prompt.lower() else "failed",
+        status="completed" if "fail" not in scope.lower() else "failed",
         changed_artifacts=["inventory.md"],
         proposed_checks=["inventory_non_negative", "cash_reconciles"],
         questions=[],

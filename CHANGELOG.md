@@ -9,9 +9,13 @@ Repository: [`zeroemployeeorg/sovereign-agent`](https://github.com/zeroemployeeo
 ### Providers (Unit 6)
 
 Claude, Codex, and Cursor adapters implement `probe` / `build_invocation` /
-`parse_event`. Capability claims come from `--help` probes and fail closed.
-Default tests use committed fixtures. `pytest -m live` is opt-in and never
-part of default CI. Chapter 3 lands with this unit.
+`parse_event`. One provider-neutral envelope supplies actor identity,
+authority, SOW, workspace/output boundaries, and the exact report schema.
+Capability claims retain probe evidence and fail closed. Terminal events,
+sessions, usage, malformed streams, reports, canonical receipts, and receipt
+digests are validated by fake-executable integration tests. Credentialed live
+assignments remain explicitly opt-in and outside default CI. Chapter 3 lands
+with a runnable provider-rebinding exercise.
 
 ### 1.x educational reset (authorization only)
 

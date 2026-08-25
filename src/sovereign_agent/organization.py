@@ -31,6 +31,7 @@ from sovereign_agent.policy import (
     forbid_self_approval,
     require_authority,
 )
+from sovereign_agent.providers import get_provider
 from sovereign_agent.relay import inbox as relay_inbox
 from sovereign_agent.relay import send as relay_send
 
@@ -69,6 +70,26 @@ class Organization:
                 "Use an id from sovereign.toml.",
             )
         return self.actors[actor_id]
+
+    def rebind_actor(self, actor_id: str, provider: str, authority_id: str) -> Actor:
+        authority = self.actor(authority_id)
+        require_authority(authority.role, "rule")
+        get_provider(provider)
+        actor = self.actor(actor_id)
+        actor.provider = provider
+        config = {
+            "schema_version": 1,
+            "actors": [item.model_dump(mode="json") for item in self.actors.values()],
+        }
+        write_config(self.config_path, config)
+        with self.db.transaction():
+            self.db.put("actors", actor.id, actor.model_dump(mode="json"))
+            append_event(
+                self.db,
+                "actor.provider_rebound",
+                {"actor_id": actor.id, "provider": provider, "by": authority_id},
+            )
+        return actor
 
     def create_outcome(
         self, title: str, desired_state: str, checks: list[str], owner: str
@@ -165,13 +186,16 @@ class Organization:
         workspace.mkdir(parents=True, exist_ok=True)
         assignment.state = AssignmentState.RUNNING
         self._save_assignment(assignment, sow, "assignment.running")
-        receipt, report = invoke_actor(worker.provider, workspace, output, assignment.prompt_ref)
-        receipt.actor_id = worker.id
+        receipt, report = invoke_actor(worker, sow, workspace, output)
+        receipt_json = (workspace / "receipt.json").read_text(encoding="utf-8")
         with self.db.transaction():
-            self.db.put("receipts", receipt.id, receipt.model_dump(mode="json"))
+            self.db.put_serialized("receipts", receipt.id, receipt_json)
             if report and report.status == "completed":
                 assignment.state = AssignmentState.COMPLETED
                 sow.state = advance_sow(SowState.RUNNING, SowState.REVIEW)
+            elif report and report.status == "blocked":
+                assignment.state = AssignmentState.BLOCKED
+                sow.state = advance_sow(SowState.RUNNING, SowState.BLOCKED)
             else:
                 assignment.state = AssignmentState.FAILED
                 sow.state = advance_sow(SowState.RUNNING, SowState.FAILED)

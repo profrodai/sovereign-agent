@@ -39,12 +39,23 @@ def _doctor(_: argparse.Namespace) -> int:
     print("  Providers:")
     for name, provider in PROVIDERS.items():
         caps = provider.probe()
-        state = "available" if caps.available else "missing executable"
+        if caps.available:
+            state = f"available {caps.version}".rstrip()
+            if caps.degraded_reason:
+                state += f"; degraded: {caps.degraded_reason}"
+        elif caps.degraded_reason:
+            state = f"degraded: {caps.degraded_reason}"
+        else:
+            state = "missing executable"
         extra = []
         if caps.streaming:
             extra.append("streaming")
         if caps.resume:
             extra.append("resume")
+        if caps.workspace_selection:
+            extra.append("workspace-selection")
+        if caps.sandbox:
+            extra.append("sandbox")
         suffix = f" ({', '.join(extra)})" if extra else ""
         print(f"    {name:8} {state}{suffix}")
     if python_ok and pydantic_ok:
