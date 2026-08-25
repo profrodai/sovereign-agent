@@ -172,9 +172,7 @@ def require_proven(
         ),
     }
     missing_capabilities = [
-        name
-        for name, (wanted, proven) in required.items()
-        if wanted and not proven
+        name for name, (wanted, proven) in required.items() if wanted and not proven
     ]
     if missing_capabilities:
         names = ", ".join(missing_capabilities)

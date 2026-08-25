@@ -89,11 +89,14 @@ def build_assignment_envelope(
 
 
 def canonical_receipt_json(receipt: Receipt) -> str:
-    return json.dumps(
-        receipt.model_dump(mode="json"),
-        sort_keys=True,
-        separators=(",", ":"),
-    ) + "\n"
+    return (
+        json.dumps(
+            receipt.model_dump(mode="json"),
+            sort_keys=True,
+            separators=(",", ":"),
+        )
+        + "\n"
+    )
 
 
 def write_receipt(workspace: Path, receipt: Receipt) -> str:
@@ -208,8 +211,7 @@ def invoke_actor(
     failure_category: str | None = None
     failure_message: str | None = None
     protocol_ok = not malformed and (
-        not provider.requires_terminal_event
-        or (terminal is True and session_ref is not None)
+        not provider.requires_terminal_event or (terminal is True and session_ref is not None)
     )
     if result.returncode == 0 and protocol_ok and report_path.is_file():
         try:

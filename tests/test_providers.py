@@ -223,9 +223,7 @@ def test_cursor_workspace_flag_requires_exact_probe(
     assert spec.cwd == tmp_path
 
 
-def test_requested_sandbox_must_be_proven(
-    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
-) -> None:
+def test_requested_sandbox_must_be_proven(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
     provider = CodexProvider()
     request = InvocationRequest(
         workspace=tmp_path,
@@ -247,9 +245,7 @@ def test_requested_sandbox_must_be_proven(
     ]
 
 
-def test_codex_resume_has_subcommand_shape(
-    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
-) -> None:
+def test_codex_resume_has_subcommand_shape(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
     provider = CodexProvider()
     monkeypatch.setattr(provider, "probe", _caps)
     request = InvocationRequest(

@@ -195,9 +195,7 @@ def build_parser() -> argparse.ArgumentParser:
     created.add_argument("--owner", default="principal-human")
     created.set_defaults(handler=_outcome_new)
 
-    plan = subparsers.add_parser(
-        "plan", parents=[shared], help="activate an outcome and add a SOW"
-    )
+    plan = subparsers.add_parser("plan", parents=[shared], help="activate an outcome and add a SOW")
     plan.add_argument("outcome_id")
     plan.add_argument("--scope", default="Advance the outcome by one bounded assignment")
     plan.add_argument("--role", default="operator")
@@ -210,15 +208,11 @@ def build_parser() -> argparse.ArgumentParser:
     run.add_argument("--planner", default="master-course")
     run.set_defaults(handler=_run)
 
-    status = subparsers.add_parser(
-        "status", parents=[shared], help="explain outcome and SOW state"
-    )
+    status = subparsers.add_parser("status", parents=[shared], help="explain outcome and SOW state")
     status.add_argument("outcome_id")
     status.set_defaults(handler=_status)
 
-    inbox = subparsers.add_parser(
-        "inbox", parents=[shared], help="list an actor's durable mailbox"
-    )
+    inbox = subparsers.add_parser("inbox", parents=[shared], help="list an actor's durable mailbox")
     inbox.add_argument("actor_id")
     inbox.set_defaults(handler=_inbox)
 
@@ -247,9 +241,7 @@ def build_parser() -> argparse.ArgumentParser:
     accept.add_argument("--evidence", nargs="+", required=True)
     accept.set_defaults(handler=_accept)
 
-    demo = subparsers.add_parser(
-        "demo", parents=[shared], help="run a scripted teaching scenario"
-    )
+    demo = subparsers.add_parser("demo", parents=[shared], help="run a scripted teaching scenario")
     demo.add_argument("target", choices=["store"])
     demo.add_argument("--mode", default="simulated", choices=["simulated"])
     demo.set_defaults(handler=_demo)

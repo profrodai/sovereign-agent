@@ -58,8 +58,7 @@ class ClaudeProvider:
             resume=has_flag(help_text, "--resume"),
             structured_result=has_flag(help_text, "--json-schema"),
             workspace_write=(
-                has_flag(help_text, "--permission-mode")
-                and "acceptEdits".lower() in help_text
+                has_flag(help_text, "--permission-mode") and "acceptEdits".lower() in help_text
             ),
             verbose=has_flag(help_text, "--verbose"),
             evidence=evidence,

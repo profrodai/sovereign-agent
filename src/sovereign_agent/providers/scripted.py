@@ -51,7 +51,7 @@ def write_scripted_report(output: Path, prompt: str) -> ActorReport:
     try:
         envelope = json.loads(prompt)
         scope = str(envelope["statement_of_work"]["scope"])
-    except (json.JSONDecodeError, KeyError, TypeError):
+    except json.JSONDecodeError, KeyError, TypeError:
         scope = prompt
     report = ActorReport(
         status="completed" if "fail" not in scope.lower() else "failed",
