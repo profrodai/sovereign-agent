@@ -1,8 +1,17 @@
 # Sovereign Agent after v0.5
 
-This is the public work-repository implementation plan. Binding authorization
-remains in the Zero Employee corpus. This tree records code and repository
-reality; it does not hold Statements of Work.
+This is the public work-repository implementation plan for the **0.x** line.
+
+**1.x educational reset (2026-08-25).** Binding holdings for the executable
+textbook are in
+[rulings/2026-08-25-educational-reset.md](rulings/2026-08-25-educational-reset.md).
+SOW metadata is in
+[sows/sovereign-agent-v1-educational-control-plane.md](sows/sovereign-agent-v1-educational-control-plane.md).
+Implementation proceeds on branch `v1-educational`. `main` remains v0.7 until
+1.0 is done. Tag `v0.7.0` is not moved.
+
+For the 0.x line, this tree records code and repository reality. Corpus SOW
+paths remain TBD (`sow_repo`).
 
 Recorded as of 2026-08-23:
 

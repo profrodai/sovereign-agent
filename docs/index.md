@@ -11,7 +11,10 @@ resume after a crash, and operate without a hosted control plane.
 !!! warning "v0.7 is alpha"
     Pin `sovereign-agent~=0.7.0`, read the
     [non-goals and limitations](non-goals.md), and review code before
-    making it load-bearing.
+    making it load-bearing. Sovereign Agent 1.x is an authorized educational
+    reset on branch `v1-educational`; it is not a compatible continuation of
+    this API. See [migrate v0.7 to v1](migration-v0.7-to-v1.md) and pin
+    `sovereign-agent<1` to stay on 0.x.
 
 ## Start here
 

@@ -1,0 +1,62 @@
+# SOW: Sovereign Agent 1.0 — executable textbook
+
+```yaml
+sow: sovereign-agent-v1-educational-control-plane
+project: sovereign-agent
+stream: v1-educational-reboot
+status: DESIGN
+lifecycle: DESIGN-MEMO
+created: 2026-08-25
+updated: 2026-08-25
+work_repo: https://github.com/zeroemployeeorg/sovereign-agent
+sow_repo: TBD
+done_when: >-
+  python -m pytest -q -> 0 failures;
+  python scripts/verify_curriculum.py -> exit 0;
+  python scripts/verify_runtime_dependencies.py -> exactly pydantic;
+  sovereign-agent demo store --mode simulated -> outcome ACCEPTED;
+  foreground and installed-supervisor pulse tests -> proactive governed work with durable receipts;
+  timed Andrea-profile quickstart -> first accepted outcome within 10 minutes;
+  30-day Sovereign Store pilot -> redacted proof pack accepted
+```
+
+This work repository records SOW metadata and the binding ruling so
+implementation history and authorization agree. The full design memo lives with
+the originating stream; holdings that change the package boundary are in
+[ruling 2026-08-25 educational reset](../rulings/2026-08-25-educational-reset.md).
+
+## Decision in one sentence
+
+Rebuild sovereign-agent as the most didactic possible Python library for
+learning how a Zero-Employee Organization turns an outcome into governed work
+performed by actors whose intelligence comes from Claude Code, Codex, or
+Cursor—and make Zero Employee the obvious graduation path when the learner is
+ready for production.
+
+## Open questions
+
+| id | claim | status | resolution |
+| --- | --- | --- | --- |
+| OQ-1 | Confirm that Sovereign Agent 1.x may intentionally break the v0.7 public API and reposition the package as an executable textbook. | RESOLVED | Principal approval, 2026-08-25. |
+| OQ-2 | Confirm whether the canonical short executable remains `sovereign-agent` or additionally gains the `sov` alias. | RESOLVED | Retain only `sovereign-agent` for 1.0. No `sov` alias. |
+| OQ-3 | Confirm the canonical user-facing name for the opt-in resident process: supervisor, resident supervisor, or organization service. | RESOLVED | Teach **supervisor** as the control loop. Use **service** only for `install` / `status` / `uninstall`. One supervisor; service is hosting. |
+
+## Sequencing amendments (2026-08-25)
+
+1. Introduce the Sovereign Store **walking skeleton** during Units 2–5
+   (`Product`, `InventoryPosition`, `CashEntry`, transactional mutations,
+   scripted sale, inventory signal, replenishment SOW). Unit 11 expands that
+   skeleton; it does not create the store from nothing.
+2. Develop the curriculum **alongside** implementation units. Unit 10 completes
+   and drift-checks the book; it is not the first moment chapters exist.
+   Checkpoint tags `book-v1-ch00` through `book-v1-ch12` must keep the commits
+   they name.
+3. Persistence wording: JSON/TOML is canonical for committed governance;
+   SQLite is canonical for operational state; Markdown is generated.
+
+## Related documents
+
+- [Educational reset ruling](../rulings/2026-08-25-educational-reset.md)
+- [Migration v0.7 to v1](../migration-v0.7-to-v1.md)
+- [v0.7 maintenance](../v0.7-maintenance.md)
+- [v1 removal manifest](../v1-removal-manifest.md)
