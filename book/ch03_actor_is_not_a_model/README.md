@@ -45,6 +45,11 @@ write its mandatory report. The live read-only smoke verifies that tracked
 domain files remain unchanged; it does not make the report directory
 unwritable.
 
+The same authority becomes Claude `--permission-mode acceptEdits` and Cursor
+`--force`, but only when those exact controls are present in the installed
+CLI's help output. These flags authorize writes inside the disposable run
+workspace; they do not expand the actor's organizational authority.
+
 ## Reflection
 
 1. Which fields stayed constant after rebinding the provider?

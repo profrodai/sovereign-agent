@@ -39,6 +39,7 @@ class ProviderCapabilities:
     resume_sandbox: bool = False
     structured_result: bool = False
     sandbox: bool = False
+    workspace_write: bool = False
     usage: bool = False
     workspace_selection: bool = False
     verbose: bool = False
@@ -56,6 +57,7 @@ class InvocationRequest:
     require_streaming: bool = True
     require_structured_result: bool = False
     require_sandbox: bool = False
+    require_workspace_write: bool = False
     require_usage: bool = False
     require_workspace_selection: bool = False
     provider_session_id: str | None = None
@@ -159,6 +161,10 @@ def require_proven(
         "resume": (request.require_resume, caps.resume),
         "structured result": (request.require_structured_result, caps.structured_result),
         "sandbox": (request.require_sandbox, caps.sandbox),
+        "workspace write": (
+            request.require_workspace_write,
+            caps.workspace_write,
+        ),
         "usage": (request.require_usage, caps.usage),
         "workspace selection": (
             request.require_workspace_selection,

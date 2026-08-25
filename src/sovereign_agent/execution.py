@@ -163,6 +163,7 @@ def invoke_actor(
             prompt=envelope,
             require_resume=provider_session_id is not None,
             require_sandbox=actor.provider == "codex" and workspace_write,
+            require_workspace_write=workspace_write,
             provider_session_id=provider_session_id,
         )
     )

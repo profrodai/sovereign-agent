@@ -57,6 +57,10 @@ class ClaudeProvider:
             streaming=has_flag(help_text, "--output-format") and "stream-json" in help_text,
             resume=has_flag(help_text, "--resume"),
             structured_result=has_flag(help_text, "--json-schema"),
+            workspace_write=(
+                has_flag(help_text, "--permission-mode")
+                and "acceptEdits".lower() in help_text
+            ),
             verbose=has_flag(help_text, "--verbose"),
             evidence=evidence,
         )
@@ -92,6 +96,8 @@ class ClaudeProvider:
             "stream-json",
             "--verbose",
         ]
+        if request.require_workspace_write:
+            argv.extend(["--permission-mode", "acceptEdits"])
         if request.provider_session_id and caps.resume:
             argv.extend(["--resume", request.provider_session_id])
         argv.append(request.prompt)

@@ -29,7 +29,13 @@ if name == "codex" and args == ["exec", "resume", "--help"]:
     print("Usage: codex exec resume [OPTIONS] [SESSION_ID] [PROMPT]\n  --json\n  --sandbox")
     raise SystemExit(0)
 if args == ["--help"]:
-    print("-p --print --output-format stream-json --verbose --resume --workspace")
+    if name == "claude":
+        print(
+            "-p --print --output-format stream-json --verbose --resume "
+            "--permission-mode [default|acceptEdits]"
+        )
+    else:
+        print("-p --print --output-format stream-json --resume --workspace --force")
     raise SystemExit(0)
 
 envelope = json.loads(args[-1])
@@ -40,6 +46,14 @@ if name == "codex":
     if sandbox < 0 or args[sandbox + 1] != "workspace-write":
         print(json.dumps({"type": "turn.failed", "error": {"message": "read-only sandbox"}}))
         raise SystemExit(9)
+elif name == "claude":
+    permission = args.index("--permission-mode") if "--permission-mode" in args else -1
+    if permission < 0 or args[permission + 1] != "acceptEdits":
+        print(json.dumps({"type": "result", "subtype": "error", "is_error": True}))
+        raise SystemExit(9)
+elif "--force" not in args:
+    print(json.dumps({"type": "result", "subtype": "error", "is_error": True}))
+    raise SystemExit(9)
 output.mkdir(parents=True, exist_ok=True)
 (workspace / "observed-envelope.json").write_text(json.dumps(envelope, sort_keys=True))
 (workspace / "observed-argv.json").write_text(json.dumps(args[:-1]))
@@ -146,6 +160,10 @@ def test_fake_provider_reaches_review_with_truthful_receipt(
     observed_argv = json.loads((workspace / "observed-argv.json").read_text())
     if provider == "codex":
         assert observed_argv == ["exec", "--json", "--sandbox", "workspace-write"]
+    elif provider == "claude":
+        assert observed_argv[-2:] == ["--permission-mode", "acceptEdits"]
+    else:
+        assert "--force" in observed_argv
 
     receipt_text = (workspace / "receipt.json").read_text(encoding="utf-8")
     row = org.db.connection.execute("SELECT record FROM receipts").fetchone()

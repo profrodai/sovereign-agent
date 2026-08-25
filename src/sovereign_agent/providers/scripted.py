@@ -26,6 +26,7 @@ class ScriptedProvider:
             print_mode=True,
             streaming=True,
             structured_result=True,
+            workspace_write=True,
         )
 
     def build_invocation(self, request: InvocationRequest) -> InvocationSpec:

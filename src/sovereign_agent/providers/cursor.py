@@ -53,6 +53,7 @@ class CursorProvider:
             streaming=has_flag(help_text, "--output-format") and "stream-json" in help_text,
             resume=has_flag(help_text, "--resume"),
             workspace_selection=has_flag(help_text, "--workspace"),
+            workspace_write=has_flag(help_text, "--force"),
             sandbox=False,
             evidence=evidence,
         )
@@ -75,6 +76,8 @@ class CursorProvider:
                 category="capability_refusal",
             )
         argv = [self.executable, caps.print_flag, "--output-format", "stream-json"]
+        if request.require_workspace_write:
+            argv.append("--force")
         if caps.workspace_selection:
             argv.extend(["--workspace", str(request.workspace)])
         if request.provider_session_id and caps.resume:

@@ -23,7 +23,7 @@ class CodexProvider:
     name = "codex"
     executable = "codex"
     requires_terminal_event = True
-    authentication_environment = ("OPENAI_API_KEY",)
+    authentication_environment = ("CODEX_API_KEY",)
 
     def probe(self) -> ProviderCapabilities:
         if look_up(self.executable) is None:
@@ -51,6 +51,7 @@ class CodexProvider:
             resume_streaming=has_flag(resume_help, "--json"),
             resume_sandbox=has_flag(resume_help, "--sandbox"),
             sandbox=has_flag(exec_help, "--sandbox"),
+            workspace_write=has_flag(exec_help, "--sandbox"),
             evidence=evidence,
             degraded_reason=(
                 resume_probe.error or "codex exec resume --help exited non-zero"
@@ -82,6 +83,7 @@ class CodexProvider:
                 caps,
                 streaming=caps.resume_streaming,
                 sandbox=caps.resume_sandbox,
+                workspace_write=caps.resume_sandbox,
             )
         require_proven(
             caps,

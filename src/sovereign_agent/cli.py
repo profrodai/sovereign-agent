@@ -54,6 +54,8 @@ def _doctor(_: argparse.Namespace) -> int:
             extra.append("resume")
         if caps.workspace_selection:
             extra.append("workspace-selection")
+        if caps.workspace_write:
+            extra.append("workspace-write")
         if caps.sandbox:
             extra.append("sandbox")
         suffix = f" ({', '.join(extra)})" if extra else ""

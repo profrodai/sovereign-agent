@@ -77,7 +77,7 @@ def test_live_assignment_reaches_review_without_moving_trunk(
     org.actors["operator-course"].provider = name
     before_head = _git(org.root, "rev-parse", "HEAD")
     scope = (
-        "Read README.md without changing tracked files, then write only the required report."
+        "Read fixture.txt without changing it, then write only the required report."
         if mode == "read-only"
         else (
             "Create lesson.txt containing exactly 'actor is not provider\\n', "
@@ -89,12 +89,17 @@ def test_live_assignment_reaches_review_without_moving_trunk(
     sow = org.create_sow(outcome.id, scope, Role.OPERATOR, "master-course")
     org.ready_sow(sow.id)
     assignment = org.assign(sow.id, "operator-course", "master-course")
+    workspace = org.root / ".sovereign" / "runs" / assignment.workspace_id
+    workspace.mkdir(parents=True)
+    (workspace / "fixture.txt").write_text(
+        "actor identity is governed\n",
+        encoding="utf-8",
+    )
     finished = org.run_assignment(assignment.id)
 
     assert finished.state == AssignmentState.COMPLETED
     assert org._sow(sow.id).state == SowState.REVIEW  # noqa: SLF001
     assert _git(org.root, "rev-parse", "HEAD") == before_head
-    workspace = org.root / ".sovereign" / "runs" / assignment.workspace_id
     receipt = (workspace / "receipt.json").read_text(encoding="utf-8")
     ActorReport.model_validate_json(
         (workspace / ".sovereign-out" / "report.json").read_text(encoding="utf-8")
@@ -108,6 +113,7 @@ def test_live_assignment_reaches_review_without_moving_trunk(
     ]
     assert normalized[-1]["terminal"] is True
     if mode == "read-only":
+        assert (workspace / "fixture.txt").read_text() == "actor identity is governed\n"
         assert _git(org.root, "status", "--porcelain") == ""
     else:
         assert (workspace / "lesson.txt").read_text() == "actor is not provider\n"

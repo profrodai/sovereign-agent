@@ -65,7 +65,7 @@ Sovereign Agent's disposable workspace.
 
 Provider subprocesses receive only base process variables plus documented
 credential allowlists: Claude (`ANTHROPIC_API_KEY`, `ANTHROPIC_AUTH_TOKEN`,
-`CLAUDE_CODE_OAUTH_TOKEN`), Codex (`OPENAI_API_KEY`), and Cursor
+`CLAUDE_CODE_OAUTH_TOKEN`), Codex (`CODEX_API_KEY`), and Cursor
 (`CURSOR_API_KEY`). Other parent secrets are not forwarded.
 
 ## Unit 1 gates

@@ -39,6 +39,7 @@ def _caps(**changes: object) -> ProviderCapabilities:
         "resume": True,
         "resume_streaming": True,
         "resume_sandbox": True,
+        "workspace_write": True,
         "verbose": True,
     }
     values.update(changes)
@@ -184,6 +185,34 @@ def test_long_print_flag_is_emitted_when_it_is_the_only_proven_form(
     assert "-p" not in spec.argv
 
 
+@pytest.mark.parametrize(
+    ("provider", "write_argv"),
+    [
+        (ClaudeProvider(), ["--permission-mode", "acceptEdits"]),
+        (CursorProvider(), ["--force"]),
+    ],
+)
+def test_write_authority_requires_provider_specific_mode(
+    provider: ClaudeProvider | CursorProvider,
+    write_argv: list[str],
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    request = InvocationRequest(
+        workspace=tmp_path,
+        output=tmp_path / "out",
+        prompt="write report",
+        require_workspace_write=True,
+    )
+    monkeypatch.setattr(provider, "probe", lambda: _caps(workspace_write=False))
+    with pytest.raises(Refusal, match="workspace write"):
+        provider.build_invocation(request)
+    monkeypatch.setattr(provider, "probe", _caps)
+    argv = provider.build_invocation(request).argv
+    for index, value in enumerate(write_argv):
+        assert argv[argv.index(write_argv[0]) + index] == value
+
+
 def test_cursor_workspace_flag_requires_exact_probe(
     tmp_path: Path, monkeypatch: pytest.MonkeyPatch
 ) -> None:
@@ -301,15 +330,35 @@ def test_codex_probes_resume_subcommand_exactly(
     assert caps.evidence[-1].command == calls[-1]
 
 
+@pytest.mark.parametrize(
+    ("provider", "variable"),
+    [
+        (ClaudeProvider(), "ANTHROPIC_API_KEY"),
+        (CodexProvider(), "CODEX_API_KEY"),
+        (CursorProvider(), "CURSOR_API_KEY"),
+    ],
+)
 def test_provider_auth_environment_is_allowlisted(
-    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+    provider: ClaudeProvider | CodexProvider | CursorProvider,
+    variable: str,
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
 ) -> None:
-    monkeypatch.setenv("ANTHROPIC_API_KEY", "approved")
+    for name in (
+        "ANTHROPIC_API_KEY",
+        "ANTHROPIC_AUTH_TOKEN",
+        "CLAUDE_CODE_OAUTH_TOKEN",
+        "CODEX_API_KEY",
+        "CURSOR_API_KEY",
+    ):
+        monkeypatch.delenv(name, raising=False)
+    monkeypatch.setenv(variable, "approved")
+    monkeypatch.setenv("OPENAI_API_KEY", "must-not-leak")
     monkeypatch.setenv("DATABASE_URL", "must-not-leak")
-    provider = ClaudeProvider()
     monkeypatch.setattr(provider, "probe", _caps)
     spec = provider.build_invocation(_request(tmp_path))
-    assert spec.env == {"ANTHROPIC_API_KEY": "approved"}
+    assert spec.env == {variable: "approved"}
+    assert "OPENAI_API_KEY" not in spec.env
     assert "DATABASE_URL" not in spec.env
 
 
