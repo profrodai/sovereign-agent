@@ -15,7 +15,10 @@ Capability claims retain probe evidence and fail closed. Terminal events,
 sessions, usage, malformed streams, reports, canonical receipts, and receipt
 digests are validated by fake-executable integration tests. Credentialed live
 assignments remain explicitly opt-in and outside default CI. Chapter 3 lands
-with a runnable provider-rebinding exercise.
+with a runnable provider-rebinding exercise. Codex receives an authority-bound
+writable sandbox for its mandatory report; refusals and timeouts finalize
+durable failed receipts; provider credentials use explicit environment
+allowlists.
 
 ### 1.x educational reset (authorization only)
 

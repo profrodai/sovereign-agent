@@ -2,11 +2,15 @@
 
 from __future__ import annotations
 
+from dataclasses import replace
+
+from sovereign_agent.errors import Refusal
 from sovereign_agent.providers.base import (
     InvocationRequest,
     InvocationSpec,
     ProviderCapabilities,
     ProviderEvent,
+    allowed_environment,
     capture,
     has_flag,
     look_up,
@@ -19,6 +23,7 @@ class CodexProvider:
     name = "codex"
     executable = "codex"
     requires_terminal_event = True
+    authentication_environment = ("OPENAI_API_KEY",)
 
     def probe(self) -> ProviderCapabilities:
         if look_up(self.executable) is None:
@@ -43,6 +48,8 @@ class CodexProvider:
             print_mode=True,
             streaming=has_flag(exec_help, "--json"),
             resume=resume_probe.exit_code == 0 and "resume" in resume_help,
+            resume_streaming=has_flag(resume_help, "--json"),
+            resume_sandbox=has_flag(resume_help, "--sandbox"),
             sandbox=has_flag(exec_help, "--sandbox"),
             evidence=evidence,
             degraded_reason=(
@@ -54,6 +61,28 @@ class CodexProvider:
 
     def build_invocation(self, request: InvocationRequest) -> InvocationSpec:
         caps = self.probe()
+        if request.provider_session_id:
+            if request.require_streaming and not caps.resume_streaming:
+                raise Refusal(
+                    "codex resume cannot prove --json.",
+                    "Parent exec flags are not assumed to apply to the resume subcommand.",
+                    "codex exec resume --help",
+                    "Upgrade Codex or run a fresh assignment.",
+                    category="capability_refusal",
+                )
+            if request.require_sandbox and not caps.resume_sandbox:
+                raise Refusal(
+                    "codex resume cannot prove --sandbox.",
+                    "Writable resume requires evidence from the resume subcommand itself.",
+                    "codex exec resume --help",
+                    "Upgrade Codex or run a fresh assignment.",
+                    category="capability_refusal",
+                )
+            caps = replace(
+                caps,
+                streaming=caps.resume_streaming,
+                sandbox=caps.resume_sandbox,
+            )
         require_proven(
             caps,
             request,
@@ -67,14 +96,19 @@ class CodexProvider:
                 "exec",
                 "resume",
                 "--json",
-                request.provider_session_id,
             ]
         else:
             argv = [self.executable, "exec", "--json"]
         if request.require_sandbox:
             argv.extend(["--sandbox", "workspace-write"])
+        if request.provider_session_id:
+            argv.append(request.provider_session_id)
         argv.append(request.prompt)
-        return InvocationSpec(argv=argv, cwd=request.workspace)
+        return InvocationSpec(
+            argv=argv,
+            cwd=request.workspace,
+            env=allowed_environment(*self.authentication_environment),
+        )
 
     def parse_event(self, line: str) -> ProviderEvent | None:
         event = parse_json_line(line)

@@ -63,6 +63,11 @@ envelope and must emit a valid terminal event and write the exact
 `--workspace` is directory selection, not sandboxing; isolation belongs to
 Sovereign Agent's disposable workspace.
 
+Provider subprocesses receive only base process variables plus documented
+credential allowlists: Claude (`ANTHROPIC_API_KEY`, `ANTHROPIC_AUTH_TOKEN`,
+`CLAUDE_CODE_OAUTH_TOKEN`), Codex (`OPENAI_API_KEY`), and Cursor
+(`CURSOR_API_KEY`). Other parent secrets are not forwarded.
+
 ## Unit 1 gates
 
 ```bash

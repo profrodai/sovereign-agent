@@ -7,6 +7,7 @@ import json
 import os
 import subprocess
 import sys
+from datetime import datetime
 from pathlib import Path
 
 from sovereign_agent.errors import Refusal
@@ -39,6 +40,15 @@ def run_spec(spec: InvocationSpec, timeout: float = 60.0) -> subprocess.Complete
             why="A hung provider must not be treated as completion.",
             inspect=str(spec.cwd),
             next_command="Retry with a smaller assignment or inspect provider-raw logs.",
+            category="timeout",
+        ) from error
+    except OSError as error:
+        raise Refusal(
+            happened="Provider process could not start.",
+            why=str(error),
+            inspect=str(spec.cwd),
+            next_command="Run sovereign-agent doctor and inspect the executable.",
+            category="invocation_error",
         ) from error
 
 
@@ -86,6 +96,39 @@ def canonical_receipt_json(receipt: Receipt) -> str:
     ) + "\n"
 
 
+def write_receipt(workspace: Path, receipt: Receipt) -> str:
+    receipt_json = canonical_receipt_json(receipt)
+    receipt_path = workspace / "receipt.json"
+    receipt_path.write_text(receipt_json, encoding="utf-8")
+    digest = hashlib.sha256(receipt_json.encode()).hexdigest()
+    (workspace / "receipt.json.sha256").write_text(f"{digest}\n", encoding="utf-8")
+    return receipt_json
+
+
+def write_failed_receipt(
+    actor: Actor,
+    workspace: Path,
+    category: str,
+    message: str,
+    started_at: datetime | None = None,
+) -> Receipt:
+    receipt = Receipt(
+        id=new_id("rct"),
+        actor_id=actor.id,
+        provider=actor.provider,
+        provider_session_ref=None,
+        provider_usage={},
+        started_at=started_at or utc_now(),
+        ended_at=utc_now(),
+        status="failed",
+        failure_category=category,
+        failure_message=message,
+        evidence_refs=[],
+    )
+    write_receipt(workspace, receipt)
+    return receipt
+
+
 def invoke_actor(
     actor: Actor,
     sow: StatementOfWork,
@@ -93,6 +136,15 @@ def invoke_actor(
     output: Path,
     provider_session_id: str | None = None,
 ) -> tuple[Receipt, ActorReport | None]:
+    workspace_write = "write_workspace" in actor.authority
+    if "report" not in actor.authority or not workspace_write:
+        raise Refusal(
+            "Actor cannot write the mandatory report.",
+            "Every provider assignment must be authorized to write inside its run workspace.",
+            actor.id,
+            "Assign an actor with report and write_workspace authority.",
+            category="authority_refusal",
+        )
     provider = get_provider(actor.provider)
     capabilities = provider.probe()
     if not capabilities.available:
@@ -101,6 +153,7 @@ def invoke_actor(
             "Fail closed on missing executables.",
             "sovereign-agent doctor",
             "Install the CLI or use scripted.",
+            category="provider_unavailable",
         )
     envelope = build_assignment_envelope(actor, sow, workspace, output)
     spec = provider.build_invocation(
@@ -109,6 +162,7 @@ def invoke_actor(
             output=output,
             prompt=envelope,
             require_resume=provider_session_id is not None,
+            require_sandbox=actor.provider == "codex" and workspace_write,
             provider_session_id=provider_session_id,
         )
     )
@@ -150,6 +204,8 @@ def invoke_actor(
     report_path = output / "report.json"
     report: ActorReport | None = None
     status = "failed"
+    failure_category: str | None = None
+    failure_message: str | None = None
     protocol_ok = not malformed and (
         not provider.requires_terminal_event
         or (terminal is True and session_ref is not None)
@@ -158,8 +214,27 @@ def invoke_actor(
         try:
             report = ActorReport.model_validate_json(report_path.read_text(encoding="utf-8"))
             status = report.status
-        except Exception:
-            status = "failed"
+            if status == "failed":
+                failure_category = "actor_reported_failure"
+                failure_message = report.notes
+        except Exception as error:
+            failure_category = "invalid_report"
+            failure_message = str(error)
+    elif result.returncode != 0:
+        failure_category = "nonzero_exit"
+        failure_message = f"Provider exited with status {result.returncode}."
+    elif malformed:
+        failure_category = "malformed_stream"
+        failure_message = "Provider emitted malformed structured output."
+    elif provider.requires_terminal_event and terminal is not True:
+        failure_category = "provider_error" if terminal is False else "missing_terminal"
+        failure_message = "Provider did not emit a successful terminal event."
+    elif provider.requires_terminal_event and session_ref is None:
+        failure_category = "missing_session"
+        failure_message = "Provider did not emit a session reference."
+    elif not report_path.is_file():
+        failure_category = "missing_report"
+        failure_message = "Provider did not write the mandatory report."
     receipt = Receipt(
         id=new_id("rct"),
         actor_id=actor.id,
@@ -169,11 +244,9 @@ def invoke_actor(
         started_at=started,
         ended_at=ended,
         status=status,
+        failure_category=failure_category,
+        failure_message=failure_message,
         evidence_refs=[],
     )
-    receipt_json = canonical_receipt_json(receipt)
-    receipt_path = workspace / "receipt.json"
-    receipt_path.write_text(receipt_json, encoding="utf-8")
-    digest = hashlib.sha256(receipt_json.encode()).hexdigest()
-    (workspace / "receipt.json.sha256").write_text(f"{digest}\n", encoding="utf-8")
+    write_receipt(workspace, receipt)
     return receipt, report

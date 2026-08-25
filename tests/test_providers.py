@@ -6,9 +6,11 @@ from pathlib import Path
 import pytest
 
 from sovereign_agent.errors import Refusal
+from sovereign_agent.execution import run_spec
 from sovereign_agent.providers import PROVIDERS, get_provider
 from sovereign_agent.providers.base import (
     InvocationRequest,
+    InvocationSpec,
     ProbeEvidence,
     ProviderCapabilities,
     capture,
@@ -28,12 +30,15 @@ def _request(tmp_path: Path) -> InvocationRequest:
     )
 
 
-def _caps(**changes: bool) -> ProviderCapabilities:
+def _caps(**changes: object) -> ProviderCapabilities:
     values = {
         "available": True,
         "print_mode": True,
+        "print_flag": "-p",
         "streaming": True,
         "resume": True,
+        "resume_streaming": True,
+        "resume_sandbox": True,
         "verbose": True,
     }
     values.update(changes)
@@ -167,6 +172,18 @@ def test_proven_flags_are_the_only_ones_on_argv(
     assert spec.argv == ["codex", "exec", "--json", "replenish tea"]
 
 
+@pytest.mark.parametrize("provider", [ClaudeProvider(), CursorProvider()])
+def test_long_print_flag_is_emitted_when_it_is_the_only_proven_form(
+    provider: ClaudeProvider | CursorProvider,
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    monkeypatch.setattr(provider, "probe", lambda: _caps(print_flag="--print"))
+    spec = provider.build_invocation(_request(tmp_path))
+    assert spec.argv[1] == "--print"
+    assert "-p" not in spec.argv
+
+
 def test_cursor_workspace_flag_requires_exact_probe(
     tmp_path: Path, monkeypatch: pytest.MonkeyPatch
 ) -> None:
@@ -223,6 +240,42 @@ def test_codex_resume_has_subcommand_shape(
     ]
 
 
+def test_codex_resume_sandbox_uses_only_resume_probe_evidence(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    provider = CodexProvider()
+    request = InvocationRequest(
+        workspace=tmp_path,
+        output=tmp_path / "out",
+        prompt="continue",
+        require_resume=True,
+        require_sandbox=True,
+        provider_session_id="thread_123",
+    )
+    monkeypatch.setattr(
+        provider,
+        "probe",
+        lambda: _caps(sandbox=True, resume_sandbox=False),
+    )
+    with pytest.raises(Refusal, match="resume cannot prove --sandbox"):
+        provider.build_invocation(request)
+    monkeypatch.setattr(
+        provider,
+        "probe",
+        lambda: _caps(sandbox=True, resume_sandbox=True),
+    )
+    assert provider.build_invocation(request).argv == [
+        "codex",
+        "exec",
+        "resume",
+        "--json",
+        "--sandbox",
+        "workspace-write",
+        "thread_123",
+        "continue",
+    ]
+
+
 def test_codex_probes_resume_subcommand_exactly(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
@@ -235,7 +288,7 @@ def test_codex_probes_resume_subcommand_exactly(
         stdout = {
             ("--version",): "codex 1.0",
             ("exec", "--help"): "--json --sandbox",
-            ("exec", "resume", "--help"): "Usage: codex exec resume --json",
+            ("exec", "resume", "--help"): "Usage: codex exec resume --json --sandbox",
         }[args]
         return ProbeEvidence(command=command, exit_code=0, stdout=stdout)
 
@@ -243,7 +296,55 @@ def test_codex_probes_resume_subcommand_exactly(
     caps = CodexProvider().probe()
     assert calls[-1] == ("codex", "exec", "resume", "--help")
     assert caps.resume
+    assert caps.resume_streaming
+    assert caps.resume_sandbox
     assert caps.evidence[-1].command == calls[-1]
+
+
+def test_provider_auth_environment_is_allowlisted(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    monkeypatch.setenv("ANTHROPIC_API_KEY", "approved")
+    monkeypatch.setenv("DATABASE_URL", "must-not-leak")
+    provider = ClaudeProvider()
+    monkeypatch.setattr(provider, "probe", _caps)
+    spec = provider.build_invocation(_request(tmp_path))
+    assert spec.env == {"ANTHROPIC_API_KEY": "approved"}
+    assert "DATABASE_URL" not in spec.env
+
+
+def test_run_spec_forwards_approved_environment_only(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    monkeypatch.setenv("DATABASE_URL", "must-not-leak")
+    observed: dict[str, str] = {}
+
+    def complete(*args: object, **kwargs: object) -> subprocess.CompletedProcess[str]:
+        observed.update(kwargs["env"])  # type: ignore[arg-type]
+        return subprocess.CompletedProcess(["tool"], 0, "", "")
+
+    monkeypatch.setattr(subprocess, "run", complete)
+    run_spec(
+        InvocationSpec(
+            argv=["tool"],
+            cwd=tmp_path,
+            env={"ANTHROPIC_API_KEY": "approved"},
+        )
+    )
+    assert observed["ANTHROPIC_API_KEY"] == "approved"
+    assert "DATABASE_URL" not in observed
+
+
+def test_run_spec_timeout_has_durable_failure_category(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    def timeout(*args: object, **kwargs: object) -> subprocess.CompletedProcess[str]:
+        raise subprocess.TimeoutExpired(["tool"], 60)
+
+    monkeypatch.setattr(subprocess, "run", timeout)
+    with pytest.raises(Refusal) as raised:
+        run_spec(InvocationSpec(argv=["tool"], cwd=tmp_path))
+    assert raised.value.category == "timeout"
 
 
 def test_probe_timeout_is_degraded_not_an_exception(

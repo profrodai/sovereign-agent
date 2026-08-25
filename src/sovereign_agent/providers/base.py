@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import json
+import os
 import re
 import shutil
 import subprocess
@@ -31,8 +32,11 @@ class ProviderCapabilities:
     available: bool
     version: str = ""
     print_mode: bool = False
+    print_flag: str | None = None
     streaming: bool = False
     resume: bool = False
+    resume_streaming: bool = False
+    resume_sandbox: bool = False
     structured_result: bool = False
     sandbox: bool = False
     usage: bool = False
@@ -96,6 +100,11 @@ def has_flag(text: str, flag: str) -> bool:
     return re.search(rf"(?<![\w-]){re.escape(flag)}(?![\w-])", text) is not None
 
 
+def allowed_environment(*names: str) -> dict[str, str]:
+    """Copy only explicitly documented provider variables from the parent."""
+    return {name: os.environ[name] for name in names if name in os.environ}
+
+
 def capture(executable: str, *args: str) -> ProbeEvidence:
     command = (executable, *args)
     located = look_up(executable)
@@ -134,6 +143,7 @@ def require_proven(
             "Provider CLIs are external executables, not package dependencies.",
             "sovereign-agent doctor",
             next_command,
+            category="provider_unavailable",
         )
     if request.provider_session_id and not request.require_resume:
         raise Refusal(
@@ -141,6 +151,7 @@ def require_proven(
             "A session id must never be silently discarded.",
             inspect,
             "Run a fresh assignment instead of resuming.",
+            category="resume_refusal",
         )
     required = {
         "print mode": (request.require_print_mode, caps.print_mode),
@@ -166,6 +177,7 @@ def require_proven(
             "Fail closed: adapters may not hard-code unsupported flags or semantics.",
             inspect,
             next_command,
+            category="capability_refusal",
         )
 
 

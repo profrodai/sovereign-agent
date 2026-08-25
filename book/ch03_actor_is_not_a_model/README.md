@@ -39,6 +39,12 @@ and shell tools. Chapter 3 relies on a disposable Sovereign Agent run
 workspace, not an invented provider security guarantee. Stronger workspace
 lifecycle policies arrive in Unit 7.
 
+Codex receives `--sandbox workspace-write` when the actor has
+`write_workspace` authority because even a domain-read-only assignment must
+write its mandatory report. The live read-only smoke verifies that tracked
+domain files remain unchanged; it does not make the report directory
+unwritable.
+
 ## Reflection
 
 1. Which fields stayed constant after rebinding the provider?

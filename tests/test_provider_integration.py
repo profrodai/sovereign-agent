@@ -7,6 +7,7 @@ from pathlib import Path
 
 import pytest
 
+from sovereign_agent.errors import Refusal
 from sovereign_agent.models import AssignmentState, Role, SowState
 from sovereign_agent.organization import Organization
 
@@ -25,7 +26,7 @@ if name == "codex" and args == ["exec", "--help"]:
     print("Usage: codex exec [OPTIONS] [PROMPT]\n  --json\n  --sandbox")
     raise SystemExit(0)
 if name == "codex" and args == ["exec", "resume", "--help"]:
-    print("Usage: codex exec resume [OPTIONS] [SESSION_ID] [PROMPT]\n  --json")
+    print("Usage: codex exec resume [OPTIONS] [SESSION_ID] [PROMPT]\n  --json\n  --sandbox")
     raise SystemExit(0)
 if args == ["--help"]:
     print("-p --print --output-format stream-json --verbose --resume --workspace")
@@ -34,8 +35,14 @@ if args == ["--help"]:
 envelope = json.loads(args[-1])
 workspace = Path(envelope["workspace"]["root"])
 output = Path(envelope["output"]["directory"])
+if name == "codex":
+    sandbox = args.index("--sandbox") if "--sandbox" in args else -1
+    if sandbox < 0 or args[sandbox + 1] != "workspace-write":
+        print(json.dumps({"type": "turn.failed", "error": {"message": "read-only sandbox"}}))
+        raise SystemExit(9)
 output.mkdir(parents=True, exist_ok=True)
 (workspace / "observed-envelope.json").write_text(json.dumps(envelope, sort_keys=True))
+(workspace / "observed-argv.json").write_text(json.dumps(args[:-1]))
 (output / "messages").mkdir(exist_ok=True)
 (output / "report.json").write_text(json.dumps({
     "schema_version": 1,
@@ -136,6 +143,9 @@ def test_fake_provider_reaches_review_with_truthful_receipt(
     assert envelope["statement_of_work"]["id"] == sow_id
     assert envelope["output"]["report"].endswith(".sovereign-out/report.json")
     assert envelope["report_contract"]["schema"]["title"] == "ActorReport"
+    observed_argv = json.loads((workspace / "observed-argv.json").read_text())
+    if provider == "codex":
+        assert observed_argv == ["exec", "--json", "--sandbox", "workspace-write"]
 
     receipt_text = (workspace / "receipt.json").read_text(encoding="utf-8")
     row = org.db.connection.execute("SELECT record FROM receipts").fetchone()
@@ -172,3 +182,48 @@ def test_protocol_failures_never_guess_success(
     org, _, assignment_id = _assignment(tmp_path / "org", provider, scenario)
     assignment = org.run_assignment(assignment_id)
     assert assignment.state == expected
+    if expected == AssignmentState.FAILED:
+        row = org.db.connection.execute("SELECT record FROM receipts").fetchone()
+        assert row is not None
+        assert json.loads(row["record"])["failure_category"]
+
+
+@pytest.mark.parametrize(
+    "error",
+    [
+        Refusal(
+            "Provider timed out.",
+            "The fixture simulated a timeout.",
+            "provider-raw",
+            "Retry.",
+            category="timeout",
+        ),
+        ValueError("programmer defect"),
+    ],
+)
+def test_escaped_failures_are_durable(
+    error: Exception,
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    _install_fake_clis(tmp_path / "bin", monkeypatch)
+    org, sow_id, assignment_id = _assignment(tmp_path / "org", "claude")
+    created = org._assignment(assignment_id)  # noqa: SLF001
+
+    def fail(*args: object, **kwargs: object) -> object:
+        raise error
+
+    monkeypatch.setattr("sovereign_agent.organization.invoke_actor", fail)
+    with pytest.raises(type(error)):
+        org.run_assignment(assignment_id)
+
+    assert org._assignment(assignment_id).state == AssignmentState.FAILED  # noqa: SLF001
+    assert org._sow(sow_id).state == SowState.FAILED  # noqa: SLF001
+    workspace = org.root / ".sovereign" / "runs" / created.workspace_id
+    receipt_text = (workspace / "receipt.json").read_text(encoding="utf-8")
+    row = org.db.connection.execute("SELECT record FROM receipts").fetchone()
+    assert row is not None and row["record"] == receipt_text
+    receipt = json.loads(receipt_text)
+    assert receipt["status"] == "failed"
+    expected = "timeout" if isinstance(error, Refusal) else "internal_error"
+    assert receipt["failure_category"] == expected

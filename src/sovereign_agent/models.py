@@ -156,6 +156,8 @@ class Receipt(StrictModel):
     started_at: datetime
     ended_at: datetime
     status: str
+    failure_category: str | None = None
+    failure_message: str | None = None
     evidence_refs: list[str]
 
 

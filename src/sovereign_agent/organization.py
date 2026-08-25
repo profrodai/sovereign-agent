@@ -8,7 +8,7 @@ from sovereign_agent.actors import load_actors, write_config
 from sovereign_agent.database import Database
 from sovereign_agent.errors import Refusal
 from sovereign_agent.events import append_event
-from sovereign_agent.execution import invoke_actor
+from sovereign_agent.execution import invoke_actor, write_failed_receipt
 from sovereign_agent.governance import project_outcome, project_ruling
 from sovereign_agent.ids import new_id, utc_now
 from sovereign_agent.models import (
@@ -186,7 +186,30 @@ class Organization:
         workspace.mkdir(parents=True, exist_ok=True)
         assignment.state = AssignmentState.RUNNING
         self._save_assignment(assignment, sow, "assignment.running")
-        receipt, report = invoke_actor(worker, sow, workspace, output)
+        started_at = utc_now()
+        failure: Exception | None = None
+        try:
+            receipt, report = invoke_actor(worker, sow, workspace, output)
+        except Refusal as error:
+            receipt = write_failed_receipt(
+                worker,
+                workspace,
+                error.category,
+                str(error),
+                started_at,
+            )
+            report = None
+            failure = error
+        except Exception as error:
+            receipt = write_failed_receipt(
+                worker,
+                workspace,
+                "internal_error",
+                f"{type(error).__name__}: {error}",
+                started_at,
+            )
+            report = None
+            failure = error
         receipt_json = (workspace / "receipt.json").read_text(encoding="utf-8")
         with self.db.transaction():
             self.db.put_serialized("receipts", receipt.id, receipt_json)
@@ -205,6 +228,8 @@ class Organization:
                 self.db, "assignment.finished", {"id": assignment.id, "status": assignment.state}
             )
         self._project_outcome(sow.outcome_id)
+        if failure is not None:
+            raise failure
         return assignment
 
     def review(self, sow_id: str, reviewer_id: str, performer_id: str) -> StatementOfWork:
