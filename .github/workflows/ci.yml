@@ -18,9 +18,9 @@ jobs:
       - name: Install package and development tools
         run: python -m pip install -e . --group dev
       - name: Format
-        run: ruff format --check src tests scripts
+        run: ruff format --check src tests scripts book
       - name: Lint
-        run: ruff check src tests scripts
+        run: ruff check src tests scripts book
       - name: Type check
         run: mypy src/sovereign_agent
       - name: Test
@@ -29,11 +29,62 @@ jobs:
         run: python scripts/verify_runtime_dependencies.py
       - name: Verify source budgets
         run: python scripts/verify_source_budget.py
+      - name: Verify the curriculum is runnable
+        run: python scripts/verify_curriculum.py
       - name: Verify offline commands
         run: |
           sovereign-agent --help
           sovereign-agent doctor
           sovereign-agent demo store --mode simulated --root "$RUNNER_TEMP/store-demo"
+      - name: Verify the accepted outcome is actually TRUE
+        # The demo exiting 0 is not proof. The previous version of this pipeline
+        # ran the demo and stopped there, and the demo printed ACCEPTED while the
+        # shelf was empty. This asserts inventory, cash, events, evidence binding,
+        # staleness, receipts, actor separation, and that no Pulse was fabricated.
+        run: python scripts/verify_store_outcome.py "$RUNNER_TEMP/store-demo"
+      - name: Verify governance projections match the ledger
+        run: python scripts/verify_projections.py "$RUNNER_TEMP/store-demo"
+      - name: Verify a learner can reach a truthful outcome cold
+        run: python scripts/evaluate_andrea_alpha.py
+      - name: Prove acceptance still refuses a false claim
+        # A gate that only ever sees the happy path cannot tell you refusal works.
+        run: |
+          python - <<'CHECK'
+          import sqlite3, subprocess, sys, os
+          root = os.environ["RUNNER_TEMP"] + "/store-demo"
+          db = sqlite3.connect(root + "/.sovereign/organization.db")
+          db.execute("UPDATE inventory SET on_hand = 0 WHERE sku = 'SKU-TEA'")
+          db.commit(); db.close()
+          result = subprocess.run(
+              [sys.executable, "scripts/verify_store_outcome.py", root],
+              capture_output=True, text=True,
+          )
+          print(result.stdout)
+          if result.returncode == 0:
+              sys.exit("FAIL: the verifier passed an emptied shelf")
+          print("verifier correctly refused an emptied shelf")
+          CHECK
+      - name: Prove events are append-only from an outside connection
+        # recursive_triggers is per-connection. This deliberately uses its own
+        # connection, so it fails if enforcement moves back into application code.
+        run: |
+          python - <<'CHECK'
+          import sqlite3, os, sys
+          root = os.environ["RUNNER_TEMP"] + "/store-demo"
+          db = sqlite3.connect(root + "/.sovereign/organization.db")
+          event_id = db.execute("SELECT id FROM events LIMIT 1").fetchone()[0]
+          for statement in (
+              "INSERT OR REPLACE INTO events(id,kind,payload,created_at) VALUES (?,'HACKED','{}','t')",
+              "UPDATE events SET kind='HACKED' WHERE id=?",
+              "DELETE FROM events WHERE id=?",
+          ):
+              try:
+                  db.execute(statement, (event_id,)); db.commit()
+                  sys.exit(f"FAIL: append-only bypassed by: {statement}")
+              except sqlite3.IntegrityError as error:
+                  db.rollback()
+                  print(f"refused: {error}")
+          CHECK
       - name: Verify wheel metadata and clean install
         run: |
           python -m build
