@@ -30,7 +30,11 @@ Sovereign Agent doctor
   Pydantic: 2.x OK
   Network:  not required
   Tokens:   not required
-Ready for the offline curriculum.
+  Providers:
+    scripted available (streaming)
+    claude   missing executable
+    ...
+Ready for the offline curriculum. Live providers are optional.
 ```
 
 Chapter 0 is runnable as a **manually dispatched** store shift (no Pulse):
@@ -39,7 +43,8 @@ Chapter 0 is runnable as a **manually dispatched** store shift (no Pulse):
 sovereign-agent demo store --mode simulated
 ```
 
-See [`book/ch00_first_shift`](book/ch00_first_shift/README.md).
+See [`book/ch00_first_shift`](book/ch00_first_shift/README.md) and
+[`book/ch03_actor_is_not_a_model`](book/ch03_actor_is_not_a_model/README.md).
 
 ## Product vocabulary
 

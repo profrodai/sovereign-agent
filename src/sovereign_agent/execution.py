@@ -12,8 +12,8 @@ from pathlib import Path
 from sovereign_agent.errors import Refusal
 from sovereign_agent.ids import new_id, utc_now
 from sovereign_agent.models import ActorReport, Receipt
-from sovereign_agent.providers import PROVIDERS
-from sovereign_agent.providers.scripted import InvocationSpec
+from sovereign_agent.providers import get_provider
+from sovereign_agent.providers.base import InvocationRequest, InvocationSpec
 
 
 def run_spec(spec: InvocationSpec, timeout: float = 60.0) -> subprocess.CompletedProcess[str]:
@@ -45,14 +45,7 @@ def run_spec(spec: InvocationSpec, timeout: float = 60.0) -> subprocess.Complete
 def invoke_actor(
     provider_name: str, workspace: Path, output: Path, prompt: str
 ) -> tuple[Receipt, ActorReport | None]:
-    provider = PROVIDERS.get(provider_name)
-    if provider is None:
-        raise Refusal(
-            happened=f"Unknown provider {provider_name}.",
-            why="Fail closed: only probed adapters may run.",
-            inspect="sovereign-agent doctor",
-            next_command="Use scripted until a live adapter is installed.",
-        )
+    provider = get_provider(provider_name)
     capabilities = provider.probe()
     if not capabilities.available:
         raise Refusal(
@@ -61,7 +54,9 @@ def invoke_actor(
             "doctor",
             "Install the CLI or use scripted.",
         )
-    spec = provider.build_invocation(workspace, output, prompt)
+    spec = provider.build_invocation(
+        InvocationRequest(workspace=workspace, output=output, prompt=prompt)
+    )
     started = utc_now()
     result = run_spec(spec)
     ended = utc_now()
@@ -69,6 +64,12 @@ def invoke_actor(
     raw.mkdir(parents=True, exist_ok=True)
     (raw / "stdout.txt").write_text(result.stdout)
     (raw / "stderr.txt").write_text(result.stderr)
+    events = []
+    for line in result.stdout.splitlines():
+        event = provider.parse_event(line)
+        if event is not None:
+            events.append(json.dumps({"kind": event.kind, "payload": event.payload}))
+    (raw / "events.jsonl").write_text("\n".join(events) + ("\n" if events else ""))
     report_path = output / "report.json"
     report: ActorReport | None = None
     status = "failed"

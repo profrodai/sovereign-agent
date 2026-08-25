@@ -13,6 +13,7 @@ from sovereign_agent import __version__
 from sovereign_agent.errors import Refusal
 from sovereign_agent.models import Role
 from sovereign_agent.organization import Organization
+from sovereign_agent.providers import PROVIDERS
 
 
 def _installed_version(distribution: str) -> str:
@@ -35,8 +36,19 @@ def _doctor(_: argparse.Namespace) -> int:
     print(f"  Pydantic: {pydantic_version} {'OK' if pydantic_ok else 'MISSING'}")
     print("  Network:  not required")
     print("  Tokens:   not required")
+    print("  Providers:")
+    for name, provider in PROVIDERS.items():
+        caps = provider.probe()
+        state = "available" if caps.available else "missing executable"
+        extra = []
+        if caps.streaming:
+            extra.append("streaming")
+        if caps.resume:
+            extra.append("resume")
+        suffix = f" ({', '.join(extra)})" if extra else ""
+        print(f"    {name:8} {state}{suffix}")
     if python_ok and pydantic_ok:
-        print("Ready for the offline curriculum.")
+        print("Ready for the offline curriculum. Live providers are optional.")
         return 0
     if not python_ok:
         print("Next: install Python 3.14, then rerun `sovereign-agent doctor`.")

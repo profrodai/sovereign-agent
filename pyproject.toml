@@ -43,7 +43,10 @@ include = ["sovereign_agent*", "reference_organizations*"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
-addopts = "-ra"
+addopts = "-ra -m 'not live'"
+markers = [
+  "live: installed provider CLI probes; excluded from default CI",
+]
 
 [tool.ruff]
 line-length = 100

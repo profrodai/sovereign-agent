@@ -1,55 +1,40 @@
-"""Provider protocol and scripted adapter for offline lessons."""
+"""Deterministic fixture runner. No network."""
 
 from __future__ import annotations
 
-from dataclasses import dataclass, field
 from pathlib import Path
-from typing import Protocol
 
 from sovereign_agent.models import ActorReport
-
-
-@dataclass(frozen=True)
-class ProviderCapabilities:
-    available: bool
-    streaming: bool = False
-    resume: bool = False
-
-
-@dataclass(frozen=True)
-class InvocationSpec:
-    argv: list[str]
-    cwd: Path
-    env: dict[str, str] = field(default_factory=dict)
-
-
-class IntelligenceProvider(Protocol):
-    name: str
-
-    def probe(self) -> ProviderCapabilities: ...
-
-    def build_invocation(self, workspace: Path, output: Path, prompt: str) -> InvocationSpec: ...
+from sovereign_agent.providers.base import (
+    InvocationRequest,
+    InvocationSpec,
+    ProviderCapabilities,
+    ProviderEvent,
+    parse_json_line,
+)
 
 
 class ScriptedProvider:
-    """Deterministic fixture runner. No network. Invoked through subprocess argv."""
-
     name = "scripted"
+    executable = "python"
 
     def probe(self) -> ProviderCapabilities:
-        return ProviderCapabilities(available=True)
+        return ProviderCapabilities(available=True, streaming=True, structured_result=True)
 
-    def build_invocation(self, workspace: Path, output: Path, prompt: str) -> InvocationSpec:
+    def build_invocation(self, request: InvocationRequest) -> InvocationSpec:
         return InvocationSpec(
             argv=[
                 "python",
                 "-m",
                 "sovereign_agent.providers.scripted",
-                str(output),
-                prompt,
+                str(request.output),
+                request.prompt,
             ],
-            cwd=workspace,
+            cwd=request.workspace,
         )
+
+    def parse_event(self, line: str) -> ProviderEvent | None:
+        return parse_json_line(line)
 
 
 def write_scripted_report(output: Path, prompt: str) -> ActorReport:

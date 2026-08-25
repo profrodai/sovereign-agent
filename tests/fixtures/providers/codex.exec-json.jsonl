@@ -1,0 +1,4 @@
+{"type":"thread.started","thread_id":"thread_offline"}
+{"type":"item.completed","item":{"type":"agent_message","text":"replenish tea"}}
+not valid json
+{"kind":"usage","input_tokens":12}

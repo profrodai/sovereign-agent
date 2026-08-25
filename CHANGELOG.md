@@ -6,6 +6,13 @@ Repository: [`zeroemployeeorg/sovereign-agent`](https://github.com/zeroemployeeo
 
 ## Unreleased
 
+### Providers (Unit 6)
+
+Claude, Codex, and Cursor adapters implement `probe` / `build_invocation` /
+`parse_event`. Capability claims come from `--help` probes and fail closed.
+Default tests use committed fixtures. `pytest -m live` is opt-in and never
+part of default CI. Chapter 3 lands with this unit.
+
 ### 1.x educational reset (authorization only)
 
 Principal ruling 2026-08-25 authorizes Sovereign Agent 1.x as an executable
