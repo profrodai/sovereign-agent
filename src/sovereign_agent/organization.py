@@ -3,11 +3,14 @@
 from __future__ import annotations
 
 from pathlib import Path
+from typing import Any
 
 from sovereign_agent.actors import load_actors, write_config
+from sovereign_agent.checks import CheckResult, run_check
 from sovereign_agent.database import Database
 from sovereign_agent.errors import Refusal
 from sovereign_agent.events import append_event
+from sovereign_agent.evidence import digest_payload
 from sovereign_agent.execution import invoke_actor, write_failed_receipt
 from sovereign_agent.governance import project_outcome, project_ruling
 from sovereign_agent.ids import new_id, utc_now
@@ -16,6 +19,7 @@ from sovereign_agent.models import (
     Actor,
     Assignment,
     AssignmentState,
+    Evidence,
     Message,
     Outcome,
     OutcomeState,
@@ -242,41 +246,216 @@ class Organization:
         self._save_sow(sow, "sow.reviewed")
         return sow
 
-    def verify_outcome(self, outcome_id: str, verifier_id: str) -> Outcome:
+    def verify_outcome(
+        self, outcome_id: str, verifier_id: str, subject: str = "SKU-TEA"
+    ) -> list[CheckResult]:
+        """Actually execute every declared acceptance check and persist evidence.
+
+        This used to advance a state field and nothing else. A verification that
+        runs no checks is a rubber stamp with a spinner.
+
+        Unknown, malformed, or erroring checks fail closed. Evidence is written
+        for every declared check, pass or fail, so a failed verification leaves a
+        durable record of WHY rather than a silent absence.
+        """
         verifier = self.actor(verifier_id)
         require_authority(verifier.role, "run_checks")
         outcome = self._outcome(outcome_id)
-        outcome.state = advance_outcome(outcome.state, OutcomeState.VERIFYING)
-        self._save_outcome(outcome, "outcome.verifying")
-        return outcome
+        if outcome.state != OutcomeState.VERIFYING:
+            outcome.state = advance_outcome(outcome.state, OutcomeState.VERIFYING)
+            self._save_outcome(outcome, "outcome.verifying")
 
-    def accept(
-        self, outcome_id: str, accepter_id: str, performer_id: str, evidence_ids: list[str]
-    ) -> Acceptance:
+        execution_id = self._latest_assignment_id(outcome_id)
+        results = [run_check(self.db, check_id, subject) for check_id in outcome.acceptance_checks]
+        with self.db.transaction():
+            for result in results:
+                evidence = Evidence(
+                    id=new_id("evd"),
+                    assignment_id=execution_id,
+                    outcome_id=outcome_id,
+                    check_id=result.check_id,
+                    success=result.success,
+                    observed=result.observed,
+                    state_digest=result.state_digest,
+                    kind=result.check_id,
+                    command=["sovereign-agent", "verify", result.check_id],
+                    exit_code=0 if result.success else 1,
+                    artifact_refs=[],
+                    digest=digest_payload(
+                        {
+                            "check_id": result.check_id,
+                            "outcome_id": outcome_id,
+                            "success": result.success,
+                            "observed": result.observed,
+                        }
+                    ),
+                    verifier_actor_id=verifier_id,
+                    created_at=utc_now(),
+                )
+                self.db.connection.execute(
+                    "INSERT INTO evidence(id, assignment_id, record, outcome_id, check_id, "
+                    "success, state_digest) VALUES (?, ?, ?, ?, ?, ?, ?)",
+                    (
+                        evidence.id,
+                        execution_id,
+                        evidence.model_dump_json(),
+                        outcome_id,
+                        result.check_id,
+                        1 if result.success else 0,
+                        result.state_digest,
+                    ),
+                )
+            append_event(
+                self.db,
+                "outcome.verified",
+                {
+                    "id": outcome_id,
+                    "by": verifier_id,
+                    "passed": sum(1 for r in results if r.success),
+                    "total": len(results),
+                },
+            )
+        return results
+
+    def _latest_assignment_id(self, outcome_id: str) -> str:
+        """The execution evidence is bound to. Empty when no work has run yet."""
+        sow_ids = {sow.id for sow in self.sows_for(outcome_id)}
+        rows = self.db.connection.execute(
+            "SELECT id, sow_id FROM assignments ORDER BY rowid DESC"
+        ).fetchall()
+        for row in rows:
+            if row["sow_id"] in sow_ids:
+                return str(row["id"])
+        return ""
+
+    def performers_for(self, outcome_id: str) -> set[str]:
+        """Who actually did the work, DERIVED FROM THE LEDGER.
+
+        Never ask the caller who performed the work. A caller that supplies the
+        performer supplies the evidence for its own separation check.
+        """
+        sow_ids = {sow.id for sow in self.sows_for(outcome_id)}
+        rows = self.db.connection.execute("SELECT sow_id, actor_id FROM assignments").fetchall()
+        return {str(row["actor_id"]) for row in rows if row["sow_id"] in sow_ids}
+
+    def accept(self, outcome_id: str, accepter_id: str, subject: str = "SKU-TEA") -> Acceptance:
+        """Accept only if the declared outcome is TRUE RIGHT NOW.
+
+        Acceptance does not trust a list of evidence ids handed to it. A caller
+        that supplies its own proof is not being checked. Instead this:
+
+        1. re-derives who performed the work, from assignments in the ledger;
+        2. requires every SOW to be accepted;
+        3. RE-EXECUTES every declared check against current state;
+        4. requires stored evidence for every declared check, bound to this
+           outcome and this execution, and successful;
+        5. requires the stored evidence to still describe the world it was
+           written about (state digest agreement).
+
+        Step 3 is the one that matters. Evidence is an audit record of what was
+        observed; the guarantee comes from asking the world again at the moment
+        of acceptance. Stock sold between verification and acceptance makes the
+        claim false, and this refuses.
+        """
         accepter = self.actor(accepter_id)
         require_authority(accepter.role, "accept")
-        forbid_self_approval(performer_id, accepter_id)
         outcome = self._outcome(outcome_id)
+
+        performers = self.performers_for(outcome_id)
+        for performer_id in sorted(performers):
+            forbid_self_approval(performer_id, accepter_id)
+
         sows = self.sows_for(outcome_id)
+        if not sows:
+            raise Refusal(
+                "No SOW exists for this outcome.",
+                "An outcome with no work cannot have been delivered.",
+                "sovereign-agent status",
+                "Create and complete a SOW first.",
+            )
         if any(sow.state != SowState.ACCEPTED for sow in sows):
             raise Refusal(
                 "SOWs remain open.",
                 "Acceptance requires every SOW to be accepted.",
-                "status",
+                "sovereign-agent status",
                 "Finish review first.",
             )
-        if not evidence_ids:
+        if not outcome.acceptance_checks:
             raise Refusal(
-                "No evidence.",
-                "Prose cannot set work to accepted.",
-                "verify",
-                "Run verifier checks.",
+                "Outcome declares no acceptance checks.",
+                "An outcome nobody can check cannot be proved true.",
+                "governance/outcomes",
+                "Declare at least one acceptance check.",
             )
+
+        execution_id = self._latest_assignment_id(outcome_id)
+        current = {
+            check_id: run_check(self.db, check_id, subject)
+            for check_id in outcome.acceptance_checks
+        }
+        failed_now = sorted(cid for cid, result in current.items() if not result.success)
+        if failed_now:
+            raise Refusal(
+                f"Checks failing at acceptance time: {', '.join(failed_now)}.",
+                "Accepted means the declared outcome is true NOW, not that it was "
+                "true once when a check happened to run.",
+                "sovereign-agent verify",
+                "Fix the world, then verify and accept again.",
+            )
+
+        rows = self.db.connection.execute(
+            "SELECT id, check_id, success, state_digest, assignment_id FROM evidence "
+            "WHERE outcome_id = ?",
+            (outcome_id,),
+        ).fetchall()
+        by_check: dict[str, list[Any]] = {}
+        for row in rows:
+            by_check.setdefault(str(row["check_id"]), []).append(row)
+
+        accepted_refs: list[str] = []
+        for check_id in outcome.acceptance_checks:
+            candidates = by_check.get(check_id, [])
+            if not candidates:
+                raise Refusal(
+                    f"No evidence for declared check '{check_id}'.",
+                    "Every declared check needs a record of having been run.",
+                    "sovereign-agent verify",
+                    "Run verification before accepting.",
+                )
+            usable = [row for row in candidates if int(row["success"]) == 1]
+            if not usable:
+                raise Refusal(
+                    f"Evidence for '{check_id}' reports failure.",
+                    "Failed evidence is a record of a problem, not a permission.",
+                    "sovereign-agent verify",
+                    "Fix the underlying problem and verify again.",
+                )
+            bound = [row for row in usable if str(row["assignment_id"]) == execution_id]
+            if not bound:
+                raise Refusal(
+                    f"Evidence for '{check_id}' is not bound to this execution.",
+                    "Evidence from another run does not prove this one.",
+                    "sovereign-agent verify",
+                    "Verify against the current assignment.",
+                )
+            fresh = [
+                row for row in bound if str(row["state_digest"]) == current[check_id].state_digest
+            ]
+            if not fresh:
+                raise Refusal(
+                    f"Evidence for '{check_id}' is stale.",
+                    "The state changed after this evidence was written, so it "
+                    "describes a world that no longer exists.",
+                    "sovereign-agent verify",
+                    "Re-run verification against current state.",
+                )
+            accepted_refs.append(str(fresh[-1]["id"]))
+
         outcome.state = advance_outcome(outcome.state, OutcomeState.ACCEPTED)
         acceptance = Acceptance(
             outcome_id=outcome_id,
             accepted_by=accepter_id,
-            evidence_refs=evidence_ids,
+            evidence_refs=accepted_refs,
             accepted_at=utc_now(),
         )
         with self.db.transaction():
@@ -285,7 +464,12 @@ class Organization:
                 "INSERT OR REPLACE INTO acceptance(outcome_id, record) VALUES (?, ?)",
                 (outcome_id, acceptance.model_dump_json()),
             )
-            append_event(self.db, "outcome.accepted", {"id": outcome_id, "by": accepter_id})
+            append_event(
+                self.db,
+                "outcome.accepted",
+                {"id": outcome_id, "by": accepter_id, "evidence": accepted_refs},
+            )
+        # NOT part of the transaction above: see docs/persistence-boundary.md.
         project_outcome(self.root, outcome, sows)
         return acceptance
 

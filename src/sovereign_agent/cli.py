@@ -132,17 +132,20 @@ def _ruling_decide(namespace: argparse.Namespace) -> int:
 
 def _verify(namespace: argparse.Namespace) -> int:
     org = Organization(_root(namespace))
-    outcome = org.verify_outcome(namespace.outcome_id, namespace.actor)
-    print(outcome.state)
-    return 0
+    results = org.verify_outcome(namespace.outcome_id, namespace.actor, namespace.subject)
+    for result in results:
+        print(f"{result.check_id} {'PASS' if result.success else 'FAIL'} {result.detail}")
+    return 0 if all(result.success for result in results) else 1
 
 
 def _accept(namespace: argparse.Namespace) -> int:
     org = Organization(_root(namespace))
-    acceptance = org.accept(
-        namespace.outcome_id, namespace.actor, namespace.performer, namespace.evidence
-    )
+    # No --evidence and no --performer. Acceptance derives both from the ledger:
+    # a caller that supplies its own proof is not being checked.
+    acceptance = org.accept(namespace.outcome_id, namespace.actor, namespace.subject)
     print(f"ACCEPTED {acceptance.outcome_id}")
+    for reference in acceptance.evidence_refs:
+        print(f"  evidence {reference}")
     return 0
 
 
@@ -191,7 +194,7 @@ def build_parser() -> argparse.ArgumentParser:
     created = outcome_sub.add_parser("new", parents=[shared])
     created.add_argument("title")
     created.add_argument("--desired", default="The outcome's acceptance checks pass.")
-    created.add_argument("--checks", nargs="*", default=["evidence_present"])
+    created.add_argument("--checks", nargs="*", default=["inventory_at_or_above_reorder_point"])
     created.add_argument("--owner", default="principal-human")
     created.set_defaults(handler=_outcome_new)
 
@@ -230,6 +233,7 @@ def build_parser() -> argparse.ArgumentParser:
     )
     verify.add_argument("outcome_id")
     verify.add_argument("--actor", default="verifier-course")
+    verify.add_argument("--subject", default="SKU-TEA")
     verify.set_defaults(handler=_verify)
 
     accept = subparsers.add_parser(
@@ -237,8 +241,7 @@ def build_parser() -> argparse.ArgumentParser:
     )
     accept.add_argument("outcome_id")
     accept.add_argument("--actor", default="principal-human")
-    accept.add_argument("--performer", default="operator-course")
-    accept.add_argument("--evidence", nargs="+", required=True)
+    accept.add_argument("--subject", default="SKU-TEA")
     accept.set_defaults(handler=_accept)
 
     demo = subparsers.add_parser("demo", parents=[shared], help="run a scripted teaching scenario")
