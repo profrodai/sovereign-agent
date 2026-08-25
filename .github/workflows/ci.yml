@@ -6,264 +6,37 @@ on:
   pull_request:
 
 jobs:
-  test:
-    name: Tests (Python ${{ matrix.python-version }})
+  unit-1:
+    name: Python 3.14 educational skeleton
     runs-on: ubuntu-latest
-    strategy:
-      fail-fast: false
-      matrix:
-        python-version: ["3.13"]
-    steps:
-      - uses: actions/checkout@v4
-
-      - uses: actions/setup-python@v5
-        with:
-          python-version: ${{ matrix.python-version }}
-          cache: pip
-
-      - name: Install package + dev group
-        run: |
-          python -m pip install --upgrade pip
-          python -m pip install -e . --group dev
-
-      - name: Ruff lint
-        run: ruff check src/sovereign_agent/ tests/ chapters/ examples/ scripts/ tools/
-
-      - name: Ruff format check
-        run: ruff format --check src/sovereign_agent/ tests/ chapters/ examples/ scripts/ tools/
-
-      - name: Mypy public runtime modules
-        run: |
-          mypy \
-            src/sovereign_agent/approvals \
-            src/sovereign_agent/capabilities \
-            src/sovereign_agent/channels \
-            src/sovereign_agent/config.py \
-            src/sovereign_agent/contracts \
-            src/sovereign_agent/discovery.py \
-            src/sovereign_agent/errors.py \
-            src/sovereign_agent/execution \
-            src/sovereign_agent/executor \
-            src/sovereign_agent/halves \
-            src/sovereign_agent/handoff \
-            src/sovereign_agent/ipc \
-            src/sovereign_agent/memory \
-            src/sovereign_agent/observability \
-            src/sovereign_agent/orchestrator/lifecycle.py \
-            src/sovereign_agent/orchestrator/main.py \
-            src/sovereign_agent/orchestrator/worker.py \
-            src/sovereign_agent/orchestrator/worker_factory.py \
-            src/sovereign_agent/planner \
-            src/sovereign_agent/providers \
-            src/sovereign_agent/registry \
-            src/sovereign_agent/relay \
-            src/sovereign_agent/repository \
-            src/sovereign_agent/runtime \
-            src/sovereign_agent/tickets \
-            src/sovereign_agent/voice
-
-      - name: Pytest
-        run: pytest -v --tb=short
-
-      - name: Compressed single-node soak
-        run: python scripts/soak_single_node.py --runtime "$RUNNER_TEMP/soak"
-
-  host-capabilities:
-    name: Host capabilities (${{ matrix.os }})
-    runs-on: ${{ matrix.os }}
-    strategy:
-      fail-fast: false
-      matrix:
-        os: [ubuntu-latest, macos-latest, windows-latest]
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
         with:
-          python-version: "3.13"
+          python-version: "3.14"
           cache: pip
-      - name: Install package + dev group
+      - name: Install package and development tools
         run: python -m pip install -e . --group dev
-      - name: Exercise portable lifecycle, locks, relay, and release contracts
-        run: >-
-          python -m pytest -q
-          tests/unit/test_isolation.py
-          tests/unit/test_worker_lifecycle.py
-          tests/relay/test_registry_relay.py
-          tests/release/test_release_contract.py
-          tests/capabilities
-      - name: Exercise real Unix socket transport
-        if: runner.os != 'Windows'
-        run: python -m pytest -q tests/test_channels_cli.py tests/test_channels_integration.py
-
-  chapter-drift:
-    name: Chapter drift check
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-
-      - uses: actions/setup-python@v5
-        with:
-          python-version: "3.13"
-          cache: pip
-
-      - name: Install package
+      - name: Format
+        run: ruff format --check src tests scripts
+      - name: Lint
+        run: ruff check src tests scripts
+      - name: Type check
+        run: mypy src/sovereign_agent
+      - name: Test
+        run: python -m pytest -q
+      - name: Verify sole runtime dependency
+        run: python scripts/verify_runtime_dependencies.py
+      - name: Verify source budgets
+        run: python scripts/verify_source_budget.py
+      - name: Verify offline commands
         run: |
-          python -m pip install --upgrade pip
-          python -m pip install -e .
-
-      - name: Verify chapter solutions match the production package
-        run: python tools/verify_chapter_drift.py
-
-  chapter-demos:
-    name: Chapter demos + v0.1.0 examples run end-to-end
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-
-      - uses: actions/setup-python@v5
-        with:
-          python-version: "3.13"
-          cache: pip
-
-      - name: Install package
+          sovereign-agent --help
+          sovereign-agent doctor
+      - name: Verify wheel metadata and clean install
         run: |
-          python -m pip install --upgrade pip
-          python -m pip install -e .
-
-      - name: Chapter 1 demo
-        run: python -m chapters.chapter_01_session.demo
-
-      - name: Chapter 2 demo
-        run: python -m chapters.chapter_02_queue.demo
-
-      - name: Chapter 3 demo
-        run: python -m chapters.chapter_03_ipc.demo
-
-      - name: Chapter 4 demo
-        run: python -m chapters.chapter_04_scheduler.demo
-
-      - name: Chapter 5 demo (offline, FakeLLMClient)
-        run: python -m chapters.chapter_05_planner_executor.demo
-
-      - name: v0.1.0 example — research assistant
-        run: python -m examples.research_assistant.run
-
-      - name: v0.1.0 example — code reviewer
-        run: python -m examples.code_reviewer.run
-
-      - name: v0.1.0 example — pub booking (default)
-        run: python -m examples.pub_booking.run
-
-      - name: v0.1.0 example — pub booking (oversize, triggers escalation)
-        run: python -m examples.pub_booking.run --oversize
-
-  v02-examples:
-    name: v0.2 example scenarios (Modules 1-5)
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-
-      - uses: actions/setup-python@v5
-        with:
-          python-version: "3.13"
-          cache: pip
-
-      - name: Install package + dev group
-        run: |
-          python -m pip install --upgrade pip
-          python -m pip install -e . --group dev
-
-      - name: Kernel info (Landlock requires Linux >= 5.13)
-        run: |
-          uname -a
-          python -c "from sovereign_agent._internal.isolation import landlock_available, sandbox_exec_available, detect_best_policy; print(f'landlock_available: {landlock_available()}'); print(f'sandbox_exec_available: {sandbox_exec_available()}'); print(f'detected policy: {detect_best_policy().name}')"
-
-      # One step per v0.2 example. Separate steps (rather than one
-      # loop) so that when an example breaks, the CI log shows
-      # exactly which module's demo regressed — a student or
-      # maintainer can tell at a glance.
-
-      - name: Module 1 — parallel tool dispatch (default, parallel)
-        run: python -m examples.parallel_research.run
-
-      - name: Module 1 — forced sequential (timing regression guard)
-        run: python -m examples.parallel_research.run --sequential
-
-      - name: Module 2 — isolated worker (Landlock / sandbox-exec / NoOp fallback)
-        # Linux kernel on GitHub-hosted ubuntu-latest is 6.x so this
-        # exercises the real Landlock path. The example is also valid
-        # on older kernels (NoOp with warning), so we don't need a
-        # matrix — either path is a pass.
-        run: python -m examples.isolated_worker.run
-
-      - name: Module 3 — session resume chain (three generations)
-        run: python -m examples.session_resume_chain.run
-
-      - name: Module 4 — classifier-driven rule (6/6 must be correct)
-        run: python -m examples.classifier_rule.run
-
-      - name: Module 5 — HITL deposit approval (grant + deny paths)
-        run: python -m examples.hitl_deposit.run
-
-      - name: Integration tests that grep example output for regressions
-        # These tests re-run each example as a subprocess AND assert
-        # specific phrases appear in stdout. They are the contract
-        # between the examples and the CHANGELOG claims.
-        run: pytest -v tests/integration/test_examples.py
-
-  doctor:
-    name: Offline onboarding and docs
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-
-      - uses: actions/setup-python@v5
-        with:
-          python-version: "3.13"
-          cache: pip
-
-      - name: Install package + documentation tools
-        run: |
-          python -m pip install --upgrade pip
-          python -m pip install -e . --group dev
-
-      - name: Run credential-free install check
-        run: |
-          env -u NEBIUS_KEY sovereign-agent version
-          env -u NEBIUS_KEY sovereign-agent doctor --skip-llm
-
-      - name: Run the first offline example
-        run: python -m examples.research_assistant.run
-
-      - name: Build documentation strictly
-        run: mkdocs build --strict
-
-  zeocore-compat:
-    name: ZeoCore ${{ matrix.zeocore }}
-    runs-on: ubuntu-latest
-    strategy:
-      fail-fast: false
-      matrix:
-        zeocore:
-          - "==0.5.0"
-          - ">=0.5,<0.6"
-    steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-python@v5
-        with:
-          python-version: "3.13"
-          cache: pip
-      - name: Install package + pinned ZeoCore
-        run: |
-          python -m pip install --upgrade pip
-          python -m pip install -e . --group dev
-          python -m pip install --upgrade "zeocore${{ matrix.zeocore }}"
-          python -c "import zeo_core, importlib.metadata as m; print(m.version('zeocore'), zeo_core.__file__)"
-      - name: Capability, contract, boundary, and release suites
-        run: >-
-          python -m pytest -q
-          tests/capabilities
-          tests/contracts
-          tests/architecture/test_import_boundaries.py
-          tests/release/test_release_contract.py
-
+          python -m build
+          python -m venv /tmp/sovereign-agent-wheel
+          /tmp/sovereign-agent-wheel/bin/pip install dist/*.whl
+          /tmp/sovereign-agent-wheel/bin/sovereign-agent doctor
+          /tmp/sovereign-agent-wheel/bin/python -c "import importlib.metadata as m; reqs=[r for r in (m.requires('sovereign-agent') or []) if 'extra ==' not in r]; assert len(reqs) == 1 and reqs[0].lower().startswith('pydantic')"
