@@ -33,6 +33,7 @@ jobs:
         run: |
           sovereign-agent --help
           sovereign-agent doctor
+          sovereign-agent demo store --mode simulated --root "$RUNNER_TEMP/store-demo"
       - name: Verify wheel metadata and clean install
         run: |
           python -m build
