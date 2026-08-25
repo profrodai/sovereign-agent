@@ -8,7 +8,7 @@ from sovereign_agent.actors import load_actors, write_config
 from sovereign_agent.database import Database
 from sovereign_agent.errors import Refusal
 from sovereign_agent.events import append_event
-from sovereign_agent.execution import invoke_actor
+from sovereign_agent.execution import invoke_actor, write_failed_receipt
 from sovereign_agent.governance import project_outcome, project_ruling
 from sovereign_agent.ids import new_id, utc_now
 from sovereign_agent.models import (
@@ -31,6 +31,7 @@ from sovereign_agent.policy import (
     forbid_self_approval,
     require_authority,
 )
+from sovereign_agent.providers import get_provider
 from sovereign_agent.relay import inbox as relay_inbox
 from sovereign_agent.relay import send as relay_send
 
@@ -69,6 +70,26 @@ class Organization:
                 "Use an id from sovereign.toml.",
             )
         return self.actors[actor_id]
+
+    def rebind_actor(self, actor_id: str, provider: str, authority_id: str) -> Actor:
+        authority = self.actor(authority_id)
+        require_authority(authority.role, "rule")
+        get_provider(provider)
+        actor = self.actor(actor_id)
+        actor.provider = provider
+        config = {
+            "schema_version": 1,
+            "actors": [item.model_dump(mode="json") for item in self.actors.values()],
+        }
+        write_config(self.config_path, config)
+        with self.db.transaction():
+            self.db.put("actors", actor.id, actor.model_dump(mode="json"))
+            append_event(
+                self.db,
+                "actor.provider_rebound",
+                {"actor_id": actor.id, "provider": provider, "by": authority_id},
+            )
+        return actor
 
     def create_outcome(
         self, title: str, desired_state: str, checks: list[str], owner: str
@@ -165,13 +186,39 @@ class Organization:
         workspace.mkdir(parents=True, exist_ok=True)
         assignment.state = AssignmentState.RUNNING
         self._save_assignment(assignment, sow, "assignment.running")
-        receipt, report = invoke_actor(worker.provider, workspace, output, assignment.prompt_ref)
-        receipt.actor_id = worker.id
+        started_at = utc_now()
+        failure: Exception | None = None
+        try:
+            receipt, report = invoke_actor(worker, sow, workspace, output)
+        except Refusal as error:
+            receipt = write_failed_receipt(
+                worker,
+                workspace,
+                error.category,
+                str(error),
+                started_at,
+            )
+            report = None
+            failure = error
+        except Exception as error:
+            receipt = write_failed_receipt(
+                worker,
+                workspace,
+                "internal_error",
+                f"{type(error).__name__}: {error}",
+                started_at,
+            )
+            report = None
+            failure = error
+        receipt_json = (workspace / "receipt.json").read_text(encoding="utf-8")
         with self.db.transaction():
-            self.db.put("receipts", receipt.id, receipt.model_dump(mode="json"))
+            self.db.put_serialized("receipts", receipt.id, receipt_json)
             if report and report.status == "completed":
                 assignment.state = AssignmentState.COMPLETED
                 sow.state = advance_sow(SowState.RUNNING, SowState.REVIEW)
+            elif report and report.status == "blocked":
+                assignment.state = AssignmentState.BLOCKED
+                sow.state = advance_sow(SowState.RUNNING, SowState.BLOCKED)
             else:
                 assignment.state = AssignmentState.FAILED
                 sow.state = advance_sow(SowState.RUNNING, SowState.FAILED)
@@ -181,6 +228,8 @@ class Organization:
                 self.db, "assignment.finished", {"id": assignment.id, "status": assignment.state}
             )
         self._project_outcome(sow.outcome_id)
+        if failure is not None:
+            raise failure
         return assignment
 
     def review(self, sow_id: str, reviewer_id: str, performer_id: str) -> StatementOfWork:

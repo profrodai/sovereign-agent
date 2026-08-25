@@ -13,6 +13,7 @@ from sovereign_agent import __version__
 from sovereign_agent.errors import Refusal
 from sovereign_agent.models import Role
 from sovereign_agent.organization import Organization
+from sovereign_agent.providers import PROVIDERS
 
 
 def _installed_version(distribution: str) -> str:
@@ -35,8 +36,32 @@ def _doctor(_: argparse.Namespace) -> int:
     print(f"  Pydantic: {pydantic_version} {'OK' if pydantic_ok else 'MISSING'}")
     print("  Network:  not required")
     print("  Tokens:   not required")
+    print("  Providers:")
+    for name, provider in PROVIDERS.items():
+        caps = provider.probe()
+        if caps.available:
+            state = f"available {caps.version}".rstrip()
+            if caps.degraded_reason:
+                state += f"; degraded: {caps.degraded_reason}"
+        elif caps.degraded_reason:
+            state = f"degraded: {caps.degraded_reason}"
+        else:
+            state = "missing executable"
+        extra = []
+        if caps.streaming:
+            extra.append("streaming")
+        if caps.resume:
+            extra.append("resume")
+        if caps.workspace_selection:
+            extra.append("workspace-selection")
+        if caps.workspace_write:
+            extra.append("workspace-write")
+        if caps.sandbox:
+            extra.append("sandbox")
+        suffix = f" ({', '.join(extra)})" if extra else ""
+        print(f"    {name:8} {state}{suffix}")
     if python_ok and pydantic_ok:
-        print("Ready for the offline curriculum.")
+        print("Ready for the offline curriculum. Live providers are optional.")
         return 0
     if not python_ok:
         print("Next: install Python 3.14, then rerun `sovereign-agent doctor`.")
@@ -170,9 +195,7 @@ def build_parser() -> argparse.ArgumentParser:
     created.add_argument("--owner", default="principal-human")
     created.set_defaults(handler=_outcome_new)
 
-    plan = subparsers.add_parser(
-        "plan", parents=[shared], help="activate an outcome and add a SOW"
-    )
+    plan = subparsers.add_parser("plan", parents=[shared], help="activate an outcome and add a SOW")
     plan.add_argument("outcome_id")
     plan.add_argument("--scope", default="Advance the outcome by one bounded assignment")
     plan.add_argument("--role", default="operator")
@@ -185,15 +208,11 @@ def build_parser() -> argparse.ArgumentParser:
     run.add_argument("--planner", default="master-course")
     run.set_defaults(handler=_run)
 
-    status = subparsers.add_parser(
-        "status", parents=[shared], help="explain outcome and SOW state"
-    )
+    status = subparsers.add_parser("status", parents=[shared], help="explain outcome and SOW state")
     status.add_argument("outcome_id")
     status.set_defaults(handler=_status)
 
-    inbox = subparsers.add_parser(
-        "inbox", parents=[shared], help="list an actor's durable mailbox"
-    )
+    inbox = subparsers.add_parser("inbox", parents=[shared], help="list an actor's durable mailbox")
     inbox.add_argument("actor_id")
     inbox.set_defaults(handler=_inbox)
 
@@ -222,9 +241,7 @@ def build_parser() -> argparse.ArgumentParser:
     accept.add_argument("--evidence", nargs="+", required=True)
     accept.set_defaults(handler=_accept)
 
-    demo = subparsers.add_parser(
-        "demo", parents=[shared], help="run a scripted teaching scenario"
-    )
+    demo = subparsers.add_parser("demo", parents=[shared], help="run a scripted teaching scenario")
     demo.add_argument("target", choices=["store"])
     demo.add_argument("--mode", default="simulated", choices=["simulated"])
     demo.set_defaults(handler=_demo)

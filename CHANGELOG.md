@@ -6,6 +6,20 @@ Repository: [`zeroemployeeorg/sovereign-agent`](https://github.com/zeroemployeeo
 
 ## Unreleased
 
+### Providers (Unit 6)
+
+Claude, Codex, and Cursor adapters implement `probe` / `build_invocation` /
+`parse_event`. One provider-neutral envelope supplies actor identity,
+authority, SOW, workspace/output boundaries, and the exact report schema.
+Capability claims retain probe evidence and fail closed. Terminal events,
+sessions, usage, malformed streams, reports, canonical receipts, and receipt
+digests are validated by fake-executable integration tests. Credentialed live
+assignments remain explicitly opt-in and outside default CI. Chapter 3 lands
+with a runnable provider-rebinding exercise. Codex receives an authority-bound
+writable sandbox, Claude receives `acceptEdits`, and Cursor receives `--force`
+for the mandatory report; refusals and timeouts finalize durable failed
+receipts; provider credentials use explicit environment allowlists.
+
 ### 1.x educational reset (authorization only)
 
 Principal ruling 2026-08-25 authorizes Sovereign Agent 1.x as an executable

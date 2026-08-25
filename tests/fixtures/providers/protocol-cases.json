@@ -1,0 +1,9 @@
+{
+  "malformed_stream": ["{\"type\":\"thread.started\",\"thread_id\":\"thread_1\"}", "not json"],
+  "missing_session": [{"type": "turn.completed", "usage": {"input_tokens": 1, "output_tokens": 1}}],
+  "nonzero_exit": 7,
+  "provider_error": [{"type": "turn.failed", "error": {"message": "redacted"}}],
+  "resume_session": "thread_resume",
+  "truncated_stream": [{"type": "thread.started", "thread_id": "thread_1"}],
+  "unknown_valid_event": [{"type": "future.event", "redacted": true}]
+}

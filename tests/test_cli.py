@@ -21,6 +21,8 @@ def test_doctor_accepts_supported_environment(capsys) -> None:
     output = capsys.readouterr().out
     assert "Python:" in output
     assert "Pydantic:" in output
+    assert "Providers:" in output
+    assert "scripted" in output
     assert "Ready for the offline curriculum." in output
 
 

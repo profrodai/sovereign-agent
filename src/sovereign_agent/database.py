@@ -171,5 +171,15 @@ class Database:
                 (record_id, payload),
             )
 
+    def put_serialized(self, table: str, record_id: str, payload: str) -> None:
+        """Persist already-canonical JSON without changing its bytes."""
+        json.loads(payload)
+        if table != "receipts":
+            raise ValueError("put_serialized is restricted to canonical receipts")
+        self.connection.execute(
+            "INSERT OR REPLACE INTO receipts(id, record) VALUES (?, ?)",
+            (record_id, payload),
+        )
+
     def close(self) -> None:
         self.connection.close()

@@ -30,7 +30,11 @@ Sovereign Agent doctor
   Pydantic: 2.x OK
   Network:  not required
   Tokens:   not required
-Ready for the offline curriculum.
+  Providers:
+    scripted available (streaming)
+    claude   missing executable
+    ...
+Ready for the offline curriculum. Live providers are optional.
 ```
 
 Chapter 0 is runnable as a **manually dispatched** store shift (no Pulse):
@@ -39,7 +43,8 @@ Chapter 0 is runnable as a **manually dispatched** store shift (no Pulse):
 sovereign-agent demo store --mode simulated
 ```
 
-See [`book/ch00_first_shift`](book/ch00_first_shift/README.md).
+See [`book/ch00_first_shift`](book/ch00_first_shift/README.md) and
+[`book/ch03_actor_is_not_a_model`](book/ch03_actor_is_not_a_model/README.md).
 
 ## Product vocabulary
 
@@ -51,6 +56,17 @@ See [`book/ch00_first_shift`](book/ch00_first_shift/README.md).
 | Proactive wake | `pulse` |
 | Intelligence CLI | `provider` |
 | Governed identity | `actor` |
+
+An actor is not a model. Every provider receives the same governed assignment
+envelope and must emit a valid terminal event and write the exact
+`ActorReport`. A zero exit without both is a failed receipt. Cursor's
+`--workspace` is directory selection, not sandboxing; isolation belongs to
+Sovereign Agent's disposable workspace.
+
+Provider subprocesses receive only base process variables plus documented
+credential allowlists: Claude (`ANTHROPIC_API_KEY`, `ANTHROPIC_AUTH_TOKEN`,
+`CLAUDE_CODE_OAUTH_TOKEN`), Codex (`CODEX_API_KEY`), and Cursor
+(`CURSOR_API_KEY`). Other parent secrets are not forwarded.
 
 ## Unit 1 gates
 

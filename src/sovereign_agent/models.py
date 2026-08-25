@@ -152,9 +152,12 @@ class Receipt(StrictModel):
     actor_id: str
     provider: str
     provider_session_ref: str | None
+    provider_usage: dict[str, int] = Field(default_factory=dict)
     started_at: datetime
     ended_at: datetime
     status: str
+    failure_category: str | None = None
+    failure_message: str | None = None
     evidence_refs: list[str]
 
 
@@ -177,7 +180,7 @@ class Signal(StrictModel):
 
 
 class ActorReport(StrictModel):
-    status: str
+    status: str = Field(pattern="^(completed|blocked|failed)$")
     changed_artifacts: list[str] = Field(default_factory=list)
     proposed_checks: list[str] = Field(default_factory=list)
     questions: list[str] = Field(default_factory=list)
