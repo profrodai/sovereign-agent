@@ -227,3 +227,15 @@ def test_verify_and_accept_take_no_subject_argument() -> None:
 
     for method in (Organization.verify_outcome, Organization.accept):
         assert "subject" not in inspect.signature(method).parameters
+
+
+def test_an_outcome_with_no_subject_fails_closed(tmp_path: Path) -> None:
+    """A subjectless outcome must not pass; an unanswerable question is not a yes."""
+    from sovereign_agent.checks import run_check
+
+    org = Organization.init(tmp_path)
+    seed(org.db)
+    outcome = org.create_outcome("no subject", "d", ["cash_reconciles"], "principal-human")
+    assert outcome.subject == ""
+    for check_id in ("inventory_at_or_above_reorder_point", "cash_reconciles"):
+        assert not run_check(org.db, check_id, "").success
