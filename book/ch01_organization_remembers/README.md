@@ -66,10 +66,33 @@ sqlite3 /tmp/andrea-memory/.sovereign/organization.db \
   "DELETE FROM events WHERE kind='replenishment.committed';"
 ```
 
-Also refused. This is enforced by **database triggers**, not by Python being
-careful. That distinction matters: a rule enforced in application code protects
-you from bugs, but a rule enforced in the database protects you from *everything
-else that can reach the database* — including you, at 2am, with a REPL open.
+Also refused. Now try the sneaky third variant — overwriting a row instead of
+editing it:
+
+```bash
+sqlite3 /tmp/andrea-memory/.sovereign/organization.db \
+  "INSERT OR REPLACE INTO events(id,kind,payload,created_at)
+   SELECT id,'NOTHING_HAPPENED',payload,created_at FROM events LIMIT 1;"
+```
+
+Also refused: `events are append-only: replace refused`.
+
+All three are enforced by **database triggers**, not by Python being careful.
+That distinction matters: a rule enforced in application code protects you from
+bugs, but a rule enforced in the database protects you from *everything else
+that can reach the database* — including you, at 2am, with a REPL open.
+
+That third case is worth dwelling on, because getting it right took two
+attempts. The first version of this guard relied on a SQLite setting called
+`recursive_triggers`, which the application switched on when it opened the
+database. It worked perfectly — from the application. From the `sqlite3` command
+above, the one this chapter just told you to use, the overwrite **succeeded
+silently** and the row count did not change. The lesson claimed the database
+enforced the rule while the guarantee actually lived in Python.
+
+The fix is the guard you just triggered: a `BEFORE INSERT` trigger that refuses
+an id which already exists. It needs no setting, so it holds from any client.
+Enforcement now matches the claim — which is the entire subject of Chapter 2.
 
 ## Exercise 3: watch a transaction roll back
 

@@ -214,6 +214,12 @@ def apply_restock(
     """
     # Idempotency is keyed on (assignment, sku). Keying on the assignment alone
     # would let a replay for one product silently report success for another.
+    #
+    # This scan runs BEFORE validation, so replaying an already-committed pair
+    # returns the original payload without re-checking the proposal. A garbage
+    # quantity on a replayed pair is therefore reported as success rather than
+    # refused. The world does not move -- this masks an invalid proposal, it does
+    # not act on one -- but the asymmetry is deliberate and worth knowing.
     existing = db.connection.execute(
         "SELECT payload FROM events WHERE kind = 'replenishment.committed'"
     ).fetchall()

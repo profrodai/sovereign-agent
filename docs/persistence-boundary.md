@@ -86,6 +86,42 @@ A stronger property (an outbox, replayed on next open) is buildable, and is
 deliberately out of scope for Unit 6.5. The honest half-door is labelled rather
 than disguised.
 
+
+## A second limit: the ledger is inside the trust boundary
+
+Append-only protection covers `events`. It does not cover every table, and it
+cannot. `outcomes` has no triggers, and `outcome.subject` — the field that says
+which SKU the acceptance checks are about — is a value inside that row's JSON.
+
+Sparring demonstrated the consequence. Rewriting that single field to point at a
+different, well-stocked product makes all three checks pass **coherently**, and
+the outcome accepts while the real shelf is empty:
+
+```text
+UPDATE outcomes SET record = <subject: "SKU-TEA" -> "SKU-DECOY"> WHERE id = ...
+-> all three checks PASS, ACCEPTED, while SKU-TEA on_hand=2 < reorder_point=3
+```
+
+This is worth naming precisely, because it is the *exception* to how the check
+registry normally protects you. Tamper with inventory directly and you are
+caught: `cash_reconciles` and `replenishment_event_exists` cross-check inventory
+against the event log, so a single edit puts the checks in contradiction with
+each other. Subject tampering is the one single-field write that moves all three
+checks together onto a world where they are genuinely true — so the mutual
+cross-checking that provides the real guarantee is bypassed rather than tripped.
+
+It requires raw write access to the database, and doctrine already places SQLite
+inside the trust boundary: anyone who can write arbitrary rows can rewrite the
+organization's memory. But "ACCEPTED means the outcome is true now" is exactly
+the claim this falsifies, so it is recorded here rather than left for a reader
+to discover.
+
+The durable fix — binding `subject` into the evidence `state_digest`, so that a
+post-verification subject swap presents as staleness — is deliberately **not**
+done in Unit 6.5. It changes the digest contract, and this unit has already
+changed enough. It is named here as the next honest step rather than implied to
+be already taken.
+
 ## How to see the drift for yourself
 
 ```console

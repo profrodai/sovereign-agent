@@ -121,9 +121,28 @@ CREATE INDEX IF NOT EXISTS evidence_binding
     ON evidence(outcome_id, check_id);
 """
 
+MIGRATION_3 = """
+-- `recursive_triggers` is a PER-CONNECTION pragma, not a property of the schema.
+-- The BEFORE DELETE guard therefore only stopped `INSERT OR REPLACE` on
+-- connections the application itself opened. Anyone using a plain `sqlite3`
+-- shell -- including a learner following Chapter 1 -- could silently overwrite
+-- an event and leave the row count unchanged.
+--
+-- This guard needs no pragma: it refuses an INSERT whose id already exists, so
+-- append-only holds from ANY client. Enforcement now matches the claim.
+CREATE TRIGGER IF NOT EXISTS events_no_replace
+BEFORE INSERT ON events
+WHEN EXISTS (SELECT 1 FROM events WHERE id = NEW.id)
+BEGIN
+    SELECT RAISE(ABORT, 'events are append-only: replace refused');
+END;
+"""
+
+
 MIGRATIONS: tuple[tuple[int, str], ...] = (
     (1, MIGRATION_1),
     (2, MIGRATION_2),
+    (3, MIGRATION_3),
 )
 
 

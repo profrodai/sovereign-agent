@@ -30,10 +30,20 @@ records were complete and the business claim was false.
   whose name (`inventory_non_negative`) described inventory while its value was
   computed from cash. `cash_reconciles` now reconciles the purchase against the
   replenishment event rather than testing solvency.
-- Events are append-only **at the database boundary**: triggers refuse `UPDATE`
-  and `DELETE`, and `PRAGMA recursive_triggers` closes the `INSERT OR REPLACE`
-  bypass. Evidence gains a foreign key, so a fabricated evidence id cannot be
-  inserted at all.
+- Events are append-only **at the database boundary, from any connection**:
+  triggers refuse `UPDATE`, `DELETE`, and an `INSERT` whose id already exists.
+  The first attempt closed the `INSERT OR REPLACE` bypass with
+  `PRAGMA recursive_triggers`, which is per-connection — so a plain `sqlite3`
+  shell, the tool Chapter 1 teaches, still silently overwrote events while the
+  verifier reported "ACCEPTED and true". Migration 3 replaces that with a
+  `BEFORE INSERT` guard needing no pragma, and a test that opens its own
+  connection proves it. Evidence gains a foreign key, so a fabricated evidence
+  id cannot be inserted at all.
+- Named limits rather than silent ones: `docs/persistence-boundary.md` records
+  that `outcomes` has no triggers, so an attacker with raw database write access
+  can retarget `outcome.subject` and make all three checks pass coherently. The
+  durable fix (binding subject into the evidence digest) is identified as the
+  next step, not claimed as done.
 - Migrations become forward-only and numbered. Migration 1 is unchanged;
   migration 2 adds the guards and evidence binding. Fresh-database and
   upgrade-from-v1 paths are both tested.

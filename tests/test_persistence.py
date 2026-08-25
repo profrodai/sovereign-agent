@@ -217,3 +217,43 @@ def test_idempotency_is_scoped_to_assignment_and_sku(tmp_path: Path) -> None:
 
     replay = apply_restock(org.db, RestockProposal("SKU-TEA", 6), "asg_shared", signal.id)
     assert replay.get("idempotent_replay") is True, "same assignment and SKU must still be a no-op"
+
+
+def test_append_only_holds_from_a_connection_without_the_pragma(tmp_path: Path) -> None:
+    """The guarantee must not depend on application code setting a PRAGMA.
+
+    `recursive_triggers` is per-connection. With only the BEFORE DELETE guard,
+    `INSERT OR REPLACE` from a plain sqlite3 connection — the exact tool
+    Chapter 1 teaches — silently overwrote an event and left the row count
+    unchanged, while verify_store_outcome still reported "ACCEPTED and true".
+
+    This test opens its OWN connection and deliberately does not set the pragma,
+    so it fails if enforcement ever moves back into application code.
+    """
+    org = Organization.init(tmp_path)
+    seed(org.db)
+    row = org.db.connection.execute("SELECT id, kind FROM events LIMIT 1").fetchone()
+    event_id, original_kind = str(row["id"]), str(row["kind"])
+    org.db.close()
+
+    outsider = sqlite3.connect(tmp_path / ".sovereign" / "organization.db")
+    outsider.row_factory = sqlite3.Row
+    try:
+        for statement, parameters in (
+            (
+                "INSERT OR REPLACE INTO events(id, kind, payload, created_at) "
+                "VALUES (?, 'TAMPERED', '{}', 'now')",
+                (event_id,),
+            ),
+            ("UPDATE events SET kind = 'TAMPERED' WHERE id = ?", (event_id,)),
+            ("DELETE FROM events WHERE id = ?", (event_id,)),
+        ):
+            with pytest.raises(sqlite3.IntegrityError, match="append-only"):
+                outsider.execute(statement, parameters)
+                outsider.commit()
+            outsider.rollback()
+
+        surviving = outsider.execute("SELECT kind FROM events WHERE id = ?", (event_id,)).fetchone()
+        assert surviving["kind"] == original_kind
+    finally:
+        outsider.close()
