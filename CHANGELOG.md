@@ -6,6 +6,21 @@ Repository: [`zeroemployeeorg/sovereign-agent`](https://github.com/zeroemployeeo
 
 ## Unreleased
 
+### 1.x educational reset (authorization only)
+
+Principal ruling 2026-08-25 authorizes Sovereign Agent 1.x as an executable
+textbook. The v0.7 public API promise ends at the 0.x line. Tag `v0.7.0` is
+not moved. Pin `sovereign-agent<1` for the old framework.
+
+The 0.x non-goal “no governance decisions in this package” remains true for
+v0.7 and is superseded for 1.x: the package may include the minimum
+governance needed to teach and run one outcome. See
+[docs/rulings/2026-08-25-educational-reset.md](docs/rulings/2026-08-25-educational-reset.md),
+[docs/migration-v0.7-to-v1.md](docs/migration-v0.7-to-v1.md), and
+[docs/non-goals.md](docs/non-goals.md).
+
+No runtime or public-API code changes in this entry.
+
 ## [0.7.0] — 2026-08-23
 
 Bounded production execution fleet on the v0.6 coordinator. Docker and
