@@ -257,3 +257,52 @@ def test_append_only_holds_from_a_connection_without_the_pragma(tmp_path: Path) 
         assert surviving["kind"] == original_kind
     finally:
         outsider.close()
+
+
+def test_a_failed_migration_rolls_back_schema_and_stamp(tmp_path: Path) -> None:
+    """A migration that fails part way through must leave nothing behind.
+
+    `executescript()` COMMITs any open transaction before running, so the first
+    version of this code left a half-created schema behind, unstamped, and
+    reopening re-ran the migration and failed forever. Reported on PR #24.
+    """
+    import sovereign_agent.database as database_module
+
+    path = tmp_path / "broken.db"
+    broken = "CREATE TABLE partial_survivor (id TEXT);\nTHIS IS INVALID SQL;\n"
+    original = database_module.MIGRATIONS
+    database_module.MIGRATIONS = original + ((99, broken),)
+    try:
+        with pytest.raises(sqlite3.OperationalError):
+            Database(path)
+    finally:
+        database_module.MIGRATIONS = original
+
+    inspector = sqlite3.connect(path)
+    try:
+        leaked = inspector.execute(
+            "SELECT name FROM sqlite_master WHERE type='table' AND name='partial_survivor'"
+        ).fetchall()
+        assert leaked == [], "a failed migration left schema behind"
+        stamped = [
+            int(row[0]) for row in inspector.execute("SELECT version FROM schema_migrations")
+        ]
+        assert 99 not in stamped, "a failed migration was stamped as applied"
+        assert sorted(stamped) == [version for version, _ in original]
+    finally:
+        inspector.close()
+
+    # The database must still be openable afterwards.
+    recovered = Database(path)
+    assert recovered.applied_versions() == {version for version, _ in original}
+    recovered.close()
+
+
+def test_migration_statement_splitting_keeps_trigger_bodies_intact() -> None:
+    """Trigger bodies contain semicolons; splitting must not cut them in half."""
+    from sovereign_agent.database import MIGRATION_3, _split_statements
+
+    statements = _split_statements(MIGRATION_3)
+    assert len(statements) == 1
+    assert statements[0].startswith("CREATE TRIGGER")
+    assert statements[0].rstrip().endswith("END;")

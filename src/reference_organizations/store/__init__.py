@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import json
+import sqlite3
 from dataclasses import dataclass
 
 from sovereign_agent.database import Database
@@ -49,40 +50,48 @@ def seed(db: Database) -> None:
 
 
 def record_sale(db: Database, sku: str, quantity: int, unit_price_cents: int) -> Signal:
-    """Mutate inventory and cash in the same transaction as the recording event."""
-    row = db.connection.execute(
-        "SELECT on_hand, reorder_point FROM inventory WHERE sku = ?", (sku,)
-    ).fetchone()
-    if row is None:
-        raise Refusal(
-            "Unknown SKU.", "Actors cannot invent inventory.", "inventory list", "Seed the catalog."
+    """Mutate inventory and cash in the same transaction as the recording event.
+
+    The read of current stock happens INSIDE the immediate transaction. Reading
+    first and writing later lets two concurrent sales both see enough stock and
+    both sell it.
+    """
+    with db.immediate() as connection:
+        row = connection.execute(
+            "SELECT on_hand, reorder_point FROM inventory WHERE sku = ?", (sku,)
+        ).fetchone()
+        if row is None:
+            raise Refusal(
+                "Unknown SKU.",
+                "Actors cannot invent inventory.",
+                "inventory list",
+                "Seed the catalog.",
+            )
+        on_hand = int(row["on_hand"]) - quantity
+        if on_hand < 0:
+            raise Refusal(
+                "Sale would go negative.",
+                "The ledger refuses unrecorded stock.",
+                "status",
+                "Restock first.",
+            )
+        cash_id = new_id("cash")
+        signal = Signal(
+            id=new_id("sig"),
+            kind="inventory.changed",
+            source="sale",
+            subject_ref=sku,
+            severity="warning" if on_hand <= int(row["reorder_point"]) else "info",
+            observed_at=utc_now(),
+            payload_digest=sku,
+            dedupe_key=f"inventory:{sku}:{on_hand}",
         )
-    on_hand = int(row["on_hand"]) - quantity
-    if on_hand < 0:
-        raise Refusal(
-            "Sale would go negative.",
-            "The ledger refuses unrecorded stock.",
-            "status",
-            "Restock first.",
-        )
-    cash_id = new_id("cash")
-    signal = Signal(
-        id=new_id("sig"),
-        kind="inventory.changed",
-        source="sale",
-        subject_ref=sku,
-        severity="warning" if on_hand <= int(row["reorder_point"]) else "info",
-        observed_at=utc_now(),
-        payload_digest=sku,
-        dedupe_key=f"inventory:{sku}:{on_hand}",
-    )
-    with db.transaction():
-        db.connection.execute("UPDATE inventory SET on_hand = ? WHERE sku = ?", (on_hand, sku))
-        db.connection.execute(
+        connection.execute("UPDATE inventory SET on_hand = ? WHERE sku = ?", (on_hand, sku))
+        connection.execute(
             "INSERT INTO cash_entries(id, amount_cents, record) VALUES (?, ?, ?)",
             (cash_id, quantity * unit_price_cents, json.dumps({"sku": sku, "qty": quantity})),
         )
-        db.connection.execute(
+        connection.execute(
             "INSERT OR REPLACE INTO signals(id, dedupe_key, record) VALUES (?, ?, ?)",
             (signal.id, signal.dedupe_key, signal.model_dump_json()),
         )
@@ -151,7 +160,9 @@ def _state_digest(db: Database, sku: str) -> str:
     return digest_payload(facts)
 
 
-def validate_restock(db: Database, proposal: RestockProposal) -> tuple[int, int]:
+def _validate_restock_locked(
+    connection: sqlite3.Connection, proposal: RestockProposal
+) -> tuple[int, int]:
     """Refuse an unsound proposal. Returns (unit_cost_cents, total_cost_cents).
 
     This is the trusted boundary. It runs in Python, reads authoritative rows,
@@ -171,7 +182,7 @@ def validate_restock(db: Database, proposal: RestockProposal) -> tuple[int, int]
             "sovereign-agent status",
             f"Propose at most {MAX_RESTOCK_UNITS} units.",
         )
-    product = db.connection.execute(
+    product = connection.execute(
         "SELECT record FROM products WHERE sku = ?", (proposal.sku,)
     ).fetchone()
     if product is None:
@@ -182,7 +193,7 @@ def validate_restock(db: Database, proposal: RestockProposal) -> tuple[int, int]
             "Propose a SKU that exists in the catalog.",
         )
     if (
-        db.connection.execute("SELECT 1 FROM inventory WHERE sku = ?", (proposal.sku,)).fetchone()
+        connection.execute("SELECT 1 FROM inventory WHERE sku = ?", (proposal.sku,)).fetchone()
         is None
     ):
         raise Refusal(
@@ -193,7 +204,11 @@ def validate_restock(db: Database, proposal: RestockProposal) -> tuple[int, int]
         )
     unit_cost = int(json.loads(product["record"])["unit_cost_cents"])
     total = unit_cost * proposal.quantity
-    balance = cash_balance_cents(db)
+    balance = int(
+        connection.execute(
+            "SELECT COALESCE(SUM(amount_cents), 0) AS total FROM cash_entries"
+        ).fetchone()["total"]
+    )
     if total > balance:
         raise Refusal(
             f"Restock costs {total} but only {balance} cash is available.",
@@ -204,75 +219,91 @@ def validate_restock(db: Database, proposal: RestockProposal) -> tuple[int, int]
     return unit_cost, total
 
 
+def validate_restock(db: Database, proposal: RestockProposal) -> tuple[int, int]:
+    """Public validation helper. Reads the same facts `apply_restock` re-checks
+    under lock; use it to explain a refusal, never as authority to act."""
+    return _validate_restock_locked(db.connection, proposal)
+
+
 def apply_restock(
     db: Database, proposal: RestockProposal, assignment_id: str, signal_id: str | None = None
 ) -> dict[str, object]:
     """Validate, then commit inventory, cash, and the event in ONE transaction.
 
-    Idempotent per assignment: replaying the same assignment is a no-op, so a
-    retried execution cannot double-order stock.
-    """
-    # Idempotency is keyed on (assignment, sku). Keying on the assignment alone
-    # would let a replay for one product silently report success for another.
-    #
-    # This scan runs BEFORE validation, so replaying an already-committed pair
-    # returns the original payload without re-checking the proposal. A garbage
-    # quantity on a replayed pair is therefore reported as success rather than
-    # refused. The world does not move -- this masks an invalid proposal, it does
-    # not act on one -- but the asymmetry is deliberate and worth knowing.
-    existing = db.connection.execute(
-        "SELECT payload FROM events WHERE kind = 'replenishment.committed'"
-    ).fetchall()
-    for row in existing:
-        payload = json.loads(row["payload"])
-        if (payload.get("assignment_id"), payload.get("sku")) == (
-            assignment_id,
-            proposal.sku,
-        ):
-            return {**payload, "idempotent_replay": True}
+    Everything that decides whether to act -- the idempotency claim, the
+    validation, the cash check -- happens INSIDE a `BEGIN IMMEDIATE`, together
+    with the writes. An earlier version scanned the event log and validated cash
+    before opening its transaction, so two concurrent retries both passed the
+    scan and both ordered: on_hand went to 14 with two purchase entries.
 
-    unit_cost, total = validate_restock(db, proposal)
-    cash_id = new_id("cash")
-    with db.transaction():
-        db.connection.execute(
-            "UPDATE inventory SET on_hand = on_hand + ? WHERE sku = ?",
-            (proposal.quantity, proposal.sku),
-        )
-        # Purchases are NEGATIVE: cash leaves the organization to buy stock.
-        db.connection.execute(
-            "INSERT INTO cash_entries(id, amount_cents, record) VALUES (?, ?, ?)",
-            (
-                cash_id,
-                -total,
-                json.dumps(
-                    {
-                        "reason": "purchase",
-                        "sku": proposal.sku,
-                        "qty": proposal.quantity,
-                        "unit_cost_cents": unit_cost,
-                        "assignment_id": assignment_id,
-                    }
-                ),
-            ),
-        )
-        if signal_id is not None:
-            db.connection.execute(
-                "UPDATE signals SET record = json_set(record, '$.severity', 'resolved') "
-                "WHERE id = ?",
-                (signal_id,),
+    Idempotency is a PRIMARY KEY on (assignment, sku) in `effect_keys`, not a
+    scan. The database refuses the second claim; nothing depends on timing.
+    """
+    key = f"restock:{assignment_id}:{proposal.sku}"
+    try:
+        with db.immediate() as connection:
+            existing = connection.execute(
+                "SELECT payload FROM effect_keys WHERE key = ?", (key,)
+            ).fetchone()
+            if existing is not None:
+                return {**json.loads(existing["payload"]), "idempotent_replay": True}
+
+            unit_cost, total = _validate_restock_locked(connection, proposal)
+            cash_id = new_id("cash")
+            connection.execute(
+                "UPDATE inventory SET on_hand = on_hand + ? WHERE sku = ?",
+                (proposal.quantity, proposal.sku),
             )
+            # Purchases are NEGATIVE: cash leaves the organization to buy stock.
+            connection.execute(
+                "INSERT INTO cash_entries(id, amount_cents, record) VALUES (?, ?, ?)",
+                (
+                    cash_id,
+                    -total,
+                    json.dumps(
+                        {
+                            "reason": "purchase",
+                            "sku": proposal.sku,
+                            "qty": proposal.quantity,
+                            "unit_cost_cents": unit_cost,
+                            "assignment_id": assignment_id,
+                        }
+                    ),
+                ),
+            )
+            if signal_id is not None:
+                connection.execute(
+                    "UPDATE signals SET record = json_set(record, '$.severity', 'resolved') "
+                    "WHERE id = ?",
+                    (signal_id,),
+                )
+            row = connection.execute(
+                "SELECT on_hand FROM inventory WHERE sku = ?", (proposal.sku,)
+            ).fetchone()
+            payload = {
+                "sku": proposal.sku,
+                "qty": proposal.quantity,
+                "unit_cost_cents": unit_cost,
+                "total_cost_cents": total,
+                "on_hand": int(row["on_hand"]),
+                "cash_id": cash_id,
+                "assignment_id": assignment_id,
+                "signal_id": signal_id,
+            }
+            # The PRIMARY KEY makes a concurrent second claim fail here, inside
+            # the same transaction that does the work, so it rolls back with it.
+            connection.execute(
+                "INSERT INTO effect_keys(key, kind, payload, created_at) VALUES (?, ?, ?, ?)",
+                (key, "replenishment", json.dumps(payload), utc_now().isoformat()),
+            )
+            append_event(db, "replenishment.committed", payload)
+            return payload
+    except sqlite3.IntegrityError as error:
+        if "effect_keys" not in str(error):
+            raise
         row = db.connection.execute(
-            "SELECT on_hand FROM inventory WHERE sku = ?", (proposal.sku,)
+            "SELECT payload FROM effect_keys WHERE key = ?", (key,)
         ).fetchone()
-        payload = {
-            "sku": proposal.sku,
-            "qty": proposal.quantity,
-            "unit_cost_cents": unit_cost,
-            "total_cost_cents": total,
-            "on_hand": int(row["on_hand"]),
-            "cash_id": cash_id,
-            "assignment_id": assignment_id,
-            "signal_id": signal_id,
-        }
-        append_event(db, "replenishment.committed", payload)
-    return payload
+        if row is None:
+            raise
+        return {**json.loads(row["payload"]), "idempotent_replay": True}

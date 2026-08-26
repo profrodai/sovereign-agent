@@ -52,6 +52,13 @@ def inbox(db: Database, actor_id: str) -> list[Message]:
 
 
 def claim(db: Database, message_id: str, actor_id: str) -> Message:
+    """Take an exclusive lease, or refuse. Compare-and-set, not read-then-write.
+
+    The claim is a single `UPDATE ... WHERE state = 'NEW'` that must affect
+    exactly one row. An earlier version read the message, decided in Python, and
+    wrote it back: two connections both read NEW, both wrote, and both believed
+    they owned the lease.
+    """
     raw = db.get("messages", "id", message_id)
     if raw is None:
         raise Refusal(
@@ -70,20 +77,37 @@ def claim(db: Database, message_id: str, actor_id: str) -> Message:
         )
     if message.state == MessageState.CLAIMED and message.claim_owner == actor_id:
         return message
-    if message.state != MessageState.NEW:
-        raise Refusal(
-            "Message is not claimable.",
-            "Claims are exclusive.",
-            "sovereign-agent inbox",
-            "Wait for lease expiry.",
+
+    now = utc_now()
+    expires_at = now + LEASE
+    with db.immediate() as connection:
+        # One statement decides the winner. Either this row was NEW (or its lease
+        # had expired) at the moment of the UPDATE, or it was not.
+        cursor = connection.execute(
+            "UPDATE messages SET state = 'CLAIMED', claim_owner = ?, claim_expires_at = ?, "
+            "record = json_set(json_set(json_set(record, '$.state', 'CLAIMED'), "
+            "'$.claim_owner', ?), '$.claim_expires_at', ?) "
+            "WHERE id = ? AND (state = 'NEW' OR (state = 'CLAIMED' AND claim_expires_at <= ?))",
+            (
+                actor_id,
+                expires_at.isoformat(),
+                actor_id,
+                expires_at.isoformat(),
+                message_id,
+                now.isoformat(),
+            ),
         )
-    message.state = MessageState.CLAIMED
-    message.claim_owner = actor_id
-    message.claim_expires_at = utc_now() + LEASE
-    with db.transaction():
-        db.put("messages", message.id, message.model_dump(mode="json"))
-        append_event(db, "message.claimed", {"id": message.id, "actor_id": actor_id})
-    return message
+        if cursor.rowcount != 1:
+            raise Refusal(
+                "Message is not claimable.",
+                "Claims are exclusive: another actor holds an unexpired lease.",
+                "sovereign-agent inbox",
+                "Wait for lease expiry.",
+            )
+        append_event(db, "message.claimed", {"id": message_id, "actor_id": actor_id})
+
+    claimed = Message.model_validate(db.get("messages", "id", message_id))
+    return claimed
 
 
 def complete(db: Database, message_id: str, actor_id: str) -> Message:

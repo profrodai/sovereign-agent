@@ -139,11 +139,61 @@ END;
 """
 
 
+MIGRATION_4 = """
+-- A preflight scan of the event log is not an idempotency key: two callers can
+-- both pass the scan before either writes, and both then order stock. The
+-- database has to be the one saying "this already happened".
+CREATE TABLE IF NOT EXISTS effect_keys (
+    key TEXT PRIMARY KEY,
+    kind TEXT NOT NULL,
+    payload TEXT NOT NULL,
+    created_at TEXT NOT NULL
+);
+"""
+
+
+MIGRATION_5 = """
+-- Claiming a lease by reading a JSON blob, deciding in Python, then writing the
+-- blob back is a read-then-write race: two workers both read NEW and both win.
+-- A compare-and-set needs the state in a column the UPDATE can test.
+ALTER TABLE messages ADD COLUMN state TEXT NOT NULL DEFAULT 'NEW';
+ALTER TABLE messages ADD COLUMN claim_owner TEXT;
+ALTER TABLE messages ADD COLUMN claim_expires_at TEXT;
+UPDATE messages SET
+    state = COALESCE(json_extract(record, '$.state'), 'NEW'),
+    claim_owner = json_extract(record, '$.claim_owner'),
+    claim_expires_at = json_extract(record, '$.claim_expires_at');
+"""
+
+
 MIGRATIONS: tuple[tuple[int, str], ...] = (
     (1, MIGRATION_1),
     (2, MIGRATION_2),
     (3, MIGRATION_3),
+    (4, MIGRATION_4),
+    (5, MIGRATION_5),
 )
+
+
+def _split_statements(script: str) -> list[str]:
+    """Split a migration into executable statements.
+
+    `sqlite3` refuses more than one statement per `execute()`, and migrations
+    contain CREATE TRIGGER bodies with internal semicolons. `sqlite3.complete_statement`
+    knows where a statement genuinely ends, including inside BEGIN ... END.
+    """
+    statements: list[str] = []
+    buffer = ""
+    for line in script.splitlines(keepends=True):
+        if not line.strip() or line.lstrip().startswith("--"):
+            continue
+        buffer += line
+        if sqlite3.complete_statement(buffer):
+            statements.append(buffer.strip())
+            buffer = ""
+    if buffer.strip():
+        statements.append(buffer.strip())
+    return statements
 
 
 class Database:
@@ -170,25 +220,57 @@ class Database:
     def migrate(self) -> None:
         """Apply pending migrations in order. Forward-only; never downgrades.
 
-        Each migration commits with its own version stamp, so a failure part way
-        through leaves every earlier migration applied and recorded, and the
-        failing one fully rolled back. The database stays openable.
+        Each migration's DDL **and** its version stamp go inside one explicit
+        `BEGIN IMMEDIATE`, so a failure part way through leaves the database
+        exactly as it was. SQLite rolls DDL back like any other statement.
+
+        This deliberately does not use `executescript()`. That helper COMMITs
+        any open transaction before it runs, which silently defeated the
+        rollback this docstring promises: a migration that created a table and
+        then hit invalid SQL left the table behind, unstamped, so reopening
+        re-ran it and failed forever.
         """
         applied = self.applied_versions()
         for version, script in MIGRATIONS:
             if version in applied:
                 continue
+            previous = self.connection.isolation_level
+            self.connection.isolation_level = None
             try:
-                self.connection.executescript(script)
+                self.connection.execute("BEGIN IMMEDIATE")
+                for statement in _split_statements(script):
+                    self.connection.execute(statement)
                 self.connection.execute(
                     "INSERT INTO schema_migrations(version, applied_at) "
                     "VALUES (?, datetime('now'))",
                     (version,),
                 )
-                self.connection.commit()
+                self.connection.execute("COMMIT")
             except Exception:
-                self.connection.rollback()
+                self.connection.execute("ROLLBACK")
                 raise
+            finally:
+                self.connection.isolation_level = previous
+
+    @contextmanager
+    def immediate(self) -> Iterator[sqlite3.Connection]:
+        """A write transaction that takes its lock UP FRONT.
+
+        `BEGIN IMMEDIATE` acquires the reserved lock before any statement runs,
+        so two connections cannot both read a row, both decide to act, and both
+        write. Deferred transactions -- SQLite's default -- allow exactly that.
+        """
+        previous = self.connection.isolation_level
+        self.connection.isolation_level = None
+        try:
+            self.connection.execute("BEGIN IMMEDIATE")
+            yield self.connection
+            self.connection.execute("COMMIT")
+        except Exception:
+            self.connection.execute("ROLLBACK")
+            raise
+        finally:
+            self.connection.isolation_level = previous
 
     @contextmanager
     def transaction(self) -> Iterator[sqlite3.Connection]:
@@ -236,8 +318,16 @@ class Database:
             )
         elif table == "messages":
             self.connection.execute(
-                "INSERT OR REPLACE INTO messages(id, recipient, record) VALUES (?, ?, ?)",
-                (record_id, record["recipient"], payload),
+                "INSERT OR REPLACE INTO messages(id, recipient, record, state, claim_owner, "
+                "claim_expires_at) VALUES (?, ?, ?, ?, ?, ?)",
+                (
+                    record_id,
+                    record["recipient"],
+                    payload,
+                    record.get("state", "NEW"),
+                    record.get("claim_owner"),
+                    record.get("claim_expires_at"),
+                ),
             )
         else:
             self.connection.execute(
