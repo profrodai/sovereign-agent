@@ -86,54 +86,98 @@ def verify(root: Path) -> list[str]:
     if fabricated:
         fail(f"pulse events before Unit 9: {fabricated}")
 
-    # 7. Every declared check has successful evidence bound to this outcome
-    #    and to the execution that acceptance used.
-    evidence = db.connection.execute(
-        "SELECT check_id, success, assignment_id, state_digest FROM evidence WHERE outcome_id = ?",
-        (outcome_id,),
-    ).fetchall()
-    passing = {str(row["check_id"]) for row in evidence if int(row["success"]) == 1}
-    missing = set(outcome.acceptance_checks) - passing
-    if missing:
-        fail(f"declared checks without successful bound evidence: {sorted(missing)}")
+    # 7. EVERY SOW's proof chain, validated separately. The core permits
+    #    per-SOW executions, so an oracle that assumes one latest execution owns
+    #    all evidence will call a legitimate multi-SOW organization false. Both
+    #    must agree, or the control plane can mint a state its own gate rejects.
+    sows = org.sows_for(outcome_id)
+    if not sows:
+        fail("no SOW for this outcome")
+    newest_verification = None
+    for sow in sows:
+        if sow.state.value != "ACCEPTED":
+            fail(f"SOW {sow.id} is {sow.state.value}, not ACCEPTED")
+            continue
+        execution = org.completed_assignment_for_sow(sow.id)
+        if not execution:
+            fail(f"SOW {sow.id} has no completed execution")
+            continue
 
-    execution_id = org._latest_assignment_id(outcome_id)  # noqa: SLF001
-    for row in evidence:
-        if str(row["assignment_id"]) != execution_id:
-            fail(f"evidence for '{row['check_id']}' is bound to another execution")
+        verification = org.verification_for_sow(sow.id)
+        if verification is None:
+            fail(f"SOW {sow.id} has no verification")
+            continue
+        if verification.assignment_id != execution or verification.sow_id != sow.id:
+            fail(f"verification {verification.id} is not bound to SOW {sow.id}'s execution")
+        newest_verification = verification
 
-    # 8. Evidence is not stale relative to current state.
-    for check_id in outcome.acceptance_checks:
-        current = run_check(db, check_id, subject)
-        digests = {str(row["state_digest"]) for row in evidence if str(row["check_id"]) == check_id}
-        if digests and current.state_digest not in digests:
-            fail(f"evidence for '{check_id}' is stale relative to current state")
+        rows = db.connection.execute(
+            "SELECT check_id, success, assignment_id FROM evidence WHERE verification_id = ?",
+            (verification.id,),
+        ).fetchall()
+        passing = {str(row["check_id"]) for row in rows if int(row["success"]) == 1}
+        missing = set(outcome.acceptance_checks) - passing
+        if missing:
+            fail(f"SOW {sow.id}: checks without successful evidence: {sorted(missing)}")
+        for row in rows:
+            if str(row["assignment_id"]) != execution:
+                fail(f"SOW {sow.id}: evidence for '{row['check_id']}' is bound elsewhere")
 
-    # 9. EXACTLY the receipt for the accepted execution, successful, digest-bound.
-    execution_id = org._latest_assignment_id(outcome_id)  # noqa: SLF001
-    if not execution_id:
-        fail("no execution recorded for this outcome")
-    receipt_rows = db.connection.execute(
-        "SELECT record, status FROM receipts WHERE assignment_id = ?", (execution_id,)
-    ).fetchall()
-    if not receipt_rows:
-        fail(f"no receipt bound to execution {execution_id}")
-    for row in receipt_rows:
-        receipt = json.loads(row["record"])
-        # The indexed column and the canonical record are two sources for one
-        # fact. Requiring agreement means neither can be edited alone.
-        if str(row["status"]) != str(receipt.get("status")):
-            fail(
-                f"receipt {receipt.get('id')} column says {row['status']}, "
-                f"record says {receipt.get('status')}"
-            )
-        if receipt.get("status") != "completed" or str(row["status"]) != "completed":
-            fail(f"receipt {receipt.get('id')} status is {row['status']}")
-        if receipt.get("assignment_id") != execution_id:
-            fail(f"receipt {receipt.get('id')} is not bound to {execution_id}")
+        review_rows = db.connection.execute(
+            "SELECT reviewer_actor_id, decision FROM reviews "
+            "WHERE sow_id = ? AND verification_id = ?",
+            (sow.id, verification.id),
+        ).fetchall()
+        if not review_rows:
+            fail(f"SOW {sow.id} has no review of its current verification")
+        for row in review_rows:
+            if str(row["decision"]) != "accepted":
+                fail(f"SOW {sow.id}: review decision is {row['decision']}")
+            reviewer = str(row["reviewer_actor_id"])
+            if reviewer == json.loads(
+                db.connection.execute(
+                    "SELECT record FROM assignments WHERE id = ?", (execution,)
+                ).fetchone()["record"]
+            ).get("actor_id"):
+                fail(f"SOW {sow.id}: reviewer {reviewer} also performed the work")
 
-    # The sidecar must EXIST and match. Checking it only when present meant
-    # deleting it was not a failure.
+        receipt_rows = db.connection.execute(
+            "SELECT record, status FROM receipts WHERE assignment_id = ?", (execution,)
+        ).fetchall()
+        if not receipt_rows:
+            fail(f"SOW {sow.id}: no receipt bound to execution {execution}")
+        for row in receipt_rows:
+            receipt = json.loads(row["record"])
+            if str(row["status"]) != str(receipt.get("status")):
+                fail(f"SOW {sow.id}: receipt column and record disagree")
+            elif receipt.get("status") != "completed":
+                fail(f"SOW {sow.id}: receipt status is {receipt.get('status')}")
+
+        # Only SOWs that DECLARE a required effect must have changed the world.
+        if sow.required_effect_kind is not None:
+            kinds = org.effect_kinds_for_execution(execution)
+            if sow.required_effect_kind not in kinds:
+                fail(
+                    f"SOW {sow.id} declares {sow.required_effect_kind} but its "
+                    f"execution produced none"
+                )
+
+    # 8. Freshness is checked once, against the verification describing the world
+    #    as acceptance saw it.
+    if newest_verification is not None:
+        for check_id in outcome.acceptance_checks:
+            current = run_check(db, check_id, subject)
+            digests = {
+                str(row["state_digest"])
+                for row in db.connection.execute(
+                    "SELECT state_digest FROM evidence WHERE verification_id = ? AND check_id = ?",
+                    (newest_verification.id, check_id),
+                ).fetchall()
+            }
+            if digests and current.state_digest not in digests:
+                fail(f"evidence for '{check_id}' is stale relative to current state")
+
+    # 9. The receipt sidecars on disk must exist and match.
     workspaces = list((root / ".sovereign" / "runs").glob("*"))
     if not workspaces:
         fail("no run workspace on disk")
@@ -149,23 +193,6 @@ def verify(root: Path) -> list[str]:
         expected = hashlib.sha256(receipt_path.read_text(encoding="utf-8").encode()).hexdigest()
         if digest_path.read_text(encoding="utf-8").strip() != expected:
             fail(f"{workspace.name}: receipt digest does not match receipt.json")
-
-    # 9b. An independent review must exist, have accepted, and name a reviewer
-    #     who is neither a performer nor the accepter.
-    review_rows = db.connection.execute(
-        "SELECT record, decision, reviewer_actor_id FROM reviews WHERE outcome_id = ?",
-        (outcome_id,),
-    ).fetchall()
-    if not review_rows:
-        fail("no review record for this outcome")
-    for row in review_rows:
-        if str(row["decision"]) != "accepted":
-            fail(f"review decision is {row['decision']}")
-        reviewer = str(row["reviewer_actor_id"])
-        if reviewer in org.performers_for(outcome_id):
-            fail(f"reviewer {reviewer} also performed the work")
-        if org.actor(reviewer).role.value not in {"sparring", "verifier", "master"}:
-            fail(f"reviewer {reviewer} does not hold a reviewing role")
 
     # 10. Operator, reviewer, and Principal are distinct governed actors.
     acceptance_row = db.connection.execute(

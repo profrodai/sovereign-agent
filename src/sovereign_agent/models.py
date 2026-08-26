@@ -212,6 +212,7 @@ class Verification(StrictModel):
 
     id: str
     outcome_id: str
+    sow_id: str
     assignment_id: str
     evidence_refs: list[str]
     check_ids: list[str]

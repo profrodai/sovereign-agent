@@ -320,19 +320,19 @@ class Organization:
         # Only the CURRENT batch. Scanning every historical row meant one failed
         # check poisoned every later review forever, so a corrected world could
         # never be re-reviewed.
-        verification = self.latest_verification(sow.outcome_id)
+        # THIS SOW's own verification, selected by sow_id rather than by row
+        # order across the outcome. The relational chain is checked rather than
+        # assumed: verification.sow_id -> assignment.sow_id -> the reviewed SOW.
+        verification = self.verification_for_sow(sow_id)
         if verification is not None:
-            # The batch must be OF THIS SOW's execution. Reviewing a batch bound
-            # to a different SOW's assignment lends that SOW's proof to this one.
             execution = self.completed_assignment_for_sow(sow_id)
-            if not execution or verification.assignment_id != execution:
+            if verification.sow_id != sow_id or verification.assignment_id != execution:
                 raise Refusal(
-                    f"The current verification belongs to another SOW's execution "
-                    f"({verification.assignment_id or 'none'}).",
+                    f"Verification {verification.id} does not belong to SOW {sow_id}.",
                     "A SOW is independently governed work: its review must rest "
                     "on its own execution, not on a sibling's.",
                     "sovereign-agent verify",
-                    "Run and verify this SOW's own assignment.",
+                    "Verify this SOW's own assignment.",
                 )
         if verification is None:
             raise Refusal(
@@ -392,26 +392,31 @@ class Organization:
         self._project_outcome(sow.outcome_id)
         return review
 
-    def verify_outcome(self, outcome_id: str, verifier_id: str) -> list[CheckResult]:
-        """Actually execute every declared acceptance check and persist evidence.
+    def verify_sow(self, sow_id: str, verifier_id: str) -> list[CheckResult]:
+        """Execute the declared checks FOR ONE NAMED SOW's execution.
 
-        This used to advance a state field and nothing else. A verification that
-        runs no checks is a rubber stamp with a spinner.
-
-        Unknown, malformed, or erroring checks fail closed. Evidence is written
-        for every declared check, pass or fail, so a failed verification leaves a
-        durable record of WHY rather than a silent absence.
+        The caller says which work is being verified. The previous API took only
+        an outcome and picked a SOW implicitly by row order, so with two
+        completed SOWs one of them became permanently unreviewable and which one
+        was arbitrary -- `sows_for()` has no ordering contract.
         """
         verifier = self.actor(verifier_id)
         require_authority(verifier.role, "run_checks")
-        outcome = self._outcome(outcome_id)
+        sow = self._sow(sow_id)
+        outcome = self._outcome(sow.outcome_id)
         if outcome.state != OutcomeState.VERIFYING:
             outcome.state = advance_outcome(outcome.state, OutcomeState.VERIFYING)
             self._save_outcome(outcome, "outcome.verifying")
 
-        execution_id = self._latest_assignment_id(outcome_id)
-        # The SUBJECT comes from the outcome, never from the caller. A caller
-        # that picks the subject picks which world gets inspected.
+        execution_id = self.completed_assignment_for_sow(sow_id)
+        if not execution_id:
+            raise Refusal(
+                f"SOW {sow_id} has no completed execution to verify.",
+                "Verification inspects the result of work that has run.",
+                "sovereign-agent status",
+                "Run this SOW's assignment first.",
+            )
+
         subject = outcome.subject
         results = [run_check(self.db, check_id, subject) for check_id in outcome.acceptance_checks]
 
@@ -419,7 +424,8 @@ class Organization:
         evidence_ids = [new_id("evd") for _ in results]
         aggregate = digest_payload(
             {
-                "outcome_id": outcome_id,
+                "outcome_id": sow.outcome_id,
+                "sow_id": sow_id,
                 "assignment_id": execution_id,
                 "checks": [
                     {"check_id": r.check_id, "success": r.success, "digest": r.state_digest}
@@ -429,7 +435,8 @@ class Organization:
         )
         verification = Verification(
             id=verification_id,
-            outcome_id=outcome_id,
+            outcome_id=sow.outcome_id,
+            sow_id=sow_id,
             assignment_id=execution_id,
             evidence_refs=evidence_ids,
             check_ids=[r.check_id for r in results],
@@ -440,11 +447,13 @@ class Organization:
 
         with self.db.transaction():
             self.db.connection.execute(
-                "INSERT INTO verifications(id, outcome_id, assignment_id, aggregate_digest, "
-                "passed, record, created_at) VALUES (?, ?, ?, ?, ?, ?, ?)",
+                "INSERT INTO verifications(id, outcome_id, sow_id, assignment_id, "
+                "aggregate_digest, passed, record, created_at) "
+                "VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
                 (
                     verification_id,
-                    outcome_id,
+                    sow.outcome_id,
+                    sow_id,
                     execution_id,
                     aggregate,
                     1 if verification.passed else 0,
@@ -456,7 +465,7 @@ class Organization:
                 evidence = Evidence(
                     id=evidence_id,
                     assignment_id=execution_id,
-                    outcome_id=outcome_id,
+                    outcome_id=sow.outcome_id,
                     check_id=result.check_id,
                     success=result.success,
                     observed=result.observed,
@@ -468,7 +477,7 @@ class Organization:
                     digest=digest_payload(
                         {
                             "check_id": result.check_id,
-                            "outcome_id": outcome_id,
+                            "outcome_id": sow.outcome_id,
                             "success": result.success,
                             "observed": result.observed,
                         }
@@ -483,7 +492,7 @@ class Organization:
                         evidence.id,
                         execution_id,
                         evidence.model_dump_json(),
-                        outcome_id,
+                        sow.outcome_id,
                         result.check_id,
                         1 if result.success else 0,
                         result.state_digest,
@@ -492,9 +501,10 @@ class Organization:
                 )
             append_event(
                 self.db,
-                "outcome.verified",
+                "sow.verified",
                 {
-                    "id": outcome_id,
+                    "outcome_id": sow.outcome_id,
+                    "sow_id": sow_id,
                     "verification_id": verification_id,
                     "by": verifier_id,
                     "passed": sum(1 for r in results if r.success),
@@ -502,6 +512,35 @@ class Organization:
                 },
             )
         return results
+
+    def verify_outcome(self, outcome_id: str, verifier_id: str) -> list[CheckResult]:
+        """Verify every SOW of an outcome that has a completed execution.
+
+        A convenience over `verify_sow`, kept because the single-SOW demo reads
+        better without naming the SOW. It never guesses: it verifies them all.
+        """
+        results: list[CheckResult] = []
+        verified_any = False
+        for sow in self.sows_for(outcome_id):
+            if self.completed_assignment_for_sow(sow.id):
+                results = self.verify_sow(sow.id, verifier_id)
+                verified_any = True
+        if not verified_any:
+            raise Refusal(
+                f"Outcome {outcome_id} has no completed execution to verify.",
+                "Verification inspects the result of work that has run.",
+                "sovereign-agent status",
+                "Run an assignment first.",
+            )
+        return results
+
+    def verification_for_sow(self, sow_id: str) -> Verification | None:
+        """The most recent verification OF THIS SOW."""
+        row = self.db.connection.execute(
+            "SELECT record FROM verifications WHERE sow_id = ? ORDER BY rowid DESC LIMIT 1",
+            (sow_id,),
+        ).fetchone()
+        return Verification.model_validate_json(row["record"]) if row else None
 
     def latest_verification(self, outcome_id: str) -> Verification | None:
         """The most recent complete batch for this outcome."""
@@ -612,6 +651,26 @@ class Organization:
             )
         return receipt
 
+    def _require_deliverables(self, sow: StatementOfWork, execution: str) -> None:
+        """Every declared deliverable must exist in the execution's workspace.
+
+        A non-effectful SOW changes nothing in the world, so the only thing
+        distinguishing "delivered" from "ran and returned" is the artifact it
+        promised. Judging such a SOW by the outcome's store checks would be the
+        name/value mismatch this unit exists to remove, one scope up.
+        """
+        assignment = self._assignment(execution)
+        output = self.root / ".sovereign" / "runs" / assignment.workspace_id / ".sovereign-out"
+        for deliverable in sow.deliverables:
+            if not (output / deliverable).is_file():
+                raise Refusal(
+                    f"SOW {sow.id} promised {deliverable} and did not produce it.",
+                    "A unit of work is done when its deliverable exists, not "
+                    "when its execution returns.",
+                    str(output),
+                    "Re-run the assignment so it writes its deliverable.",
+                )
+
     def _trusted_review(self, row: Any) -> Review:
         """Load one review, validating the record against its indexed columns."""
         review = Review.model_validate_json(row["record"])
@@ -720,6 +779,10 @@ class Organization:
                     "Run this SOW's assignment.",
                 )
             self._trusted_receipt(execution)
+            # Every SOW must have DELIVERED, effectful or not. For an
+            # investigation the deliverable IS the proof: outcome-level store
+            # checks say nothing about whether a report was written.
+            self._require_deliverables(sow, execution)
             if sow.required_effect_kind is None:
                 continue
             # No `if contributors and ...` guard: the empty case is the STRONGEST
@@ -743,7 +806,35 @@ class Organization:
         # now while the review referenced whatever existed then, so a second
         # verification could replace every reviewed row and acceptance would
         # still report that the work had been reviewed.
-        verification = self.latest_verification(outcome_id)
+        # Each SOW's proof chain is validated on its own verification. The
+        # outcome-level evidence binding below then uses the verification of the
+        # SOW that was verified last, which is the batch describing the world as
+        # acceptance sees it.
+        verification = None
+        for sow in sows:
+            sow_verification = self.verification_for_sow(sow.id)
+            if sow_verification is None:
+                raise Refusal(
+                    f"SOW {sow.id} has not been verified.",
+                    "Acceptance rests on a completed run of the declared checks "
+                    "for every unit of work.",
+                    "sovereign-agent verify",
+                    "Verify each SOW.",
+                )
+            sow_reviews = self.db.connection.execute(
+                "SELECT record, decision, reviewer_actor_id, verification_id FROM reviews "
+                "WHERE sow_id = ? AND verification_id = ?",
+                (sow.id, sow_verification.id),
+            ).fetchall()
+            if not sow_reviews:
+                raise Refusal(
+                    f"SOW {sow.id} has no review of its current verification.",
+                    "The evidence supporting acceptance must be the evidence a "
+                    "reviewer actually saw, not an earlier batch it replaced.",
+                    "sovereign-agent status",
+                    "Have a reviewer review this SOW's current verification.",
+                )
+            verification = sow_verification
         if verification is None:
             raise Refusal(
                 "No verification for this outcome.",

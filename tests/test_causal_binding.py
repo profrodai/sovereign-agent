@@ -173,11 +173,22 @@ def test_one_sow_cannot_borrow_another_sows_proof(tmp_path: Path) -> None:
     apply_restock(org.db, RestockProposal("SKU-TEA", 6), real, signal.id)
 
     org.verify_outcome(outcome_id, "verifier-course")
-    verification = org.latest_verification(outcome_id)
-    assert verification is not None and verification.assignment_id == real
 
-    with pytest.raises(Refusal, match="belongs to another SOW's execution"):
-        org.review(idle_sow, "sparring-course")
+    # Each SOW now gets its OWN verification, bound to its OWN execution, so a
+    # batch cannot be borrowed in the first place.
+    idle_verification = org.verification_for_sow(idle_sow)
+    real_verification = org.verification_for_sow(real_sow)
+    assert idle_verification is not None and real_verification is not None
+    assert idle_verification.id != real_verification.id
+    assert real_verification.assignment_id == real
+    assert idle_verification.assignment_id != real
+
+    # Both can be reviewed on their own batches; the idle SOW is then refused at
+    # acceptance for the real reason: its execution changed nothing.
+    org.review(idle_sow, "sparring-course")
+    org.review(real_sow, "sparring-course")
+    with pytest.raises(Refusal, match="produced no replenishment effect"):
+        org.accept(outcome_id, "principal-human")
 
 
 def test_every_sow_needs_its_own_completed_execution(tmp_path: Path) -> None:
@@ -235,3 +246,121 @@ def test_a_sow_with_no_declared_effect_need_not_change_the_world(tmp_path: Path)
     org.verify_outcome(outcome_id, "verifier-course")
     org.review(sow_id, "sparring-course")
     org.accept(outcome_id, "principal-human")
+
+
+def test_two_completed_sows_are_each_verifiable_and_reviewable(tmp_path: Path) -> None:
+    """Complete both SOWs first, then verify and review each, in either order.
+
+    Reported on PR #24 round 5: `verify_outcome()` picked a SOW implicitly by row
+    order — and `sows_for()` has no ordering contract — so with two completed
+    SOWs one became PERMANENTLY unreviewable, and re-verifying chose the same
+    one again. The caller could not name the work being verified.
+    """
+    org, outcome_id = build(tmp_path, ["inventory_at_or_above_reorder_point"])
+    first_sow, first = run_sow(org, outcome_id, "first", None)
+    second_sow, second = run_sow(org, outcome_id, "second", None)
+
+    # Verify in the opposite order to the runs, by name.
+    org.verify_sow(second_sow, "verifier-course")
+    org.verify_sow(first_sow, "verifier-course")
+
+    assert org.verification_for_sow(first_sow).assignment_id == first
+    assert org.verification_for_sow(second_sow).assignment_id == second
+
+    # Review in yet another order; neither is blocked by the other.
+    org.review(first_sow, "sparring-course")
+    org.review(second_sow, "sparring-course")
+    assert all(sow.state.value == "ACCEPTED" for sow in org.sows_for(outcome_id))
+
+
+def test_a_verification_names_the_sow_it_is_about(tmp_path: Path) -> None:
+    org, outcome_id = build(tmp_path, ["inventory_at_or_above_reorder_point"])
+    sow_id, assignment_id = run_sow(org, outcome_id, "work", None)
+    org.verify_sow(sow_id, "verifier-course")
+    verification = org.verification_for_sow(sow_id)
+    assert verification is not None
+    assert verification.sow_id == sow_id
+    assert verification.assignment_id == assignment_id
+    # The relational chain must close: verification -> assignment -> sow.
+    row = org.db.connection.execute(
+        "SELECT sow_id FROM assignments WHERE id = ?", (verification.assignment_id,)
+    ).fetchone()
+    assert str(row["sow_id"]) == verification.sow_id
+
+
+def test_verifying_a_sow_with_no_completed_execution_is_refused(tmp_path: Path) -> None:
+    org, outcome_id = build(tmp_path, ["inventory_at_or_above_reorder_point"])
+    sow = org.create_sow(outcome_id, "never run", Role.OPERATOR, "master-course")
+    with pytest.raises(Refusal, match="no completed execution to verify"):
+        org.verify_sow(sow.id, "verifier-course")
+
+
+def test_core_and_the_truth_verifier_agree_on_a_multi_sow_organization(
+    tmp_path: Path,
+) -> None:
+    """The control plane must never mint a state its own oracle calls false.
+
+    Reported on PR #24 round 5: the core permitted per-SOW executions while
+    `verify_store_outcome.py` still assumed one latest execution owned every
+    evidence row, so a legitimate two-SOW organization was ACCEPTED by the core
+    and rejected by the release gate. Whichever is right, shipping both is
+    indefensible.
+    """
+    import subprocess
+    import sys
+
+    repo_root = Path(__file__).resolve().parent.parent
+    org, outcome_id = build(tmp_path)
+    signal = record_sale(org.db, "SKU-TEA", 2, 400)
+
+    effectful_sow, effectful = run_sow(org, outcome_id, "replenish", "replenishment")
+    apply_restock(org.db, RestockProposal("SKU-TEA", 6), effectful, signal.id)
+    investigation_sow, _idle = run_sow(org, outcome_id, "investigate", None)
+
+    org.verify_sow(effectful_sow, "verifier-course")
+    org.verify_sow(investigation_sow, "verifier-course")
+    org.review(effectful_sow, "sparring-course")
+    org.review(investigation_sow, "sparring-course")
+    org.accept(outcome_id, "principal-human")
+    org.db.close()
+
+    result = subprocess.run(  # noqa: S603 - fixed argv, no shell
+        [sys.executable, str(repo_root / "scripts" / "verify_store_outcome.py"), str(tmp_path)],
+        capture_output=True,
+        text=True,
+        cwd=repo_root,
+    )
+    assert result.returncode == 0, (
+        "core accepted a multi-SOW organization its own verifier rejects:\n"
+        + result.stdout
+        + result.stderr
+    )
+
+
+def test_a_sow_must_produce_its_declared_deliverable(tmp_path: Path) -> None:
+    """For a non-effectful SOW the deliverable IS the proof.
+
+    Holding 2 of docs/rulings/2026-08-26-amendment-conditional-effects.md.
+    Judging an investigation by the outcome's inventory checks would be a check
+    named for one fact measuring another — this unit's signature defect, one
+    scope up.
+    """
+    org, outcome_id = build(tmp_path, ["inventory_at_or_above_reorder_point"])
+    sow_id, assignment_id = run_sow(org, outcome_id, "investigate", None)
+    org.verify_sow(sow_id, "verifier-course")
+    org.review(sow_id, "sparring-course")
+
+    assignment = org._assignment(assignment_id)  # noqa: SLF001
+    deliverable = (
+        tmp_path
+        / ".sovereign"
+        / "runs"
+        / assignment.workspace_id
+        / ".sovereign-out"
+        / "report.json"
+    )
+    assert deliverable.is_file(), "precondition: the deliverable was produced"
+    deliverable.unlink()
+
+    with pytest.raises(Refusal, match="promised report.json and did not produce it"):
+        org.accept(outcome_id, "principal-human")

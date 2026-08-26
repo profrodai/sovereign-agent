@@ -57,7 +57,7 @@ def test_verifier_requires_a_review_record(store: Path) -> None:
     org.db.close()
     result = run_script(VERIFY_OUTCOME, str(store))
     assert result.returncode == 1
-    assert "no review record" in result.stdout
+    assert "has no review of its current verification" in result.stdout
 
 
 def test_verifier_requires_the_receipt_digest_sidecar(store: Path) -> None:
@@ -76,7 +76,7 @@ def test_verifier_detects_a_receipt_whose_column_and_record_disagree(store: Path
     org.db.close()
     result = run_script(VERIFY_OUTCOME, str(store))
     assert result.returncode == 1
-    assert "column says failed" in result.stdout
+    assert "receipt column and record disagree" in result.stdout
 
 
 def test_verifier_compares_every_projected_file(store: Path) -> None:

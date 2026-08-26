@@ -273,14 +273,33 @@ CREATE TABLE effects_v2 (
     FOREIGN KEY(outcome_id) REFERENCES outcomes(id),
     CHECK (outcome_id <> '')
 );
+-- NO `WHERE ... IS NOT NULL` filter. An earlier version had one, so that the
+-- NOT NULL rebuild would always succeed -- and it dropped every legacy row it
+-- could not attribute before DROPping the old table, destroying an operational
+-- record from an append-only ledger while reporting success.
+--
+-- Fail closed instead: an unattributable row makes this INSERT violate NOT NULL,
+-- the whole migration rolls back inside its BEGIN IMMEDIATE, version 10 is not
+-- stamped, and the original table is still there to be repaired by hand. A
+-- migration that cannot preserve the ledger must refuse to run, not quietly
+-- decide which history was worth keeping.
 INSERT INTO effects_v2(id, assignment_id, kind, subject, payload, created_at, outcome_id)
     SELECT id, assignment_id, kind, subject, payload, created_at,
            COALESCE(NULLIF(outcome_id, ''), json_extract(payload, '$.outcome_id'))
-    FROM effects
-    WHERE COALESCE(NULLIF(outcome_id, ''), json_extract(payload, '$.outcome_id')) IS NOT NULL;
+    FROM effects;
 DROP TABLE effects;
 ALTER TABLE effects_v2 RENAME TO effects;
 CREATE INDEX IF NOT EXISTS effects_by_outcome ON effects(outcome_id, assignment_id);
+"""
+
+
+MIGRATION_11 = """
+-- A verification must name the SOW it is about. Without it, verification
+-- selected a SOW implicitly by row order and the caller could not say which
+-- work was being verified -- so with two completed SOWs one became permanently
+-- unreviewable, and which one was arbitrary.
+ALTER TABLE verifications ADD COLUMN sow_id TEXT REFERENCES sows(id);
+CREATE INDEX IF NOT EXISTS verifications_by_sow ON verifications(sow_id);
 """
 
 
@@ -295,6 +314,7 @@ MIGRATIONS: tuple[tuple[int, str], ...] = (
     (8, MIGRATION_8),
     (9, MIGRATION_9),
     (10, MIGRATION_10),
+    (11, MIGRATION_11),
 )
 
 

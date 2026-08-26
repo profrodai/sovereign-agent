@@ -346,3 +346,57 @@ def test_the_effect_key_cannot_collide_across_assignment_and_subject(tmp_path: P
     row = db.connection.execute("SELECT COUNT(*) AS c FROM effects").fetchone()
     assert int(row["c"]) == 2, "structured columns must keep these pairs distinct"
     db.close()
+
+
+def test_a_migration_that_cannot_preserve_the_ledger_refuses_to_run(tmp_path: Path) -> None:
+    """Fail closed. Never decide which history was worth keeping.
+
+    Migration 10 rebuilds `effects` with a NOT NULL outcome_id. Its first
+    version carried `WHERE COALESCE(...) IS NOT NULL` so the rebuild would always
+    succeed — silently dropping every legacy row it could not attribute, then
+    DROPping the old table, destroying an operational record from an append-only
+    ledger while reporting success. Reported on PR #24 round 5.
+    """
+    import sovereign_agent.database as database_module
+
+    path = tmp_path / "legacy.db"
+    connection = sqlite3.connect(path)
+    for version, script in database_module.MIGRATIONS:
+        if version > 9:
+            break
+        for statement in database_module._split_statements(script):  # noqa: SLF001
+            connection.execute(statement)
+        connection.execute(
+            "INSERT INTO schema_migrations(version, applied_at) VALUES (?, datetime('now'))",
+            (version,),
+        )
+    connection.execute("INSERT INTO actors(id, record) VALUES ('op', '{}')")
+    connection.execute("INSERT INTO outcomes(id, record) VALUES ('out', '{}')")
+    connection.execute("INSERT INTO sows(id, outcome_id, record) VALUES ('sow', 'out', '{}')")
+    connection.execute(
+        "INSERT INTO assignments(id, sow_id, actor_id, record) VALUES ('a', 'sow', 'op', '{}')"
+    )
+    # An effect with no attribution in the column and none in the payload.
+    connection.execute(
+        "INSERT INTO effects(id, assignment_id, kind, subject, payload, created_at) "
+        "VALUES ('e_legacy', 'a', 'replenishment', 'SKU-TEA', '{}', 't')"
+    )
+    connection.commit()
+    connection.close()
+
+    with pytest.raises(sqlite3.IntegrityError, match="NOT NULL"):
+        Database(path)
+
+    inspector = sqlite3.connect(path)
+    try:
+        surviving = inspector.execute("SELECT COUNT(*) FROM effects").fetchone()[0]
+        assert surviving == 1, "the migration destroyed an operational record"
+        stamped = [
+            int(row[0]) for row in inspector.execute("SELECT version FROM schema_migrations")
+        ]
+        assert 10 not in stamped, "a failed migration was stamped as applied"
+        assert inspector.execute(
+            "SELECT name FROM sqlite_master WHERE name = 'effects'"
+        ).fetchone(), "the original table was dropped despite the failure"
+    finally:
+        inspector.close()

@@ -316,7 +316,7 @@ def test_refuses_when_no_review_record_exists(tmp_path: Path) -> None:
     org.db.connection.execute("DELETE FROM reviews")
     org.db.connection.commit()
     reopen_for_acceptance(org, outcome_id)
-    with pytest.raises(Refusal, match="No review record"):
+    with pytest.raises(Refusal, match="no review of its current verification"):
         org.accept(outcome_id, "principal-human")
 
 
