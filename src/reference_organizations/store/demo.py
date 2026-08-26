@@ -94,6 +94,10 @@ def run_simulated(root: Path) -> str:
         scope=f"Manually dispatched replenishment after signal {signal.id}",
         role=Role.OPERATOR,
         actor_id="master-course",
+        # This SOW must actually restock. Declaring it means acceptance checks
+        # that THIS execution did it, rather than that the shelf happens to be
+        # full because of work done last week.
+        required_effect_kind="replenishment",
     )
     org.ready_sow(sow.id)
     assignment = org.assign(sow.id, "operator-course", "master-course")

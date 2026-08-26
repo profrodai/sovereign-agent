@@ -81,9 +81,19 @@ class Outcome(StrictModel):
 
 
 class StatementOfWork(StrictModel):
+    """A unit of work: a deliverable and the test for having delivered it.
+
+    `required_effect_kind` says whether this SOW must change the world, and how.
+    Not every legitimate SOW does — an investigation or a report may deliver
+    without moving inventory — so "the execution must have contributed" cannot
+    be a universal rule. It is a rule the SOW declares about itself, and
+    acceptance then enforces exactly what was declared.
+    """
+
     id: str
     outcome_id: str
     scope: str
+    required_effect_kind: str | None = None
     non_goals: list[str]
     deliverables: list[str]
     done_when: str

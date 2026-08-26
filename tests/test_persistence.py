@@ -338,8 +338,8 @@ def test_the_effect_key_cannot_collide_across_assignment_and_subject(tmp_path: P
         ("e2", "asg_A:TEA", "X"),
     ):
         db.connection.execute(
-            "INSERT INTO effects(id, assignment_id, kind, subject, payload, created_at) "
-            "VALUES (?, ?, 'replenishment', ?, '{}', 't')",
+            "INSERT INTO effects(id, assignment_id, kind, subject, payload, created_at, "
+            "outcome_id) VALUES (?, ?, 'replenishment', ?, '{}', 't', 'out')",
             (evidence_id, assignment_id, subject),
         )
     db.connection.commit()

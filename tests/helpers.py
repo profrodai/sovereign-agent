@@ -39,7 +39,7 @@ def governed_assignment(
         subject,
     )
     org.activate(outcome.id, "master-course")
-    sow = org.create_sow(outcome.id, "replenish", Role.OPERATOR, "master-course")
+    sow = org.create_sow(outcome.id, "replenish", Role.OPERATOR, "master-course", "replenishment")
     org.ready_sow(sow.id)
     assignment = org.assign(sow.id, "operator-course", "master-course")
     assignment = org.run_assignment(assignment.id)

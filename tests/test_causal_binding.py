@@ -1,14 +1,15 @@
 """The accepted execution must have caused the effect it is credited with.
 
-Reported independently by both reviewers on PR #24. `apply_restock` recorded
-which assignment produced an effect; nothing read it. The store checks find
-replenishments by SKU, so the authorization graph and the acceptance graph met
-at the subject rather than the execution — and an assignment that did nothing
-inherited credit for work done a week earlier.
-
 Governed by docs/rulings/2026-08-26-outcomes-are-conditions-sows-are-work.md:
 an outcome is a standing condition, a SOW is a unit of work, and acceptance
-asserts BOTH that the condition holds and that this execution contributed.
+asserts BOTH that the condition holds and that the bound execution contributed
+the effect its SOW declares.
+
+The independence matrix below exists because the first version of this file did
+not prove independence. Its "contribution false" case always had an older
+contributor, so it missed the empty-contributor bypass entirely; and its
+"condition false" case only called `run_check()` and never `accept()`. Both
+reviewers found that when asked to attack it. Every case here calls `accept()`.
 """
 
 from __future__ import annotations
@@ -30,104 +31,207 @@ CHECKS = [
 ]
 
 
-def stocked_outcome(tmp_path: Path) -> tuple[Organization, str, str]:
-    """Week one: real work, real restock, accepted legitimately."""
+def build(tmp_path: Path, checks: list[str] | None = None) -> tuple[Organization, str]:
     org = Organization.init(tmp_path)
     seed(org.db)
     outcome = org.create_outcome(
         "Keep the tea jar stocked",
         "On-hand tea stays at or above the reorder point.",
-        CHECKS,
+        checks if checks is not None else CHECKS,
         "principal-human",
         "SKU-TEA",
     )
     org.activate(outcome.id, "master-course")
-    signal = record_sale(org.db, "SKU-TEA", 2, 400)
-    sow = org.create_sow(outcome.id, "week one", Role.OPERATOR, "master-course")
+    return org, outcome.id
+
+
+def run_sow(org: Organization, outcome_id: str, scope: str, effect: str | None) -> tuple[str, str]:
+    sow = org.create_sow(outcome_id, scope, Role.OPERATOR, "master-course", effect)
     org.ready_sow(sow.id)
-    worker = org.run_assignment(org.assign(sow.id, "operator-course", "master-course").id)
-    apply_restock(org.db, RestockProposal("SKU-TEA", 6), worker.id, signal.id)
-    org.verify_outcome(outcome.id, "verifier-course")
-    org.review(sow.id, "sparring-course")
-    org.accept(outcome.id, "principal-human")
-    return org, outcome.id, worker.id
+    assignment = org.run_assignment(org.assign(sow.id, "operator-course", "master-course").id)
+    return sow.id, assignment.id
 
 
-def test_an_execution_that_did_nothing_is_refused(tmp_path: Path) -> None:
-    """Week two: an assignment runs, does nothing, and must not take credit.
-
-    Public APIs only, including a second SOW on the same outcome — the
-    multi-SOW shape that "latest assignment" could never model correctly.
-    """
-    org, outcome_id, first = stocked_outcome(tmp_path)
-
-    second_sow = org.create_sow(outcome_id, "week two", Role.OPERATOR, "master-course")
-    org.ready_sow(second_sow.id)
-    idle = org.run_assignment(org.assign(second_sow.id, "operator-course", "master-course").id)
-    assert idle.id not in org.contributing_executions(outcome_id)
-    assert first in org.contributing_executions(outcome_id)
-
+def reopen(org: Organization, outcome_id: str) -> None:
     org.db.connection.execute(
         "UPDATE outcomes SET record = json_set(record, '$.state', 'VERIFYING') WHERE id = ?",
         (outcome_id,),
     )
     org.db.connection.commit()
-    org.verify_outcome(outcome_id, "verifier-course")
-    org.review(second_sow.id, "sparring-course")
 
-    # The condition genuinely holds: the tea IS stocked, from week one.
+
+# --- the matrix -------------------------------------------------------------
+
+
+def test_condition_true_contribution_true_accepts(tmp_path: Path) -> None:
+    org, outcome_id = build(tmp_path)
+    signal = record_sale(org.db, "SKU-TEA", 2, 400)
+    sow_id, assignment_id = run_sow(org, outcome_id, "replenish", "replenishment")
+    apply_restock(org.db, RestockProposal("SKU-TEA", 6), assignment_id, signal.id)
+    org.verify_outcome(outcome_id, "verifier-course")
+    org.review(sow_id, "sparring-course")
+    org.accept(outcome_id, "principal-human")
+
+
+def test_condition_true_but_no_effects_exist_at_all_is_refused(tmp_path: Path) -> None:
+    """The empty-contributor case: nobody did anything, and the shelf was fine.
+
+    This is the case the previous guard skipped, because it was written as
+    `if contributors and execution_id not in contributors` — so zero
+    contributors, the strongest form of "this execution did nothing", made the
+    requirement vacuous.
+    """
+    org, outcome_id = build(tmp_path, ["inventory_at_or_above_reorder_point"])
+    sow_id, _assignment_id = run_sow(org, outcome_id, "idle", "replenishment")
+    assert org.contributing_executions(outcome_id) == set()
     assert run_check(org.db, "inventory_at_or_above_reorder_point", "SKU-TEA").success
 
-    with pytest.raises(Refusal, match="produced no effect for this outcome"):
-        org.accept(outcome_id, "principal-human")
-
-
-def test_the_two_requirements_are_independent(tmp_path: Path) -> None:
-    """Condition-holds and execution-contributed must fail separately.
-
-    If one implied the other, the ruling would be describing one requirement
-    wearing two names.
-    """
-    org, outcome_id, first = stocked_outcome(tmp_path)
-
-    # Condition true, contribution false -> refused for contribution.
-    second_sow = org.create_sow(outcome_id, "idle", Role.OPERATOR, "master-course")
-    org.ready_sow(second_sow.id)
-    org.run_assignment(org.assign(second_sow.id, "operator-course", "master-course").id)
-    org.db.connection.execute(
-        "UPDATE outcomes SET record = json_set(record, '$.state', 'VERIFYING') WHERE id = ?",
-        (outcome_id,),
-    )
-    org.db.connection.commit()
     org.verify_outcome(outcome_id, "verifier-course")
-    org.review(second_sow.id, "sparring-course")
-    with pytest.raises(Refusal, match="produced no effect"):
+    org.review(sow_id, "sparring-course")
+    with pytest.raises(Refusal, match="produced no replenishment effect"):
         org.accept(outcome_id, "principal-human")
 
-    # Contribution true, condition false -> refused for the condition.
+
+def test_condition_true_but_another_execution_contributed_is_refused(tmp_path: Path) -> None:
+    """Week one did the work; week two must not inherit the credit."""
+    org, outcome_id = build(tmp_path)
+    signal = record_sale(org.db, "SKU-TEA", 2, 400)
+    first_sow, first = run_sow(org, outcome_id, "week one", "replenishment")
+    apply_restock(org.db, RestockProposal("SKU-TEA", 6), first, signal.id)
+    org.verify_outcome(outcome_id, "verifier-course")
+    org.review(first_sow, "sparring-course")
+    org.accept(outcome_id, "principal-human")
+
+    second_sow, second = run_sow(org, outcome_id, "week two", "replenishment")
+    assert second not in org.contributing_executions(outcome_id)
+    assert run_check(org.db, "inventory_at_or_above_reorder_point", "SKU-TEA").success
+
+    reopen(org, outcome_id)
+    org.verify_outcome(outcome_id, "verifier-course")
+    org.review(second_sow, "sparring-course")
+    with pytest.raises(Refusal, match="produced no replenishment effect"):
+        org.accept(outcome_id, "principal-human")
+
+
+def test_condition_false_but_contribution_true_is_refused(tmp_path: Path) -> None:
+    """The execution really did restock, then the world moved against it."""
+    org, outcome_id = build(tmp_path)
+    signal = record_sale(org.db, "SKU-TEA", 2, 400)
+    sow_id, assignment_id = run_sow(org, outcome_id, "replenish", "replenishment")
+    apply_restock(org.db, RestockProposal("SKU-TEA", 6), assignment_id, signal.id)
+    org.verify_outcome(outcome_id, "verifier-course")
+    org.review(sow_id, "sparring-course")
+
+    assert assignment_id in org.contributing_executions(outcome_id)
     org.db.connection.execute("UPDATE inventory SET on_hand = 0 WHERE sku = 'SKU-TEA'")
     org.db.connection.commit()
+
+    with pytest.raises(Refusal, match="Checks failing at acceptance time"):
+        org.accept(outcome_id, "principal-human")
+
+
+def test_condition_false_and_contribution_false_refuses_deterministically(
+    tmp_path: Path,
+) -> None:
+    """Both wrong: the refusal must be stable, and must name the world first.
+
+    Precedence matters for teaching. "The shelf is empty" is the fact a learner
+    can act on; "this execution contributed nothing" is only meaningful once the
+    world is right.
+    """
+    org, outcome_id = build(tmp_path, ["inventory_at_or_above_reorder_point"])
+    record_sale(org.db, "SKU-TEA", 2, 400)  # drops below the reorder point
+    sow_id, _assignment_id = run_sow(org, outcome_id, "idle", "replenishment")
     assert not run_check(org.db, "inventory_at_or_above_reorder_point", "SKU-TEA").success
+    assert org.contributing_executions(outcome_id) == set()
+
+    org.verify_outcome(outcome_id, "verifier-course")
+    review = org.review(sow_id, "sparring-course")
+    # The failing world is caught upstream: the review itself decides
+    # changes_requested, so the SOW never reaches an acceptable state. That is
+    # the right precedence — a learner is told the shelf is empty, which they
+    # can act on, rather than a contribution technicality they cannot.
+    assert review.decision == "changes_requested"
+    for _ in range(2):
+        with pytest.raises(Refusal, match="SOWs remain open"):
+            org.accept(outcome_id, "principal-human")
+
+
+# --- cross-SOW proof borrowing ----------------------------------------------
+
+
+def test_one_sow_cannot_borrow_another_sows_proof(tmp_path: Path) -> None:
+    """SOW A does nothing; SOW B does the work. A must not be accepted on B.
+
+    Reported at 62a8a6c: `review()` loaded the OUTCOME's latest verification and
+    never checked that its assignment belonged to the reviewed SOW.
+    """
+    org, outcome_id = build(tmp_path)
+    signal = record_sale(org.db, "SKU-TEA", 2, 400)
+    idle_sow, _idle = run_sow(org, outcome_id, "idle", "replenishment")
+    real_sow, real = run_sow(org, outcome_id, "real", "replenishment")
+    apply_restock(org.db, RestockProposal("SKU-TEA", 6), real, signal.id)
+
+    org.verify_outcome(outcome_id, "verifier-course")
+    verification = org.latest_verification(outcome_id)
+    assert verification is not None and verification.assignment_id == real
+
+    with pytest.raises(Refusal, match="belongs to another SOW's execution"):
+        org.review(idle_sow, "sparring-course")
+
+
+def test_every_sow_needs_its_own_completed_execution(tmp_path: Path) -> None:
+    org, outcome_id = build(tmp_path, ["inventory_at_or_above_reorder_point"])
+    signal = record_sale(org.db, "SKU-TEA", 2, 400)
+    sow_id, assignment_id = run_sow(org, outcome_id, "replenish", "replenishment")
+    apply_restock(org.db, RestockProposal("SKU-TEA", 6), assignment_id, signal.id)
+    org.verify_outcome(outcome_id, "verifier-course")
+    org.review(sow_id, "sparring-course")
+
+    # A second SOW that never ran must block acceptance of the outcome. It is
+    # caught by the SOW-state gate first, which is the earlier and clearer
+    # refusal; the no-completed-execution guard backs it up for a SOW that has
+    # been marked accepted without ever having run.
+    unrun = org.create_sow(outcome_id, "never run", Role.OPERATOR, "master-course")
+    with pytest.raises(Refusal, match="SOWs remain open"):
+        org.accept(outcome_id, "principal-human")
+
+    org.db.connection.execute(
+        "UPDATE sows SET record = json_set(record, '$.state', 'ACCEPTED') WHERE id = ?",
+        (unrun.id,),
+    )
+    org.db.connection.commit()
+    with pytest.raises(Refusal, match="has no completed execution"):
+        org.accept(outcome_id, "principal-human")
+
+
+# --- structural guarantees ---------------------------------------------------
 
 
 def test_effects_carry_their_outcome_as_a_structured_column(tmp_path: Path) -> None:
-    """The edge must be queryable relationally, not buried in a JSON payload."""
-    org, outcome_id, worker = stocked_outcome(tmp_path)
+    org, outcome_id = build(tmp_path)
+    signal = record_sale(org.db, "SKU-TEA", 2, 400)
+    _sow_id, assignment_id = run_sow(org, outcome_id, "replenish", "replenishment")
+    apply_restock(org.db, RestockProposal("SKU-TEA", 6), assignment_id, signal.id)
     row = org.db.connection.execute(
         "SELECT outcome_id, assignment_id FROM effects WHERE outcome_id = ?", (outcome_id,)
     ).fetchone()
-    assert row is not None, "the effect edge is not followable by query"
-    assert str(row["assignment_id"]) == worker
+    assert row is not None and str(row["assignment_id"]) == assignment_id
 
 
-def test_proof_selection_ignores_executions_that_never_completed(tmp_path: Path) -> None:
-    """ "Newest row" was an ordering accident, not a proof rule."""
-    org, outcome_id, worker = stocked_outcome(tmp_path)
-    org.db.connection.execute(
-        "INSERT INTO assignments(id, sow_id, actor_id, record) "
-        "SELECT 'asg_never_ran', sow_id, actor_id, "
-        "json_set(record, '$.state', 'CREATED') FROM assignments WHERE id = ?",
-        (worker,),
-    )
-    org.db.connection.commit()
-    assert org._latest_assignment_id(outcome_id) == worker  # noqa: SLF001
+def test_proof_selection_is_per_sow_not_row_order(tmp_path: Path) -> None:
+    """Each SOW resolves to its own execution, whatever order rows were written."""
+    org, outcome_id = build(tmp_path)
+    first_sow, first = run_sow(org, outcome_id, "one", None)
+    second_sow, second = run_sow(org, outcome_id, "two", None)
+    assert org.completed_assignment_for_sow(first_sow) == first
+    assert org.completed_assignment_for_sow(second_sow) == second
+
+
+def test_a_sow_with_no_declared_effect_need_not_change_the_world(tmp_path: Path) -> None:
+    """Not every legitimate SOW is effectful; the requirement is declared."""
+    org, outcome_id = build(tmp_path, ["inventory_at_or_above_reorder_point"])
+    sow_id, _assignment_id = run_sow(org, outcome_id, "investigate", None)
+    org.verify_outcome(outcome_id, "verifier-course")
+    org.review(sow_id, "sparring-course")
+    org.accept(outcome_id, "principal-human")

@@ -133,13 +133,21 @@ class Organization:
         self._save_outcome(outcome, "outcome.activated")
         return outcome
 
-    def create_sow(self, outcome_id: str, scope: str, role: Role, actor_id: str) -> StatementOfWork:
+    def create_sow(
+        self,
+        outcome_id: str,
+        scope: str,
+        role: Role,
+        actor_id: str,
+        required_effect_kind: str | None = None,
+    ) -> StatementOfWork:
         actor = self.actor(actor_id)
         require_authority(actor.role, "plan")
         sow = StatementOfWork(
             id=new_id("sow"),
             outcome_id=outcome_id,
             scope=scope,
+            required_effect_kind=required_effect_kind,
             non_goals=["expand authority", "skip evidence"],
             deliverables=["report.json"],
             done_when="Evidence exists and a different actor has reviewed it.",
@@ -313,6 +321,19 @@ class Organization:
         # check poisoned every later review forever, so a corrected world could
         # never be re-reviewed.
         verification = self.latest_verification(sow.outcome_id)
+        if verification is not None:
+            # The batch must be OF THIS SOW's execution. Reviewing a batch bound
+            # to a different SOW's assignment lends that SOW's proof to this one.
+            execution = self.completed_assignment_for_sow(sow_id)
+            if not execution or verification.assignment_id != execution:
+                raise Refusal(
+                    f"The current verification belongs to another SOW's execution "
+                    f"({verification.assignment_id or 'none'}).",
+                    "A SOW is independently governed work: its review must rest "
+                    "on its own execution, not on a sibling's.",
+                    "sovereign-agent verify",
+                    "Run and verify this SOW's own assignment.",
+                )
         if verification is None:
             raise Refusal(
                 "No verification to review.",
@@ -490,37 +511,53 @@ class Organization:
         ).fetchone()
         return Verification.model_validate_json(row["record"]) if row else None
 
-    def _latest_assignment_id(self, outcome_id: str) -> str:
-        """The most recent COMPLETED execution for this outcome.
+    def completed_assignment_for_sow(self, sow_id: str) -> str:
+        """The current completed execution OF THIS SOW. Empty if none has run.
 
-        "Newest row" was never a proof rule, it was an ordering accident: a
-        second `assign()` created a row that could not run and it immediately
-        became the identity everything bound to. Only completed executions can
-        carry evidence, so only they are eligible.
+        Proof is per-SOW because governance is per-SOW. Selecting the newest
+        completed assignment across the whole outcome let one SOW's execution,
+        evidence and effect stand as proof for a different SOW that did nothing.
+        Narrowing "newest row" to "newest COMPLETED row" kept the shape and the
+        defect; the shape was the defect.
         """
-        sow_ids = {sow.id for sow in self.sows_for(outcome_id)}
         rows = self.db.connection.execute(
-            "SELECT id, sow_id, record FROM assignments ORDER BY rowid DESC"
+            "SELECT id, record FROM assignments WHERE sow_id = ? ORDER BY rowid DESC",
+            (sow_id,),
         ).fetchall()
         for row in rows:
-            if row["sow_id"] not in sow_ids:
-                continue
             if json.loads(row["record"]).get("state") == AssignmentState.COMPLETED.value:
                 return str(row["id"])
+        return ""
+
+    def _latest_assignment_id(self, outcome_id: str) -> str:
+        """The completed execution of the outcome's most recently worked SOW.
+
+        Retained only for the outcome-level world-check evidence binding; every
+        per-SOW proof goes through `completed_assignment_for_sow`.
+        """
+        for sow in reversed(self.sows_for(outcome_id)):
+            execution = self.completed_assignment_for_sow(sow.id)
+            if execution:
+                return execution
         return ""
 
     def contributing_executions(self, outcome_id: str) -> set[str]:
         """Executions that actually changed the world for this outcome.
 
         Read from the structured `effects` edge, not inferred from world state.
-        An outcome's condition can hold because of work done last week; this
-        answers the different question of what THIS execution did.
         """
         rows = self.db.connection.execute(
             "SELECT DISTINCT assignment_id FROM effects WHERE outcome_id = ?",
             (outcome_id,),
         ).fetchall()
         return {str(row["assignment_id"]) for row in rows}
+
+    def effect_kinds_for_execution(self, assignment_id: str) -> set[str]:
+        """What this specific execution changed, by kind."""
+        rows = self.db.connection.execute(
+            "SELECT DISTINCT kind FROM effects WHERE assignment_id = ?", (assignment_id,)
+        ).fetchall()
+        return {str(row["kind"]) for row in rows}
 
     def performers_for(self, outcome_id: str) -> set[str]:
         """Who actually did the work, DERIVED FROM THE LEDGER.
@@ -670,17 +707,36 @@ class Organization:
         # effect. Without this, an assignment that did nothing inherits credit
         # for a restock done last week, because the checks find replenishments
         # by SKU and the world is still in the state the earlier work left it.
-        contributors = self.contributing_executions(outcome_id)
-        if contributors and execution_id not in contributors:
-            raise Refusal(
-                f"Execution {execution_id} produced no effect for this outcome.",
-                "The condition may well hold, but it holds because of other "
-                "work. Accepting here would credit this execution with a change "
-                "it did not make.",
-                "sovereign-agent status",
-                "Do the work this outcome requires, or accept the outcome that "
-                "the effect actually belongs to.",
-            )
+        # Every SOW is validated on ITS OWN proof, then the outcome's world
+        # condition is re-checked. Previously one execution could satisfy the
+        # whole outcome, so a SOW that did nothing rode on a sibling's work.
+        for sow in sows:
+            execution = self.completed_assignment_for_sow(sow.id)
+            if not execution:
+                raise Refusal(
+                    f"SOW {sow.id} has no completed execution.",
+                    "Every unit of work must have been done by someone.",
+                    "sovereign-agent status",
+                    "Run this SOW's assignment.",
+                )
+            self._trusted_receipt(execution)
+            if sow.required_effect_kind is None:
+                continue
+            # No `if contributors and ...` guard: the empty case is the STRONGEST
+            # form of "this execution did nothing", and guarding the requirement
+            # with it made the requirement vacuous exactly when it mattered most.
+            kinds = self.effect_kinds_for_execution(execution)
+            if sow.required_effect_kind not in kinds:
+                raise Refusal(
+                    f"Execution {execution} produced no {sow.required_effect_kind} "
+                    f"effect for SOW {sow.id}.",
+                    "This SOW declares that it must change the world. The "
+                    "condition may well hold, but it holds because of other work, "
+                    "and accepting here would credit this execution with a change "
+                    "it did not make.",
+                    "sovereign-agent status",
+                    "Do the work this SOW declares, or drop its required effect.",
+                )
 
         # Acceptance rests on ONE verification batch, and the review must be of
         # that exact batch. Previously acceptance used whatever evidence existed

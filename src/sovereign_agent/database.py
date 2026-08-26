@@ -256,6 +256,34 @@ CREATE INDEX IF NOT EXISTS effects_by_outcome ON effects(outcome_id, assignment_
 """
 
 
+MIGRATION_10 = """
+-- The effect edge is what ties an execution to the change it made. Leaving it
+-- nullable left the crucial edge optional. SQLite cannot add NOT NULL in place,
+-- so the table is rebuilt.
+CREATE TABLE effects_v2 (
+    id TEXT PRIMARY KEY,
+    assignment_id TEXT NOT NULL,
+    kind TEXT NOT NULL,
+    subject TEXT NOT NULL,
+    payload TEXT NOT NULL,
+    created_at TEXT NOT NULL,
+    outcome_id TEXT NOT NULL,
+    UNIQUE(assignment_id, kind, subject),
+    FOREIGN KEY(assignment_id) REFERENCES assignments(id),
+    FOREIGN KEY(outcome_id) REFERENCES outcomes(id),
+    CHECK (outcome_id <> '')
+);
+INSERT INTO effects_v2(id, assignment_id, kind, subject, payload, created_at, outcome_id)
+    SELECT id, assignment_id, kind, subject, payload, created_at,
+           COALESCE(NULLIF(outcome_id, ''), json_extract(payload, '$.outcome_id'))
+    FROM effects
+    WHERE COALESCE(NULLIF(outcome_id, ''), json_extract(payload, '$.outcome_id')) IS NOT NULL;
+DROP TABLE effects;
+ALTER TABLE effects_v2 RENAME TO effects;
+CREATE INDEX IF NOT EXISTS effects_by_outcome ON effects(outcome_id, assignment_id);
+"""
+
+
 MIGRATIONS: tuple[tuple[int, str], ...] = (
     (1, MIGRATION_1),
     (2, MIGRATION_2),
@@ -266,6 +294,7 @@ MIGRATIONS: tuple[tuple[int, str], ...] = (
     (7, MIGRATION_7),
     (8, MIGRATION_8),
     (9, MIGRATION_9),
+    (10, MIGRATION_10),
 )
 
 
