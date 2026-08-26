@@ -1,7 +1,9 @@
 # `book/` is a content source, not a site
 
 This directory is the source of truth for the Sovereign Agent textbook. It is
-consumed by the profrod.ai site, which renders and publishes it.
+**designated** for rendering by the profrod.ai site. That integration does not
+exist yet, so this document describes the contract a consumer will inherit, not
+a pipeline you can observe running.
 
 **This repository builds no site of its own.** It previously carried a MkDocs
 configuration and a Documentation workflow; those existed only to produce a
@@ -38,8 +40,21 @@ break:
 - a chapter references a `scripts/*.py` that does not exist
 - a chapter claims Pulse behaviour, which does not exist before Unit 9
 
-So a consumer inherits chapters whose commands ran, whose links resolve, and
-whose code imports what it says it imports.
+So a consumer inherits chapters whose **exercises execute**, whose links
+resolve, and whose code imports what it says it imports.
+
+### The limit, stated exactly
+
+The gate executes each chapter's `solution.py` entry point. It does **not**
+execute the commands shown in prose, and it does not compare displayed output
+against a real run. Replacing `sovereign-agent doctor` in a fenced block with
+`sovereign-agent definitely-not-a-command` leaves the gate reporting
+`curriculum sound`. That was reproduced, not assumed.
+
+An earlier version of this document claimed fenced commands were verified. They
+are not, and a contract that overstates its own guarantee is worse than one
+claiming less: a consumer would trust prose that nothing checks. What is checked
+is the list above; what is not checked is this paragraph's subject.
 
 ## What a consumer must supply
 
@@ -52,8 +67,10 @@ belongs to the site that renders it, not to the source.
 - Chapter cross-links are relative, of the form `../chNN_<slug>/README.md`.
 - Links into `../../docs/` point at repository reference material and may need
   rewriting or dropping depending on what the site publishes.
-- Fenced code blocks are real commands with real output; they are verified, so
-  prefer rendering them verbatim over reformatting.
+- Fenced code blocks are real commands with real output, executed by hand when
+  written. They are **not** verified by any gate — see the limit below — so
+  render them verbatim rather than reformatting, and treat a mismatch between a
+  block and reality as a bug worth reporting.
 
 ## Checking it yourself
 
@@ -61,4 +78,5 @@ belongs to the site that renders it, not to the source.
 python scripts/verify_curriculum.py
 ```
 
-Exits 0 only when every statement above holds.
+Exits 0 only when every statement in "What is guaranteed" holds. It says nothing
+about the prose, by design and as stated above.
