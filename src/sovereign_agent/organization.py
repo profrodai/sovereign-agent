@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import json
 from pathlib import Path
 from typing import Any
 
@@ -175,8 +176,21 @@ class Organization:
         # ever used it, so a SOW that had changes requested was terminal: the
         # only way forward was to delete the organization and start over. That
         # is the opposite of what Chapter 2 teaches about refusal.
-        if sow.state in {SowState.READY, SowState.CHANGES_REQUESTED}:
-            sow.state = advance_sow(sow.state, SowState.ASSIGNED)
+        # Refuse every source state except the two that can legitimately start
+        # work. `assign()` used to create a row from ANY state and only advance
+        # from these two, so a double-click left a second assignment that could
+        # never run -- and `_latest_assignment_id` immediately treated it as the
+        # proof identity, invalidating an otherwise sound outcome.
+        if sow.state not in {SowState.READY, SowState.CHANGES_REQUESTED}:
+            raise Refusal(
+                f"A SOW in {sow.state} cannot be assigned.",
+                "Only work that is ready, or that has had changes requested, "
+                "can be handed to an actor. A retry must not silently create a "
+                "second execution that can never run.",
+                "sovereign-agent status",
+                "Wait for the current execution, or request changes first.",
+            )
+
         assignment = Assignment(
             id=new_id("asg"),
             sow_id=sow.id,
@@ -186,9 +200,30 @@ class Organization:
             state=AssignmentState.CREATED,
             created_at=utc_now(),
         )
-        with self.db.transaction():
-            self.db.put("sows", sow.id, sow.model_dump(mode="json"))
-            self.db.put("assignments", assignment.id, assignment.model_dump(mode="json"))
+        # The state check, the transition and the insert share one immediate
+        # transaction, so two connections cannot both pass the check.
+        with self.db.immediate() as connection:
+            current = json.loads(
+                connection.execute("SELECT record FROM sows WHERE id = ?", (sow.id,)).fetchone()[
+                    "record"
+                ]
+            )["state"]
+            if current not in {SowState.READY.value, SowState.CHANGES_REQUESTED.value}:
+                raise Refusal(
+                    f"A SOW in {current} cannot be assigned.",
+                    "Another connection claimed this SOW first.",
+                    "sovereign-agent status",
+                    "Wait for the current execution.",
+                )
+            sow.state = advance_sow(SowState(current), SowState.ASSIGNED)
+            connection.execute(
+                "INSERT OR REPLACE INTO sows(id, outcome_id, record) VALUES (?, ?, ?)",
+                (sow.id, sow.outcome_id, sow.model_dump_json()),
+            )
+            connection.execute(
+                "INSERT INTO assignments(id, sow_id, actor_id, record) VALUES (?, ?, ?, ?)",
+                (assignment.id, sow.id, actor_id, assignment.model_dump_json()),
+            )
             append_event(self.db, "assignment.created", {"id": assignment.id, "actor_id": actor_id})
         self._project_outcome(sow.outcome_id)
         return assignment
@@ -456,15 +491,36 @@ class Organization:
         return Verification.model_validate_json(row["record"]) if row else None
 
     def _latest_assignment_id(self, outcome_id: str) -> str:
-        """The execution evidence is bound to. Empty when no work has run yet."""
+        """The most recent COMPLETED execution for this outcome.
+
+        "Newest row" was never a proof rule, it was an ordering accident: a
+        second `assign()` created a row that could not run and it immediately
+        became the identity everything bound to. Only completed executions can
+        carry evidence, so only they are eligible.
+        """
         sow_ids = {sow.id for sow in self.sows_for(outcome_id)}
         rows = self.db.connection.execute(
-            "SELECT id, sow_id FROM assignments ORDER BY rowid DESC"
+            "SELECT id, sow_id, record FROM assignments ORDER BY rowid DESC"
         ).fetchall()
         for row in rows:
-            if row["sow_id"] in sow_ids:
+            if row["sow_id"] not in sow_ids:
+                continue
+            if json.loads(row["record"]).get("state") == AssignmentState.COMPLETED.value:
                 return str(row["id"])
         return ""
+
+    def contributing_executions(self, outcome_id: str) -> set[str]:
+        """Executions that actually changed the world for this outcome.
+
+        Read from the structured `effects` edge, not inferred from world state.
+        An outcome's condition can hold because of work done last week; this
+        answers the different question of what THIS execution did.
+        """
+        rows = self.db.connection.execute(
+            "SELECT DISTINCT assignment_id FROM effects WHERE outcome_id = ?",
+            (outcome_id,),
+        ).fetchall()
+        return {str(row["assignment_id"]) for row in rows}
 
     def performers_for(self, outcome_id: str) -> set[str]:
         """Who actually did the work, DERIVED FROM THE LEDGER.
@@ -606,6 +662,25 @@ class Organization:
         # The work must have SUCCEEDED. Acceptance previously never looked at
         # receipts, so an outcome whose only receipt said "failed" still accepted.
         self._trusted_receipt(execution_id)
+
+        # The bound execution must have CONTRIBUTED. Ruling
+        # 2026-08-26-outcomes-are-conditions-sows-are-work: an outcome is a
+        # standing condition and a SOW is a unit of work, so acceptance asserts
+        # both that the condition holds now AND that this execution produced an
+        # effect. Without this, an assignment that did nothing inherits credit
+        # for a restock done last week, because the checks find replenishments
+        # by SKU and the world is still in the state the earlier work left it.
+        contributors = self.contributing_executions(outcome_id)
+        if contributors and execution_id not in contributors:
+            raise Refusal(
+                f"Execution {execution_id} produced no effect for this outcome.",
+                "The condition may well hold, but it holds because of other "
+                "work. Accepting here would credit this execution with a change "
+                "it did not make.",
+                "sovereign-agent status",
+                "Do the work this outcome requires, or accept the outcome that "
+                "the effect actually belongs to.",
+            )
 
         # Acceptance rests on ONE verification batch, and the review must be of
         # that exact batch. Previously acceptance used whatever evidence existed

@@ -135,3 +135,22 @@ def test_recovery_does_not_leave_an_orphan_assignment(tmp_path: Path) -> None:
     assert after == recovery.id != before
     record = org._assignment(after)  # noqa: SLF001
     assert record.state.value == "COMPLETED", "the bound execution must have actually run"
+
+
+def test_assigning_an_already_assigned_sow_is_refused(tmp_path: Path) -> None:
+    """A double-click must not create an execution that can never run."""
+    org = Organization.init(tmp_path)
+    seed(org.db)
+    outcome = org.create_outcome(
+        "t", "d", ["inventory_at_or_above_reorder_point"], "principal-human", "SKU-TEA"
+    )
+    org.activate(outcome.id, "master-course")
+    sow = org.create_sow(outcome.id, "s", Role.OPERATOR, "master-course")
+    org.ready_sow(sow.id)
+    org.assign(sow.id, "operator-course", "master-course")
+
+    with pytest.raises(Refusal, match="cannot be assigned"):
+        org.assign(sow.id, "operator-course", "master-course")
+
+    row = org.db.connection.execute("SELECT COUNT(*) AS c FROM assignments").fetchone()
+    assert int(row["c"]) == 1

@@ -244,6 +244,18 @@ CREATE INDEX IF NOT EXISTS receipts_by_assignment ON receipts(assignment_id);
 """
 
 
+MIGRATION_9 = """
+-- The effect edge existed but could only be followed through the JSON payload,
+-- so acceptance never followed it: the authorization graph and the acceptance
+-- graph met at the SUBJECT (any two outcomes about one SKU shared effects)
+-- rather than at the execution. A structured FK makes the edge queryable.
+ALTER TABLE effects ADD COLUMN outcome_id TEXT REFERENCES outcomes(id);
+UPDATE effects SET outcome_id = json_extract(payload, '$.outcome_id')
+    WHERE outcome_id IS NULL;
+CREATE INDEX IF NOT EXISTS effects_by_outcome ON effects(outcome_id, assignment_id);
+"""
+
+
 MIGRATIONS: tuple[tuple[int, str], ...] = (
     (1, MIGRATION_1),
     (2, MIGRATION_2),
@@ -253,6 +265,7 @@ MIGRATIONS: tuple[tuple[int, str], ...] = (
     (6, MIGRATION_6),
     (7, MIGRATION_7),
     (8, MIGRATION_8),
+    (9, MIGRATION_9),
 )
 
 

@@ -11,7 +11,7 @@ from __future__ import annotations
 import threading
 from pathlib import Path
 
-from reference_organizations.store import RestockProposal, apply_restock, record_sale
+from reference_organizations.store import RestockProposal, apply_restock, record_sale, seed
 from sovereign_agent.database import Database
 from sovereign_agent.organization import Organization
 from sovereign_agent.relay import claim, send
@@ -173,3 +173,36 @@ def test_the_same_actor_from_two_processes_is_idempotent_not_exclusive(tmp_path:
     finally:
         first.close()
         second.close()
+
+
+def test_two_connections_cannot_both_assign_one_sow(tmp_path: Path) -> None:
+    """A duplicate assignment is a durable semantic consequence of a retry.
+
+    `assign()` used to create a row from ANY state and only advance from READY
+    or CHANGES_REQUESTED, so a second call left an assignment that could never
+    run — and proof selection immediately treated it as the bound execution.
+    """
+    from sovereign_agent.models import Role
+
+    org = Organization.init(tmp_path)
+    seed(org.db)
+    outcome = org.create_outcome(
+        "t", "d", ["inventory_at_or_above_reorder_point"], "principal-human", "SKU-TEA"
+    )
+    org.activate(outcome.id, "master-course")
+    sow = org.create_sow(outcome.id, "s", Role.OPERATOR, "master-course")
+    org.ready_sow(sow.id)
+    org.db.close()
+
+    def work(db: Database, _index: int) -> str:
+        organization = Organization(tmp_path)
+        organization.assign(sow.id, "operator-course", "master-course")
+        return "assigned"
+
+    results = _run_concurrently(tmp_path, work)
+
+    db = Database(tmp_path / ".sovereign" / "organization.db")
+    count = int(db.connection.execute("SELECT COUNT(*) AS c FROM assignments").fetchone()["c"])
+    db.close()
+    assert results.count("assigned") == 1, f"two workers both assigned: {results}"
+    assert count == 1, f"{count} assignments exist for one SOW"

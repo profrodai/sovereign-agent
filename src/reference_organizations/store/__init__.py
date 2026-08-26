@@ -433,8 +433,8 @@ def apply_restock(
             # rolls back with it. The FK makes a fabricated assignment
             # un-insertable at the database boundary.
             connection.execute(
-                "INSERT INTO effects(id, assignment_id, kind, subject, payload, created_at) "
-                "VALUES (?, ?, ?, ?, ?, ?)",
+                "INSERT INTO effects(id, assignment_id, kind, subject, payload, created_at, "
+                "outcome_id) VALUES (?, ?, ?, ?, ?, ?, ?)",
                 (
                     new_id("eff"),
                     assignment_id,
@@ -442,6 +442,7 @@ def apply_restock(
                     proposal.sku,
                     json.dumps(payload),
                     utc_now().isoformat(),
+                    authorization["outcome_id"],
                 ),
             )
             append_event(db, "replenishment.committed", payload)
