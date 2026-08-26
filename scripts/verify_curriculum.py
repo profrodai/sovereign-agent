@@ -17,6 +17,7 @@ from __future__ import annotations
 import importlib.util
 import re
 import sys
+import tempfile
 from pathlib import Path
 
 REPO_ROOT = Path(__file__).resolve().parent.parent
@@ -29,6 +30,13 @@ REQUIRED_CHAPTERS = (
     "ch02_work_needs_governance",
     "ch03_actor_is_not_a_model",
 )
+
+# Chapter solutions that take a root path and run the exercise end to end.
+RUNNABLE = {
+    "ch00_first_shift": "run_simulated",
+    "ch01_organization_remembers": "observe_memory",
+    "ch02_work_needs_governance": "explore_governance",
+}
 
 REQUIRED_SECTIONS = (
     ("learning objective", ("## Learning objective",)),
@@ -87,6 +95,25 @@ def check_chapter(name: str) -> list[str]:
             problems.append(
                 f"{name}: solution.py failed to import: {type(error).__name__}: {error}"
             )
+            return problems
+
+        # Importing proves the file parses. RUNNING it proves the chapter still
+        # works: an exercise rots when the API moves underneath it, and an
+        # import-only check never notices. Each runs against a fresh root.
+        entry_point = RUNNABLE.get(name)
+        if entry_point is not None:
+            function = getattr(module, entry_point, None)
+            if function is None:
+                problems.append(f"{name}: solution.py has no {entry_point}()")
+            else:
+                with tempfile.TemporaryDirectory() as scratch:
+                    try:
+                        function(Path(scratch) / "root")
+                    except Exception as error:  # noqa: BLE001 - broken exercise, broken chapter
+                        problems.append(
+                            f"{name}: {entry_point}() failed to run: "
+                            f"{type(error).__name__}: {error}"
+                        )
 
     # Every local link and referenced script must exist.
     for target in re.findall(r"\]\(([^)]+)\)", text):
@@ -120,7 +147,10 @@ def main() -> int:
     if problems:
         print(f"\n{len(problems)} curriculum problem(s).")
         return 1
-    print(f"curriculum sound: {len(REQUIRED_CHAPTERS)} chapters, all imports and links resolve")
+    print(
+        f"curriculum sound: {len(REQUIRED_CHAPTERS)} chapters, "
+        f"{len(RUNNABLE)} exercises executed, all links resolve"
+    )
     return 0
 
 

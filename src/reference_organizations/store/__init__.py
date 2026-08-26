@@ -22,6 +22,32 @@ class Product:
     price_cents: int
 
 
+@dataclass(frozen=True)
+class CashEntry:
+    """One movement of money, as a signed amount in cents.
+
+    Cash is a ledger of movements, not a balance field. The balance is
+    `SUM(amount_cents)`, so nothing overwrites a total and nothing can quietly
+    lose money. Sales are positive; purchases are negative.
+
+    `assignment_id` is present so a purchase can be tied to the execution that
+    authorized it -- `cash_reconciles` uses exactly that link to check the money
+    that moved matches the replenishment that was committed.
+    """
+
+    id: str
+    amount_cents: int
+    reason: str
+    sku: str | None = None
+    qty: int | None = None
+    unit_cost_cents: int | None = None
+    assignment_id: str | None = None
+
+    @property
+    def is_purchase(self) -> bool:
+        return self.amount_cents < 0
+
+
 @dataclass
 class InventoryPosition:
     sku: str
@@ -107,6 +133,28 @@ def record_sale(db: Database, sku: str, quantity: int, unit_price_cents: int) ->
             },
         )
     return signal
+
+
+def cash_entries(db: Database) -> list[CashEntry]:
+    """Read the cash ledger as domain records rather than raw rows."""
+    rows = db.connection.execute(
+        "SELECT id, amount_cents, record FROM cash_entries ORDER BY rowid"
+    ).fetchall()
+    entries: list[CashEntry] = []
+    for row in rows:
+        record = json.loads(row["record"])
+        entries.append(
+            CashEntry(
+                id=str(row["id"]),
+                amount_cents=int(row["amount_cents"]),
+                reason=str(record.get("reason", "sale" if int(row["amount_cents"]) > 0 else "")),
+                sku=record.get("sku"),
+                qty=record.get("qty"),
+                unit_cost_cents=record.get("unit_cost_cents"),
+                assignment_id=record.get("assignment_id"),
+            )
+        )
+    return entries
 
 
 def below_reorder(db: Database) -> list[str]:

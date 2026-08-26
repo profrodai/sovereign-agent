@@ -43,8 +43,10 @@ original file.
 
 ## What did not change
 
-- The persistence doctrine of the original ruling stands, refined by
-  [the persistence boundary note](../persistence-boundary.md).
+- The persistence doctrine of the original ruling is refined **separately**, by
+  [its own ruling](2026-08-26-persistence-boundary-refinement.md). This
+  amendment decides branch policy and nothing else: two unrelated decisions
+  should not share one authority record.
 - Holdings 1 through 7 of the educational-reset ruling remain in force.
 - The production destination remains Zero Employee in Go. This package is the
   didactic reference.

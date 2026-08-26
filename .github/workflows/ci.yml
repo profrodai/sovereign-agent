@@ -44,6 +44,31 @@ jobs:
         run: python scripts/verify_store_outcome.py "$RUNNER_TEMP/store-demo"
       - name: Verify governance projections match the ledger
         run: python scripts/verify_projections.py "$RUNNER_TEMP/store-demo"
+      - name: Prove projection verification reports drift without repairing it
+        # It previously called the projection WRITER to learn the expected bytes,
+        # so it silently repaired hand-edited files and reported success.
+        run: |
+          python - <<'CHECK'
+          import glob, json, os, subprocess, sys
+          root = os.environ["RUNNER_TEMP"] + "/store-demo"
+          path = glob.glob(root + "/governance/outcomes/*/sows/*.json")[0]
+          record = json.load(open(path)); record["scope"] = "HAND EDITED FALSE SCOPE"
+          tampered = json.dumps(record, indent=2)
+          open(path, "w").write(tampered)
+          result = subprocess.run(
+              [sys.executable, "scripts/verify_projections.py", root],
+              capture_output=True, text=True,
+          )
+          print(result.stdout)
+          if result.returncode == 0:
+              sys.exit("FAIL: drift was not reported")
+          if open(path).read() != tampered:
+              sys.exit("FAIL: verification rewrote the file it was checking")
+          subprocess.run(
+              [sys.executable, "scripts/verify_projections.py", root, "--reconcile"], check=True
+          )
+          print("drift reported, file untouched, --reconcile repaired it")
+          CHECK
       - name: Verify a learner can reach a truthful outcome cold
         run: python scripts/evaluate_andrea_alpha.py
       - name: Prove acceptance still refuses a false claim

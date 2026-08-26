@@ -39,7 +39,8 @@ with the new provider. `load_actors` parses that file on every open.
 | Data | Canonical home | Why |
 | --- | --- | --- |
 | Actor definitions, roles, providers | `sovereign.toml` | Read on every open. Editing it changes behaviour. Committed, reviewable, diffable. |
-| Rulings | `docs/rulings/*.md` + `governance/rulings/` | Human decisions belong in version control, where they can be argued with. |
+| Repository product rulings | `docs/rulings/*.md` | Human decisions, committed and reviewed. Canonical in files. |
+| Runtime organization rulings | **SQLite** (`rulings`), projected to `governance/rulings/` | `Organization.rule()` records a decision made by an actor inside a running organization. Operational state; the files are a projection. |
 | Outcomes, SOWs, assignments, evidence, acceptance | **SQLite** | Read on every operation. These carry mutable execution state. |
 | Inventory, cash, events, signals, leases | **SQLite** | Operational state by definition. |
 | `governance/**/*.json` | **derived projection** | Written for inspection and diffing. Never read back. |
@@ -125,11 +126,19 @@ introduced. It is the same statement as above in a different key: everything
 here protects the ledger from *mistakes and ordinary tools*, not from an actor
 with arbitrary write access to the database file.
 
-The durable fix — binding `subject` into the evidence `state_digest`, so that a
-post-verification subject swap presents as staleness — is deliberately **not**
-done in Unit 6.5. It changes the digest contract, and this unit has already
-changed enough. It is named here as the next honest step rather than implied to
-be already taken.
+**What the digest does and does not cover.** Each check now digests its own
+observation, and every store check's observation includes the `sku` it was run
+against — so evidence written about one SKU cannot be read as evidence about
+another. What the digest cannot see is a change to `outcome.subject` itself:
+retargeting the outcome makes verification *re-run* against the new subject and
+produce fresh, internally consistent evidence. The gap is not a missing field in
+the digest; it is that `outcomes` rows are mutable by anyone with database write
+access, and no digest of a check's own reads can detect the question changing
+underneath it.
+
+Closing it needs the outcome record itself to be tamper-evident — signing or
+hash-chaining governance rows — which is a larger change than Unit 6.5 should
+carry. Named here as the honest next step rather than implied to be taken.
 
 ## How to see the drift for yourself
 
