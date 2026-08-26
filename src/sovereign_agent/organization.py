@@ -23,11 +23,13 @@ from sovereign_agent.models import (
     Message,
     Outcome,
     OutcomeState,
+    Receipt,
     Review,
     Role,
     Ruling,
     SowState,
     StatementOfWork,
+    Verification,
 )
 from sovereign_agent.policy import (
     advance_outcome,
@@ -168,7 +170,12 @@ class Organization:
                 "actor list",
                 "Pick an actor with the SOW role.",
             )
-        if sow.state == SowState.READY:
+        # READY -> ASSIGNED is the first attempt; CHANGES_REQUESTED -> ASSIGNED
+        # is recovery. Policy always allowed the second transition and nothing
+        # ever used it, so a SOW that had changes requested was terminal: the
+        # only way forward was to delete the organization and start over. That
+        # is the opposite of what Chapter 2 teaches about refusal.
+        if sow.state in {SowState.READY, SowState.CHANGES_REQUESTED}:
             sow.state = advance_sow(sow.state, SowState.ASSIGNED)
         assignment = Assignment(
             id=new_id("asg"),
@@ -267,20 +274,23 @@ class Organization:
         for performer_id in sorted(performers):
             forbid_self_approval(performer_id, reviewer_id)
 
-        rows = self.db.connection.execute(
-            "SELECT id, success, state_digest FROM evidence WHERE outcome_id = ?",
-            (sow.outcome_id,),
-        ).fetchall()
-        if not rows:
+        # Only the CURRENT batch. Scanning every historical row meant one failed
+        # check poisoned every later review forever, so a corrected world could
+        # never be re-reviewed.
+        verification = self.latest_verification(sow.outcome_id)
+        if verification is None:
             raise Refusal(
-                "No evidence to review.",
+                "No verification to review.",
                 "The SOW's done_when requires evidence. Reviewing before it "
                 "exists approves a document that contradicts itself.",
                 "sovereign-agent verify",
                 "Run verification first, then review.",
             )
-        failing = [str(row["id"]) for row in rows if int(row["success"]) != 1]
-        decision = "changes_requested" if failing else "accepted"
+        rows = self.db.connection.execute(
+            "SELECT id, success, state_digest FROM evidence WHERE verification_id = ?",
+            (verification.id,),
+        ).fetchall()
+        decision = "accepted" if verification.passed else "changes_requested"
 
         review = Review(
             id=new_id("rev"),
@@ -288,20 +298,23 @@ class Organization:
             outcome_id=sow.outcome_id,
             reviewer_actor_id=reviewer_id,
             performer_actor_ids=sorted(performers),
+            verification_id=verification.id,
             evidence_refs=[str(row["id"]) for row in rows],
             decision=decision,
-            state_digest=str(rows[-1]["state_digest"]),
+            # A digest over the WHOLE batch, not the last row that happened to
+            # come back from the query.
+            state_digest=verification.aggregate_digest,
             created_at=utc_now(),
         )
         if decision == "accepted":
             sow.state = advance_sow(sow.state, SowState.ACCEPTED)
-        else:
+        elif sow.state != SowState.CHANGES_REQUESTED:
             sow.state = advance_sow(sow.state, SowState.CHANGES_REQUESTED)
 
         with self.db.transaction():
             self.db.connection.execute(
                 "INSERT INTO reviews(id, sow_id, outcome_id, reviewer_actor_id, decision, "
-                "record) VALUES (?, ?, ?, ?, ?, ?)",
+                "record, verification_id) VALUES (?, ?, ?, ?, ?, ?, ?)",
                 (
                     review.id,
                     sow_id,
@@ -309,6 +322,7 @@ class Organization:
                     reviewer_id,
                     decision,
                     review.model_dump_json(),
+                    verification.id,
                 ),
             )
             self.db.put("sows", sow.id, sow.model_dump(mode="json"))
@@ -344,10 +358,47 @@ class Organization:
         # that picks the subject picks which world gets inspected.
         subject = outcome.subject
         results = [run_check(self.db, check_id, subject) for check_id in outcome.acceptance_checks]
+
+        verification_id = new_id("ver")
+        evidence_ids = [new_id("evd") for _ in results]
+        aggregate = digest_payload(
+            {
+                "outcome_id": outcome_id,
+                "assignment_id": execution_id,
+                "checks": [
+                    {"check_id": r.check_id, "success": r.success, "digest": r.state_digest}
+                    for r in results
+                ],
+            }
+        )
+        verification = Verification(
+            id=verification_id,
+            outcome_id=outcome_id,
+            assignment_id=execution_id,
+            evidence_refs=evidence_ids,
+            check_ids=[r.check_id for r in results],
+            aggregate_digest=aggregate,
+            passed=all(r.success for r in results),
+            created_at=utc_now(),
+        )
+
         with self.db.transaction():
-            for result in results:
+            self.db.connection.execute(
+                "INSERT INTO verifications(id, outcome_id, assignment_id, aggregate_digest, "
+                "passed, record, created_at) VALUES (?, ?, ?, ?, ?, ?, ?)",
+                (
+                    verification_id,
+                    outcome_id,
+                    execution_id,
+                    aggregate,
+                    1 if verification.passed else 0,
+                    verification.model_dump_json(),
+                    verification.created_at.isoformat(),
+                ),
+            )
+            for evidence_id, result in zip(evidence_ids, results, strict=True):
                 evidence = Evidence(
-                    id=new_id("evd"),
+                    id=evidence_id,
                     assignment_id=execution_id,
                     outcome_id=outcome_id,
                     check_id=result.check_id,
@@ -371,7 +422,7 @@ class Organization:
                 )
                 self.db.connection.execute(
                     "INSERT INTO evidence(id, assignment_id, record, outcome_id, check_id, "
-                    "success, state_digest) VALUES (?, ?, ?, ?, ?, ?, ?)",
+                    "success, state_digest, verification_id) VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
                     (
                         evidence.id,
                         execution_id,
@@ -380,6 +431,7 @@ class Organization:
                         result.check_id,
                         1 if result.success else 0,
                         result.state_digest,
+                        verification_id,
                     ),
                 )
             append_event(
@@ -387,12 +439,21 @@ class Organization:
                 "outcome.verified",
                 {
                     "id": outcome_id,
+                    "verification_id": verification_id,
                     "by": verifier_id,
                     "passed": sum(1 for r in results if r.success),
                     "total": len(results),
                 },
             )
         return results
+
+    def latest_verification(self, outcome_id: str) -> Verification | None:
+        """The most recent complete batch for this outcome."""
+        row = self.db.connection.execute(
+            "SELECT record FROM verifications WHERE outcome_id = ? ORDER BY rowid DESC LIMIT 1",
+            (outcome_id,),
+        ).fetchone()
+        return Verification.model_validate_json(row["record"]) if row else None
 
     def _latest_assignment_id(self, outcome_id: str) -> str:
         """The execution evidence is bound to. Empty when no work has run yet."""
@@ -414,6 +475,66 @@ class Organization:
         sow_ids = {sow.id for sow in self.sows_for(outcome_id)}
         rows = self.db.connection.execute("SELECT sow_id, actor_id FROM assignments").fetchall()
         return {str(row["actor_id"]) for row in rows if row["sow_id"] in sow_ids}
+
+    def _trusted_receipt(self, assignment_id: str) -> Receipt:
+        """Load one receipt, validating every source against the others.
+
+        The indexed columns and the canonical JSON are two representations of
+        one fact. Reading only the column let an edit to the record alone pass
+        acceptance while the external verifier called the same state
+        unverifiable -- an accepted state known to be false by another tool.
+        """
+        row = self.db.connection.execute(
+            "SELECT record, assignment_id, status FROM receipts WHERE assignment_id = ?",
+            (assignment_id,),
+        ).fetchone()
+        if row is None:
+            raise Refusal(
+                f"No receipt for execution {assignment_id or '(none)'}.",
+                "An execution with no receipt left no evidence that it ran.",
+                "sovereign-agent status",
+                "Run the assignment.",
+            )
+        receipt = Receipt.model_validate_json(row["record"])
+        if receipt.assignment_id != str(row["assignment_id"]):
+            raise Refusal(
+                f"Receipt {receipt.id} disagrees with its index on assignment.",
+                "Two representations of one fact must agree, or neither is trusted.",
+                "sovereign-agent status",
+                "Re-run the assignment.",
+            )
+        if receipt.status != str(row["status"]):
+            raise Refusal(
+                f"Receipt {receipt.id} says {receipt.status}, its index says {row['status']}.",
+                "Two representations of one fact must agree, or neither is trusted.",
+                "sovereign-agent status",
+                "Re-run the assignment.",
+            )
+        if receipt.status != "completed":
+            raise Refusal(
+                f"The execution receipt reports status {receipt.status}.",
+                "Work that did not succeed cannot support an accepted outcome.",
+                "sovereign-agent status",
+                "Fix the failure and re-run the assignment.",
+            )
+        return receipt
+
+    def _trusted_review(self, row: Any) -> Review:
+        """Load one review, validating the record against its indexed columns."""
+        review = Review.model_validate_json(row["record"])
+        for field, column in (
+            (review.decision, "decision"),
+            (review.reviewer_actor_id, "reviewer_actor_id"),
+            (review.verification_id, "verification_id"),
+        ):
+            if field != str(row[column]):
+                raise Refusal(
+                    f"Review {review.id} disagrees with its index on {column}.",
+                    "Two representations of one fact must agree, or neither is trusted.",
+                    "sovereign-agent status",
+                    "Obtain a fresh review.",
+                )
+        return review
 
     def accept(self, outcome_id: str, accepter_id: str) -> Acceptance:
         """Accept only if the declared outcome is TRUE RIGHT NOW.
@@ -484,27 +605,24 @@ class Organization:
 
         # The work must have SUCCEEDED. Acceptance previously never looked at
         # receipts, so an outcome whose only receipt said "failed" still accepted.
-        receipt_row = self.db.connection.execute(
-            "SELECT record, status FROM receipts WHERE assignment_id = ?", (execution_id,)
-        ).fetchone()
-        if receipt_row is None:
-            raise Refusal(
-                f"No receipt for execution {execution_id or '(none)'}.",
-                "An execution with no receipt left no evidence that it ran.",
-                "sovereign-agent status",
-                "Run the assignment.",
-            )
-        if str(receipt_row["status"]) != "completed":
-            raise Refusal(
-                f"The execution receipt reports status {receipt_row['status']}.",
-                "Work that did not succeed cannot support an accepted outcome.",
-                "sovereign-agent status",
-                "Fix the failure and re-run the assignment.",
-            )
+        self._trusted_receipt(execution_id)
 
-        # An independent review must exist, and must have accepted.
+        # Acceptance rests on ONE verification batch, and the review must be of
+        # that exact batch. Previously acceptance used whatever evidence existed
+        # now while the review referenced whatever existed then, so a second
+        # verification could replace every reviewed row and acceptance would
+        # still report that the work had been reviewed.
+        verification = self.latest_verification(outcome_id)
+        if verification is None:
+            raise Refusal(
+                "No verification for this outcome.",
+                "Acceptance rests on a completed run of the declared checks.",
+                "sovereign-agent verify",
+                "Run verification first.",
+            )
         review_rows = self.db.connection.execute(
-            "SELECT record, decision, reviewer_actor_id FROM reviews WHERE outcome_id = ?",
+            "SELECT record, decision, reviewer_actor_id, verification_id FROM reviews "
+            "WHERE outcome_id = ? ORDER BY rowid DESC",
             (outcome_id,),
         ).fetchall()
         if not review_rows:
@@ -514,13 +632,25 @@ class Organization:
                 "sovereign-agent status",
                 "Have a reviewer review the SOW.",
             )
-        for row in review_rows:
+        current_reviews = [
+            row for row in review_rows if str(row["verification_id"]) == verification.id
+        ]
+        if not current_reviews:
+            raise Refusal(
+                "The current verification has not been reviewed.",
+                "The evidence supporting acceptance must be the evidence a "
+                "reviewer actually saw, not an earlier batch it replaced.",
+                "sovereign-agent status",
+                "Have a reviewer review the current verification.",
+            )
+        for row in current_reviews:
+            self._trusted_review(row)
             if str(row["decision"]) != "accepted":
                 raise Refusal(
-                    f"Review {row['reviewer_actor_id']} decided {row['decision']}.",
+                    f"Review by {row['reviewer_actor_id']} decided {row['decision']}.",
                     "An outcome cannot be accepted over an unresolved review.",
                     "sovereign-agent status",
-                    "Resolve the review first.",
+                    "Repair the work, verify again, and obtain a new review.",
                 )
             if str(row["reviewer_actor_id"]) == accepter_id:
                 raise Refusal(
@@ -529,12 +659,20 @@ class Organization:
                     "sovereign-agent actor list",
                     "Have the Principal accept.",
                 )
+        reviewed_evidence = set(self._trusted_review(current_reviews[0]).evidence_refs)
 
         rows = self.db.connection.execute(
             "SELECT id, check_id, success, state_digest, assignment_id FROM evidence "
-            "WHERE outcome_id = ?",
-            (outcome_id,),
+            "WHERE outcome_id = ? AND verification_id = ?",
+            (outcome_id, verification.id),
         ).fetchall()
+        if {str(row["id"]) for row in rows} != reviewed_evidence:
+            raise Refusal(
+                "The reviewed evidence is not the evidence supporting acceptance.",
+                "Evidence was added or removed after the review.",
+                "sovereign-agent status",
+                "Verify again and obtain a fresh review.",
+            )
         by_check: dict[str, list[Any]] = {}
         for row in rows:
             by_check.setdefault(str(row["check_id"]), []).append(row)

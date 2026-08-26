@@ -191,6 +191,25 @@ class Receipt(StrictModel):
     evidence_refs: list[str]
 
 
+class Verification(StrictModel):
+    """One complete run of an outcome's declared checks.
+
+    A batch, not a loose pile. Review binds to one verification id and
+    acceptance requires a review of the exact batch it is accepting on, so
+    "Sparring reviewed this outcome" cannot silently mean "Sparring reviewed
+    some earlier evidence that has since been replaced".
+    """
+
+    id: str
+    outcome_id: str
+    assignment_id: str
+    evidence_refs: list[str]
+    check_ids: list[str]
+    aggregate_digest: str
+    passed: bool
+    created_at: datetime
+
+
 class Review(StrictModel):
     """An independent actor's durable judgement of one SOW.
 
@@ -204,6 +223,7 @@ class Review(StrictModel):
     outcome_id: str
     reviewer_actor_id: str
     performer_actor_ids: list[str]
+    verification_id: str
     evidence_refs: list[str]
     decision: str
     state_digest: str

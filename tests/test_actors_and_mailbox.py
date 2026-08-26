@@ -131,7 +131,7 @@ def test_review_refuses_before_any_evidence_exists(tmp_path: Path) -> None:
     outcome = org.create_outcome("t", "d", ["cash_reconciles"], "principal-human", "SKU-TEA")
     org.activate(outcome.id, "master-course")
     sow = org.create_sow(outcome.id, "scope", Role.OPERATOR, "master-course")
-    with pytest.raises(Refusal, match="No evidence to review"):
+    with pytest.raises(Refusal, match="No verification to review"):
         org.review(sow.id, "sparring-course")
 
 

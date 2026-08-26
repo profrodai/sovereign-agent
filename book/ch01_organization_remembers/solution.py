@@ -14,13 +14,28 @@ from unittest.mock import patch
 
 import reference_organizations.store as store
 from reference_organizations.store import RestockProposal, apply_restock, record_sale, seed
+from sovereign_agent.models import Role
 from sovereign_agent.organization import Organization
 
 
 def observe_memory(root: Path) -> dict[str, Any]:
     """Show operational state, then prove a failed restock leaves no trace."""
+    # An effect needs a real, completed, authorized assignment behind it: the
+    # organization refuses to change the world on the say-so of an id nobody
+    # issued. Chapter 2 explains why; here we just need a legitimate one.
     org = Organization.init(root)
     seed(org.db)
+    outcome = org.create_outcome(
+        "Keep the tea jar stocked",
+        "On-hand tea stays at or above the reorder point.",
+        ["inventory_at_or_above_reorder_point"],
+        "principal-human",
+        "SKU-TEA",
+    )
+    org.activate(outcome.id, "master-course")
+    sow = org.create_sow(outcome.id, "replenish", Role.OPERATOR, "master-course")
+    org.ready_sow(sow.id)
+    assignment = org.run_assignment(org.assign(sow.id, "operator-course", "master-course").id)
     signal = record_sale(org.db, "SKU-TEA", 2, 400)
 
     def snapshot() -> dict[str, int]:
@@ -43,12 +58,12 @@ def observe_memory(root: Path) -> dict[str, Any]:
     rollback_error = ""
     with patch.object(store, "append_event", side_effect=RuntimeError("injected power cut")):
         try:
-            apply_restock(org.db, RestockProposal("SKU-TEA", 6), "asg_ch1", signal.id)
+            apply_restock(org.db, RestockProposal("SKU-TEA", 6), assignment.id, signal.id)
         except RuntimeError as error:
             rollback_error = str(error)
     after_rollback = snapshot()
 
-    committed = apply_restock(org.db, RestockProposal("SKU-TEA", 6), "asg_ch1", signal.id)
+    committed = apply_restock(org.db, RestockProposal("SKU-TEA", 6), assignment.id, signal.id)
     after_success = snapshot()
 
     append_only: dict[str, str] = {}

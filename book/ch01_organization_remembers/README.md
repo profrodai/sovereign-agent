@@ -106,10 +106,21 @@ import tempfile, pathlib
 from unittest.mock import patch
 import reference_organizations.store as store
 from reference_organizations.store import RestockProposal, apply_restock, record_sale, seed
+from sovereign_agent.models import Role
 from sovereign_agent.organization import Organization
 
 org = Organization.init(pathlib.Path(tempfile.mkdtemp()))
 seed(org.db)
+
+# An effect needs a real completed assignment behind it. Chapter 2 explains why.
+outcome = org.create_outcome(
+    "Keep the tea jar stocked", "stocked",
+    ["inventory_at_or_above_reorder_point"], "principal-human", "SKU-TEA")
+org.activate(outcome.id, "master-course")
+sow = org.create_sow(outcome.id, "replenish", Role.OPERATOR, "master-course")
+org.ready_sow(sow.id)
+assignment = org.run_assignment(org.assign(sow.id, "operator-course", "master-course").id)
+
 signal = record_sale(org.db, "SKU-TEA", 2, 400)
 
 def state():
@@ -122,7 +133,7 @@ def state():
 print("before: ", state())
 with patch.object(store, "append_event", side_effect=RuntimeError("power cut")):
     try:
-        apply_restock(org.db, RestockProposal("SKU-TEA", 6), "asg_demo", signal.id)
+        apply_restock(org.db, RestockProposal("SKU-TEA", 6), assignment.id, signal.id)
     except RuntimeError as error:
         print("failed: ", error)
 print("after:  ", state())

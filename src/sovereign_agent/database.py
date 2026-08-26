@@ -186,6 +186,64 @@ ALTER TABLE receipts ADD COLUMN status TEXT NOT NULL DEFAULT '';
 """
 
 
+MIGRATION_7 = """
+-- effect_keys held ONE concatenated string while the code called it a key on
+-- (assignment, sku). Structured columns with a composite constraint make the
+-- schema say what the docstring claimed.
+CREATE TABLE IF NOT EXISTS effects (
+    id TEXT PRIMARY KEY,
+    assignment_id TEXT NOT NULL,
+    kind TEXT NOT NULL,
+    subject TEXT NOT NULL,
+    payload TEXT NOT NULL,
+    created_at TEXT NOT NULL,
+    UNIQUE(assignment_id, kind, subject),
+    FOREIGN KEY(assignment_id) REFERENCES assignments(id)
+);
+
+-- A verification is a BATCH of evidence produced by one run of the checks.
+-- Without it, review binds to "whatever evidence existed" and acceptance uses
+-- "whatever evidence exists now", and nothing forces those to be the same set.
+CREATE TABLE IF NOT EXISTS verifications (
+    id TEXT PRIMARY KEY,
+    outcome_id TEXT NOT NULL,
+    assignment_id TEXT NOT NULL,
+    aggregate_digest TEXT NOT NULL,
+    passed INTEGER NOT NULL,
+    record TEXT NOT NULL,
+    created_at TEXT NOT NULL,
+    FOREIGN KEY(outcome_id) REFERENCES outcomes(id)
+);
+CREATE INDEX IF NOT EXISTS verifications_by_outcome ON verifications(outcome_id);
+
+ALTER TABLE evidence ADD COLUMN verification_id TEXT REFERENCES verifications(id);
+ALTER TABLE reviews ADD COLUMN verification_id TEXT REFERENCES verifications(id);
+"""
+
+
+MIGRATION_8 = """
+-- Sparring's unprompted find: Receipt.assignment_id defaulted to "",
+-- _latest_assignment_id returned "", and this column was nullable -- "the
+-- performer who never worked" in a new costume. It refused every way Sparring
+-- pushed it, but only via guards three layers from the default. SQLite cannot
+-- add a NOT NULL constraint in place, so this rebuilds the table.
+CREATE TABLE receipts_v2 (
+    id TEXT PRIMARY KEY,
+    record TEXT NOT NULL,
+    assignment_id TEXT NOT NULL,
+    status TEXT NOT NULL,
+    CHECK (assignment_id <> '')
+);
+INSERT INTO receipts_v2(id, record, assignment_id, status)
+    SELECT id, record, COALESCE(NULLIF(assignment_id, ''), 'asg_unattributed_legacy'),
+           COALESCE(status, '')
+    FROM receipts;
+DROP TABLE receipts;
+ALTER TABLE receipts_v2 RENAME TO receipts;
+CREATE INDEX IF NOT EXISTS receipts_by_assignment ON receipts(assignment_id);
+"""
+
+
 MIGRATIONS: tuple[tuple[int, str], ...] = (
     (1, MIGRATION_1),
     (2, MIGRATION_2),
@@ -193,6 +251,8 @@ MIGRATIONS: tuple[tuple[int, str], ...] = (
     (4, MIGRATION_4),
     (5, MIGRATION_5),
     (6, MIGRATION_6),
+    (7, MIGRATION_7),
+    (8, MIGRATION_8),
 )
 
 

@@ -168,10 +168,49 @@ status field and run no checks at all — a verification step that verified
 nothing. Now it executes every declared check, and an unknown or crashing check
 **fails closed** rather than being skipped.
 
+## Exercise 6: being refused is not the end
+
+Chapter 2 has spent five exercises showing the organization refusing things. A
+fair question: what happens to work that gets refused? Is it dead?
+
+```bash
+python -m pytest tests/test_recovery.py -v
+```
+
+Read the test names. The cycle they prove is:
+
+```text
+verification fails
+  -> Sparring requests changes           (SOW state: CHANGES_REQUESTED)
+  -> the world is repaired
+  -> a NEW assignment is created         (SOW state: ASSIGNED)
+  -> verification runs again             (a new batch)
+  -> Sparring reviews the new batch      (accepted)
+  -> the Principal accepts
+```
+
+Two details worth pausing on.
+
+**Recovery creates a new assignment.** Repaired work is new work, and the ledger
+says so. The failed execution is not overwritten or reused — you can still read
+what went wrong the first time.
+
+**Nothing is deleted.** After recovery the database holds two verifications and
+two reviews, including the `changes_requested` one. The organization remembers
+being wrong. That is the difference between a system that learns and a system
+that launders its history.
+
+This path did not exist while this chapter was first written. `changes_requested`
+was terminal: the only way forward from a refusal was to delete the organization
+and start over. A book that teaches "refusal is the system working" while
+shipping a refusal you cannot recover from is teaching the opposite of what it
+says.
+
 ## Learner verification command
 
 ```bash
-python -m pytest tests/test_acceptance_falsification.py tests/test_actors_and_mailbox.py -q
+python -m pytest tests/test_acceptance_falsification.py tests/test_actors_and_mailbox.py \
+  tests/test_recovery.py -q
 ```
 
 Expected: all pass. Together they prove that acceptance refuses every lie listed
@@ -189,5 +228,10 @@ above, and that authority cannot be self-granted.
    one back would quietly disable no-self-approval.
 5. What is the difference between a **receipt** and **evidence**? One describes
    an execution; the other describes a fact about the world. Which is which?
+6. Recovery from `changes_requested` creates a *new* assignment rather than
+   reusing the failed one. What would you lose if it reused it?
+7. Acceptance requires a review of the **exact** verification batch it is
+   accepting on. Describe the lie that would be possible if it accepted any
+   review of the outcome instead.
 
 Next: [Chapter 3 — The actor is not a model](../ch03_actor_is_not_a_model/README.md)

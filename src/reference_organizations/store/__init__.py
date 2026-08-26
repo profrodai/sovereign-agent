@@ -208,6 +208,92 @@ def _state_digest(db: Database, sku: str) -> str:
     return digest_payload(facts)
 
 
+def _authorize_effect(
+    connection: sqlite3.Connection, assignment_id: str, subject: str
+) -> dict[str, str]:
+    """Prove the assignment authorizing this effect is real, done, and relevant.
+
+    An effect used to accept any string as its `assignment_id`, so the ledger
+    could show that SOME assignment completed and that SOME replenishment
+    happened while nothing established the first caused the second. Two true
+    facts arranged so their conjunction implies something false -- the same
+    shape as the defect this unit exists to remove.
+
+    Runs inside the caller's immediate transaction, so the authorization cannot
+    be invalidated between the check and the write.
+    """
+    if not assignment_id:
+        raise Refusal(
+            "The effect names no assignment.",
+            "An unattributed change to the world has no authority behind it.",
+            "sovereign-agent status",
+            "Run the assignment that authorizes this effect.",
+        )
+    row = connection.execute(
+        "SELECT a.record AS assignment, s.record AS sow, s.outcome_id AS outcome_id "
+        "FROM assignments a JOIN sows s ON s.id = a.sow_id WHERE a.id = ?",
+        (assignment_id,),
+    ).fetchone()
+    if row is None:
+        raise Refusal(
+            f"Assignment {assignment_id} is not in the ledger.",
+            "Effects are authorized by real assignments, not by naming one.",
+            "sovereign-agent status",
+            "Use the id of an assignment that actually ran.",
+        )
+    assignment = json.loads(row["assignment"])
+    if assignment.get("state") != "COMPLETED":
+        raise Refusal(
+            f"Assignment {assignment_id} is {assignment.get('state')}, not COMPLETED.",
+            "Work that has not finished cannot authorize a change to the world.",
+            "sovereign-agent status",
+            "Finish the assignment first.",
+        )
+
+    receipt = connection.execute(
+        "SELECT record, status FROM receipts WHERE assignment_id = ?", (assignment_id,)
+    ).fetchone()
+    if receipt is None:
+        raise Refusal(
+            f"Assignment {assignment_id} has no receipt.",
+            "An execution with no receipt left no evidence that it ran.",
+            "sovereign-agent status",
+            "Re-run the assignment.",
+        )
+    record = json.loads(receipt["record"])
+    if str(receipt["status"]) != "completed" or record.get("status") != "completed":
+        raise Refusal(
+            f"The receipt for {assignment_id} reports {receipt['status']}.",
+            "A failed execution cannot authorize an effect.",
+            "sovereign-agent status",
+            "Fix the failure and re-run.",
+        )
+
+    actor = connection.execute(
+        "SELECT record FROM actors WHERE id = ?", (assignment["actor_id"],)
+    ).fetchone()
+    if actor is None or "write_workspace" not in json.loads(actor["record"]).get("authority", []):
+        raise Refusal(
+            f"Actor {assignment['actor_id']} lacks authority to change the world.",
+            "Authority comes from the role table, not from having run.",
+            "sovereign-agent actor list",
+            "Assign an actor whose authority permits this work.",
+        )
+
+    outcome = connection.execute(
+        "SELECT record FROM outcomes WHERE id = ?", (row["outcome_id"],)
+    ).fetchone()
+    declared = json.loads(outcome["record"]).get("subject") if outcome else None
+    if declared and declared != subject:
+        raise Refusal(
+            f"This effect changes {subject}, but the outcome is about {declared}.",
+            "An effect must move the thing the outcome is about.",
+            "sovereign-agent status",
+            f"Apply the effect to {declared}.",
+        )
+    return {"outcome_id": str(row["outcome_id"]), "actor_id": str(assignment["actor_id"])}
+
+
 def _validate_restock_locked(
     connection: sqlite3.Connection, proposal: RestockProposal
 ) -> tuple[int, int]:
@@ -284,18 +370,21 @@ def apply_restock(
     before opening its transaction, so two concurrent retries both passed the
     scan and both ordered: on_hand went to 14 with two purchase entries.
 
-    Idempotency is a PRIMARY KEY on (assignment, sku) in `effect_keys`, not a
-    scan. The database refuses the second claim; nothing depends on timing.
+    Idempotency is `UNIQUE(assignment_id, kind, subject)` in `effects`, not a
+    scan. The database refuses the second claim; nothing depends on timing, and
+    a foreign key means a fabricated assignment cannot be named at all.
     """
-    key = f"restock:{assignment_id}:{proposal.sku}"
     try:
         with db.immediate() as connection:
             existing = connection.execute(
-                "SELECT payload FROM effect_keys WHERE key = ?", (key,)
+                "SELECT payload FROM effects WHERE assignment_id = ? AND kind = ? AND subject = ?",
+                (assignment_id, "replenishment", proposal.sku),
             ).fetchone()
             if existing is not None:
                 return {**json.loads(existing["payload"]), "idempotent_replay": True}
 
+            # Authority FIRST, inside the same lock as the write.
+            authorization = _authorize_effect(connection, assignment_id, proposal.sku)
             unit_cost, total = _validate_restock_locked(connection, proposal)
             cash_id = new_id("cash")
             connection.execute(
@@ -336,21 +425,33 @@ def apply_restock(
                 "on_hand": int(row["on_hand"]),
                 "cash_id": cash_id,
                 "assignment_id": assignment_id,
+                "outcome_id": authorization["outcome_id"],
                 "signal_id": signal_id,
             }
-            # The PRIMARY KEY makes a concurrent second claim fail here, inside
-            # the same transaction that does the work, so it rolls back with it.
+            # UNIQUE(assignment_id, kind, subject) makes a concurrent second
+            # claim fail here, inside the transaction that does the work, so it
+            # rolls back with it. The FK makes a fabricated assignment
+            # un-insertable at the database boundary.
             connection.execute(
-                "INSERT INTO effect_keys(key, kind, payload, created_at) VALUES (?, ?, ?, ?)",
-                (key, "replenishment", json.dumps(payload), utc_now().isoformat()),
+                "INSERT INTO effects(id, assignment_id, kind, subject, payload, created_at) "
+                "VALUES (?, ?, ?, ?, ?, ?)",
+                (
+                    new_id("eff"),
+                    assignment_id,
+                    "replenishment",
+                    proposal.sku,
+                    json.dumps(payload),
+                    utc_now().isoformat(),
+                ),
             )
             append_event(db, "replenishment.committed", payload)
             return payload
     except sqlite3.IntegrityError as error:
-        if "effect_keys" not in str(error):
+        if "effects" not in str(error):
             raise
         row = db.connection.execute(
-            "SELECT payload FROM effect_keys WHERE key = ?", (key,)
+            "SELECT payload FROM effects WHERE assignment_id = ? AND kind = ? AND subject = ?",
+            (assignment_id, "replenishment", proposal.sku),
         ).fetchone()
         if row is None:
             raise

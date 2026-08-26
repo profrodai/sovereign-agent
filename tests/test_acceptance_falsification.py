@@ -18,6 +18,8 @@ from reference_organizations.store.demo import propose_restock_from_report, run_
 from sovereign_agent.errors import Refusal
 from sovereign_agent.organization import Organization
 
+from .helpers import governed_assignment
+
 
 def accepted_org(tmp_path: Path) -> tuple[Organization, str]:
     """A truthfully accepted store, then reopened for tampering."""
@@ -59,7 +61,9 @@ def test_refuses_when_a_required_check_has_no_evidence(tmp_path: Path) -> None:
     org.db.connection.execute("DELETE FROM evidence WHERE check_id = 'cash_reconciles'")
     org.db.connection.commit()
     reopen_for_acceptance(org, outcome_id)
-    with pytest.raises(Refusal, match="No evidence for declared check"):
+    # Now caught earlier and more precisely: the batch the reviewer signed off
+    # is no longer the batch supporting acceptance.
+    with pytest.raises(Refusal, match="not the evidence supporting acceptance"):
         org.accept(outcome_id, "principal-human")
 
 
@@ -95,7 +99,7 @@ def test_refuses_evidence_belonging_to_another_outcome(tmp_path: Path) -> None:
     )
     org.db.connection.commit()
     reopen_for_acceptance(org, outcome_id)
-    with pytest.raises(Refusal, match="No evidence for declared check"):
+    with pytest.raises(Refusal, match="not the evidence supporting acceptance"):
         org.accept(outcome_id, "principal-human")
 
 
@@ -156,30 +160,31 @@ def test_non_integer_proposal_is_refused(tmp_path: Path) -> None:
 
 
 def test_unbounded_or_invalid_restock_is_refused(tmp_path: Path) -> None:
-    org = Organization.init(tmp_path)
-    seed(org.db)
+    org, _outcome_id, _sow_id, assignment_id = governed_assignment(tmp_path)
     for quantity, expected in [(0, "not positive"), (-5, "not positive"), (999, "exceeds")]:
         with pytest.raises(Refusal, match=expected):
-            apply_restock(org.db, RestockProposal("SKU-TEA", quantity), "asg_x")
-    with pytest.raises(Refusal, match="Unknown SKU"):
-        apply_restock(org.db, RestockProposal("SKU-GHOST", 1), "asg_x")
+            apply_restock(org.db, RestockProposal("SKU-TEA", quantity), assignment_id)
+    # A SKU the outcome is not about is refused by the subject gate before the
+    # catalog is even consulted -- an earlier and stronger refusal than
+    # "Unknown SKU", because the effect is unauthorized regardless of whether
+    # the product exists.
+    with pytest.raises(Refusal, match="but the outcome is about SKU-TEA"):
+        apply_restock(org.db, RestockProposal("SKU-GHOST", 1), assignment_id)
 
 
 def test_restock_beyond_available_cash_is_refused(tmp_path: Path) -> None:
-    org = Organization.init(tmp_path)
-    seed(org.db)
+    org, _outcome_id, _sow_id, assignment_id = governed_assignment(tmp_path)
     org.db.connection.execute("DELETE FROM cash_entries")
     org.db.connection.commit()
     with pytest.raises(Refusal, match="cash is available"):
-        apply_restock(org.db, RestockProposal("SKU-TEA", 10), "asg_x")
+        apply_restock(org.db, RestockProposal("SKU-TEA", 10), assignment_id)
 
 
 def test_replenishment_is_idempotent_per_assignment(tmp_path: Path) -> None:
-    org = Organization.init(tmp_path)
-    seed(org.db)
+    org, _outcome_id, _sow_id, assignment_id = governed_assignment(tmp_path)
     signal = record_sale(org.db, "SKU-TEA", 2, 400)
-    first = apply_restock(org.db, RestockProposal("SKU-TEA", 6), "asg_once", signal.id)
-    second = apply_restock(org.db, RestockProposal("SKU-TEA", 6), "asg_once", signal.id)
+    first = apply_restock(org.db, RestockProposal("SKU-TEA", 6), assignment_id, signal.id)
+    second = apply_restock(org.db, RestockProposal("SKU-TEA", 6), assignment_id, signal.id)
     assert second.get("idempotent_replay") is True
     assert first["on_hand"] == second["on_hand"]
     row = org.db.connection.execute(
@@ -210,7 +215,6 @@ def test_acceptance_cannot_be_pointed_at_a_different_subject(tmp_path: Path) -> 
         "VALUES ('SKU-DECOY', 1, 0, 1, '{}')"
     )
     org.db.connection.commit()
-    apply_restock(org.db, RestockProposal("SKU-DECOY", 5), "asg_decoy")
 
     org.db.connection.execute("UPDATE inventory SET on_hand = 0 WHERE sku = 'SKU-TEA'")
     org.db.connection.commit()
@@ -251,6 +255,48 @@ def test_refuses_when_the_execution_receipt_failed(tmp_path: Path) -> None:
     org.db.connection.execute("UPDATE receipts SET status = 'failed'")
     org.db.connection.commit()
     reopen_for_acceptance(org, outcome_id)
+    # Editing the column alone is caught as a disagreement between the two
+    # representations, before the status is even consulted.
+    with pytest.raises(Refusal, match="its index says failed"):
+        org.accept(outcome_id, "principal-human")
+
+
+def test_refuses_a_receipt_whose_record_says_failed(tmp_path: Path) -> None:
+    """Editing the canonical record alone must also be refused.
+
+    Acceptance previously read only the indexed column, so a record saying
+    "failed" still accepted while the external verifier called the same state
+    unverifiable: an accepted state already known to be false by another tool.
+    """
+    import json
+
+    org, outcome_id = accepted_org(tmp_path)
+    row = org.db.connection.execute("SELECT id, record FROM receipts").fetchone()
+    record = json.loads(row["record"])
+    record["status"] = "failed"
+    org.db.connection.execute(
+        "UPDATE receipts SET record = ? WHERE id = ?", (json.dumps(record), row["id"])
+    )
+    org.db.connection.commit()
+    reopen_for_acceptance(org, outcome_id)
+    with pytest.raises(Refusal, match="says failed, its index says completed"):
+        org.accept(outcome_id, "principal-human")
+
+
+def test_refuses_a_receipt_that_agrees_on_failure(tmp_path: Path) -> None:
+    """Both representations saying "failed" is refused on the merits."""
+    import json
+
+    org, outcome_id = accepted_org(tmp_path)
+    row = org.db.connection.execute("SELECT id, record FROM receipts").fetchone()
+    record = json.loads(row["record"])
+    record["status"] = "failed"
+    org.db.connection.execute(
+        "UPDATE receipts SET record = ?, status = 'failed' WHERE id = ?",
+        (json.dumps(record), row["id"]),
+    )
+    org.db.connection.commit()
+    reopen_for_acceptance(org, outcome_id)
     with pytest.raises(Refusal, match="receipt reports status failed"):
         org.accept(outcome_id, "principal-human")
 
@@ -279,14 +325,24 @@ def test_refuses_when_the_review_requested_changes(tmp_path: Path) -> None:
     org.db.connection.execute("UPDATE reviews SET decision = 'changes_requested'")
     org.db.connection.commit()
     reopen_for_acceptance(org, outcome_id)
-    with pytest.raises(Refusal, match="decided changes_requested"):
+    with pytest.raises(Refusal, match="disagrees with its index on decision"):
         org.accept(outcome_id, "principal-human")
 
 
 def test_the_reviewer_cannot_also_accept(tmp_path: Path) -> None:
     """Review and acceptance are separate acts by separate actors."""
+    import json
+
     org, outcome_id = accepted_org(tmp_path)
-    org.db.connection.execute("UPDATE reviews SET reviewer_actor_id = 'principal-human'")
+    # Edit BOTH representations so they agree; otherwise the disagreement check
+    # fires first and this stops testing separation.
+    row = org.db.connection.execute("SELECT id, record FROM reviews").fetchone()
+    record = json.loads(row["record"])
+    record["reviewer_actor_id"] = "principal-human"
+    org.db.connection.execute(
+        "UPDATE reviews SET reviewer_actor_id = 'principal-human', record = ? WHERE id = ?",
+        (json.dumps(record), row["id"]),
+    )
     org.db.connection.commit()
     reopen_for_acceptance(org, outcome_id)
     with pytest.raises(Refusal, match="reviewed this work and cannot also accept"):
@@ -381,6 +437,14 @@ def test_retargeting_the_subject_alone_is_refused(tmp_path: Path) -> None:
 
 
 def _seed_decoy(org: Organization) -> str:
+    """Stock a decoy product directly.
+
+    Effects are now bound to an assignment whose outcome names a matching
+    subject, so a decoy restock cannot be applied through `apply_restock` under
+    a tea outcome -- which is the protection being demonstrated elsewhere. Here
+    the decoy stock is written directly, because the point of these tests is
+    what ACCEPTANCE does about a retargeted subject, not how the stock arrived.
+    """
     import json
 
     org.db.connection.execute(
@@ -389,13 +453,42 @@ def _seed_decoy(org: Organization) -> str:
     )
     org.db.connection.execute(
         "INSERT OR REPLACE INTO inventory(sku, on_hand, reserved, reorder_point, record) "
-        "VALUES ('SKU-DECOY', 1, 0, 1, '{}')"
+        "VALUES ('SKU-DECOY', 9, 0, 1, '{}')"
     )
-    org.db.connection.commit()
     assignment_id = str(
         org.db.connection.execute("SELECT id FROM assignments LIMIT 1").fetchone()["id"]
     )
-    apply_restock(org.db, RestockProposal("SKU-DECOY", 5), assignment_id)
+    payload = json.dumps(
+        {
+            "sku": "SKU-DECOY",
+            "qty": 5,
+            "unit_cost_cents": 1,
+            "total_cost_cents": 5,
+            "on_hand": 9,
+            "cash_id": "cash_decoy",
+            "assignment_id": assignment_id,
+        }
+    )
+    org.db.connection.execute(
+        "INSERT INTO cash_entries(id, amount_cents, record) VALUES ('cash_decoy', -5, ?)",
+        (
+            json.dumps(
+                {
+                    "reason": "purchase",
+                    "sku": "SKU-DECOY",
+                    "qty": 5,
+                    "unit_cost_cents": 1,
+                    "assignment_id": assignment_id,
+                }
+            ),
+        ),
+    )
+    org.db.connection.execute(
+        "INSERT INTO events(id, kind, payload, created_at) "
+        "VALUES ('evt_decoy', 'replenishment.committed', ?, '2026-01-01T00:00:00Z')",
+        (payload,),
+    )
+    org.db.connection.commit()
     return assignment_id
 
 
@@ -422,8 +515,10 @@ def test_the_documented_residual_limit_is_real(tmp_path: Path) -> None:
     check's own reads can detect the QUESTION changing underneath it. Closing it
     needs tamper-evident governance rows, which is out of scope for Unit 6.5.
 
-    If this test ever fails, the limit was closed and the documentation must be
-    re-derived rather than left describing a threat that no longer exists.
+    If the limit is ever closed, `accept()` raises and this test ERRORS rather
+    than failing its assert — the guard fires either way, and either outcome
+    means the documentation must be re-derived rather than left describing a
+    threat that no longer exists. (Precision noted by Sparring.)
     """
     org, outcome_id = accepted_org(tmp_path)
     _seed_decoy(org)
@@ -436,6 +531,12 @@ def test_the_documented_residual_limit_is_real(tmp_path: Path) -> None:
     org.db.connection.commit()
     reopen_for_acceptance(org, outcome_id)
     org.verify_outcome(outcome_id, "verifier-course")
+    sow_id = org.sows_for(outcome_id)[0].id
+    org.db.connection.execute(
+        "UPDATE sows SET record = json_set(record, '$.state', 'REVIEW') WHERE id = ?", (sow_id,)
+    )
+    org.db.connection.commit()
+    org.review(sow_id, "sparring-course")
     org.accept(outcome_id, "principal-human")
 
     row = org.db.connection.execute(
@@ -445,3 +546,65 @@ def test_the_documented_residual_limit_is_real(tmp_path: Path) -> None:
         "the residual limit documented in docs/persistence-boundary.md no longer "
         "reproduces; re-derive the document against current behaviour"
     )
+
+
+def test_an_effect_cannot_name_a_fabricated_assignment(tmp_path: Path) -> None:
+    """The completed assignment must be the one that caused the effect.
+
+    Reported on PR #24 round 2: `apply_restock` took any string as its
+    assignment_id, so the ledger could show that SOME assignment completed and
+    that SOME replenishment happened while nothing tied them together. Two true
+    facts arranged so their conjunction implies something false.
+    """
+    org, _outcome_id, _sow_id, _assignment_id = governed_assignment(tmp_path)
+    signal = record_sale(org.db, "SKU-TEA", 2, 400)
+    with pytest.raises(Refusal, match="not in the ledger"):
+        apply_restock(org.db, RestockProposal("SKU-TEA", 6), "asg_FAKE", signal.id)
+
+
+def test_an_effect_requires_a_completed_assignment(tmp_path: Path) -> None:
+    org, _outcome_id, _sow_id, assignment_id = governed_assignment(tmp_path)
+    org.db.connection.execute(
+        "UPDATE assignments SET record = json_set(record, '$.state', 'RUNNING') WHERE id = ?",
+        (assignment_id,),
+    )
+    org.db.connection.commit()
+    with pytest.raises(Refusal, match="not COMPLETED"):
+        apply_restock(org.db, RestockProposal("SKU-TEA", 6), assignment_id)
+
+
+def test_an_effect_requires_a_successful_receipt(tmp_path: Path) -> None:
+    org, _outcome_id, _sow_id, assignment_id = governed_assignment(tmp_path)
+    org.db.connection.execute("UPDATE receipts SET status = 'failed'")
+    org.db.connection.commit()
+    with pytest.raises(Refusal, match="receipt for"):
+        apply_restock(org.db, RestockProposal("SKU-TEA", 6), assignment_id)
+
+
+def test_an_effect_must_move_the_outcomes_subject(tmp_path: Path) -> None:
+    """An effect on another product does not deliver this outcome."""
+    import json
+
+    org, _outcome_id, _sow_id, assignment_id = governed_assignment(tmp_path)
+    org.db.connection.execute(
+        "INSERT OR REPLACE INTO products(sku, record) VALUES ('SKU-B', ?)",
+        (json.dumps({"sku": "SKU-B", "name": "b", "unit_cost_cents": 10, "price_cents": 20}),),
+    )
+    org.db.connection.execute(
+        "INSERT OR REPLACE INTO inventory(sku, on_hand, reserved, reorder_point, record) "
+        "VALUES ('SKU-B', 0, 0, 1, '{}')"
+    )
+    org.db.connection.commit()
+    with pytest.raises(Refusal, match="but the outcome is about SKU-TEA"):
+        apply_restock(org.db, RestockProposal("SKU-B", 3), assignment_id)
+
+
+def test_an_effect_requires_an_actor_with_authority(tmp_path: Path) -> None:
+    org, _outcome_id, _sow_id, assignment_id = governed_assignment(tmp_path)
+    org.db.connection.execute(
+        "UPDATE actors SET record = json_set(record, '$.authority', json('[\"read\"]')) "
+        "WHERE id = 'operator-course'"
+    )
+    org.db.connection.commit()
+    with pytest.raises(Refusal, match="lacks authority"):
+        apply_restock(org.db, RestockProposal("SKU-TEA", 6), assignment_id)

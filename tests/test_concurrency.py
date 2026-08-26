@@ -11,10 +11,12 @@ from __future__ import annotations
 import threading
 from pathlib import Path
 
-from reference_organizations.store import RestockProposal, apply_restock, record_sale, seed
+from reference_organizations.store import RestockProposal, apply_restock, record_sale
 from sovereign_agent.database import Database
 from sovereign_agent.organization import Organization
 from sovereign_agent.relay import claim, send
+
+from .helpers import governed_assignment
 
 
 def _run_concurrently(root: Path, work, count: int = 2) -> list[str]:
@@ -49,13 +51,12 @@ def test_concurrent_retries_order_stock_exactly_once(tmp_path: Path) -> None:
     Before the fix, both workers passed a preflight scan of the event log and
     both committed: on_hand=14, two purchase entries, two replenishment events.
     """
-    org = Organization.init(tmp_path)
-    seed(org.db)
+    org, _outcome_id, _sow_id, assignment_id = governed_assignment(tmp_path)
     signal = record_sale(org.db, "SKU-TEA", 2, 400)
     org.db.close()
 
     def work(db: Database, _index: int) -> str:
-        result = apply_restock(db, RestockProposal("SKU-TEA", 6), "asg_same", signal.id)
+        result = apply_restock(db, RestockProposal("SKU-TEA", 6), assignment_id, signal.id)
         return "replay" if result.get("idempotent_replay") else "committed"
 
     results = _run_concurrently(tmp_path, work)
@@ -86,9 +87,8 @@ def test_concurrent_retries_order_stock_exactly_once(tmp_path: Path) -> None:
 
 def test_concurrent_sales_cannot_oversell(tmp_path: Path) -> None:
     """Two sales of the whole shelf must not both succeed."""
-    org = Organization.init(tmp_path)
-    seed(org.db)  # on_hand = 4
-    org.db.close()
+    org, _outcome_id, _sow_id, _assignment_id = governed_assignment(tmp_path)
+    org.db.close()  # on_hand = 4 from seed
 
     def work(db: Database, _index: int) -> str:
         record_sale(db, "SKU-TEA", 3, 400)
@@ -114,14 +114,23 @@ def test_concurrent_sales_cannot_oversell(tmp_path: Path) -> None:
     assert on_hand == 4 - 3 * results.count("sold")
 
 
-def test_a_message_lease_has_exactly_one_owner(tmp_path: Path) -> None:
-    """Two connections must not both believe they hold the same claim."""
+def test_only_one_contender_wins_a_contested_lease(tmp_path: Path) -> None:
+    """Two DISTINCT contenders: exactly one wins.
+
+    Named for what it proves. The previous name -- "exactly one owner" --
+    overclaimed: a second connection using the SAME actor id is granted the
+    claim, because `claim_owner == actor_id` short circuits. That is
+    actor-level idempotency, not process-level exclusivity, and the
+    distinction is covered by the test below.
+    """
     org = Organization.init(tmp_path)
     message = send(org.db, "master-course", "sparring-course", "s", "b")
     org.db.close()
 
-    def work(db: Database, _index: int) -> str:
-        claim(db, message.id, "sparring-course")
+    def work(db: Database, index: int) -> str:
+        # Distinct contenders: only the addressed actor may claim, so the second
+        # is a different actor attempting the same message.
+        claim(db, message.id, "sparring-course" if index == 0 else "operator-course")
         return "claimed"
 
     results = _run_concurrently(tmp_path, work)
@@ -136,3 +145,31 @@ def test_a_message_lease_has_exactly_one_owner(tmp_path: Path) -> None:
 
     assert results.count("claimed") == 1, f"two workers claimed one lease: {results}"
     assert claimed_events == 1
+
+
+def test_the_same_actor_from_two_processes_is_idempotent_not_exclusive(tmp_path: Path) -> None:
+    """State the property honestly rather than overclaiming exclusivity.
+
+    A second connection using the SAME actor id is granted the claim, because a
+    claim already held by that actor short circuits. Two processes hosting one
+    actor can therefore both proceed. That is actor-level idempotency; it is NOT
+    process-level fencing, and 1.x does not provide fencing.
+
+    The governing rule is recorded in
+    docs/rulings/2026-08-26-one-process-per-actor.md: one process may host an
+    actor, and lease fencing is deferred to Unit 8's supervisor. This test
+    exists so nobody reads the mailbox as offering a guarantee it does not.
+    """
+    org = Organization.init(tmp_path)
+    message = send(org.db, "master-course", "sparring-course", "s", "b")
+    org.db.close()
+
+    first = Database(tmp_path / ".sovereign" / "organization.db")
+    second = Database(tmp_path / ".sovereign" / "organization.db")
+    try:
+        claim(first, message.id, "sparring-course")
+        again = claim(second, message.id, "sparring-course")
+        assert again.claim_owner == "sparring-course"
+    finally:
+        first.close()
+        second.close()

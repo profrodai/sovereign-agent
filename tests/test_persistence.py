@@ -37,37 +37,34 @@ def store_state(org: Organization) -> tuple[int, int, int]:
     return on_hand, events, purchases
 
 
-def test_rollback_after_inventory_write_leaves_nothing_behind(tmp_path: Path) -> None:
+def test_rollback_after_inventory_write_leaves_nothing_behind(tmp_path: Path, governed) -> None:
     """Fail AFTER the inventory UPDATE but before the event commits."""
-    org = Organization.init(tmp_path)
-    seed(org.db)
+    org, _outcome_id, _sow_id, assignment_id = governed
     signal = record_sale(org.db, "SKU-TEA", 2, 400)
     before = store_state(org)
     with patch.object(store, "append_event", side_effect=RuntimeError("injected failure")):
         with pytest.raises(RuntimeError, match="injected failure"):
-            apply_restock(org.db, RestockProposal("SKU-TEA", 6), "asg_fault", signal.id)
+            apply_restock(org.db, RestockProposal("SKU-TEA", 6), assignment_id, signal.id)
     assert store_state(org) == before, "partial business mutation survived a rollback"
 
 
-def test_rollback_leaves_no_orphan_cash_entry(tmp_path: Path) -> None:
-    org = Organization.init(tmp_path)
-    seed(org.db)
+def test_rollback_leaves_no_orphan_cash_entry(tmp_path: Path, governed) -> None:
+    org, _outcome_id, _sow_id, assignment_id = governed
     signal = record_sale(org.db, "SKU-TEA", 2, 400)
     with patch.object(store, "append_event", side_effect=RuntimeError("boom")):
         with pytest.raises(RuntimeError):
-            apply_restock(org.db, RestockProposal("SKU-TEA", 6), "asg_fault", signal.id)
+            apply_restock(org.db, RestockProposal("SKU-TEA", 6), assignment_id, signal.id)
     row = org.db.connection.execute(
         "SELECT COUNT(*) AS c FROM cash_entries WHERE amount_cents < 0"
     ).fetchone()
     assert row["c"] == 0
 
 
-def test_successful_sale_and_replenishment_keep_cash_reconciled(tmp_path: Path) -> None:
-    org = Organization.init(tmp_path)
-    seed(org.db)
+def test_successful_sale_and_replenishment_keep_cash_reconciled(tmp_path: Path, governed) -> None:
+    org, _outcome_id, _sow_id, assignment_id = governed
     signal = record_sale(org.db, "SKU-TEA", 2, 400)
     assert store.cash_balance_cents(org.db) == 10_800
-    apply_restock(org.db, RestockProposal("SKU-TEA", 6), "asg_ok", signal.id)
+    apply_restock(org.db, RestockProposal("SKU-TEA", 6), assignment_id, signal.id)
     # 10000 opening + 800 sale - (6 * 120) purchase
     assert store.cash_balance_cents(org.db) == 10_080
 
@@ -194,8 +191,12 @@ def test_idempotency_is_scoped_to_assignment_and_sku(tmp_path: Path) -> None:
     """
     import json
 
-    org = Organization.init(tmp_path)
-    seed(org.db)
+    # No declared subject, so the outcome does not constrain which SKU the
+    # effect may touch. That is what lets this test exercise the (assignment,
+    # kind, subject) key across two products under one assignment.
+    from .helpers import governed_assignment
+
+    org, _outcome_id, _sow_id, assignment_id = governed_assignment(tmp_path, subject="")
     signal = record_sale(org.db, "SKU-TEA", 2, 400)
     org.db.connection.execute(
         "INSERT OR REPLACE INTO products(sku, record) VALUES ('SKU-B', ?)",
@@ -207,15 +208,15 @@ def test_idempotency_is_scoped_to_assignment_and_sku(tmp_path: Path) -> None:
     )
     org.db.connection.commit()
 
-    apply_restock(org.db, RestockProposal("SKU-B", 3), "asg_shared")
-    result = apply_restock(org.db, RestockProposal("SKU-TEA", 6), "asg_shared", signal.id)
+    apply_restock(org.db, RestockProposal("SKU-B", 3), assignment_id)
+    result = apply_restock(org.db, RestockProposal("SKU-TEA", 6), assignment_id, signal.id)
     assert result.get("idempotent_replay") is None, "a different SKU was treated as a replay"
     row = org.db.connection.execute(
         "SELECT on_hand FROM inventory WHERE sku = 'SKU-TEA'"
     ).fetchone()
     assert int(row["on_hand"]) == 8
 
-    replay = apply_restock(org.db, RestockProposal("SKU-TEA", 6), "asg_shared", signal.id)
+    replay = apply_restock(org.db, RestockProposal("SKU-TEA", 6), assignment_id, signal.id)
     assert replay.get("idempotent_replay") is True, "same assignment and SKU must still be a no-op"
 
 
