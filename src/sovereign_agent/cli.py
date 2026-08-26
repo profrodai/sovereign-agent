@@ -11,7 +11,7 @@ from pathlib import Path
 
 from sovereign_agent import __version__
 from sovereign_agent.errors import Refusal
-from sovereign_agent.models import Role
+from sovereign_agent.models import Outcome, Role
 from sovereign_agent.organization import Organization
 from sovereign_agent.providers import PROVIDERS
 
@@ -116,6 +116,48 @@ def _status(namespace: argparse.Namespace) -> int:
     return 0
 
 
+def _inspect(namespace: argparse.Namespace) -> int:
+    """Show the operational facts a reader needs to audit an ACCEPTED claim.
+
+    Auditing an outcome should not require the `sqlite3` binary or any SQL. The
+    quickstart told a learner they needed "Python and a terminal" and then asked
+    for a database client they may not have. Checking whether the organization
+    told the truth is the central act of this book; it gets a first-class
+    command.
+    """
+    org = Organization(_root(namespace))
+    connection = org.db.connection
+    print("inventory")
+    for row in connection.execute(
+        "SELECT sku, on_hand, reserved, reorder_point FROM inventory ORDER BY sku"
+    ):
+        enough = (
+            "OK "
+            if int(row["on_hand"]) - int(row["reserved"]) >= int(row["reorder_point"])
+            else "LOW"
+        )
+        print(
+            f"  {enough} {row['sku']}: on_hand={row['on_hand']} "
+            f"reserved={row['reserved']} reorder_point={row['reorder_point']}"
+        )
+    print("cash")
+    total = 0
+    for row in connection.execute("SELECT id, amount_cents FROM cash_entries ORDER BY rowid"):
+        total += int(row["amount_cents"])
+        print(f"  {int(row['amount_cents']):>8}  {row['id']}")
+    print(f"  {total:>8}  = balance")
+    print("events")
+    for row in connection.execute(
+        "SELECT kind, COUNT(*) AS n FROM events GROUP BY kind ORDER BY kind"
+    ):
+        print(f"  {int(row['n']):>3}  {row['kind']}")
+    print("outcomes")
+    for row in connection.execute("SELECT record FROM outcomes"):
+        outcome = Outcome.model_validate_json(row["record"])
+        print(f"  {outcome.state} {outcome.id}  {outcome.title}")
+    return 0
+
+
 def _inbox(namespace: argparse.Namespace) -> int:
     for message in Organization(_root(namespace)).inbox(namespace.actor_id):
         print(f"{message.id} {message.state} {message.subject}")
@@ -215,6 +257,11 @@ def build_parser() -> argparse.ArgumentParser:
     status = subparsers.add_parser("status", parents=[shared], help="explain outcome and SOW state")
     status.add_argument("outcome_id")
     status.set_defaults(handler=_status)
+
+    inspect_parser = subparsers.add_parser(
+        "inspect", parents=[shared], help="show inventory, cash, events and outcomes"
+    )
+    inspect_parser.set_defaults(handler=_inspect)
 
     inbox = subparsers.add_parser("inbox", parents=[shared], help="list an actor's durable mailbox")
     inbox.add_argument("actor_id")

@@ -127,3 +127,41 @@ def test_projection_verification_detects_an_extra_sow_file(store: Path) -> None:
     result = run_script(VERIFY_PROJECTIONS, str(store))
     assert result.returncode == 1
     assert "not in the ledger" in result.stdout
+
+
+def test_the_published_quickstart_uses_only_commands_that_exist(tmp_path: Path) -> None:
+    """A quickstart is executable instructions, so its commands must exist.
+
+    The published quickstart told a learner to use Python 3.13 against a 3.14
+    floor and to run `version`, `sessions` and `report` -- none of which are
+    subcommands. Reported on PR #25 and #24. This pins the surface so the page
+    cannot drift back.
+    """
+    import re
+    import subprocess
+    import sys
+
+    repo_root = Path(__file__).resolve().parent.parent
+    text = (repo_root / "docs" / "quickstart.md").read_text(encoding="utf-8")
+
+    listing = subprocess.run(  # noqa: S603 - fixed argv, no shell
+        [sys.executable, "-m", "sovereign_agent", "--help"],
+        capture_output=True,
+        text=True,
+        cwd=repo_root,
+    ).stdout
+    declared = set(re.search(r"\{([a-z,]+)\}", listing).group(1).split(","))
+
+    used = {
+        match.group(1) for match in re.finditer(r"^\s*sovereign-agent ([a-z][a-z-]*)", text, re.M)
+    }
+    unknown = {name for name in used if name not in declared}
+    assert not unknown, f"quickstart uses commands that do not exist: {sorted(unknown)}"
+
+    assert "3.13" not in text, "quickstart names a Python version below the package floor"
+    assert "python3.14" in text or "3.14" in text
+
+    # It must not require a database client it never told the reader to install.
+    assert not re.search(r"^\s*sqlite3 ", text, re.M), (
+        "quickstart shells out to the sqlite3 binary, which it does not declare"
+    )

@@ -3,24 +3,36 @@
 Ten minutes, no API keys, no network. You will run a small organization through
 one complete piece of work and then check whether it told you the truth.
 
-You need Python **3.14 or newer** and a terminal.
+You need Python **3.14 or newer**, `git`, and a terminal. Nothing else — no
+API key, no network after the clone, and no database tools.
 
 ## 1. Install
+
+!!! warning "Install from the repository, not from PyPI"
+
+    PyPI still serves the **0.x** framework, which is a different product with a
+    different API and a lower Python floor. Publishing 1.x is deferred to
+    Unit 12. Until then, `pip install sovereign-agent` would give you the old
+    package while this page teaches the new one.
 
 === "macOS and Linux"
 
     ```bash
+    git clone https://github.com/zeroemployeeorg/sovereign-agent.git
+    cd sovereign-agent
     python3.14 -m venv .venv
     source .venv/bin/activate
-    pip install sovereign-agent
+    pip install -e .
     ```
 
 === "Windows"
 
     ```powershell
+    git clone https://github.com/zeroemployeeorg/sovereign-agent.git
+    cd sovereign-agent
     py -3.14 -m venv .venv
     .venv\Scripts\activate
-    pip install sovereign-agent
+    pip install -e .
     ```
 
 Check the install:
@@ -40,6 +52,11 @@ you happen to have. **You do not need any of them.** The quickstart runs on the
 sovereign-agent demo store --mode simulated --root /tmp/andrea-shift
 ```
 
+!!! note "Windows"
+
+    Use a path that exists on your machine, for example
+    `--root C:\Users\you\andrea-shift`, and substitute it below.
+
 Expected, ending with:
 
 ```text
@@ -57,36 +74,49 @@ actor, and accepted it.
 This is the part that matters. `ACCEPTED` is a claim; here is how you audit it.
 
 ```bash
-sqlite3 /tmp/andrea-shift/.sovereign/organization.db \
-  "SELECT sku, on_hand, reorder_point FROM inventory;"
+sovereign-agent inspect --root /tmp/andrea-shift
 ```
 
-Expected `SKU-TEA|8|3` — on-hand is at or above the reorder point, so the tea jar
-really is full.
+Expected, in three parts:
 
-```bash
-sqlite3 /tmp/andrea-shift/.sovereign/organization.db \
-  "SELECT id, amount_cents FROM cash_entries;"
+```text
+inventory
+  OK  SKU-TEA: on_hand=8 reserved=0 reorder_point=3
+cash
+     10000  cash-opening
+       800  cash_...
+      -720  cash_...
+     10080  = balance
+events
+    ...
+    1  replenishment.committed
+    ...
 ```
 
-Expected three rows: `10000` opening, `+800` for the sale, `-720` for the
-purchase. Six boxes at 120 cents is exactly 720.
+Read it as three separate claims:
+
+- **`OK`** — available stock is at or above the reorder point. The tea jar
+  really is full. `LOW` would mean it is not, whatever the outcome says.
+- **`-720`** — money actually left the organization to buy stock. Six boxes at
+  120 cents is exactly 720, and the balance still adds up.
+- **`replenishment.committed`** — a restock is on the append-only ledger, not
+  merely implied by the inventory number.
 
 ## 4. Break it on purpose
 
-```bash
-sqlite3 /tmp/andrea-shift/.sovereign/organization.db \
-  "UPDATE inventory SET on_hand = 0 WHERE sku = 'SKU-TEA';"
+Change the world behind the organization's back:
 
-sqlite3 /tmp/andrea-shift/.sovereign/organization.db \
-  "SELECT json_extract(record,'$.state') FROM outcomes;"
+```bash
+python -c "import sqlite3,sys; c=sqlite3.connect(sys.argv[1]); c.execute(\"UPDATE inventory SET on_hand=0 WHERE sku='SKU-TEA'\"); c.commit()" /tmp/andrea-shift/.sovereign/organization.db
+
+sovereign-agent inspect --root /tmp/andrea-shift
 ```
 
-The stored state still reads `ACCEPTED`, because that records a decision that was
-made. But the shelf is empty.
+Inventory now reads `LOW`, and the outcome still reads `ACCEPTED` — because that
+records a decision that was made, while the shelf is empty.
 
-If you cloned the repository rather than installing from PyPI, the release gate
-that catches exactly this is one command:
+If you want the machine-checked version of that judgement, the repository ships
+the release gate that catches exactly this:
 
 ```bash
 python scripts/verify_store_outcome.py /tmp/andrea-shift
