@@ -32,10 +32,23 @@ REQUIRED_CHAPTERS = (
 )
 
 # Chapter solutions that take a root path and run the exercise end to end.
+# EVERY required chapter's exercise must EXECUTE, not merely import. ch03 was
+# required but absent here, so the gate reported "3 exercises executed" across
+# four required chapters -- a gate overstating its own coverage, which is the
+# defect this project exists to remove. It runs offline on the scripted
+# provider; no credential is needed, so nothing justified the exclusion.
 RUNNABLE = {
     "ch00_first_shift": "run_simulated",
     "ch01_organization_remembers": "observe_memory",
     "ch02_work_needs_governance": "explore_governance",
+    "ch03_actor_is_not_a_model": "run_exercise",
+}
+
+# Exercises whose entry point needs an argument beyond the root path.
+RUNNABLE_ARGS: dict[str, tuple[object, ...]] = {
+    # Offline by default: the chapter teaches provider REBINDING, and the
+    # scripted provider proves identity survives it without any credential.
+    "ch03_actor_is_not_a_model": ("scripted",),
 }
 
 REQUIRED_SECTIONS = (
@@ -108,7 +121,7 @@ def check_chapter(name: str) -> list[str]:
             else:
                 with tempfile.TemporaryDirectory() as scratch:
                     try:
-                        function(Path(scratch) / "root")
+                        function(Path(scratch) / "root", *RUNNABLE_ARGS.get(name, ()))
                     except Exception as error:  # noqa: BLE001 - broken exercise, broken chapter
                         problems.append(
                             f"{name}: {entry_point}() failed to run: "
@@ -127,8 +140,51 @@ def check_chapter(name: str) -> list[str]:
     return problems
 
 
+PUBLISHED = {
+    "README.md": "index.md",
+    "ch00_first_shift/README.md": "ch00_first_shift.md",
+    "ch01_organization_remembers/README.md": "ch01_organization_remembers.md",
+    "ch02_work_needs_governance/README.md": "ch02_work_needs_governance.md",
+    "ch03_actor_is_not_a_model/README.md": "ch03_actor_is_not_a_model.md",
+}
+
+
+def check_published_copies() -> list[str]:
+    """The site copy of a chapter must not drift from the source of truth.
+
+    Publishing book/ into docs/ creates two copies, and two copies of anything
+    is the shape of every defect this project has spent its life removing. The
+    published page is a PROJECTION of book/, so it is regenerated and compared,
+    never hand-edited -- the same rule the governance projections follow.
+    """
+    problems: list[str] = []
+    for source_rel, published_rel in PUBLISHED.items():
+        source = BOOK / source_rel
+        published = REPO_ROOT / "docs" / "book" / published_rel
+        if not published.is_file():
+            problems.append(f"docs/book/{published_rel} is missing; run scripts/publish_book.py")
+            continue
+        expected = render_published(source.read_text(encoding="utf-8"))
+        if published.read_text(encoding="utf-8") != expected:
+            problems.append(
+                f"docs/book/{published_rel} has drifted from book/{source_rel}; "
+                "regenerate with scripts/publish_book.py"
+            )
+    return problems
+
+
+def render_published(text: str) -> str:
+    """Source chapter -> published page. Pure; used to publish AND to verify."""
+    text = re.sub(r"\]\(\.\./ch(\d\d)_([a-z_]+)/README\.md\)", r"](ch\1_\2.md)", text)
+    text = re.sub(r"\]\(ch(\d\d)_([a-z_]+)/README\.md\)", r"](ch\1_\2.md)", text)
+    text = text.replace("](../../docs/", "](../")
+    text = text.replace("](../README.md)", "](index.md)")
+    return text
+
+
 def main() -> int:
     problems: list[str] = []
+    problems.extend(check_published_copies())
 
     index = BOOK / "README.md"
     if not index.is_file():

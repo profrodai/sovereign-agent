@@ -127,3 +127,111 @@ def test_projection_verification_detects_an_extra_sow_file(store: Path) -> None:
     result = run_script(VERIFY_PROJECTIONS, str(store))
     assert result.returncode == 1
     assert "not in the ledger" in result.stdout
+
+
+def test_the_published_quickstart_uses_only_commands_that_exist(tmp_path: Path) -> None:
+    """A quickstart is executable instructions, so its commands must exist.
+
+    The published quickstart told a learner to use Python 3.13 against a 3.14
+    floor and to run `version`, `sessions` and `report` -- none of which are
+    subcommands. Reported on PR #25 and #24. This pins the surface so the page
+    cannot drift back.
+    """
+    import re
+    import subprocess
+    import sys
+
+    repo_root = Path(__file__).resolve().parent.parent
+    text = (repo_root / "docs" / "quickstart.md").read_text(encoding="utf-8")
+
+    listing = subprocess.run(  # noqa: S603 - fixed argv, no shell
+        [sys.executable, "-m", "sovereign_agent", "--help"],
+        capture_output=True,
+        text=True,
+        cwd=repo_root,
+    ).stdout
+    declared = set(re.search(r"\{([a-z,]+)\}", listing).group(1).split(","))
+
+    used = {
+        match.group(1) for match in re.finditer(r"^\s*sovereign-agent ([a-z][a-z-]*)", text, re.M)
+    }
+    unknown = {name for name in used if name not in declared}
+    assert not unknown, f"quickstart uses commands that do not exist: {sorted(unknown)}"
+
+    assert "3.13" not in text, "quickstart names a Python version below the package floor"
+    assert "python3.14" in text or "3.14" in text
+
+    # It must not require a database client it never told the reader to install.
+    assert not re.search(r"^\s*sqlite3 ", text, re.M), (
+        "quickstart shells out to the sqlite3 binary, which it does not declare"
+    )
+
+    # Nor may it paste shell-quoted one-liners onto a page that also gives
+    # Windows instructions: `python -c "...\"...\""` is not valid PowerShell.
+    assert not re.search(r'python -c "', text), (
+        "quickstart uses a shell-quoted one-liner; it is shown to Windows "
+        "readers too, so use a repository script instead"
+    )
+
+    # Every repository script the page tells the reader to run must exist.
+    for script in re.findall(r"(scripts/[\w_]+\.py)", text):
+        assert (repo_root / script).is_file(), f"quickstart references missing {script}"
+
+    # `pip install -e .` downloads Pydantic, so "no network after the clone"
+    # was false. The honest claim is after installation.
+    assert "no network after the clone" not in text
+
+
+def test_inspect_reports_the_facts_a_learner_audits_with(store: Path) -> None:
+    """`inspect` is the quickstart's audit step, so its output is a contract.
+
+    It was added to remove an undeclared `sqlite3` dependency and shipped with
+    only a `--help` assertion behind it: changing `_inspect` to always print
+    `OK` left all 190 tests green. Presence is not coverage — reported on PR #25
+    and the same failure, one layer down, as the matrix that named a property it
+    did not exercise.
+    """
+    import subprocess
+    import sys
+
+    repo_root = Path(__file__).resolve().parent.parent
+
+    def inspect() -> str:
+        result = subprocess.run(  # noqa: S603 - fixed argv, no shell
+            [sys.executable, "-m", "sovereign_agent", "inspect", "--root", str(store)],
+            capture_output=True,
+            text=True,
+            cwd=repo_root,
+        )
+        assert result.returncode == 0, result.stdout + result.stderr
+        return result.stdout
+
+    healthy = inspect()
+    assert "OK  SKU-TEA" in healthy, "a stocked shelf must read OK"
+    assert "10080  = balance" in healthy, "the cash ledger must total 10080"
+    assert "replenishment.committed" in healthy, "the restock must appear on the ledger"
+    assert "ACCEPTED" in healthy
+
+    # Empty the shelf using THE SCRIPT THE QUICKSTART TELLS THE READER TO RUN,
+    # not a private copy of its SQL. Duplicating the statement here left the
+    # script itself unguarded: turning it into a no-op kept all 191 tests green.
+    # One test now proves the exact learner sequence --
+    #     demo -> inspect OK -> empty_the_shelf.py -> inspect LOW + ACCEPTED
+    # -- so the page, the script and the command cannot drift apart.
+    emptied_result = subprocess.run(  # noqa: S603 - fixed argv, no shell
+        [sys.executable, str(repo_root / "scripts" / "empty_the_shelf.py"), str(store)],
+        capture_output=True,
+        text=True,
+        cwd=repo_root,
+    )
+    assert emptied_result.returncode == 0, emptied_result.stdout + emptied_result.stderr
+    assert "on_hand set to 0" in emptied_result.stdout
+
+    emptied = inspect()
+    assert "LOW SKU-TEA" in emptied, "an empty shelf must read LOW"
+    assert "OK  SKU-TEA" not in emptied
+    # The historical decision is still on the record: that is the whole lesson.
+    assert "ACCEPTED" in emptied, (
+        "the outcome's recorded state must survive; inspect reports the world "
+        "changing, it does not rewrite what was decided"
+    )

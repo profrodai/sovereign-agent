@@ -156,4 +156,4 @@ observations above — the answers are all visible in the database.
 
 `solution.py` imports the production demo rather than copying it.
 
-Next: [Chapter 1 — The organization remembers](../ch01_organization_remembers/README.md)
+Next: [Chapter 1 — The organization remembers](ch01_organization_remembers.md)

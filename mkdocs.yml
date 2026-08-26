@@ -56,29 +56,40 @@ nav:
   - Home: index.md
   - Get started:
       - Quickstart: quickstart.md
+  - The book:
+      - Overview: book/index.md
+      - "Chapter 0: Andrea's first shift": book/ch00_first_shift.md
+      - "Chapter 1: The organization remembers": book/ch01_organization_remembers.md
+      - "Chapter 2: Work needs governance": book/ch02_work_needs_governance.md
+      - "Chapter 3: The actor is not a model": book/ch03_actor_is_not_a_model.md
+  - Concepts (1.x):
+      - Persistence boundary: persistence-boundary.md
+      - Rulings: rulings/index.md
+      - Andrea Alpha evaluation: andrea-alpha-evaluation.md
+      - Units 0-6 contract: units-0-6-contract.md
+  - Legacy (v0.7 and earlier — describes REMOVED software):
       - Configuration and providers: how-to/configuration.md
       - Common problems: how-to/troubleshooting.md
-  - Tutorials:
+  - Legacy tutorials (v0.7 — removed API):
       - Learning path: tutorials/index.md
       - Build your first agent: tutorials/first-agent.md
       - Author typed capabilities: tutorials/capabilities.md
       - Inspect sessions and traces: tutorials/sessions-and-traces.md
       - Test without tokens: tutorials/testing.md
       - Rules and human approval: tutorials/structured-and-approval.md
-      - Build from scratch: chapters/index.md
       - Teaching surface: teaching-surface.md
-  - How-to:
+  - Legacy how-to (v0.7 — removed API):
       - CLI and sessions: how-to/cli-sessions.md
       - Debug a run: how-to/debugging.md
       - Approvals and resume: how-to/approvals-and-resume.md
       - Worker isolation: how-to/worker-isolation.md
       - Deploy a service: deployment.md
-  - Concepts:
+  - Legacy concepts (v0.7):
       - Core concepts: concepts/index.md
       - Architecture: architecture.md
       - Threat model: threat-model.md
       - Non-goals: non-goals.md
-  - Reference:
+  - Legacy reference (v0.7 — removed API):
       - API overview: api_reference.md
       - Generated Python API: reference/index.md
       - API stability: API.md

@@ -206,7 +206,7 @@ database does not hold — a signature key kept outside it — which is a differ
 subject and out of scope here.
 
 So the honest statement, which
-[the ruling](../../docs/rulings/2026-08-26-sqlite-writers-are-inside-the-boundary.md)
+[the ruling](../rulings/2026-08-26-sqlite-writers-are-inside-the-boundary.md)
 records: **anyone who can write arbitrary rows can rewrite the organization's
 memory.** Everything in this chapter protects the ledger from mistakes and
 ordinary tools. Knowing exactly which door is open is worth more than believing
@@ -282,4 +282,4 @@ above, and that authority cannot be self-granted.
    accepting on. Describe the lie that would be possible if it accepted any
    review of the outcome instead.
 
-Next: [Chapter 3 — The actor is not a model](../ch03_actor_is_not_a_model/README.md)
+Next: [Chapter 3 — The actor is not a model](ch03_actor_is_not_a_model.md)
