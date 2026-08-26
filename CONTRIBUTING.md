@@ -42,8 +42,10 @@ in issues, commits, fixtures, or session artifacts.
 - Library code: `src/sovereign_agent/`
 - Deterministic tests: `tests/`
 - Runnable scenarios: `examples/`
-- Build-from-scratch curriculum: `chapters/`
-- User documentation: `docs/` and `mkdocs.yml`
+- The executable textbook: `book/` — the source of truth for chapters. It is
+  published by the profrod.ai site, which consumes this directory; this
+  repository builds no site of its own.
+- Reference and historical notes: `docs/`
 
 New reusable actions should use ZeoCore `@capability`. Do not add new uses of
 the deprecated `@register_tool` path.

@@ -58,4 +58,3 @@ Development dependencies:
 - `pytest`, `pytest-asyncio`, `pytest-timeout` (MIT)
 - `ruff` (MIT)
 - `mypy` (MIT)
-- `mkdocs`, `mkdocs-material` (MIT)

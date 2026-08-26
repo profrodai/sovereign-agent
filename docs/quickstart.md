@@ -129,7 +129,7 @@ shelf was still empty. That gap is what the book is about.
 
 ## Where next
 
-- [The book](book/index.md) — Chapter 0 is this shift, explained.
+- [The book](../book/README.md) — Chapter 0 is this shift, explained.
 - [Persistence boundary](persistence-boundary.md) — what is canonical, what is
   derived, and what this design does *not* promise.
 

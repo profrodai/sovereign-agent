@@ -140,51 +140,8 @@ def check_chapter(name: str) -> list[str]:
     return problems
 
 
-PUBLISHED = {
-    "README.md": "index.md",
-    "ch00_first_shift/README.md": "ch00_first_shift.md",
-    "ch01_organization_remembers/README.md": "ch01_organization_remembers.md",
-    "ch02_work_needs_governance/README.md": "ch02_work_needs_governance.md",
-    "ch03_actor_is_not_a_model/README.md": "ch03_actor_is_not_a_model.md",
-}
-
-
-def check_published_copies() -> list[str]:
-    """The site copy of a chapter must not drift from the source of truth.
-
-    Publishing book/ into docs/ creates two copies, and two copies of anything
-    is the shape of every defect this project has spent its life removing. The
-    published page is a PROJECTION of book/, so it is regenerated and compared,
-    never hand-edited -- the same rule the governance projections follow.
-    """
-    problems: list[str] = []
-    for source_rel, published_rel in PUBLISHED.items():
-        source = BOOK / source_rel
-        published = REPO_ROOT / "docs" / "book" / published_rel
-        if not published.is_file():
-            problems.append(f"docs/book/{published_rel} is missing; run scripts/publish_book.py")
-            continue
-        expected = render_published(source.read_text(encoding="utf-8"))
-        if published.read_text(encoding="utf-8") != expected:
-            problems.append(
-                f"docs/book/{published_rel} has drifted from book/{source_rel}; "
-                "regenerate with scripts/publish_book.py"
-            )
-    return problems
-
-
-def render_published(text: str) -> str:
-    """Source chapter -> published page. Pure; used to publish AND to verify."""
-    text = re.sub(r"\]\(\.\./ch(\d\d)_([a-z_]+)/README\.md\)", r"](ch\1_\2.md)", text)
-    text = re.sub(r"\]\(ch(\d\d)_([a-z_]+)/README\.md\)", r"](ch\1_\2.md)", text)
-    text = text.replace("](../../docs/", "](../")
-    text = text.replace("](../README.md)", "](index.md)")
-    return text
-
-
 def main() -> int:
     problems: list[str] = []
-    problems.extend(check_published_copies())
 
     index = BOOK / "README.md"
     if not index.is_file():
