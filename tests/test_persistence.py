@@ -516,34 +516,43 @@ def test_a_forged_effect_cannot_be_inserted_from_outside(tmp_path: Path) -> None
         outsider.close()
 
 
-def test_migration_12_content_is_frozen(tmp_path: Path) -> None:
-    """An applied migration's bytes must never change.
+def test_migration_12_content_is_frozen() -> None:
+    """An applied migration's BYTES must never change — not just its table list.
 
-    MIGRATION_12 was computed from APPEND_ONLY_TABLES, so adding a table
-    tomorrow would rewrite an already-stamped version: guards for new installs,
-    silence for every upgraded database. Raised by Sparring as the one item
-    left, and it is this PR's recurring shape — a guarantee staying put while
-    the load moves — sitting inside the fix built to stop it.
+    The first attempt at this froze `MIGRATION_12_TABLES` and left the body
+    flowing through the shared `_append_only_triggers()` helper, so editing the
+    helper still rewrote an applied migration while this test passed. Reported
+    on PR #24 round 9, with the digest below independently computed by the
+    reviewer.
 
-    Adding a proof-bearing table means a NEW migration. This test fails if
-    version 12 is edited instead, so the rule does not depend on remembering it.
+    Fresh installs would take the new bytes; databases that already stamped 12
+    would not. Same code, two schemas.
     """
+    import hashlib
+
     from sovereign_agent.database import (
         APPEND_ONLY_TABLES,
         MIGRATION_12,
+        MIGRATION_12_SHA256,
         MIGRATION_12_TABLES,
+        MIGRATIONS,
     )
 
-    assert MIGRATION_12_TABLES == ("effects", "verifications", "reviews", "evidence"), (
-        "migration 12 has already been applied to real databases; add a NEW "
-        "migration for further tables instead of editing this one"
+    digest = hashlib.sha256(MIGRATION_12.encode()).hexdigest()
+    assert digest == MIGRATION_12_SHA256, (
+        "migration 12 has been applied to real databases; its bytes are history. "
+        "Add a NEW migration instead of editing this one."
     )
+    assert MIGRATION_12_SHA256 == (
+        "cb5483b35e4ef78d761381dc9a1ac940c59b574f7716c17c84bf9b6c89392a5e"
+    ), "the pinned digest itself was edited"
+
+    assert MIGRATION_12_TABLES == ("effects", "verifications", "reviews", "evidence")
     for table in MIGRATION_12_TABLES:
         assert f"{table}_no_update" in MIGRATION_12
 
-    # Any table listed but not covered by 12 needs its own later migration.
-    from sovereign_agent.database import MIGRATIONS
-
+    # Any append-only table not covered by 12 needs its own later migration,
+    # or existing databases never receive its triggers.
     later = set(APPEND_ONLY_TABLES) - set(MIGRATION_12_TABLES) - {"events"}
     for table in later:
         covered = any(
@@ -551,5 +560,32 @@ def test_migration_12_content_is_frozen(tmp_path: Path) -> None:
         )
         assert covered, (
             f"{table} is listed append-only but no migration after 12 guards it; "
-            "existing databases would never receive its triggers"
+            "add a NEW migration for further tables"
         )
+
+
+def test_migration_12_does_not_depend_on_the_shared_helper() -> None:
+    """Editing the helper must not be able to rewrite an applied migration.
+
+    The helper stays for building FUTURE migrations. Version 12 is a literal, so
+    this asserts the independence directly rather than trusting the reading:
+    a helper whose output changed would no longer match the frozen bytes.
+    """
+    from sovereign_agent.database import MIGRATION_12, MIGRATION_12_TABLES, _append_only_triggers
+
+    generated = "".join(_append_only_triggers(table) for table in MIGRATION_12_TABLES)
+    assert generated == MIGRATION_12, (
+        "the helper and the shipped migration have diverged. That is ALLOWED — "
+        "version 12 is frozen and the helper may evolve for future migrations — "
+        "but update this test deliberately rather than by accident."
+    )
+    import pathlib
+
+    source = pathlib.Path(__file__).resolve().parent.parent / "src/sovereign_agent/database.py"
+    body = source.read_text(encoding="utf-8")
+    assignment = body.split("MIGRATION_12 = ", 1)[1][:120]
+    assert "_append_only_triggers" not in assignment, (
+        "MIGRATION_12 is generated again; an applied migration must be a literal"
+    )
+
+

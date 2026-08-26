@@ -150,7 +150,7 @@ def test_refuses_evidence_belonging_to_another_outcome(tmp_path: Path) -> None:
         org, "UPDATE evidence SET outcome_id = ? WHERE check_id = 'cash_reconciles'", (other.id,)
     )
     reopen_for_acceptance(org, outcome_id)
-    with pytest.raises(Refusal, match="not the evidence supporting acceptance"):
+    with pytest.raises(Refusal, match="does not match its verification"):
         org.accept(outcome_id, "principal-human")
 
 

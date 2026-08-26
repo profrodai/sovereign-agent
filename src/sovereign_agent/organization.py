@@ -946,8 +946,12 @@ class Organization:
         ).fetchall()
         if {str(row["id"]) for row in rows} != observation_evidence:
             raise Refusal(
-                "The reviewed evidence is not the evidence supporting acceptance.",
-                "Evidence was added or removed after the review.",
+                "The evidence supporting acceptance does not match its verification.",
+                "Evidence was added to or removed from the outcome's final "
+                "observation after it was recorded. This batch has no reviewer "
+                "of its own -- each SOW's review is checked separately -- so the "
+                "mismatch is between the evidence and the verification that "
+                "produced it, not between evidence and a review.",
                 "sovereign-agent status",
                 "Verify again and obtain a fresh review.",
             )

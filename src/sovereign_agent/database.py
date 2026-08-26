@@ -348,18 +348,91 @@ END;
 """
 
 
-# Frozen at the tables version 12 shipped with. Computing this from
-# APPEND_ONLY_TABLES made adding a table change the bytes of an ALREADY-STAMPED
-# version: fresh installs guarded, every upgraded database silently skipped --
-# this PR's recurring shape, a guarantee staying put while the load moves,
-# pre-installed in the fix built to stop it. Raised by Sparring.
+# Migration 12 as it SHIPPED, byte for byte. Not generated.
 #
-# A new proof-bearing table gets a NEW migration version.
-# `test_migration_12_content_is_frozen` fails if this list is edited, so the
-# rule enforces itself rather than relying on anyone remembering it.
+# The first attempt froze the table LIST and left the body flowing through the
+# shared `_append_only_triggers()` helper -- so editing that helper still
+# rewrote the bytes of an already-applied migration, which is the exact failure
+# the freeze was built to prevent. I froze membership and called it content.
+# Proven by mutation: a harmless comment in the helper changed MIGRATION_12's
+# digest while the "frozen" test passed.
+#
+# An applied migration is history. `_append_only_triggers()` stays, for building
+# FUTURE migrations only; version 12 no longer depends on it, and its digest is
+# pinned by `test_migration_12_content_is_frozen`.
 MIGRATION_12_TABLES: tuple[str, ...] = ("effects", "verifications", "reviews", "evidence")
 
-MIGRATION_12 = "".join(_append_only_triggers(table) for table in MIGRATION_12_TABLES)
+MIGRATION_12_SHA256 = "cb5483b35e4ef78d761381dc9a1ac940c59b574f7716c17c84bf9b6c89392a5e"
+
+MIGRATION_12 = """
+CREATE TRIGGER IF NOT EXISTS effects_no_update
+BEFORE UPDATE ON effects
+BEGIN
+    SELECT RAISE(ABORT, 'effects are append-only: update refused');
+END;
+CREATE TRIGGER IF NOT EXISTS effects_no_delete
+BEFORE DELETE ON effects
+BEGIN
+    SELECT RAISE(ABORT, 'effects are append-only: delete refused');
+END;
+CREATE TRIGGER IF NOT EXISTS effects_no_replace
+BEFORE INSERT ON effects
+WHEN EXISTS (SELECT 1 FROM effects WHERE id = NEW.id)
+BEGIN
+    SELECT RAISE(ABORT, 'effects are append-only: replace refused');
+END;
+
+CREATE TRIGGER IF NOT EXISTS verifications_no_update
+BEFORE UPDATE ON verifications
+BEGIN
+    SELECT RAISE(ABORT, 'verifications are append-only: update refused');
+END;
+CREATE TRIGGER IF NOT EXISTS verifications_no_delete
+BEFORE DELETE ON verifications
+BEGIN
+    SELECT RAISE(ABORT, 'verifications are append-only: delete refused');
+END;
+CREATE TRIGGER IF NOT EXISTS verifications_no_replace
+BEFORE INSERT ON verifications
+WHEN EXISTS (SELECT 1 FROM verifications WHERE id = NEW.id)
+BEGIN
+    SELECT RAISE(ABORT, 'verifications are append-only: replace refused');
+END;
+
+CREATE TRIGGER IF NOT EXISTS reviews_no_update
+BEFORE UPDATE ON reviews
+BEGIN
+    SELECT RAISE(ABORT, 'reviews are append-only: update refused');
+END;
+CREATE TRIGGER IF NOT EXISTS reviews_no_delete
+BEFORE DELETE ON reviews
+BEGIN
+    SELECT RAISE(ABORT, 'reviews are append-only: delete refused');
+END;
+CREATE TRIGGER IF NOT EXISTS reviews_no_replace
+BEFORE INSERT ON reviews
+WHEN EXISTS (SELECT 1 FROM reviews WHERE id = NEW.id)
+BEGIN
+    SELECT RAISE(ABORT, 'reviews are append-only: replace refused');
+END;
+
+CREATE TRIGGER IF NOT EXISTS evidence_no_update
+BEFORE UPDATE ON evidence
+BEGIN
+    SELECT RAISE(ABORT, 'evidence are append-only: update refused');
+END;
+CREATE TRIGGER IF NOT EXISTS evidence_no_delete
+BEFORE DELETE ON evidence
+BEGIN
+    SELECT RAISE(ABORT, 'evidence are append-only: delete refused');
+END;
+CREATE TRIGGER IF NOT EXISTS evidence_no_replace
+BEFORE INSERT ON evidence
+WHEN EXISTS (SELECT 1 FROM evidence WHERE id = NEW.id)
+BEGIN
+    SELECT RAISE(ABORT, 'evidence are append-only: replace refused');
+END;
+"""
 
 
 MIGRATIONS: tuple[tuple[int, str], ...] = (
