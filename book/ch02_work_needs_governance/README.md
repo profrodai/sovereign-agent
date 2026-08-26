@@ -189,9 +189,28 @@ protection, while the table they replaced was still immune. A reviewer put it
 exactly: *the guarantee stayed put while the load moved.*
 
 One thing append-only cannot do is stop a forged **append**: inserting is
-precisely what it permits. So an effect must also be corroborated by the event
-committed alongside it. An effect with no matching event is not a record of
-anything that happened.
+precisely what it permits. An effect is therefore cross-checked against the
+event committed alongside it, and an effect with no matching event is an
+incomplete record.
+
+Now the part that matters more, because it is where most systems overclaim.
+That cross-check detects **inconsistency**. It does not prove **authenticity**.
+Someone who can write arbitrary rows can append an effect *and* its matching
+event — two rows that agree with each other and are both invented. The
+organization will accept them.
+
+That is not a hole to be plugged with a third table. Every check you can write
+inside the database constrains what the *code* does, and an attacker with a
+database handle is not the code. Proving authenticity needs something the
+database does not hold — a signature key kept outside it — which is a different
+subject and out of scope here.
+
+So the honest statement, which
+[the ruling](../../docs/rulings/2026-08-26-sqlite-writers-are-inside-the-boundary.md)
+records: **anyone who can write arbitrary rows can rewrite the organization's
+memory.** Everything in this chapter protects the ledger from mistakes and
+ordinary tools. Knowing exactly which door is open is worth more than believing
+they are all shut.
 
 ## Exercise 7: being refused is not the end
 

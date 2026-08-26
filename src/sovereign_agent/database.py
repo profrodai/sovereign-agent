@@ -303,9 +303,27 @@ CREATE INDEX IF NOT EXISTS verifications_by_sow ON verifications(sow_id);
 """
 
 
-# Every table acceptance reads as PROOF. Append-only belongs on all of them, not
-# on whichever one happened to be load-bearing when the guards were written.
-PROOF_TABLES: tuple[str, ...] = ("events", "effects", "verifications", "reviews", "evidence")
+# Tables whose rows must never be rewritten once written. This is MUTATION
+# SAFETY, not authentication: the guards stop ordinary tools and honest mistakes
+# from altering history. They do not stop an arbitrary database writer, who can
+# still append.
+#
+# It is a maintained LIST, not a discovery mechanism. Adding a proof-bearing
+# table means adding it here AND shipping a new migration -- editing an
+# already-stamped migration would guard fresh installs and silently skip every
+# upgraded database.
+#
+# `receipts` is deliberately absent: `put_serialized` rewrites a receipt in
+# place while an assignment runs. Acceptance still treats it as proof, and
+# guards that instead by requiring the canonical record and the indexed columns
+# to agree (`Organization._trusted_receipt`).
+APPEND_ONLY_TABLES: tuple[str, ...] = (
+    "events",
+    "effects",
+    "verifications",
+    "reviews",
+    "evidence",
+)
 
 
 def _append_only_triggers(table: str) -> str:
@@ -330,7 +348,9 @@ END;
 """
 
 
-MIGRATION_12 = "".join(_append_only_triggers(table) for table in PROOF_TABLES if table != "events")
+MIGRATION_12 = "".join(
+    _append_only_triggers(table) for table in APPEND_ONLY_TABLES if table != "events"
+)
 
 
 MIGRATIONS: tuple[tuple[int, str], ...] = (

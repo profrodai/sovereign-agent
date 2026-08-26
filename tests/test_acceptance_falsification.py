@@ -81,11 +81,16 @@ def test_refuses_when_evidence_reports_failure(tmp_path: Path) -> None:
 
 def test_refuses_when_a_required_check_has_no_evidence(tmp_path: Path) -> None:
     org, outcome_id = accepted_org(tmp_path)
-    tamper(org, "DELETE FROM evidence WHERE check_id = 'cash_reconciles'")
+    # Delete from the FINAL observation, which is the batch acceptance rests on.
+    tamper(
+        org,
+        "DELETE FROM evidence WHERE check_id = 'cash_reconciles' AND verification_id = "
+        "(SELECT id FROM verifications WHERE outcome_id = ? AND (sow_id IS NULL OR sow_id = '') "
+        "ORDER BY rowid DESC LIMIT 1)",
+        (outcome_id,),
+    )
     reopen_for_acceptance(org, outcome_id)
-    # Now caught earlier and more precisely: the batch the reviewer signed off
-    # is no longer the batch supporting acceptance.
-    with pytest.raises(Refusal, match="not the evidence supporting acceptance"):
+    with pytest.raises(Refusal, match="No evidence for declared check"):
         org.accept(outcome_id, "principal-human")
 
 
@@ -105,11 +110,37 @@ def test_refuses_stale_evidence_even_when_checks_still_pass(tmp_path: Path) -> N
 
 
 def test_refuses_evidence_bound_to_another_execution(tmp_path: Path) -> None:
+    """A SOW's batch must be bound to that SOW's own execution.
+
+    The outcome-level batch is deliberately unbound — it is the final
+    observation of the world, not a record of one unit of work — so this proves
+    the binding where binding is the point.
+    """
     org, outcome_id = accepted_org(tmp_path)
-    tamper(org, "UPDATE evidence SET assignment_id = 'asg_SOME_OTHER_RUN'")
-    reopen_for_acceptance(org, outcome_id)
-    with pytest.raises(Refusal, match="not bound to this execution"):
-        org.accept(outcome_id, "principal-human")
+    sow_id = org.sows_for(outcome_id)[0].id
+    verification = org.verification_for_sow(sow_id)
+    assert verification is not None and verification.assignment_id
+
+    tamper(
+        org,
+        "UPDATE evidence SET assignment_id = 'asg_SOME_OTHER_RUN' WHERE verification_id = ?",
+        (verification.id,),
+    )
+    # The external truth verifier is the gate that walks each SOW's evidence
+    # against its execution, so that is where the rebinding is caught.
+    import subprocess
+    import sys
+
+    org.db.close()
+    repo_root = Path(__file__).resolve().parent.parent
+    result = subprocess.run(  # noqa: S603 - fixed argv, no shell
+        [sys.executable, str(repo_root / "scripts" / "verify_store_outcome.py"), str(tmp_path)],
+        capture_output=True,
+        text=True,
+        cwd=repo_root,
+    )
+    assert result.returncode == 1
+    assert "bound elsewhere" in result.stdout, result.stdout
 
 
 def test_refuses_evidence_belonging_to_another_outcome(tmp_path: Path) -> None:
@@ -555,6 +586,7 @@ def test_the_documented_residual_limit_is_real(tmp_path: Path) -> None:
     )
     org.db.connection.commit()
     org.review(sow_id, "sparring-course")
+    org.verify_outcome_condition(outcome_id, "verifier-course")
     org.accept(outcome_id, "principal-human")
 
     row = org.db.connection.execute(

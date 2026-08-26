@@ -402,35 +402,82 @@ def test_a_migration_that_cannot_preserve_the_ledger_refuses_to_run(tmp_path: Pa
         inspector.close()
 
 
-def test_every_proof_bearing_table_is_append_only(tmp_path: Path) -> None:
-    """The guarantee must sit where the load is, and stay there.
+def test_append_only_guards_exist_on_fresh_and_upgraded_databases(tmp_path: Path) -> None:
+    """The guards must reach EXISTING databases, not just new ones.
 
-    Append-only was added to `events` because acceptance rested on events. It
-    then came to rest on `effects`, `verifications`, `reviews` and `evidence` —
-    and the guards stayed put. An outside INSERT into `effects` flipped a
-    correctly-refused outcome to ACCEPTED. Raised by Sparring, who counted it as
-    the seventh time on this PR that a guarantee stayed while the load moved.
-
-    This asserts the SET, not one table, so a future proof-bearing table added
-    without guards fails here rather than shipping unguarded.
+    MIGRATION_12's body is computed from the table list, so adding a table would
+    change the bytes of an already-stamped version: fresh installs would be
+    guarded and every upgraded database silently skipped. Raised by Sparring,
+    who noted the original test built a fresh database and therefore passed in
+    both worlds.
     """
-    from sovereign_agent.database import PROOF_TABLES
+    import sovereign_agent.database as database_module
+    from sovereign_agent.database import APPEND_ONLY_TABLES
 
-    db = Database(tmp_path / "guards.db")
+    def guards(db: Database, table: str) -> set[str]:
+        return {
+            str(row["name"])
+            for row in db.connection.execute(
+                "SELECT name FROM sqlite_master WHERE type = 'trigger' AND tbl_name = ?",
+                (table,),
+            )
+        }
+
+    fresh = Database(tmp_path / "fresh.db")
     try:
-        for table in PROOF_TABLES:
-            triggers = {
-                str(row["name"])
-                for row in db.connection.execute(
-                    "SELECT name FROM sqlite_master WHERE type = 'trigger' AND tbl_name = ?",
-                    (table,),
-                )
-            }
-            assert triggers == {
+        for table in APPEND_ONLY_TABLES:
+            assert guards(fresh, table) == {
                 f"{table}_no_update",
                 f"{table}_no_delete",
                 f"{table}_no_replace",
-            }, f"{table} carries proof but is not append-only: {sorted(triggers)}"
+            }, f"{table} is listed append-only but is unguarded on a fresh database"
+    finally:
+        fresh.close()
+
+    # Build a database stamped up to the version BEFORE the guards, then upgrade.
+    path = tmp_path / "upgraded.db"
+    connection = sqlite3.connect(path)
+    for version, script in database_module.MIGRATIONS:
+        if version >= 12:
+            break
+        for statement in database_module._split_statements(script):  # noqa: SLF001
+            connection.execute(statement)
+        connection.execute(
+            "INSERT INTO schema_migrations(version, applied_at) VALUES (?, datetime('now'))",
+            (version,),
+        )
+    connection.commit()
+    connection.close()
+
+    upgraded = Database(path)
+    try:
+        for table in APPEND_ONLY_TABLES:
+            assert guards(upgraded, table) == {
+                f"{table}_no_update",
+                f"{table}_no_delete",
+                f"{table}_no_replace",
+            }, f"{table} is unguarded after an UPGRADE; the guards only reach new installs"
+    finally:
+        upgraded.close()
+
+
+def test_receipts_are_deliberately_not_append_only(tmp_path: Path) -> None:
+    """Absence from the list must be a decision, not an oversight.
+
+    `put_serialized` rewrites a receipt in place while an assignment runs, so
+    receipts cannot be append-only. Acceptance guards them differently, by
+    requiring the canonical record and the indexed columns to agree.
+    """
+    from sovereign_agent.database import APPEND_ONLY_TABLES
+
+    assert "receipts" not in APPEND_ONLY_TABLES
+    db = Database(tmp_path / "receipts.db")
+    try:
+        triggers = db.connection.execute(
+            "SELECT COUNT(*) AS c FROM sqlite_master WHERE type = 'trigger' "
+            "AND tbl_name = 'receipts'"
+        ).fetchone()
+        assert int(triggers["c"]) == 0
     finally:
         db.close()
 

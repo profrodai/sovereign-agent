@@ -70,6 +70,7 @@ def test_condition_true_contribution_true_accepts(tmp_path: Path) -> None:
     apply_restock(org.db, RestockProposal("SKU-TEA", 6), assignment_id, signal.id)
     org.verify_outcome(outcome_id, "verifier-course")
     org.review(sow_id, "sparring-course")
+    org.verify_outcome_condition(outcome_id, "verifier-course")
     org.accept(outcome_id, "principal-human")
 
 
@@ -245,6 +246,7 @@ def test_a_sow_with_no_declared_effect_need_not_change_the_world(tmp_path: Path)
     sow_id, _assignment_id = run_sow(org, outcome_id, "investigate", None)
     org.verify_outcome(outcome_id, "verifier-course")
     org.review(sow_id, "sparring-course")
+    org.verify_outcome_condition(outcome_id, "verifier-course")
     org.accept(outcome_id, "principal-human")
 
 
@@ -321,6 +323,7 @@ def test_core_and_the_truth_verifier_agree_on_a_multi_sow_organization(
     org.verify_sow(investigation_sow, "verifier-course")
     org.review(effectful_sow, "sparring-course")
     org.review(investigation_sow, "sparring-course")
+    org.verify_outcome_condition(outcome_id, "verifier-course")
     org.accept(outcome_id, "principal-human")
     org.db.close()
 
@@ -366,38 +369,51 @@ def test_a_sow_must_produce_its_declared_deliverable(tmp_path: Path) -> None:
         org.accept(outcome_id, "principal-human")
 
 
-def test_a_forged_effect_row_does_not_credit_idle_work(tmp_path: Path) -> None:
-    """Append-only cannot stop a forged APPEND. Corroboration can.
+def test_corroboration_detects_inconsistency_but_does_not_authenticate(
+    tmp_path: Path,
+) -> None:
+    """States the LIMITATION as a fact, so nobody re-derives it as a bug.
 
-    Inserting is exactly what an append-only table permits, so a new `effects`
-    row naming an idle assignment would credit it with work it never did. Every
-    effect is committed in the same transaction as its event, so an effect with
-    no matching event is not a record of anything that happened — and rewriting
-    an existing event is refused outright.
+    Governed by docs/rulings/2026-08-26-sqlite-writers-are-inside-the-boundary.md.
+
+    An earlier version of this test was named "a forged effect row does not
+    credit idle work" and asserted only the half that passes. Both reviewers
+    showed the other half: two coordinated fresh appends are mutually consistent
+    and equally forged, and acceptance takes them. Asserting only the convenient
+    half is how a limitation gets mistaken for a defence.
     """
+    import json
+
     org, outcome_id = build(tmp_path, ["inventory_at_or_above_reorder_point"])
     signal = record_sale(org.db, "SKU-TEA", 2, 400)
     real_sow, real = run_sow(org, outcome_id, "real", "replenishment")
     apply_restock(org.db, RestockProposal("SKU-TEA", 6), real, signal.id)
     idle_sow, idle = run_sow(org, outcome_id, "idle", "replenishment")
 
-    for sow_id in (real_sow, idle_sow):
-        org.verify_sow(sow_id, "verifier-course")
-    for sow_id in (real_sow, idle_sow):
-        org.review(sow_id, "sparring-course")
-
-    # A brand-new row, so no append-only trigger fires.
+    # (a) An effect with NO witnessing event is an incomplete record and is not
+    #     counted. This is what corroboration genuinely buys.
     org.db.connection.execute(
         "INSERT INTO effects(id, assignment_id, kind, subject, payload, created_at, outcome_id) "
-        "SELECT 'eff_forged', ?, kind, subject, payload, created_at, outcome_id "
+        "SELECT 'eff_orphan', ?, kind, subject, payload, created_at, outcome_id "
         "FROM effects LIMIT 1",
         (idle,),
     )
     org.db.connection.commit()
-    assert idle in org.contributing_executions(outcome_id), "precondition: the row was accepted"
     assert "replenishment" not in org.effect_kinds_for_execution(idle), (
-        "an uncorroborated effect must not count as work done"
+        "an effect with no witnessing event must not count as work done"
     )
 
-    with pytest.raises(Refusal, match="produced no replenishment effect"):
-        org.accept(outcome_id, "principal-human")
+    # (b) Add the matching event and the two agree — because they were written
+    #     to agree, not because anything happened. Corroboration cannot tell the
+    #     difference, and this asserts that plainly.
+    org.db.connection.execute(
+        "INSERT INTO events(id, kind, payload, created_at) "
+        "VALUES ('evt_forged', 'replenishment.committed', ?, 't')",
+        (json.dumps({"assignment_id": idle, "sku": "SKU-TEA"}),),
+    )
+    org.db.connection.commit()
+    assert "replenishment" in org.effect_kinds_for_execution(idle), (
+        "two coordinated fresh appends are mutually consistent; corroboration "
+        "detects inconsistency and does not authenticate. If this ever fails, "
+        "the trust boundary changed and the ruling must be re-derived."
+    )

@@ -395,19 +395,11 @@ class Organization:
     def verify_sow(self, sow_id: str, verifier_id: str) -> list[CheckResult]:
         """Execute the declared checks FOR ONE NAMED SOW's execution.
 
-        The caller says which work is being verified. The previous API took only
+        The caller says which work is being verified. An earlier API took only
         an outcome and picked a SOW implicitly by row order, so with two
-        completed SOWs one of them became permanently unreviewable and which one
-        was arbitrary -- `sows_for()` has no ordering contract.
+        completed SOWs one became permanently unreviewable.
         """
-        verifier = self.actor(verifier_id)
-        require_authority(verifier.role, "run_checks")
         sow = self._sow(sow_id)
-        outcome = self._outcome(sow.outcome_id)
-        if outcome.state != OutcomeState.VERIFYING:
-            outcome.state = advance_outcome(outcome.state, OutcomeState.VERIFYING)
-            self._save_outcome(outcome, "outcome.verifying")
-
         execution_id = self.completed_assignment_for_sow(sow_id)
         if not execution_id:
             raise Refusal(
@@ -416,6 +408,22 @@ class Organization:
                 "sovereign-agent status",
                 "Run this SOW's assignment first.",
             )
+        return self._record_verification(sow.outcome_id, sow_id, verifier_id, execution_id)
+
+    def _record_verification(
+        self, outcome_id: str, sow_id: str, verifier_id: str, execution_id: str = ""
+    ) -> list[CheckResult]:
+        """Run the declared checks and persist one batch of check-bound evidence.
+
+        `sow_id` empty means the outcome-level batch: the final observation that
+        the condition holds now, which belongs to no single unit of work.
+        """
+        verifier = self.actor(verifier_id)
+        require_authority(verifier.role, "run_checks")
+        outcome = self._outcome(outcome_id)
+        if outcome.state != OutcomeState.VERIFYING:
+            outcome.state = advance_outcome(outcome.state, OutcomeState.VERIFYING)
+            self._save_outcome(outcome, "outcome.verifying")
 
         subject = outcome.subject
         results = [run_check(self.db, check_id, subject) for check_id in outcome.acceptance_checks]
@@ -424,7 +432,7 @@ class Organization:
         evidence_ids = [new_id("evd") for _ in results]
         aggregate = digest_payload(
             {
-                "outcome_id": sow.outcome_id,
+                "outcome_id": outcome_id,
                 "sow_id": sow_id,
                 "assignment_id": execution_id,
                 "checks": [
@@ -435,7 +443,7 @@ class Organization:
         )
         verification = Verification(
             id=verification_id,
-            outcome_id=sow.outcome_id,
+            outcome_id=outcome_id,
             sow_id=sow_id,
             assignment_id=execution_id,
             evidence_refs=evidence_ids,
@@ -452,8 +460,9 @@ class Organization:
                 "VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
                 (
                     verification_id,
-                    sow.outcome_id,
-                    sow_id,
+                    outcome_id,
+                    # NULL, not "": the FK to sows must not see an empty string.
+                    sow_id or None,
                     execution_id,
                     aggregate,
                     1 if verification.passed else 0,
@@ -465,7 +474,7 @@ class Organization:
                 evidence = Evidence(
                     id=evidence_id,
                     assignment_id=execution_id,
-                    outcome_id=sow.outcome_id,
+                    outcome_id=outcome_id,
                     check_id=result.check_id,
                     success=result.success,
                     observed=result.observed,
@@ -477,7 +486,7 @@ class Organization:
                     digest=digest_payload(
                         {
                             "check_id": result.check_id,
-                            "outcome_id": sow.outcome_id,
+                            "outcome_id": outcome_id,
                             "success": result.success,
                             "observed": result.observed,
                         }
@@ -492,7 +501,7 @@ class Organization:
                         evidence.id,
                         execution_id,
                         evidence.model_dump_json(),
-                        sow.outcome_id,
+                        outcome_id,
                         result.check_id,
                         1 if result.success else 0,
                         result.state_digest,
@@ -501,9 +510,9 @@ class Organization:
                 )
             append_event(
                 self.db,
-                "sow.verified",
+                "sow.verified" if sow_id else "outcome.verified",
                 {
-                    "outcome_id": sow.outcome_id,
+                    "outcome_id": outcome_id,
                     "sow_id": sow_id,
                     "verification_id": verification_id,
                     "by": verifier_id,
@@ -525,6 +534,8 @@ class Organization:
             if self.completed_assignment_for_sow(sow.id):
                 results = self.verify_sow(sow.id, verifier_id)
                 verified_any = True
+        if verified_any:
+            results = self.verify_outcome_condition(outcome_id, verifier_id)
         if not verified_any:
             raise Refusal(
                 f"Outcome {outcome_id} has no completed execution to verify.",
@@ -533,6 +544,25 @@ class Organization:
                 "Run an assignment first.",
             )
         return results
+
+    def verify_outcome_condition(self, outcome_id: str, verifier_id: str) -> list[CheckResult]:
+        """One final observation that the outcome's condition holds NOW.
+
+        Distinct from every SOW's verification. A SOW's batch proves what that
+        unit of work produced; this proves the state of the world at acceptance
+        time, and it is selected explicitly rather than by being whichever SOW
+        was iterated last.
+        """
+        return self._record_verification(outcome_id, "", verifier_id)
+
+    def outcome_verification(self, outcome_id: str) -> Verification | None:
+        """The outcome-level batch: the final observation, not a SOW's."""
+        row = self.db.connection.execute(
+            "SELECT record FROM verifications WHERE outcome_id = ? AND "
+            "(sow_id IS NULL OR sow_id = '') ORDER BY rowid DESC LIMIT 1",
+            (outcome_id,),
+        ).fetchone()
+        return Verification.model_validate_json(row["record"]) if row else None
 
     def verification_for_sow(self, sow_id: str) -> Verification | None:
         """The most recent verification OF THIS SOW."""
@@ -592,17 +622,22 @@ class Organization:
         return {str(row["assignment_id"]) for row in rows}
 
     def effect_kinds_for_execution(self, assignment_id: str) -> set[str]:
-        """What this specific execution changed, CORROBORATED BY THE EVENT LOG.
+        """What this specific execution changed, cross-checked against the events.
 
-        Append-only cannot stop a forged APPEND -- inserting is exactly what it
-        permits -- so a new `effects` row naming an idle assignment would
-        otherwise credit it with work it never did. Every effect is committed in
-        the same transaction as its event, so an effect with no matching event
-        is not a record of anything that happened.
+        Every effect is committed in the same transaction as its event, so an
+        effect with no matching event is an INCOMPLETE record -- a half-written
+        state, or a row someone added by hand.
 
-        `events` is the one table where a forged append is also detectable: the
-        payload names the assignment, and rewriting an existing event is refused
-        outright. Corroboration puts the proof back on the guarded table.
+        This detects inconsistency. It does NOT authenticate. Two coordinated
+        fresh appends -- an effect and its event -- are mutually consistent and
+        equally forged, and this will accept them. An earlier version of this
+        docstring claimed corroboration stopped a forged append; it does not,
+        and saying so contradicted the trust boundary this project already
+        documents. SQLite writers are inside that boundary: anyone who can write
+        arbitrary rows can rewrite the organization's memory, and no number of
+        cross-table checks changes that. Authenticating against an arbitrary
+        writer needs a trust root outside the database. See
+        docs/rulings/2026-08-26-sqlite-writers-are-inside-the-boundary.md.
         """
         rows = self.db.connection.execute(
             "SELECT DISTINCT kind FROM effects WHERE assignment_id = ?", (assignment_id,)
@@ -833,7 +868,6 @@ class Organization:
         # outcome-level evidence binding below then uses the verification of the
         # SOW that was verified last, which is the batch describing the world as
         # acceptance sees it.
-        verification = None
         for sow in sows:
             sow_verification = self.verification_for_sow(sow.id)
             if sow_verification is None:
@@ -857,13 +891,18 @@ class Organization:
                     "sovereign-agent status",
                     "Have a reviewer review this SOW's current verification.",
                 )
-            verification = sow_verification
+        # The final world observation is its OWN verification, not whichever
+        # SOW happened to be iterated last. `sows_for()` has no ordering
+        # contract, so review order silently changed which batch acceptance
+        # treated as final -- row order standing in for proof, again.
+        verification = self.outcome_verification(outcome_id)
         if verification is None:
             raise Refusal(
-                "No verification for this outcome.",
-                "Acceptance rests on a completed run of the declared checks.",
+                "The outcome condition has not been verified.",
+                "Each SOW proves its own work; the outcome needs one final "
+                "observation that the condition holds now.",
                 "sovereign-agent verify",
-                "Run verification first.",
+                "Verify the outcome after every SOW is reviewed.",
             )
         review_rows = self.db.connection.execute(
             "SELECT record, decision, reviewer_actor_id, verification_id FROM reviews "
@@ -877,26 +916,12 @@ class Organization:
                 "sovereign-agent status",
                 "Have a reviewer review the SOW.",
             )
-        current_reviews = [
-            row for row in review_rows if str(row["verification_id"]) == verification.id
-        ]
-        if not current_reviews:
-            raise Refusal(
-                "The current verification has not been reviewed.",
-                "The evidence supporting acceptance must be the evidence a "
-                "reviewer actually saw, not an earlier batch it replaced.",
-                "sovereign-agent status",
-                "Have a reviewer review the current verification.",
-            )
-        for row in current_reviews:
+        # Reviews are validated PER SOW above. The outcome-level batch is the
+        # final observation of the world, not a unit of work, so it has no
+        # reviewer of its own -- requiring one would mean reviewing a
+        # measurement rather than reviewing work.
+        for row in review_rows:
             self._trusted_review(row)
-            if str(row["decision"]) != "accepted":
-                raise Refusal(
-                    f"Review by {row['reviewer_actor_id']} decided {row['decision']}.",
-                    "An outcome cannot be accepted over an unresolved review.",
-                    "sovereign-agent status",
-                    "Repair the work, verify again, and obtain a new review.",
-                )
             if str(row["reviewer_actor_id"]) == accepter_id:
                 raise Refusal(
                     f"{accepter_id} reviewed this work and cannot also accept it.",
@@ -904,7 +929,12 @@ class Organization:
                     "sovereign-agent actor list",
                     "Have the Principal accept.",
                 )
-        reviewed_evidence = set(self._trusted_review(current_reviews[0]).evidence_refs)
+        reviewed_evidence = {
+            str(row["id"])
+            for row in self.db.connection.execute(
+                "SELECT id FROM evidence WHERE verification_id = ?", (verification.id,)
+            )
+        }
 
         rows = self.db.connection.execute(
             "SELECT id, check_id, success, state_digest, assignment_id FROM evidence "
@@ -940,14 +970,21 @@ class Organization:
                     "sovereign-agent verify",
                     "Fix the underlying problem and verify again.",
                 )
-            bound = [row for row in usable if str(row["assignment_id"]) == execution_id]
-            if not bound:
-                raise Refusal(
-                    f"Evidence for '{check_id}' is not bound to this execution.",
-                    "Evidence from another run does not prove this one.",
-                    "sovereign-agent verify",
-                    "Verify against the current assignment.",
-                )
+            # The outcome-level batch belongs to no single execution: it is the
+            # final observation of the world, not a record of one unit of work.
+            # Per-execution binding is enforced on each SOW's own batch above.
+            bound = usable
+            if verification.assignment_id:
+                bound = [
+                    row for row in usable if str(row["assignment_id"]) == verification.assignment_id
+                ]
+                if not bound:
+                    raise Refusal(
+                        f"Evidence for '{check_id}' is not bound to this execution.",
+                        "Evidence from another run does not prove this one.",
+                        "sovereign-agent verify",
+                        "Verify against the current assignment.",
+                    )
             fresh = [
                 row for row in bound if str(row["state_digest"]) == current[check_id].state_digest
             ]

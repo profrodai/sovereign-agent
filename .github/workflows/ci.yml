@@ -69,6 +69,65 @@ jobs:
           )
           print("drift reported, file untouched, --reconcile repaired it")
           CHECK
+      - name: Prove core and the truth verifier agree on a MULTI-SOW organization
+        # run_simulated builds exactly ONE SOW, so the oracle only ever ran
+        # against a single-SOW fixture: the gate was green because the fixture
+        # was narrower than the feature it gated. Both reviewers flagged that
+        # "true and ungated" is the state this defect was in when it broke.
+        run: |
+          python - <<'CHECK'
+          import pathlib, subprocess, sys, tempfile
+          sys.path.insert(0, "src")
+          from reference_organizations.store import (
+              RestockProposal, apply_restock, record_sale, seed,
+          )
+          from sovereign_agent.models import Role
+          from sovereign_agent.organization import Organization
+
+          root = pathlib.Path(tempfile.mkdtemp()) / "multi-sow"
+          org = Organization.init(root)
+          seed(org.db)
+          outcome = org.create_outcome(
+              "Keep the tea jar stocked",
+              "On-hand tea stays at or above the reorder point.",
+              ["inventory_at_or_above_reorder_point", "cash_reconciles",
+               "replenishment_event_exists"],
+              "principal-human", "SKU-TEA",
+          )
+          org.activate(outcome.id, "master-course")
+          signal = record_sale(org.db, "SKU-TEA", 2, 400)
+
+          effectful = org.create_sow(
+              outcome.id, "replenish", Role.OPERATOR, "master-course", "replenishment")
+          org.ready_sow(effectful.id)
+          worker = org.run_assignment(
+              org.assign(effectful.id, "operator-course", "master-course").id)
+          apply_restock(org.db, RestockProposal("SKU-TEA", 6), worker.id, signal.id)
+
+          investigation = org.create_sow(
+              outcome.id, "investigate", Role.OPERATOR, "master-course")
+          org.ready_sow(investigation.id)
+          org.run_assignment(
+              org.assign(investigation.id, "operator-course", "master-course").id)
+
+          for sow_id in (effectful.id, investigation.id):
+              org.verify_sow(sow_id, "verifier-course")
+          for sow_id in (effectful.id, investigation.id):
+              org.review(sow_id, "sparring-course")
+          org.verify_outcome_condition(outcome.id, "verifier-course")
+          org.accept(outcome.id, "principal-human")
+          org.db.close()
+          print("core: ACCEPTED")
+
+          result = subprocess.run(
+              [sys.executable, "scripts/verify_store_outcome.py", str(root)],
+              capture_output=True, text=True,
+          )
+          print(result.stdout)
+          if result.returncode != 0:
+              sys.exit("FAIL: core accepted what its own verifier rejects")
+          print("core and oracle agree on a multi-SOW organization")
+          CHECK
       - name: Verify a learner can reach a truthful outcome cold
         run: python scripts/evaluate_andrea_alpha.py
       - name: Prove acceptance still refuses a false claim
