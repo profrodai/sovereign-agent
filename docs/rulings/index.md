@@ -1,0 +1,14 @@
+# Rulings
+
+Binding decisions for the 1.x line. A ruling the code contradicts is
+worse than no ruling, so each names how to check it against the repository.
+
+- [Ruling: Sovereign Agent 1.x educational reset](2026-08-25-educational-reset.md)
+- [Ruling amendment: `main` is the 1.x educational integration line](2026-08-25-main-is-the-1x-line.md)
+- [Ruling amendment: effects are required where a SOW declares them](2026-08-26-amendment-conditional-effects.md)
+- [Deferral: multi-process fencing is Unit 8, not Unit 4](2026-08-26-deferral-unit4-fencing.md)
+- [Deferral: credentialed provider smokes are Unit 12](2026-08-26-deferral-unit6-smokes.md)
+- [Ruling: one process per actor in 1.x; lease fencing is Unit 8](2026-08-26-one-process-per-actor.md)
+- [Ruling: an outcome is a standing condition; a SOW is a unit of work](2026-08-26-outcomes-are-conditions-sows-are-work.md)
+- [Ruling: the persistence boundary, refined](2026-08-26-persistence-boundary-refinement.md)
+- [Ruling: SQLite writers are inside the trust boundary](2026-08-26-sqlite-writers-are-inside-the-boundary.md)

@@ -1,5 +1,13 @@
 # Build your first agent
 
+!!! warning "Legacy — describes software removed in 1.0"
+
+    This page documents the v0.7 API (`Config`, `run_task`, `Half`, …), which
+    Sovereign Agent 1.x does not provide. It is kept for readers still pinning
+    `sovereign-agent<1`. For the current package start at the
+    [Quickstart](../quickstart.md) and [the book](../book/index.md).
+
+
 In this tutorial you will build a small agent that turns a topic into a study
 plan. The agent receives one read-only capability and writes its final answer
 into an auditable session.
@@ -15,7 +23,7 @@ python -m pip install "sovereign-agent~=0.7.0"
 sovereign-agent doctor --skip-llm
 ```
 
-Configure a model as described in the [Quickstart](../quickstart.md#3-configure-a-model).
+Configure a model as described in the [v0.7 quickstart](../quickstart.md).
 
 ## Write the agent
 

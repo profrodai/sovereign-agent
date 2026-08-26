@@ -248,7 +248,7 @@ class Organization:
         assignment.state = AssignmentState.RUNNING
         self._save_assignment(assignment, sow, "assignment.running")
         started_at = utc_now()
-        failure: Exception | None = None
+        failure: BaseException | None = None
         try:
             receipt, report = invoke_actor(
                 worker, sow, workspace, output, assignment_id=assignment.id
@@ -269,6 +269,28 @@ class Organization:
                 worker,
                 workspace,
                 "internal_error",
+                f"{type(error).__name__}: {error}",
+                started_at,
+                assignment_id=assignment.id,
+            )
+            report = None
+            failure = error
+        except BaseException as error:
+            # KeyboardInterrupt and SystemExit are NOT Exception. They used to
+            # escape here, skipping the persistence block below and leaving the
+            # assignment recorded as RUNNING with no receipt at all -- a ledger
+            # saying work is in progress that is not. Fail-open, in a system
+            # whose whole subject is that a status must not outrun the world.
+            #
+            # An interruption is recorded like any other failure and then
+            # RE-RAISED: the caller still learns it was interrupted, and the
+            # organization no longer lies about what is running. A hard kill
+            # (SIGKILL) cannot be caught and stays Unit 8 recovery territory --
+            # a process cannot record its own death.
+            receipt = write_failed_receipt(
+                worker,
+                workspace,
+                "interrupted",
                 f"{type(error).__name__}: {error}",
                 started_at,
                 assignment_id=assignment.id,
