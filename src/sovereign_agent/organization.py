@@ -796,7 +796,6 @@ class Organization:
                 "Declare at least one acceptance check.",
             )
 
-        execution_id = self._latest_assignment_id(outcome_id)
         # Subject is read from the outcome, not supplied. Otherwise acceptance
         # could be pointed at a healthy product while the real one sits empty.
         current = {
@@ -813,9 +812,10 @@ class Organization:
                 "Fix the world, then verify and accept again.",
             )
 
-        # The work must have SUCCEEDED. Acceptance previously never looked at
-        # receipts, so an outcome whose only receipt said "failed" still accepted.
-        self._trusted_receipt(execution_id)
+        # Receipts are validated PER SOW below, on each SOW's own execution.
+        # A single outcome-level receipt check used `_latest_assignment_id`,
+        # which is row-order selection across all SOWs -- the concept this
+        # design replaced. Removed rather than reordered.
 
         # The bound execution must have CONTRIBUTED. Ruling
         # 2026-08-26-outcomes-are-conditions-sows-are-work: an outcome is a
@@ -859,15 +859,13 @@ class Organization:
                     "Do the work this SOW declares, or drop its required effect.",
                 )
 
-        # Acceptance rests on ONE verification batch, and the review must be of
-        # that exact batch. Previously acceptance used whatever evidence existed
-        # now while the review referenced whatever existed then, so a second
-        # verification could replace every reviewed row and acceptance would
-        # still report that the work had been reviewed.
-        # Each SOW's proof chain is validated on its own verification. The
-        # outcome-level evidence binding below then uses the verification of the
-        # SOW that was verified last, which is the batch describing the world as
-        # acceptance sees it.
+        # Each SOW's proof chain is validated on its own verification, and the
+        # review must be of that exact batch: a second verification could
+        # otherwise replace every reviewed row while acceptance still reported
+        # the work reviewed. The final world observation is selected separately,
+        # below, by `outcome_verification` -- NOT by whichever SOW happens to be
+        # iterated last, which is what an earlier version of this comment
+        # described and an earlier version of this code did.
         for sow in sows:
             sow_verification = self.verification_for_sow(sow.id)
             if sow_verification is None:
@@ -929,7 +927,12 @@ class Organization:
                     "sovereign-agent actor list",
                     "Have the Principal accept.",
                 )
-        reviewed_evidence = {
+        # The evidence of the final observation. Deliberately NOT called
+        # "reviewed evidence": the outcome observation has no reviewer of its
+        # own -- each SOW's review is validated above -- and naming it for a
+        # review binding that does not exist would teach a relationship the
+        # code does not have.
+        observation_evidence = {
             str(row["id"])
             for row in self.db.connection.execute(
                 "SELECT id FROM evidence WHERE verification_id = ?", (verification.id,)
@@ -941,7 +944,7 @@ class Organization:
             "WHERE outcome_id = ? AND verification_id = ?",
             (outcome_id, verification.id),
         ).fetchall()
-        if {str(row["id"]) for row in rows} != reviewed_evidence:
+        if {str(row["id"]) for row in rows} != observation_evidence:
             raise Refusal(
                 "The reviewed evidence is not the evidence supporting acceptance.",
                 "Evidence was added or removed after the review.",

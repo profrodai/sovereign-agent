@@ -148,6 +148,23 @@ introduced. It is the same statement in a different key: everything here
 protects the ledger from *mistakes and ordinary tools*, not from an actor with
 arbitrary write access to the database file.
 
+## Append-only guards reach the databases that ran their migration
+
+`APPEND_ONLY_TABLES` is a maintained list, not a discovery mechanism, and its
+guards arrive through migrations like any other schema change. That has one
+consequence worth stating rather than leaving to be discovered:
+
+**Adding a table to the list does not retro-guard existing databases.** A new
+proof-bearing table needs a NEW migration version. Editing an applied
+migration's body would guard fresh installs and silently skip every database
+that had already stamped that version — the same shape as every other defect on
+this line: a guarantee staying put while the load moves.
+
+`test_migration_12_content_is_frozen` enforces it, so the rule does not depend
+on anyone remembering it. `receipts` is deliberately outside the list —
+`put_serialized` rewrites a receipt in place while an assignment runs — and is
+guarded instead by requiring its canonical record and indexed columns to agree.
+
 ## How to see the drift for yourself
 
 ```console

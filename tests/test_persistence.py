@@ -514,3 +514,42 @@ def test_a_forged_effect_cannot_be_inserted_from_outside(tmp_path: Path) -> None
             outsider.commit()
     finally:
         outsider.close()
+
+
+def test_migration_12_content_is_frozen(tmp_path: Path) -> None:
+    """An applied migration's bytes must never change.
+
+    MIGRATION_12 was computed from APPEND_ONLY_TABLES, so adding a table
+    tomorrow would rewrite an already-stamped version: guards for new installs,
+    silence for every upgraded database. Raised by Sparring as the one item
+    left, and it is this PR's recurring shape — a guarantee staying put while
+    the load moves — sitting inside the fix built to stop it.
+
+    Adding a proof-bearing table means a NEW migration. This test fails if
+    version 12 is edited instead, so the rule does not depend on remembering it.
+    """
+    from sovereign_agent.database import (
+        APPEND_ONLY_TABLES,
+        MIGRATION_12,
+        MIGRATION_12_TABLES,
+    )
+
+    assert MIGRATION_12_TABLES == ("effects", "verifications", "reviews", "evidence"), (
+        "migration 12 has already been applied to real databases; add a NEW "
+        "migration for further tables instead of editing this one"
+    )
+    for table in MIGRATION_12_TABLES:
+        assert f"{table}_no_update" in MIGRATION_12
+
+    # Any table listed but not covered by 12 needs its own later migration.
+    from sovereign_agent.database import MIGRATIONS
+
+    later = set(APPEND_ONLY_TABLES) - set(MIGRATION_12_TABLES) - {"events"}
+    for table in later:
+        covered = any(
+            f"{table}_no_update" in script for version, script in MIGRATIONS if version > 12
+        )
+        assert covered, (
+            f"{table} is listed append-only but no migration after 12 guards it; "
+            "existing databases would never receive its triggers"
+        )

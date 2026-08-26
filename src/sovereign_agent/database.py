@@ -348,9 +348,18 @@ END;
 """
 
 
-MIGRATION_12 = "".join(
-    _append_only_triggers(table) for table in APPEND_ONLY_TABLES if table != "events"
-)
+# Frozen at the tables version 12 shipped with. Computing this from
+# APPEND_ONLY_TABLES made adding a table change the bytes of an ALREADY-STAMPED
+# version: fresh installs guarded, every upgraded database silently skipped --
+# this PR's recurring shape, a guarantee staying put while the load moves,
+# pre-installed in the fix built to stop it. Raised by Sparring.
+#
+# A new proof-bearing table gets a NEW migration version.
+# `test_migration_12_content_is_frozen` fails if this list is edited, so the
+# rule enforces itself rather than relying on anyone remembering it.
+MIGRATION_12_TABLES: tuple[str, ...] = ("effects", "verifications", "reviews", "evidence")
+
+MIGRATION_12 = "".join(_append_only_triggers(table) for table in MIGRATION_12_TABLES)
 
 
 MIGRATIONS: tuple[tuple[int, str], ...] = (

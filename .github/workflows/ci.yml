@@ -110,8 +110,13 @@ jobs:
           org.run_assignment(
               org.assign(investigation.id, "operator-course", "master-course").id)
 
-          for sow_id in (effectful.id, investigation.id):
-              org.verify_sow(sow_id, "verifier-course")
+          # Verify the investigation FIRST, move the world with a legitimate
+          # sale, then verify the effectful SOW. Verifying both only after all
+          # business mutations cannot detect an ordering-dependent oracle,
+          # which is how a real disagreement shipped past this gate once.
+          org.verify_sow(investigation.id, "verifier-course")
+          record_sale(org.db, "SKU-TEA", 1, 400)
+          org.verify_sow(effectful.id, "verifier-course")
           for sow_id in (effectful.id, investigation.id):
               org.review(sow_id, "sparring-course")
           org.verify_outcome_condition(outcome.id, "verifier-course")

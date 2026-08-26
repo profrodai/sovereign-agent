@@ -93,7 +93,6 @@ def verify(root: Path) -> list[str]:
     sows = org.sows_for(outcome_id)
     if not sows:
         fail("no SOW for this outcome")
-    newest_verification = None
     for sow in sows:
         if sow.state.value != "ACCEPTED":
             fail(f"SOW {sow.id} is {sow.state.value}, not ACCEPTED")
@@ -109,7 +108,6 @@ def verify(root: Path) -> list[str]:
             continue
         if verification.assignment_id != execution or verification.sow_id != sow.id:
             fail(f"verification {verification.id} is not bound to SOW {sow.id}'s execution")
-        newest_verification = verification
 
         rows = db.connection.execute(
             "SELECT check_id, success, assignment_id FROM evidence WHERE verification_id = ?",
@@ -162,16 +160,22 @@ def verify(root: Path) -> list[str]:
                     f"execution produced none"
                 )
 
-    # 8. Freshness is checked once, against the verification describing the world
-    #    as acceptance saw it.
-    if newest_verification is not None:
+    # 8. Freshness is checked once, against the OUTCOME-LEVEL observation --
+    #    selected explicitly, exactly as `Organization.accept()` selects it.
+    #    This used to keep whichever SOW was iterated last, so review order
+    #    changed which batch the oracle called final and the release gate
+    #    rejected organizations the core had legitimately accepted.
+    outcome_observation = org.outcome_verification(outcome_id)
+    if outcome_observation is None:
+        fail("the outcome condition has not been verified")
+    else:
         for check_id in outcome.acceptance_checks:
             current = run_check(db, check_id, subject)
             digests = {
                 str(row["state_digest"])
                 for row in db.connection.execute(
                     "SELECT state_digest FROM evidence WHERE verification_id = ? AND check_id = ?",
-                    (newest_verification.id, check_id),
+                    (outcome_observation.id, check_id),
                 ).fetchall()
             }
             if digests and current.state_digest not in digests:

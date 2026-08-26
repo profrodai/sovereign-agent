@@ -250,6 +250,63 @@ def test_a_sow_with_no_declared_effect_need_not_change_the_world(tmp_path: Path)
     org.accept(outcome_id, "principal-human")
 
 
+@pytest.mark.parametrize("verify_order", [(0, 1), (1, 0)])
+@pytest.mark.parametrize("review_order", [(0, 1), (1, 0)])
+@pytest.mark.parametrize("world_moves_between", [False, True])
+def test_acceptance_is_independent_of_verify_and_review_order(
+    tmp_path: Path,
+    verify_order: tuple[int, int],
+    review_order: tuple[int, int],
+    world_moves_between: bool,
+) -> None:
+    """Enumerate the orderings instead of claiming they were enumerated.
+
+    I reported "all four permutations accept identically" from a throwaway probe
+    and shipped a test exercising ONE fixed ordering while its name said "in
+    either order". The reviewer caught the gap. This is the claim as a test, and
+    it includes the case the reviewer's reproduction needed: the world moving
+    BETWEEN the two verifications, which is what made the oracle disagree with
+    the core.
+
+    Both the core and the release oracle must agree in every combination.
+    """
+    import subprocess
+    import sys
+
+    repo_root = Path(__file__).resolve().parent.parent
+    org, outcome_id = build(tmp_path)
+    signal = record_sale(org.db, "SKU-TEA", 2, 400)
+
+    effectful_sow, effectful = run_sow(org, outcome_id, "replenish", "replenishment")
+    apply_restock(org.db, RestockProposal("SKU-TEA", 6), effectful, signal.id)
+    investigation_sow, _idle = run_sow(org, outcome_id, "investigate", None)
+    sow_ids = (effectful_sow, investigation_sow)
+
+    org.verify_sow(sow_ids[verify_order[0]], "verifier-course")
+    if world_moves_between:
+        # A legitimate sale: inventory and cash change, the outcome stays true.
+        record_sale(org.db, "SKU-TEA", 1, 400)
+    org.verify_sow(sow_ids[verify_order[1]], "verifier-course")
+
+    for index in review_order:
+        org.review(sow_ids[index], "sparring-course")
+
+    org.verify_outcome_condition(outcome_id, "verifier-course")
+    org.accept(outcome_id, "principal-human")
+    org.db.close()
+
+    result = subprocess.run(  # noqa: S603 - fixed argv, no shell
+        [sys.executable, str(repo_root / "scripts" / "verify_store_outcome.py"), str(tmp_path)],
+        capture_output=True,
+        text=True,
+        cwd=repo_root,
+    )
+    assert result.returncode == 0, (
+        f"core accepted but the oracle rejected: verify={verify_order} "
+        f"review={review_order} world_moves={world_moves_between}\n" + result.stdout
+    )
+
+
 def test_two_completed_sows_are_each_verifiable_and_reviewable(tmp_path: Path) -> None:
     """Complete both SOWs first, then verify and review each, in either order.
 
