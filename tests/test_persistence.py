@@ -307,3 +307,42 @@ def test_migration_statement_splitting_keeps_trigger_bodies_intact() -> None:
     assert len(statements) == 1
     assert statements[0].startswith("CREATE TRIGGER")
     assert statements[0].rstrip().endswith("END;")
+
+
+def test_the_effect_key_cannot_collide_across_assignment_and_subject(tmp_path: Path) -> None:
+    """Structured columns, not a concatenated string.
+
+    Raised by Sparring: the key was `f"restock:{assignment_id}:{sku}"`, so
+    (assignment='asg_A', sku='TEA:X') and (assignment='asg_A:TEA', sku='X')
+    produced the same string. A colliding pair returned idempotent_replay=True
+    — a restock that never happened, reported as success. That made structured
+    columns a correctness fix rather than a schema preference.
+    """
+    db = Database(tmp_path / "collide.db")
+    db.connection.execute("INSERT INTO actors(id, record) VALUES ('op', '{}')")
+    db.connection.execute("INSERT INTO outcomes(id, record) VALUES ('out', '{}')")
+    db.connection.execute("INSERT INTO sows(id, outcome_id, record) VALUES ('sow', 'out', '{}')")
+    for assignment_id in ("asg_A", "asg_A:TEA"):
+        db.connection.execute(
+            "INSERT INTO assignments(id, sow_id, actor_id, record) VALUES (?, 'sow', 'op', '{}')",
+            (assignment_id,),
+        )
+    db.connection.commit()
+
+    legacy_key = "restock:asg_A:TEA:X"
+    assert f"restock:asg_A:{'TEA:X'}" == legacy_key
+    assert f"restock:{'asg_A:TEA'}:X" == legacy_key, "precondition: the old scheme collided"
+
+    for evidence_id, assignment_id, subject in (
+        ("e1", "asg_A", "TEA:X"),
+        ("e2", "asg_A:TEA", "X"),
+    ):
+        db.connection.execute(
+            "INSERT INTO effects(id, assignment_id, kind, subject, payload, created_at) "
+            "VALUES (?, ?, 'replenishment', ?, '{}', 't')",
+            (evidence_id, assignment_id, subject),
+        )
+    db.connection.commit()
+    row = db.connection.execute("SELECT COUNT(*) AS c FROM effects").fetchone()
+    assert int(row["c"]) == 2, "structured columns must keep these pairs distinct"
+    db.close()

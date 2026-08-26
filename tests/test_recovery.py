@@ -111,3 +111,27 @@ def test_history_is_preserved_across_recovery(tmp_path: Path) -> None:
     ).fetchone()
     assert int(verifications["c"]) == 2
     assert int(reviews["c"]) == 2, "the changes_requested review must remain on the record"
+
+
+def test_recovery_does_not_leave_an_orphan_assignment(tmp_path: Path) -> None:
+    """A partially-succeeding recovery would manufacture a false identity.
+
+    Raised by Sparring: `assign()` on a CHANGES_REQUESTED SOW used to succeed,
+    write an assignment row, and NOT advance the state — so `run_assignment`
+    then failed and left an orphan that had never run. `_latest_assignment_id`
+    picks the most recent assignment, so the orphan immediately became the
+    identity evidence and receipts bound to.
+    """
+    org, outcome_id, sow_id, _signal_id = failing_outcome(tmp_path)
+    org.verify_outcome(outcome_id, "verifier-course")
+    org.review(sow_id, "sparring-course")
+    before = org._latest_assignment_id(outcome_id)  # noqa: SLF001
+
+    recovery = org.assign(sow_id, "operator-course", "master-course")
+    assert org._sow(sow_id).state == SowState.ASSIGNED  # noqa: SLF001
+    org.run_assignment(recovery.id)
+
+    after = org._latest_assignment_id(outcome_id)  # noqa: SLF001
+    assert after == recovery.id != before
+    record = org._assignment(after)  # noqa: SLF001
+    assert record.state.value == "COMPLETED", "the bound execution must have actually run"
