@@ -31,7 +31,7 @@ API key, no network after installation, and no database tools.
     git clone https://github.com/zeroemployeeorg/sovereign-agent.git
     cd sovereign-agent
     py -3.14 -m venv .venv
-    .venv\Scripts\activate
+    .\.venv\Scripts\Activate.ps1
     pip install -e .
     ```
 

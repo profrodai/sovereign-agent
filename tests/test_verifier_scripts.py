@@ -212,11 +212,20 @@ def test_inspect_reports_the_facts_a_learner_audits_with(store: Path) -> None:
     assert "replenishment.committed" in healthy, "the restock must appear on the ledger"
     assert "ACCEPTED" in healthy
 
-    # Empty the shelf behind the organization's back.
-    organization = Organization(store)
-    organization.db.connection.execute("UPDATE inventory SET on_hand = 0 WHERE sku = 'SKU-TEA'")
-    organization.db.connection.commit()
-    organization.db.close()
+    # Empty the shelf using THE SCRIPT THE QUICKSTART TELLS THE READER TO RUN,
+    # not a private copy of its SQL. Duplicating the statement here left the
+    # script itself unguarded: turning it into a no-op kept all 191 tests green.
+    # One test now proves the exact learner sequence --
+    #     demo -> inspect OK -> empty_the_shelf.py -> inspect LOW + ACCEPTED
+    # -- so the page, the script and the command cannot drift apart.
+    emptied_result = subprocess.run(  # noqa: S603 - fixed argv, no shell
+        [sys.executable, str(repo_root / "scripts" / "empty_the_shelf.py"), str(store)],
+        capture_output=True,
+        text=True,
+        cwd=repo_root,
+    )
+    assert emptied_result.returncode == 0, emptied_result.stdout + emptied_result.stderr
+    assert "on_hand set to 0" in emptied_result.stdout
 
     emptied = inspect()
     assert "LOW SKU-TEA" in emptied, "an empty shelf must read LOW"
