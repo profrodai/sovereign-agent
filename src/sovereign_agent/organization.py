@@ -953,7 +953,7 @@ class Organization:
                 "mismatch is between the evidence and the verification that "
                 "produced it, not between evidence and a review.",
                 "sovereign-agent status",
-                "Verify again and obtain a fresh review.",
+                "Re-record the outcome observation with verify_outcome_condition.",
             )
         by_check: dict[str, list[Any]] = {}
         for row in rows:
