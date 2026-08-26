@@ -17,6 +17,12 @@ jobs:
           cache: pip
       - name: Install package and development tools
         run: python -m pip install -e . --group dev
+      - name: Verify the lockfile matches pyproject
+        # A dependency group added to pyproject but never locked installs fine
+        # for whoever ran `uv run` locally and fails for everyone else.
+        run: |
+          python -m pip install --upgrade uv
+          uv lock --check
       - name: Format
         run: ruff format --check src tests scripts book
       - name: Lint

@@ -165,3 +165,64 @@ def test_the_published_quickstart_uses_only_commands_that_exist(tmp_path: Path) 
     assert not re.search(r"^\s*sqlite3 ", text, re.M), (
         "quickstart shells out to the sqlite3 binary, which it does not declare"
     )
+
+    # Nor may it paste shell-quoted one-liners onto a page that also gives
+    # Windows instructions: `python -c "...\"...\""` is not valid PowerShell.
+    assert not re.search(r'python -c "', text), (
+        "quickstart uses a shell-quoted one-liner; it is shown to Windows "
+        "readers too, so use a repository script instead"
+    )
+
+    # Every repository script the page tells the reader to run must exist.
+    for script in re.findall(r"(scripts/[\w_]+\.py)", text):
+        assert (repo_root / script).is_file(), f"quickstart references missing {script}"
+
+    # `pip install -e .` downloads Pydantic, so "no network after the clone"
+    # was false. The honest claim is after installation.
+    assert "no network after the clone" not in text
+
+
+def test_inspect_reports_the_facts_a_learner_audits_with(store: Path) -> None:
+    """`inspect` is the quickstart's audit step, so its output is a contract.
+
+    It was added to remove an undeclared `sqlite3` dependency and shipped with
+    only a `--help` assertion behind it: changing `_inspect` to always print
+    `OK` left all 190 tests green. Presence is not coverage — reported on PR #25
+    and the same failure, one layer down, as the matrix that named a property it
+    did not exercise.
+    """
+    import subprocess
+    import sys
+
+    repo_root = Path(__file__).resolve().parent.parent
+
+    def inspect() -> str:
+        result = subprocess.run(  # noqa: S603 - fixed argv, no shell
+            [sys.executable, "-m", "sovereign_agent", "inspect", "--root", str(store)],
+            capture_output=True,
+            text=True,
+            cwd=repo_root,
+        )
+        assert result.returncode == 0, result.stdout + result.stderr
+        return result.stdout
+
+    healthy = inspect()
+    assert "OK  SKU-TEA" in healthy, "a stocked shelf must read OK"
+    assert "10080  = balance" in healthy, "the cash ledger must total 10080"
+    assert "replenishment.committed" in healthy, "the restock must appear on the ledger"
+    assert "ACCEPTED" in healthy
+
+    # Empty the shelf behind the organization's back.
+    organization = Organization(store)
+    organization.db.connection.execute("UPDATE inventory SET on_hand = 0 WHERE sku = 'SKU-TEA'")
+    organization.db.connection.commit()
+    organization.db.close()
+
+    emptied = inspect()
+    assert "LOW SKU-TEA" in emptied, "an empty shelf must read LOW"
+    assert "OK  SKU-TEA" not in emptied
+    # The historical decision is still on the record: that is the whole lesson.
+    assert "ACCEPTED" in emptied, (
+        "the outcome's recorded state must survive; inspect reports the world "
+        "changing, it does not rewrite what was decided"
+    )

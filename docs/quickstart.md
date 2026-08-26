@@ -1,10 +1,10 @@
 # Quickstart
 
-Ten minutes, no API keys, no network. You will run a small organization through
+Ten minutes and no API keys. You will run a small organization through
 one complete piece of work and then check whether it told you the truth.
 
 You need Python **3.14 or newer**, `git`, and a terminal. Nothing else — no
-API key, no network after the clone, and no database tools.
+API key, no network after installation, and no database tools.
 
 ## 1. Install
 
@@ -107,8 +107,7 @@ Read it as three separate claims:
 Change the world behind the organization's back:
 
 ```bash
-python -c "import sqlite3,sys; c=sqlite3.connect(sys.argv[1]); c.execute(\"UPDATE inventory SET on_hand=0 WHERE sku='SKU-TEA'\"); c.commit()" /tmp/andrea-shift/.sovereign/organization.db
-
+python scripts/empty_the_shelf.py /tmp/andrea-shift
 sovereign-agent inspect --root /tmp/andrea-shift
 ```
 
