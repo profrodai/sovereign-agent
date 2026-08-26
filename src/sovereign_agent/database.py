@@ -166,12 +166,33 @@ UPDATE messages SET
 """
 
 
+MIGRATION_6 = """
+-- A review that leaves no record is a claim nobody can check later. Acceptance
+-- could not consult reviews because there was nothing durable to consult.
+CREATE TABLE IF NOT EXISTS reviews (
+    id TEXT PRIMARY KEY,
+    sow_id TEXT NOT NULL,
+    outcome_id TEXT NOT NULL,
+    reviewer_actor_id TEXT NOT NULL,
+    decision TEXT NOT NULL,
+    record TEXT NOT NULL,
+    FOREIGN KEY(sow_id) REFERENCES sows(id),
+    FOREIGN KEY(outcome_id) REFERENCES outcomes(id)
+);
+CREATE INDEX IF NOT EXISTS reviews_by_outcome ON reviews(outcome_id);
+-- Receipts must name the execution they describe, or they cannot be tied to it.
+ALTER TABLE receipts ADD COLUMN assignment_id TEXT;
+ALTER TABLE receipts ADD COLUMN status TEXT NOT NULL DEFAULT '';
+"""
+
+
 MIGRATIONS: tuple[tuple[int, str], ...] = (
     (1, MIGRATION_1),
     (2, MIGRATION_2),
     (3, MIGRATION_3),
     (4, MIGRATION_4),
     (5, MIGRATION_5),
+    (6, MIGRATION_6),
 )
 
 
@@ -340,9 +361,11 @@ class Database:
         json.loads(payload)
         if table != "receipts":
             raise ValueError("put_serialized is restricted to canonical receipts")
+        record = json.loads(payload)
         self.connection.execute(
-            "INSERT OR REPLACE INTO receipts(id, record) VALUES (?, ?)",
-            (record_id, payload),
+            "INSERT OR REPLACE INTO receipts(id, record, assignment_id, status) "
+            "VALUES (?, ?, ?, ?)",
+            (record_id, payload, record.get("assignment_id"), record.get("status", "")),
         )
 
     def close(self) -> None:

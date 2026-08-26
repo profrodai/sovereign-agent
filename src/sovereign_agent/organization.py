@@ -23,6 +23,7 @@ from sovereign_agent.models import (
     Message,
     Outcome,
     OutcomeState,
+    Review,
     Role,
     Ruling,
     SowState,
@@ -199,7 +200,9 @@ class Organization:
         started_at = utc_now()
         failure: Exception | None = None
         try:
-            receipt, report = invoke_actor(worker, sow, workspace, output)
+            receipt, report = invoke_actor(
+                worker, sow, workspace, output, assignment_id=assignment.id
+            )
         except Refusal as error:
             receipt = write_failed_receipt(
                 worker,
@@ -207,6 +210,7 @@ class Organization:
                 error.category,
                 str(error),
                 started_at,
+                assignment_id=assignment.id,
             )
             report = None
             failure = error
@@ -217,6 +221,7 @@ class Organization:
                 "internal_error",
                 f"{type(error).__name__}: {error}",
                 started_at,
+                assignment_id=assignment.id,
             )
             report = None
             failure = error
@@ -242,15 +247,80 @@ class Organization:
             raise failure
         return assignment
 
-    def review(self, sow_id: str, reviewer_id: str, performer_id: str) -> StatementOfWork:
+    def review(self, sow_id: str, reviewer_id: str) -> Review:
+        """An independent actor reviews the work and leaves a durable record.
+
+        No `performer_id` parameter: the performers come from the assignments in
+        the ledger. A caller that names the performer supplies the evidence for
+        its own separation check.
+
+        The review binds to the evidence that exists at review time and the state
+        digest it was read against, so `accept()` can ask what the reviewer
+        actually saw. Reviewing before any evidence exists is refused -- the
+        SOW's own `done_when` requires evidence, so approving without it would
+        contradict the document being approved.
+        """
         reviewer = self.actor(reviewer_id)
         require_authority(reviewer.role, "review")
-        forbid_self_approval(performer_id, reviewer_id)
         sow = self._sow(sow_id)
-        sow.state = advance_sow(sow.state, SowState.ACCEPTED)
-        relay_send(self.db, reviewer_id, performer_id, "review", f"SOW {sow_id} accepted")
-        self._save_sow(sow, "sow.reviewed")
-        return sow
+        performers = self.performers_for(sow.outcome_id)
+        for performer_id in sorted(performers):
+            forbid_self_approval(performer_id, reviewer_id)
+
+        rows = self.db.connection.execute(
+            "SELECT id, success, state_digest FROM evidence WHERE outcome_id = ?",
+            (sow.outcome_id,),
+        ).fetchall()
+        if not rows:
+            raise Refusal(
+                "No evidence to review.",
+                "The SOW's done_when requires evidence. Reviewing before it "
+                "exists approves a document that contradicts itself.",
+                "sovereign-agent verify",
+                "Run verification first, then review.",
+            )
+        failing = [str(row["id"]) for row in rows if int(row["success"]) != 1]
+        decision = "changes_requested" if failing else "accepted"
+
+        review = Review(
+            id=new_id("rev"),
+            sow_id=sow_id,
+            outcome_id=sow.outcome_id,
+            reviewer_actor_id=reviewer_id,
+            performer_actor_ids=sorted(performers),
+            evidence_refs=[str(row["id"]) for row in rows],
+            decision=decision,
+            state_digest=str(rows[-1]["state_digest"]),
+            created_at=utc_now(),
+        )
+        if decision == "accepted":
+            sow.state = advance_sow(sow.state, SowState.ACCEPTED)
+        else:
+            sow.state = advance_sow(sow.state, SowState.CHANGES_REQUESTED)
+
+        with self.db.transaction():
+            self.db.connection.execute(
+                "INSERT INTO reviews(id, sow_id, outcome_id, reviewer_actor_id, decision, "
+                "record) VALUES (?, ?, ?, ?, ?, ?)",
+                (
+                    review.id,
+                    sow_id,
+                    sow.outcome_id,
+                    reviewer_id,
+                    decision,
+                    review.model_dump_json(),
+                ),
+            )
+            self.db.put("sows", sow.id, sow.model_dump(mode="json"))
+            append_event(
+                self.db,
+                "sow.reviewed",
+                {"id": sow.id, "review": review.id, "decision": decision, "by": reviewer_id},
+            )
+        for performer_id in sorted(performers):
+            relay_send(self.db, reviewer_id, performer_id, "review", f"SOW {sow_id} {decision}")
+        self._project_outcome(sow.outcome_id)
+        return review
 
     def verify_outcome(self, outcome_id: str, verifier_id: str) -> list[CheckResult]:
         """Actually execute every declared acceptance check and persist evidence.
@@ -411,6 +481,54 @@ class Organization:
                 "sovereign-agent verify",
                 "Fix the world, then verify and accept again.",
             )
+
+        # The work must have SUCCEEDED. Acceptance previously never looked at
+        # receipts, so an outcome whose only receipt said "failed" still accepted.
+        receipt_row = self.db.connection.execute(
+            "SELECT record, status FROM receipts WHERE assignment_id = ?", (execution_id,)
+        ).fetchone()
+        if receipt_row is None:
+            raise Refusal(
+                f"No receipt for execution {execution_id or '(none)'}.",
+                "An execution with no receipt left no evidence that it ran.",
+                "sovereign-agent status",
+                "Run the assignment.",
+            )
+        if str(receipt_row["status"]) != "completed":
+            raise Refusal(
+                f"The execution receipt reports status {receipt_row['status']}.",
+                "Work that did not succeed cannot support an accepted outcome.",
+                "sovereign-agent status",
+                "Fix the failure and re-run the assignment.",
+            )
+
+        # An independent review must exist, and must have accepted.
+        review_rows = self.db.connection.execute(
+            "SELECT record, decision, reviewer_actor_id FROM reviews WHERE outcome_id = ?",
+            (outcome_id,),
+        ).fetchall()
+        if not review_rows:
+            raise Refusal(
+                "No review record for this outcome.",
+                "Acceptance requires an independent actor to have reviewed the work.",
+                "sovereign-agent status",
+                "Have a reviewer review the SOW.",
+            )
+        for row in review_rows:
+            if str(row["decision"]) != "accepted":
+                raise Refusal(
+                    f"Review {row['reviewer_actor_id']} decided {row['decision']}.",
+                    "An outcome cannot be accepted over an unresolved review.",
+                    "sovereign-agent status",
+                    "Resolve the review first.",
+                )
+            if str(row["reviewer_actor_id"]) == accepter_id:
+                raise Refusal(
+                    f"{accepter_id} reviewed this work and cannot also accept it.",
+                    "Review and acceptance are separate acts by separate actors.",
+                    "sovereign-agent actor list",
+                    "Have the Principal accept.",
+                )
 
         rows = self.db.connection.execute(
             "SELECT id, check_id, success, state_digest, assignment_id FROM evidence "

@@ -239,3 +239,121 @@ def test_an_outcome_with_no_subject_fails_closed(tmp_path: Path) -> None:
     assert outcome.subject == ""
     for check_id in ("inventory_at_or_above_reorder_point", "cash_reconciles"):
         assert not run_check(org.db, check_id, "").success
+
+
+def test_refuses_when_the_execution_receipt_failed(tmp_path: Path) -> None:
+    """ACCEPTED must depend on the work having succeeded.
+
+    Reported on PR #24: acceptance never inspected receipts, so setting the only
+    receipt to status="failed" still produced an accepted outcome.
+    """
+    org, outcome_id = accepted_org(tmp_path)
+    org.db.connection.execute("UPDATE receipts SET status = 'failed'")
+    org.db.connection.commit()
+    reopen_for_acceptance(org, outcome_id)
+    with pytest.raises(Refusal, match="receipt reports status failed"):
+        org.accept(outcome_id, "principal-human")
+
+
+def test_refuses_a_receipt_belonging_to_another_execution(tmp_path: Path) -> None:
+    org, outcome_id = accepted_org(tmp_path)
+    org.db.connection.execute("UPDATE receipts SET assignment_id = 'asg_OTHER'")
+    org.db.connection.commit()
+    reopen_for_acceptance(org, outcome_id)
+    with pytest.raises(Refusal, match="No receipt for execution"):
+        org.accept(outcome_id, "principal-human")
+
+
+def test_refuses_when_no_review_record_exists(tmp_path: Path) -> None:
+    """A status field that once changed is not a review."""
+    org, outcome_id = accepted_org(tmp_path)
+    org.db.connection.execute("DELETE FROM reviews")
+    org.db.connection.commit()
+    reopen_for_acceptance(org, outcome_id)
+    with pytest.raises(Refusal, match="No review record"):
+        org.accept(outcome_id, "principal-human")
+
+
+def test_refuses_when_the_review_requested_changes(tmp_path: Path) -> None:
+    org, outcome_id = accepted_org(tmp_path)
+    org.db.connection.execute("UPDATE reviews SET decision = 'changes_requested'")
+    org.db.connection.commit()
+    reopen_for_acceptance(org, outcome_id)
+    with pytest.raises(Refusal, match="decided changes_requested"):
+        org.accept(outcome_id, "principal-human")
+
+
+def test_the_reviewer_cannot_also_accept(tmp_path: Path) -> None:
+    """Review and acceptance are separate acts by separate actors."""
+    org, outcome_id = accepted_org(tmp_path)
+    org.db.connection.execute("UPDATE reviews SET reviewer_actor_id = 'principal-human'")
+    org.db.connection.commit()
+    reopen_for_acceptance(org, outcome_id)
+    with pytest.raises(Refusal, match="reviewed this work and cannot also accept"):
+        org.accept(outcome_id, "principal-human")
+
+
+def test_the_review_record_binds_evidence_and_performers(tmp_path: Path) -> None:
+    """A review must record what was read, not merely that it happened."""
+    import json
+
+    org, outcome_id = accepted_org(tmp_path)
+    row = org.db.connection.execute(
+        "SELECT record FROM reviews WHERE outcome_id = ?", (outcome_id,)
+    ).fetchone()
+    review = json.loads(row["record"])
+    assert review["reviewer_actor_id"] == "sparring-course"
+    assert review["performer_actor_ids"] == ["operator-course"]
+    assert len(review["evidence_refs"]) == 3
+    assert review["decision"] == "accepted"
+    assert review["state_digest"]
+
+
+def test_evidence_is_stale_when_events_change_but_inventory_does_not(tmp_path: Path) -> None:
+    """The digest must cover what each check READS, not a fixed pair of facts.
+
+    Reported on PR #24: the shared digest hashed only the inventory row and the
+    cash total, so appending a replenishment event changed what
+    `cash_reconciles` and `replenishment_event_exists` observed while the digest
+    stayed identical. This appends an EXACT duplicate, so every check still
+    passes -- only the observation changed.
+    """
+    import json
+
+    from sovereign_agent.events import append_event
+
+    org, outcome_id = accepted_org(tmp_path)
+    payload = json.loads(
+        org.db.connection.execute(
+            "SELECT payload FROM events WHERE kind = 'replenishment.committed'"
+        ).fetchone()["payload"]
+    )
+    with org.db.transaction():
+        append_event(org.db, "replenishment.committed", payload)
+
+    from sovereign_agent.checks import run_check
+
+    assert run_check(org.db, "cash_reconciles", "SKU-TEA").success, "precondition: still passes"
+    reopen_for_acceptance(org, outcome_id)
+    with pytest.raises(Refusal, match="stale"):
+        org.accept(outcome_id, "principal-human")
+
+
+def test_reserved_stock_is_not_available_stock(tmp_path: Path) -> None:
+    """A fully reserved shelf is an empty shelf.
+
+    Raised by Sparring as latent: the check loaded `reserved`, digested it, and
+    never consulted it. Nothing writes `reserved` today, so it would have become
+    a lie the day reservations landed, in a diff that never touched checks.py.
+    """
+    from sovereign_agent.checks import run_check
+
+    org = Organization.init(tmp_path)
+    seed(org.db)
+    org.db.connection.execute(
+        "UPDATE inventory SET on_hand = 8, reserved = 8 WHERE sku = 'SKU-TEA'"
+    )
+    org.db.connection.commit()
+    result = run_check(org.db, "inventory_at_or_above_reorder_point", "SKU-TEA")
+    assert not result.success, "8 reserved out of 8 on hand leaves nothing available"
+    assert result.observed["available"] == 0

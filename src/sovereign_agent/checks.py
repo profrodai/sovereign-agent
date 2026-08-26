@@ -62,37 +62,54 @@ def _cash_cents(db: Database) -> int:
     return int(row["total"])
 
 
-def _digest_for(db: Database, sku: str) -> str:
-    """Digest the facts every store check depends on.
+def _digest_observation(check_id: str, observed: dict[str, Any]) -> str:
+    """Digest EXACTLY what this check observed.
 
-    Deliberately NOT an event counter: a plain `UPDATE inventory` changes the
-    world without appending an event, so a counter would report 'fresh' while
-    the claim had already become false.
+    A shared digest over inventory-plus-cash-total looked thorough and was not:
+    `cash_reconciles` and `replenishment_event_exists` read individual events and
+    cash rows, so appending a duplicate replenishment event changed what those
+    checks saw while the shared digest stayed identical -- and stale evidence
+    passed as fresh. Reported on PR #24.
+
+    Digesting the check's own observation makes the digest cover what the check
+    read BY CONSTRUCTION: it is derived from the predicate's own output, so it
+    cannot drift out of step with the predicate.
+
+    Deliberately still NOT an event counter: a plain `UPDATE inventory` changes
+    the world without appending an event.
     """
-    return digest_payload(
-        {"sku": sku, "inventory": _inventory_row(db, sku), "cash": _cash_cents(db)}
-    )
+    return digest_payload({"check_id": check_id, "observed": observed})
 
 
 def inventory_at_or_above_reorder_point(db: Database, sku: str) -> CheckResult:
-    """WORLD FACT: is there actually enough stock on the shelf right now?"""
+    """WORLD FACT: is there actually enough stock available right now?
+
+    Measures `on_hand - reserved`, not `on_hand`. Sparring pointed out that the
+    check loaded `reserved`, digested it, and never consulted it: with
+    on_hand=8 and reserved=8 the shelf is empty and the check was green. Nothing
+    writes `reserved` today, so it was latent -- and it would have become a lie
+    the day reservations landed, in a diff that never touched this file.
+    """
+    check_id = "inventory_at_or_above_reorder_point"
     row = _inventory_row(db, sku)
-    digest = _digest_for(db, sku)
     if row is None:
+        observed: dict[str, Any] = {"sku": sku}
         return CheckResult(
-            "inventory_at_or_above_reorder_point",
+            check_id,
             False,
-            {"sku": sku},
-            digest,
+            observed,
+            _digest_observation(check_id, observed),
             f"No inventory row for {sku}.",
         )
-    ok = row["on_hand"] >= row["reorder_point"]
+    available = row["on_hand"] - row["reserved"]
+    observed = {"sku": sku, **row, "available": available}
     return CheckResult(
-        "inventory_at_or_above_reorder_point",
-        ok,
-        {"sku": sku, **row},
-        digest,
-        f"on_hand={row['on_hand']} vs reorder_point={row['reorder_point']}",
+        check_id,
+        available >= row["reorder_point"],
+        observed,
+        _digest_observation(check_id, observed),
+        f"available={available} (on_hand={row['on_hand']} - reserved={row['reserved']}) "
+        f"vs reorder_point={row['reorder_point']}",
     )
 
 
@@ -104,7 +121,6 @@ def cash_reconciles(db: Database, sku: str) -> CheckResult:
     cash movement must equal exactly -(qty * unit_cost) for the committed
     replenishment, and the entry must be tied to that same assignment.
     """
-    digest = _digest_for(db, sku)
     events = [
         json.loads(row["payload"])
         for row in db.connection.execute(
@@ -113,8 +129,17 @@ def cash_reconciles(db: Database, sku: str) -> CheckResult:
     ]
     events = [event for event in events if event.get("sku") == sku]
     if not events:
+        empty_facts: dict[str, Any] = {
+            "sku": sku,
+            "entries": [],
+            "cash_cents": _cash_cents(db),
+        }
         return CheckResult(
-            "cash_reconciles", False, {"sku": sku}, digest, "No replenishment to reconcile against."
+            "cash_reconciles",
+            False,
+            empty_facts,
+            _digest_observation("cash_reconciles", empty_facts),
+            "No replenishment to reconcile against.",
         )
     problems: list[str] = []
     observed: list[dict[str, Any]] = []
@@ -133,18 +158,22 @@ def cash_reconciles(db: Database, sku: str) -> CheckResult:
             problems.append(f"cash entry {event['cash_id']} is {actual}, expected {expected}")
         if record.get("assignment_id") != event.get("assignment_id"):
             problems.append(f"cash entry {event['cash_id']} is not tied to the replenishment")
+    facts: dict[str, Any] = {
+        "sku": sku,
+        "entries": observed,
+        "cash_cents": _cash_cents(db),
+    }
     return CheckResult(
         "cash_reconciles",
         not problems,
-        {"sku": sku, "entries": observed, "cash_cents": _cash_cents(db)},
-        digest,
+        facts,
+        _digest_observation("cash_reconciles", facts),
         "; ".join(problems) if problems else f"{len(observed)} purchase entr(y/ies) reconcile",
     )
 
 
 def replenishment_event_exists(db: Database, sku: str) -> CheckResult:
     """WORLD FACT: did a replenishment actually get committed to the ledger?"""
-    digest = _digest_for(db, sku)
     rows = [
         json.loads(row["payload"])
         for row in db.connection.execute(
@@ -152,11 +181,21 @@ def replenishment_event_exists(db: Database, sku: str) -> CheckResult:
         ).fetchall()
     ]
     matching = [row for row in rows if row.get("sku") == sku]
+    # Identities, not just a count: two events with the same count but different
+    # contents are not the same observation.
+    observed = {
+        "sku": sku,
+        "count": len(matching),
+        "events": sorted(
+            (str(row.get("assignment_id")), str(row.get("cash_id")), int(row.get("qty", 0)))
+            for row in matching
+        ),
+    }
     return CheckResult(
         "replenishment_event_exists",
         bool(matching),
-        {"sku": sku, "count": len(matching)},
-        digest,
+        observed,
+        _digest_observation("replenishment_event_exists", observed),
         f"{len(matching)} replenishment event(s) for {sku}",
     )
 

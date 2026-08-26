@@ -93,13 +93,46 @@ def test_no_self_approval_is_policy_not_convention() -> None:
     forbid_self_approval("operator-course", "sparring-course")
 
 
-def test_reviewer_cannot_review_its_own_work(tmp_path: Path) -> None:
+def test_reviewer_cannot_review_work_it_performed(tmp_path: Path) -> None:
+    """Separation is derived from the ledger, not supplied by the caller.
+
+    `review()` takes no performer argument. It reads the assignments, finds who
+    actually did the work, and refuses if the reviewer is among them.
+    """
+    import inspect
+
+    from reference_organizations.store.demo import run_simulated
+
+    assert "performer_id" not in inspect.signature(Organization.review).parameters
+
+    run_simulated(tmp_path)
+    org = Organization(tmp_path)
+    outcome_id = str(org.db.connection.execute("SELECT id FROM outcomes").fetchone()["id"])
+    sow_id = org.sows_for(outcome_id)[0].id
+    assert "operator-course" in org.performers_for(outcome_id)
+    # The operator is refused on role authority alone -- defence in depth.
+    with pytest.raises(Refusal, match="Role operator attempted review"):
+        org.review(sow_id, "operator-course")
+
+    # And an actor that DOES hold review authority is still refused when the
+    # ledger shows it performed the work. This is the derivation doing the work.
+    org.db.connection.execute(
+        "UPDATE assignments SET actor_id = 'sparring-course' WHERE sow_id = ?", (sow_id,)
+    )
+    org.db.connection.commit()
+    assert "sparring-course" in org.performers_for(outcome_id)
+    with pytest.raises(Refusal, match="No self-approval"):
+        org.review(sow_id, "sparring-course")
+
+
+def test_review_refuses_before_any_evidence_exists(tmp_path: Path) -> None:
+    """A reviewer with nothing in front of them is rubber-stamping."""
     org = Organization.init(tmp_path)
-    outcome = org.create_outcome("t", "d", ["cash_reconciles"], "principal-human")
+    outcome = org.create_outcome("t", "d", ["cash_reconciles"], "principal-human", "SKU-TEA")
     org.activate(outcome.id, "master-course")
     sow = org.create_sow(outcome.id, "scope", Role.OPERATOR, "master-course")
-    with pytest.raises(Refusal, match="No self-approval"):
-        org.review(sow.id, "sparring-course", "sparring-course")
+    with pytest.raises(Refusal, match="No evidence to review"):
+        org.review(sow.id, "sparring-course")
 
 
 def test_claim_lease_is_exclusive(tmp_path: Path) -> None:

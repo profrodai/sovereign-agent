@@ -106,7 +106,8 @@ def run_simulated(root: Path) -> str:
     proposal = propose_restock_from_report(report_path, SKU)
     apply_restock(org.db, proposal, assignment.id, signal.id)
 
-    org.review(sow.id, "sparring-course", "operator-course")
+    # Verify FIRST: a reviewer with no evidence in front of them is rubber-stamping.
     org.verify_outcome(outcome.id, "verifier-course")
+    org.review(sow.id, "sparring-course")
     org.accept(outcome.id, "principal-human")
     return org.status_text(outcome.id)

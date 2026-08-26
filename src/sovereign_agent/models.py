@@ -171,7 +171,14 @@ class Evidence(StrictModel):
 
 
 class Receipt(StrictModel):
+    """What an execution did. `assignment_id` ties it to the work it describes.
+
+    Without that field a receipt floats free: acceptance cannot tell whether the
+    successful receipt it found belongs to the execution being accepted.
+    """
+
     id: str
+    assignment_id: str = ""
     actor_id: str
     provider: str
     provider_session_ref: str | None
@@ -182,6 +189,25 @@ class Receipt(StrictModel):
     failure_category: str | None = None
     failure_message: str | None = None
     evidence_refs: list[str]
+
+
+class Review(StrictModel):
+    """An independent actor's durable judgement of one SOW.
+
+    Bound to the evidence it read and the state it read them against, so a later
+    reader can ask what the reviewer actually saw rather than trusting that a
+    status field once changed.
+    """
+
+    id: str
+    sow_id: str
+    outcome_id: str
+    reviewer_actor_id: str
+    performer_actor_ids: list[str]
+    evidence_refs: list[str]
+    decision: str
+    state_digest: str
+    created_at: datetime
 
 
 class Acceptance(StrictModel):
