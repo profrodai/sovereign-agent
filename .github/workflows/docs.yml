@@ -6,14 +6,19 @@ on:
   pull_request:
   workflow_dispatch:
 
+# Least privilege at the top level: a PR build only reads the repository.
+# The deploy job elevates for itself.
 permissions:
   contents: read
-  pages: write
-  id-token: write
 
+# Scoped PER REF, not globally. A single `group: pages` serialised EVERY
+# Documentation run behind the last one, so turning the build on for pull
+# requests put PR builds in the deploy queue -- and a run for a superseded SHA
+# sat queued for forty minutes, blocking the check the merge was waiting on.
+# Making a gate run more often must not make it run later.
 concurrency:
-  group: pages
-  cancel-in-progress: false
+  group: docs-${{ github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 
 jobs:
   build:
@@ -43,6 +48,15 @@ jobs:
     # broken docs build would first appear after the merge that caused it -- a
     # gate that cannot run on the change it gates.
     if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    # Only the deploy needs Pages rights, and only it serialises on the single
+    # Pages deployment.
+    permissions:
+      contents: read
+      pages: write
+      id-token: write
+    concurrency:
+      group: pages
+      cancel-in-progress: false
     environment:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}
