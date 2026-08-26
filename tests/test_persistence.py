@@ -587,5 +587,3 @@ def test_migration_12_does_not_depend_on_the_shared_helper() -> None:
     assert "_append_only_triggers" not in assignment, (
         "MIGRATION_12 is generated again; an applied migration must be a literal"
     )
-
-
