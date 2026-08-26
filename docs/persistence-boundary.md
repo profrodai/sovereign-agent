@@ -90,55 +90,63 @@ than disguised.
 
 ## A second limit: the ledger is inside the trust boundary
 
-Append-only protection covers `events`. It does not cover every table, and it
-cannot. `outcomes` has no triggers, and `outcome.subject` — the field that says
-which SKU the acceptance checks are about — is a value inside that row's JSON.
+`outcomes` has no triggers, and `outcome.subject` — the field naming what the
+acceptance checks are about — is a value inside that row's JSON. Anyone who can
+write to the database can change it.
 
-Sparring demonstrated the consequence. Rewriting that single field to point at a
-different, well-stocked product makes all three checks pass **coherently**, and
-the outcome accepts while the real shelf is empty:
+**What that does and does not buy an attacker**, re-derived against the current
+code rather than carried forward from an earlier commit:
+
+Retargeting the subject *on its own* is refused, and refused early. Acceptance
+re-executes every declared check against the **new** subject before it looks at
+any stored evidence, so a subject pointing at a product with no stock and no
+replenishment fails immediately:
 
 ```text
-UPDATE outcomes SET record = <subject: "SKU-TEA" -> "SKU-DECOY"> WHERE id = ...
--> all three checks PASS, ACCEPTED, while SKU-TEA on_hand=2 < reorder_point=3
+subject retargeted to SKU-DECOY, real SKU-TEA on_hand=0
+-> REFUSED: Checks failing at acceptance time: cash_reconciles,
+   inventory_at_or_above_reorder_point, replenishment_event_exists
 ```
 
-This is worth naming precisely, because it is the *exception* to how the check
-registry normally protects you. Tamper with inventory directly and you are
-caught: `cash_reconciles` and `replenishment_event_exists` cross-check inventory
-against the event log, so a single edit puts the checks in contradiction with
-each other. Subject tampering is the one single-field write that moves all three
-checks together onto a world where they are genuinely true — so the mutual
-cross-checking that provides the real guarantee is bypassed rather than tripped.
+If the decoy is stocked first so those checks would pass, the stored evidence
+still does not transfer: each check digests its own observation, and every store
+check's observation includes the SKU it ran against, so evidence written about
+tea is refused as stale rather than read as evidence about the decoy. The
+verifier reports the same, naming the missing decoy inventory.
+
+What still succeeds is retargeting **and then re-running verification**:
+
+```text
+retarget subject -> SKU-DECOY, seed and restock the decoy, re-verify, accept
+-> ACCEPTED, while the real SKU-TEA sits at on_hand=0 against reorder_point=3
+```
+
+That is not a hole in the digest. Fresh evidence about the decoy is genuinely
+fresh and genuinely consistent; the checks answer the question they were asked
+truthfully. The question itself was changed. **No digest of a check's own reads
+can detect the question changing underneath it** — the digest covers the answer,
+and the tampering happened to the prompt.
+
+Closing it means making the outcome record tamper-evident: signing or
+hash-chaining governance rows so a rewritten `subject` is detectable as a break
+in the chain rather than as an ordinary update. That is a real mechanism and a
+larger change than Unit 6.5 should carry, so it is named here as the honest next
+step and **not** claimed as taken.
 
 It requires raw write access to the database, and doctrine already places SQLite
 inside the trust boundary: anyone who can write arbitrary rows can rewrite the
-organization's memory. But "ACCEPTED means the outcome is true now" is exactly
-the claim this falsifies, so it is recorded here rather than left for a reader
-to discover.
+organization's memory. This section exists because "ACCEPTED means the outcome
+is true now" is exactly the claim it qualifies, and a reader deserves to know
+which door is which.
 
 A related property, verified rather than assumed: `DROP TRIGGER` succeeds from
 an outside connection, and reopening does not restore the trigger, because the
 migration that created it is already stamped as applied. This is true of the
 migration-2 guards as much as the migration-3 one, so it is a pre-existing
 property of the trust boundary rather than something the append-only work
-introduced. It is the same statement as above in a different key: everything
-here protects the ledger from *mistakes and ordinary tools*, not from an actor
-with arbitrary write access to the database file.
-
-**What the digest does and does not cover.** Each check now digests its own
-observation, and every store check's observation includes the `sku` it was run
-against — so evidence written about one SKU cannot be read as evidence about
-another. What the digest cannot see is a change to `outcome.subject` itself:
-retargeting the outcome makes verification *re-run* against the new subject and
-produce fresh, internally consistent evidence. The gap is not a missing field in
-the digest; it is that `outcomes` rows are mutable by anyone with database write
-access, and no digest of a check's own reads can detect the question changing
-underneath it.
-
-Closing it needs the outcome record itself to be tamper-evident — signing or
-hash-chaining governance rows — which is a larger change than Unit 6.5 should
-carry. Named here as the honest next step rather than implied to be taken.
+introduced. It is the same statement in a different key: everything here
+protects the ledger from *mistakes and ordinary tools*, not from an actor with
+arbitrary write access to the database file.
 
 ## How to see the drift for yourself
 

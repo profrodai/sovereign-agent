@@ -357,3 +357,91 @@ def test_reserved_stock_is_not_available_stock(tmp_path: Path) -> None:
     result = run_check(org.db, "inventory_at_or_above_reorder_point", "SKU-TEA")
     assert not result.success, "8 reserved out of 8 on hand leaves nothing available"
     assert result.observed["available"] == 0
+
+
+def test_retargeting_the_subject_alone_is_refused(tmp_path: Path) -> None:
+    """Documented limit, claim A. Kept as a test so the doc cannot drift.
+
+    docs/persistence-boundary.md described a subject-retargeting attack that the
+    code had already started refusing, and the description survived as
+    present-tense doctrine for two Sparring rounds because nobody re-ran it.
+    A threat model that cries wolf teaches the next reader to discount it, so
+    each documented claim is pinned by a test.
+    """
+    org, outcome_id = accepted_org(tmp_path)
+    org.db.connection.execute("UPDATE inventory SET on_hand = 0 WHERE sku = 'SKU-TEA'")
+    org.db.connection.execute(
+        "UPDATE outcomes SET record = json_set(record, '$.subject', 'SKU-DECOY') WHERE id = ?",
+        (outcome_id,),
+    )
+    org.db.connection.commit()
+    reopen_for_acceptance(org, outcome_id)
+    with pytest.raises(Refusal, match="Checks failing at acceptance time"):
+        org.accept(outcome_id, "principal-human")
+
+
+def _seed_decoy(org: Organization) -> str:
+    import json
+
+    org.db.connection.execute(
+        "INSERT OR REPLACE INTO products(sku, record) VALUES ('SKU-DECOY', ?)",
+        (json.dumps({"sku": "SKU-DECOY", "name": "d", "unit_cost_cents": 1, "price_cents": 2}),),
+    )
+    org.db.connection.execute(
+        "INSERT OR REPLACE INTO inventory(sku, on_hand, reserved, reorder_point, record) "
+        "VALUES ('SKU-DECOY', 1, 0, 1, '{}')"
+    )
+    org.db.connection.commit()
+    assignment_id = str(
+        org.db.connection.execute("SELECT id FROM assignments LIMIT 1").fetchone()["id"]
+    )
+    apply_restock(org.db, RestockProposal("SKU-DECOY", 5), assignment_id)
+    return assignment_id
+
+
+def test_evidence_about_one_subject_is_not_evidence_about_another(tmp_path: Path) -> None:
+    """Documented limit, claim B: a stocked decoy still cannot reuse tea's evidence."""
+    org, outcome_id = accepted_org(tmp_path)
+    _seed_decoy(org)
+    org.db.connection.execute("UPDATE inventory SET on_hand = 0 WHERE sku = 'SKU-TEA'")
+    org.db.connection.execute(
+        "UPDATE outcomes SET record = json_set(record, '$.subject', 'SKU-DECOY') WHERE id = ?",
+        (outcome_id,),
+    )
+    org.db.connection.commit()
+    reopen_for_acceptance(org, outcome_id)
+    with pytest.raises(Refusal, match="stale"):
+        org.accept(outcome_id, "principal-human")
+
+
+def test_the_documented_residual_limit_is_real(tmp_path: Path) -> None:
+    """Documented limit, claim C — asserts the limit EXISTS, not that it is safe.
+
+    Retarget plus re-verification produces internally consistent evidence and
+    accepts, while the real subject sits below its reorder point. No digest of a
+    check's own reads can detect the QUESTION changing underneath it. Closing it
+    needs tamper-evident governance rows, which is out of scope for Unit 6.5.
+
+    If this test ever fails, the limit was closed and the documentation must be
+    re-derived rather than left describing a threat that no longer exists.
+    """
+    org, outcome_id = accepted_org(tmp_path)
+    _seed_decoy(org)
+    org.db.connection.execute("UPDATE inventory SET on_hand = 0 WHERE sku = 'SKU-TEA'")
+    org.db.connection.execute(
+        "UPDATE outcomes SET record = json_set(record, '$.subject', 'SKU-DECOY') WHERE id = ?",
+        (outcome_id,),
+    )
+    org.db.connection.execute("DELETE FROM evidence WHERE outcome_id = ?", (outcome_id,))
+    org.db.connection.commit()
+    reopen_for_acceptance(org, outcome_id)
+    org.verify_outcome(outcome_id, "verifier-course")
+    org.accept(outcome_id, "principal-human")
+
+    row = org.db.connection.execute(
+        "SELECT on_hand, reorder_point FROM inventory WHERE sku = 'SKU-TEA'"
+    ).fetchone()
+    assert int(row["on_hand"]) < int(row["reorder_point"]), (
+        "the residual limit documented in docs/persistence-boundary.md no longer "
+        "reproduces; re-derive the document against current behaviour"
+    )
