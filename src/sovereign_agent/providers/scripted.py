@@ -56,7 +56,11 @@ def write_scripted_report(output: Path, prompt: str) -> ActorReport:
     report = ActorReport(
         status="completed" if "fail" not in scope.lower() else "failed",
         changed_artifacts=["inventory.md"],
-        proposed_checks=["inventory_non_negative", "cash_reconciles"],
+        # A PROPOSAL, not an instruction. validate_restock re-checks every part
+        # of it against the ledger, and reads the unit cost from the product
+        # record rather than from anything written here.
+        proposed_restock_units=6,
+        proposed_checks=["inventory_at_or_above_reorder_point", "cash_reconciles"],
         questions=[],
         notes="scripted fixture",
     )

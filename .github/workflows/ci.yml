@@ -18,9 +18,9 @@ jobs:
       - name: Install package and development tools
         run: python -m pip install -e . --group dev
       - name: Format
-        run: ruff format --check src tests scripts
+        run: ruff format --check src tests scripts book
       - name: Lint
-        run: ruff check src tests scripts
+        run: ruff check src tests scripts book
       - name: Type check
         run: mypy src/sovereign_agent
       - name: Test
@@ -29,11 +29,151 @@ jobs:
         run: python scripts/verify_runtime_dependencies.py
       - name: Verify source budgets
         run: python scripts/verify_source_budget.py
+      - name: Verify the curriculum is runnable
+        run: python scripts/verify_curriculum.py
       - name: Verify offline commands
         run: |
           sovereign-agent --help
           sovereign-agent doctor
           sovereign-agent demo store --mode simulated --root "$RUNNER_TEMP/store-demo"
+      - name: Verify the accepted outcome is actually TRUE
+        # The demo exiting 0 is not proof. The previous version of this pipeline
+        # ran the demo and stopped there, and the demo printed ACCEPTED while the
+        # shelf was empty. This asserts inventory, cash, events, evidence binding,
+        # staleness, receipts, actor separation, and that no Pulse was fabricated.
+        run: python scripts/verify_store_outcome.py "$RUNNER_TEMP/store-demo"
+      - name: Verify governance projections match the ledger
+        run: python scripts/verify_projections.py "$RUNNER_TEMP/store-demo"
+      - name: Prove projection verification reports drift without repairing it
+        # It previously called the projection WRITER to learn the expected bytes,
+        # so it silently repaired hand-edited files and reported success.
+        run: |
+          python - <<'CHECK'
+          import glob, json, os, subprocess, sys
+          root = os.environ["RUNNER_TEMP"] + "/store-demo"
+          path = glob.glob(root + "/governance/outcomes/*/sows/*.json")[0]
+          record = json.load(open(path)); record["scope"] = "HAND EDITED FALSE SCOPE"
+          tampered = json.dumps(record, indent=2)
+          open(path, "w").write(tampered)
+          result = subprocess.run(
+              [sys.executable, "scripts/verify_projections.py", root],
+              capture_output=True, text=True,
+          )
+          print(result.stdout)
+          if result.returncode == 0:
+              sys.exit("FAIL: drift was not reported")
+          if open(path).read() != tampered:
+              sys.exit("FAIL: verification rewrote the file it was checking")
+          subprocess.run(
+              [sys.executable, "scripts/verify_projections.py", root, "--reconcile"], check=True
+          )
+          print("drift reported, file untouched, --reconcile repaired it")
+          CHECK
+      - name: Prove core and the truth verifier agree on a MULTI-SOW organization
+        # run_simulated builds exactly ONE SOW, so the oracle only ever ran
+        # against a single-SOW fixture: the gate was green because the fixture
+        # was narrower than the feature it gated. Both reviewers flagged that
+        # "true and ungated" is the state this defect was in when it broke.
+        run: |
+          python - <<'CHECK'
+          import pathlib, subprocess, sys, tempfile
+          sys.path.insert(0, "src")
+          from reference_organizations.store import (
+              RestockProposal, apply_restock, record_sale, seed,
+          )
+          from sovereign_agent.models import Role
+          from sovereign_agent.organization import Organization
+
+          root = pathlib.Path(tempfile.mkdtemp()) / "multi-sow"
+          org = Organization.init(root)
+          seed(org.db)
+          outcome = org.create_outcome(
+              "Keep the tea jar stocked",
+              "On-hand tea stays at or above the reorder point.",
+              ["inventory_at_or_above_reorder_point", "cash_reconciles",
+               "replenishment_event_exists"],
+              "principal-human", "SKU-TEA",
+          )
+          org.activate(outcome.id, "master-course")
+          signal = record_sale(org.db, "SKU-TEA", 2, 400)
+
+          effectful = org.create_sow(
+              outcome.id, "replenish", Role.OPERATOR, "master-course", "replenishment")
+          org.ready_sow(effectful.id)
+          worker = org.run_assignment(
+              org.assign(effectful.id, "operator-course", "master-course").id)
+          apply_restock(org.db, RestockProposal("SKU-TEA", 6), worker.id, signal.id)
+
+          investigation = org.create_sow(
+              outcome.id, "investigate", Role.OPERATOR, "master-course")
+          org.ready_sow(investigation.id)
+          org.run_assignment(
+              org.assign(investigation.id, "operator-course", "master-course").id)
+
+          # Verify the investigation FIRST, move the world with a legitimate
+          # sale, then verify the effectful SOW. Verifying both only after all
+          # business mutations cannot detect an ordering-dependent oracle,
+          # which is how a real disagreement shipped past this gate once.
+          org.verify_sow(investigation.id, "verifier-course")
+          record_sale(org.db, "SKU-TEA", 1, 400)
+          org.verify_sow(effectful.id, "verifier-course")
+          for sow_id in (effectful.id, investigation.id):
+              org.review(sow_id, "sparring-course")
+          org.verify_outcome_condition(outcome.id, "verifier-course")
+          org.accept(outcome.id, "principal-human")
+          org.db.close()
+          print("core: ACCEPTED")
+
+          result = subprocess.run(
+              [sys.executable, "scripts/verify_store_outcome.py", str(root)],
+              capture_output=True, text=True,
+          )
+          print(result.stdout)
+          if result.returncode != 0:
+              sys.exit("FAIL: core accepted what its own verifier rejects")
+          print("core and oracle agree on a multi-SOW organization")
+          CHECK
+      - name: Verify a learner can reach a truthful outcome cold
+        run: python scripts/evaluate_andrea_alpha.py
+      - name: Prove acceptance still refuses a false claim
+        # A gate that only ever sees the happy path cannot tell you refusal works.
+        run: |
+          python - <<'CHECK'
+          import sqlite3, subprocess, sys, os
+          root = os.environ["RUNNER_TEMP"] + "/store-demo"
+          db = sqlite3.connect(root + "/.sovereign/organization.db")
+          db.execute("UPDATE inventory SET on_hand = 0 WHERE sku = 'SKU-TEA'")
+          db.commit(); db.close()
+          result = subprocess.run(
+              [sys.executable, "scripts/verify_store_outcome.py", root],
+              capture_output=True, text=True,
+          )
+          print(result.stdout)
+          if result.returncode == 0:
+              sys.exit("FAIL: the verifier passed an emptied shelf")
+          print("verifier correctly refused an emptied shelf")
+          CHECK
+      - name: Prove events are append-only from an outside connection
+        # recursive_triggers is per-connection. This deliberately uses its own
+        # connection, so it fails if enforcement moves back into application code.
+        run: |
+          python - <<'CHECK'
+          import sqlite3, os, sys
+          root = os.environ["RUNNER_TEMP"] + "/store-demo"
+          db = sqlite3.connect(root + "/.sovereign/organization.db")
+          event_id = db.execute("SELECT id FROM events LIMIT 1").fetchone()[0]
+          for statement in (
+              "INSERT OR REPLACE INTO events(id,kind,payload,created_at) VALUES (?,'HACKED','{}','t')",
+              "UPDATE events SET kind='HACKED' WHERE id=?",
+              "DELETE FROM events WHERE id=?",
+          ):
+              try:
+                  db.execute(statement, (event_id,)); db.commit()
+                  sys.exit(f"FAIL: append-only bypassed by: {statement}")
+              except sqlite3.IntegrityError as error:
+                  db.rollback()
+                  print(f"refused: {error}")
+          CHECK
       - name: Verify wheel metadata and clean install
         run: |
           python -m build

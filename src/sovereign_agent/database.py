@@ -9,7 +9,7 @@ from contextlib import contextmanager
 from pathlib import Path
 from typing import Any
 
-SCHEMA = """
+MIGRATION_1 = """
 PRAGMA foreign_keys = ON;
 CREATE TABLE IF NOT EXISTS schema_migrations (
     version INTEGER PRIMARY KEY,
@@ -93,6 +93,384 @@ CREATE TABLE IF NOT EXISTS signals (
 );
 """
 
+MIGRATION_2 = """
+-- Append-only enforcement lives at the database boundary, not in Python habit.
+-- Without these, `UPDATE events` and `DELETE FROM events` both succeed.
+CREATE TRIGGER IF NOT EXISTS events_no_update
+BEFORE UPDATE ON events
+BEGIN
+    SELECT RAISE(ABORT, 'events are append-only: update refused');
+END;
+CREATE TRIGGER IF NOT EXISTS events_no_delete
+BEFORE DELETE ON events
+BEGIN
+    SELECT RAISE(ABORT, 'events are append-only: delete refused');
+END;
+
+-- Evidence must be bound to what it proves. Columns are indexed rather than
+-- buried in the JSON record so acceptance can query bindings directly.
+-- REFERENCES on ALTER ADD COLUMN IS enforced by SQLite: a fabricated
+-- outcome id is refused by the database, not merely by Python.
+ALTER TABLE evidence ADD COLUMN outcome_id TEXT REFERENCES outcomes(id);
+ALTER TABLE evidence ADD COLUMN check_id TEXT NOT NULL DEFAULT '';
+ALTER TABLE evidence ADD COLUMN success INTEGER NOT NULL DEFAULT 0;
+-- Digest of the exact inputs the check read. An event counter cannot detect a
+-- silent UPDATE to inventory, so staleness is measured over the read state itself.
+ALTER TABLE evidence ADD COLUMN state_digest TEXT NOT NULL DEFAULT '';
+CREATE INDEX IF NOT EXISTS evidence_binding
+    ON evidence(outcome_id, check_id);
+"""
+
+MIGRATION_3 = """
+-- `recursive_triggers` is a PER-CONNECTION pragma, not a property of the schema.
+-- The BEFORE DELETE guard therefore only stopped `INSERT OR REPLACE` on
+-- connections the application itself opened. Anyone using a plain `sqlite3`
+-- shell -- including a learner following Chapter 1 -- could silently overwrite
+-- an event and leave the row count unchanged.
+--
+-- This guard needs no pragma: it refuses an INSERT whose id already exists, so
+-- append-only holds from ANY client. Enforcement now matches the claim.
+CREATE TRIGGER IF NOT EXISTS events_no_replace
+BEFORE INSERT ON events
+WHEN EXISTS (SELECT 1 FROM events WHERE id = NEW.id)
+BEGIN
+    SELECT RAISE(ABORT, 'events are append-only: replace refused');
+END;
+"""
+
+
+MIGRATION_4 = """
+-- A preflight scan of the event log is not an idempotency key: two callers can
+-- both pass the scan before either writes, and both then order stock. The
+-- database has to be the one saying "this already happened".
+CREATE TABLE IF NOT EXISTS effect_keys (
+    key TEXT PRIMARY KEY,
+    kind TEXT NOT NULL,
+    payload TEXT NOT NULL,
+    created_at TEXT NOT NULL
+);
+"""
+
+
+MIGRATION_5 = """
+-- Claiming a lease by reading a JSON blob, deciding in Python, then writing the
+-- blob back is a read-then-write race: two workers both read NEW and both win.
+-- A compare-and-set needs the state in a column the UPDATE can test.
+ALTER TABLE messages ADD COLUMN state TEXT NOT NULL DEFAULT 'NEW';
+ALTER TABLE messages ADD COLUMN claim_owner TEXT;
+ALTER TABLE messages ADD COLUMN claim_expires_at TEXT;
+UPDATE messages SET
+    state = COALESCE(json_extract(record, '$.state'), 'NEW'),
+    claim_owner = json_extract(record, '$.claim_owner'),
+    claim_expires_at = json_extract(record, '$.claim_expires_at');
+"""
+
+
+MIGRATION_6 = """
+-- A review that leaves no record is a claim nobody can check later. Acceptance
+-- could not consult reviews because there was nothing durable to consult.
+CREATE TABLE IF NOT EXISTS reviews (
+    id TEXT PRIMARY KEY,
+    sow_id TEXT NOT NULL,
+    outcome_id TEXT NOT NULL,
+    reviewer_actor_id TEXT NOT NULL,
+    decision TEXT NOT NULL,
+    record TEXT NOT NULL,
+    FOREIGN KEY(sow_id) REFERENCES sows(id),
+    FOREIGN KEY(outcome_id) REFERENCES outcomes(id)
+);
+CREATE INDEX IF NOT EXISTS reviews_by_outcome ON reviews(outcome_id);
+-- Receipts must name the execution they describe, or they cannot be tied to it.
+ALTER TABLE receipts ADD COLUMN assignment_id TEXT;
+ALTER TABLE receipts ADD COLUMN status TEXT NOT NULL DEFAULT '';
+"""
+
+
+MIGRATION_7 = """
+-- effect_keys held ONE concatenated string while the code called it a key on
+-- (assignment, sku). Structured columns with a composite constraint make the
+-- schema say what the docstring claimed.
+CREATE TABLE IF NOT EXISTS effects (
+    id TEXT PRIMARY KEY,
+    assignment_id TEXT NOT NULL,
+    kind TEXT NOT NULL,
+    subject TEXT NOT NULL,
+    payload TEXT NOT NULL,
+    created_at TEXT NOT NULL,
+    UNIQUE(assignment_id, kind, subject),
+    FOREIGN KEY(assignment_id) REFERENCES assignments(id)
+);
+
+-- A verification is a BATCH of evidence produced by one run of the checks.
+-- Without it, review binds to "whatever evidence existed" and acceptance uses
+-- "whatever evidence exists now", and nothing forces those to be the same set.
+CREATE TABLE IF NOT EXISTS verifications (
+    id TEXT PRIMARY KEY,
+    outcome_id TEXT NOT NULL,
+    assignment_id TEXT NOT NULL,
+    aggregate_digest TEXT NOT NULL,
+    passed INTEGER NOT NULL,
+    record TEXT NOT NULL,
+    created_at TEXT NOT NULL,
+    FOREIGN KEY(outcome_id) REFERENCES outcomes(id)
+);
+CREATE INDEX IF NOT EXISTS verifications_by_outcome ON verifications(outcome_id);
+
+ALTER TABLE evidence ADD COLUMN verification_id TEXT REFERENCES verifications(id);
+ALTER TABLE reviews ADD COLUMN verification_id TEXT REFERENCES verifications(id);
+"""
+
+
+MIGRATION_8 = """
+-- Sparring's unprompted find: Receipt.assignment_id defaulted to "",
+-- _latest_assignment_id returned "", and this column was nullable -- "the
+-- performer who never worked" in a new costume. It refused every way Sparring
+-- pushed it, but only via guards three layers from the default. SQLite cannot
+-- add a NOT NULL constraint in place, so this rebuilds the table.
+CREATE TABLE receipts_v2 (
+    id TEXT PRIMARY KEY,
+    record TEXT NOT NULL,
+    assignment_id TEXT NOT NULL,
+    status TEXT NOT NULL,
+    CHECK (assignment_id <> '')
+);
+INSERT INTO receipts_v2(id, record, assignment_id, status)
+    SELECT id, record, COALESCE(NULLIF(assignment_id, ''), 'asg_unattributed_legacy'),
+           COALESCE(status, '')
+    FROM receipts;
+DROP TABLE receipts;
+ALTER TABLE receipts_v2 RENAME TO receipts;
+CREATE INDEX IF NOT EXISTS receipts_by_assignment ON receipts(assignment_id);
+"""
+
+
+MIGRATION_9 = """
+-- The effect edge existed but could only be followed through the JSON payload,
+-- so acceptance never followed it: the authorization graph and the acceptance
+-- graph met at the SUBJECT (any two outcomes about one SKU shared effects)
+-- rather than at the execution. A structured FK makes the edge queryable.
+ALTER TABLE effects ADD COLUMN outcome_id TEXT REFERENCES outcomes(id);
+UPDATE effects SET outcome_id = json_extract(payload, '$.outcome_id')
+    WHERE outcome_id IS NULL;
+CREATE INDEX IF NOT EXISTS effects_by_outcome ON effects(outcome_id, assignment_id);
+"""
+
+
+MIGRATION_10 = """
+-- The effect edge is what ties an execution to the change it made. Leaving it
+-- nullable left the crucial edge optional. SQLite cannot add NOT NULL in place,
+-- so the table is rebuilt.
+CREATE TABLE effects_v2 (
+    id TEXT PRIMARY KEY,
+    assignment_id TEXT NOT NULL,
+    kind TEXT NOT NULL,
+    subject TEXT NOT NULL,
+    payload TEXT NOT NULL,
+    created_at TEXT NOT NULL,
+    outcome_id TEXT NOT NULL,
+    UNIQUE(assignment_id, kind, subject),
+    FOREIGN KEY(assignment_id) REFERENCES assignments(id),
+    FOREIGN KEY(outcome_id) REFERENCES outcomes(id),
+    CHECK (outcome_id <> '')
+);
+-- NO `WHERE ... IS NOT NULL` filter. An earlier version had one, so that the
+-- NOT NULL rebuild would always succeed -- and it dropped every legacy row it
+-- could not attribute before DROPping the old table, destroying an operational
+-- record from an append-only ledger while reporting success.
+--
+-- Fail closed instead: an unattributable row makes this INSERT violate NOT NULL,
+-- the whole migration rolls back inside its BEGIN IMMEDIATE, version 10 is not
+-- stamped, and the original table is still there to be repaired by hand. A
+-- migration that cannot preserve the ledger must refuse to run, not quietly
+-- decide which history was worth keeping.
+INSERT INTO effects_v2(id, assignment_id, kind, subject, payload, created_at, outcome_id)
+    SELECT id, assignment_id, kind, subject, payload, created_at,
+           COALESCE(NULLIF(outcome_id, ''), json_extract(payload, '$.outcome_id'))
+    FROM effects;
+DROP TABLE effects;
+ALTER TABLE effects_v2 RENAME TO effects;
+CREATE INDEX IF NOT EXISTS effects_by_outcome ON effects(outcome_id, assignment_id);
+"""
+
+
+MIGRATION_11 = """
+-- A verification must name the SOW it is about. Without it, verification
+-- selected a SOW implicitly by row order and the caller could not say which
+-- work was being verified -- so with two completed SOWs one became permanently
+-- unreviewable, and which one was arbitrary.
+ALTER TABLE verifications ADD COLUMN sow_id TEXT REFERENCES sows(id);
+CREATE INDEX IF NOT EXISTS verifications_by_sow ON verifications(sow_id);
+"""
+
+
+# Tables whose rows must never be rewritten once written. This is MUTATION
+# SAFETY, not authentication: the guards stop ordinary tools and honest mistakes
+# from altering history. They do not stop an arbitrary database writer, who can
+# still append.
+#
+# It is a maintained LIST, not a discovery mechanism. Adding a proof-bearing
+# table means adding it here AND shipping a new migration -- editing an
+# already-stamped migration would guard fresh installs and silently skip every
+# upgraded database.
+#
+# `receipts` is deliberately absent: `put_serialized` rewrites a receipt in
+# place while an assignment runs. Acceptance still treats it as proof, and
+# guards that instead by requiring the canonical record and the indexed columns
+# to agree (`Organization._trusted_receipt`).
+APPEND_ONLY_TABLES: tuple[str, ...] = (
+    "events",
+    "effects",
+    "verifications",
+    "reviews",
+    "evidence",
+)
+
+
+def _append_only_triggers(table: str) -> str:
+    """The same three guards, for one proof-bearing table."""
+    return f"""
+CREATE TRIGGER IF NOT EXISTS {table}_no_update
+BEFORE UPDATE ON {table}
+BEGIN
+    SELECT RAISE(ABORT, '{table} are append-only: update refused');
+END;
+CREATE TRIGGER IF NOT EXISTS {table}_no_delete
+BEFORE DELETE ON {table}
+BEGIN
+    SELECT RAISE(ABORT, '{table} are append-only: delete refused');
+END;
+CREATE TRIGGER IF NOT EXISTS {table}_no_replace
+BEFORE INSERT ON {table}
+WHEN EXISTS (SELECT 1 FROM {table} WHERE id = NEW.id)
+BEGIN
+    SELECT RAISE(ABORT, '{table} are append-only: replace refused');
+END;
+"""
+
+
+# Migration 12 as it SHIPPED, byte for byte. Not generated.
+#
+# The first attempt froze the table LIST and left the body flowing through the
+# shared `_append_only_triggers()` helper -- so editing that helper still
+# rewrote the bytes of an already-applied migration, which is the exact failure
+# the freeze was built to prevent. I froze membership and called it content.
+# Proven by mutation: a harmless comment in the helper changed MIGRATION_12's
+# digest while the "frozen" test passed.
+#
+# An applied migration is history. `_append_only_triggers()` stays, for building
+# FUTURE migrations only; version 12 no longer depends on it, and its digest is
+# pinned by `test_migration_12_content_is_frozen`.
+MIGRATION_12_TABLES: tuple[str, ...] = ("effects", "verifications", "reviews", "evidence")
+
+MIGRATION_12_SHA256 = "cb5483b35e4ef78d761381dc9a1ac940c59b574f7716c17c84bf9b6c89392a5e"
+
+MIGRATION_12 = """
+CREATE TRIGGER IF NOT EXISTS effects_no_update
+BEFORE UPDATE ON effects
+BEGIN
+    SELECT RAISE(ABORT, 'effects are append-only: update refused');
+END;
+CREATE TRIGGER IF NOT EXISTS effects_no_delete
+BEFORE DELETE ON effects
+BEGIN
+    SELECT RAISE(ABORT, 'effects are append-only: delete refused');
+END;
+CREATE TRIGGER IF NOT EXISTS effects_no_replace
+BEFORE INSERT ON effects
+WHEN EXISTS (SELECT 1 FROM effects WHERE id = NEW.id)
+BEGIN
+    SELECT RAISE(ABORT, 'effects are append-only: replace refused');
+END;
+
+CREATE TRIGGER IF NOT EXISTS verifications_no_update
+BEFORE UPDATE ON verifications
+BEGIN
+    SELECT RAISE(ABORT, 'verifications are append-only: update refused');
+END;
+CREATE TRIGGER IF NOT EXISTS verifications_no_delete
+BEFORE DELETE ON verifications
+BEGIN
+    SELECT RAISE(ABORT, 'verifications are append-only: delete refused');
+END;
+CREATE TRIGGER IF NOT EXISTS verifications_no_replace
+BEFORE INSERT ON verifications
+WHEN EXISTS (SELECT 1 FROM verifications WHERE id = NEW.id)
+BEGIN
+    SELECT RAISE(ABORT, 'verifications are append-only: replace refused');
+END;
+
+CREATE TRIGGER IF NOT EXISTS reviews_no_update
+BEFORE UPDATE ON reviews
+BEGIN
+    SELECT RAISE(ABORT, 'reviews are append-only: update refused');
+END;
+CREATE TRIGGER IF NOT EXISTS reviews_no_delete
+BEFORE DELETE ON reviews
+BEGIN
+    SELECT RAISE(ABORT, 'reviews are append-only: delete refused');
+END;
+CREATE TRIGGER IF NOT EXISTS reviews_no_replace
+BEFORE INSERT ON reviews
+WHEN EXISTS (SELECT 1 FROM reviews WHERE id = NEW.id)
+BEGIN
+    SELECT RAISE(ABORT, 'reviews are append-only: replace refused');
+END;
+
+CREATE TRIGGER IF NOT EXISTS evidence_no_update
+BEFORE UPDATE ON evidence
+BEGIN
+    SELECT RAISE(ABORT, 'evidence are append-only: update refused');
+END;
+CREATE TRIGGER IF NOT EXISTS evidence_no_delete
+BEFORE DELETE ON evidence
+BEGIN
+    SELECT RAISE(ABORT, 'evidence are append-only: delete refused');
+END;
+CREATE TRIGGER IF NOT EXISTS evidence_no_replace
+BEFORE INSERT ON evidence
+WHEN EXISTS (SELECT 1 FROM evidence WHERE id = NEW.id)
+BEGIN
+    SELECT RAISE(ABORT, 'evidence are append-only: replace refused');
+END;
+"""
+
+
+MIGRATIONS: tuple[tuple[int, str], ...] = (
+    (1, MIGRATION_1),
+    (2, MIGRATION_2),
+    (3, MIGRATION_3),
+    (4, MIGRATION_4),
+    (5, MIGRATION_5),
+    (6, MIGRATION_6),
+    (7, MIGRATION_7),
+    (8, MIGRATION_8),
+    (9, MIGRATION_9),
+    (10, MIGRATION_10),
+    (11, MIGRATION_11),
+    (12, MIGRATION_12),
+)
+
+
+def _split_statements(script: str) -> list[str]:
+    """Split a migration into executable statements.
+
+    `sqlite3` refuses more than one statement per `execute()`, and migrations
+    contain CREATE TRIGGER bodies with internal semicolons. `sqlite3.complete_statement`
+    knows where a statement genuinely ends, including inside BEGIN ... END.
+    """
+    statements: list[str] = []
+    buffer = ""
+    for line in script.splitlines(keepends=True):
+        if not line.strip() or line.lstrip().startswith("--"):
+            continue
+        buffer += line
+        if sqlite3.complete_statement(buffer):
+            statements.append(buffer.strip())
+            buffer = ""
+    if buffer.strip():
+        statements.append(buffer.strip())
+    return statements
+
 
 class Database:
     def __init__(self, path: Path) -> None:
@@ -102,19 +480,73 @@ class Database:
         self.connection.row_factory = sqlite3.Row
         self.connection.execute("PRAGMA foreign_keys = ON")
         self.connection.execute("PRAGMA journal_mode = WAL")
+        # Without recursive triggers, `INSERT OR REPLACE` deletes the old row
+        # WITHOUT firing the BEFORE DELETE guard, silently defeating append-only.
+        self.connection.execute("PRAGMA recursive_triggers = ON")
         self.migrate()
 
+    def applied_versions(self) -> set[int]:
+        """Versions already recorded. Empty when the ledger table does not exist yet."""
+        try:
+            rows = self.connection.execute("SELECT version FROM schema_migrations").fetchall()
+        except sqlite3.OperationalError:
+            return set()
+        return {int(row["version"]) for row in rows}
+
     def migrate(self) -> None:
-        self.connection.executescript(SCHEMA)
-        applied = {
-            int(row["version"])
-            for row in self.connection.execute("SELECT version FROM schema_migrations")
-        }
-        if 1 not in applied:
-            self.connection.execute(
-                "INSERT INTO schema_migrations(version, applied_at) VALUES (1, datetime('now'))"
-            )
-            self.connection.commit()
+        """Apply pending migrations in order. Forward-only; never downgrades.
+
+        Each migration's DDL **and** its version stamp go inside one explicit
+        `BEGIN IMMEDIATE`, so a failure part way through leaves the database
+        exactly as it was. SQLite rolls DDL back like any other statement.
+
+        This deliberately does not use `executescript()`. That helper COMMITs
+        any open transaction before it runs, which silently defeated the
+        rollback this docstring promises: a migration that created a table and
+        then hit invalid SQL left the table behind, unstamped, so reopening
+        re-ran it and failed forever.
+        """
+        applied = self.applied_versions()
+        for version, script in MIGRATIONS:
+            if version in applied:
+                continue
+            previous = self.connection.isolation_level
+            self.connection.isolation_level = None
+            try:
+                self.connection.execute("BEGIN IMMEDIATE")
+                for statement in _split_statements(script):
+                    self.connection.execute(statement)
+                self.connection.execute(
+                    "INSERT INTO schema_migrations(version, applied_at) "
+                    "VALUES (?, datetime('now'))",
+                    (version,),
+                )
+                self.connection.execute("COMMIT")
+            except Exception:
+                self.connection.execute("ROLLBACK")
+                raise
+            finally:
+                self.connection.isolation_level = previous
+
+    @contextmanager
+    def immediate(self) -> Iterator[sqlite3.Connection]:
+        """A write transaction that takes its lock UP FRONT.
+
+        `BEGIN IMMEDIATE` acquires the reserved lock before any statement runs,
+        so two connections cannot both read a row, both decide to act, and both
+        write. Deferred transactions -- SQLite's default -- allow exactly that.
+        """
+        previous = self.connection.isolation_level
+        self.connection.isolation_level = None
+        try:
+            self.connection.execute("BEGIN IMMEDIATE")
+            yield self.connection
+            self.connection.execute("COMMIT")
+        except Exception:
+            self.connection.execute("ROLLBACK")
+            raise
+        finally:
+            self.connection.isolation_level = previous
 
     @contextmanager
     def transaction(self) -> Iterator[sqlite3.Connection]:
@@ -162,8 +594,16 @@ class Database:
             )
         elif table == "messages":
             self.connection.execute(
-                "INSERT OR REPLACE INTO messages(id, recipient, record) VALUES (?, ?, ?)",
-                (record_id, record["recipient"], payload),
+                "INSERT OR REPLACE INTO messages(id, recipient, record, state, claim_owner, "
+                "claim_expires_at) VALUES (?, ?, ?, ?, ?, ?)",
+                (
+                    record_id,
+                    record["recipient"],
+                    payload,
+                    record.get("state", "NEW"),
+                    record.get("claim_owner"),
+                    record.get("claim_expires_at"),
+                ),
             )
         else:
             self.connection.execute(
@@ -176,9 +616,11 @@ class Database:
         json.loads(payload)
         if table != "receipts":
             raise ValueError("put_serialized is restricted to canonical receipts")
+        record = json.loads(payload)
         self.connection.execute(
-            "INSERT OR REPLACE INTO receipts(id, record) VALUES (?, ?)",
-            (record_id, payload),
+            "INSERT OR REPLACE INTO receipts(id, record, assignment_id, status) "
+            "VALUES (?, ?, ?, ?)",
+            (record_id, payload, record.get("assignment_id"), record.get("status", "")),
         )
 
     def close(self) -> None:

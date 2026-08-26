@@ -6,6 +6,71 @@ Repository: [`zeroemployeeorg/sovereign-agent`](https://github.com/zeroemployeeo
 
 ## Unreleased
 
+### Cumulative conformance (Unit 6.5)
+
+The simulated store now performs a **real** replenishment. Previously the demo
+printed `ACCEPTED` while `SKU-TEA` sat at `on_hand=2` against a
+`reorder_point=3`, with no purchase and no replenishment event: the governance
+records were complete and the business claim was false.
+
+- The store gains a validated `apply_restock` effect. Inventory increase,
+  purchasing cash entry, signal resolution, and the `replenishment.committed`
+  event commit in one SQLite transaction, and are idempotent per assignment.
+  A provider may *propose* a bounded quantity; deterministic Python validates
+  it and reads the unit cost from the product record, never from the provider.
+- `verify_outcome` executes every declared acceptance check instead of only
+  advancing a status field. Unknown, malformed, and erroring checks fail closed.
+- Acceptance re-derives its own authority. It **re-executes** the declared
+  checks against current state, requires successful evidence for every declared
+  check bound to this outcome and execution, and refuses stale evidence. The
+  caller-supplied `performer_id` argument is **removed**: performers are derived
+  from assignments in the ledger, so separation cannot be satisfied by naming a
+  convenient stranger.
+- A small explicit check registry replaces the previous single evidence record
+  whose name (`inventory_non_negative`) described inventory while its value was
+  computed from cash. `cash_reconciles` now reconciles the purchase against the
+  replenishment event rather than testing solvency.
+- Events are append-only **at the database boundary, from any connection**:
+  triggers refuse `UPDATE`, `DELETE`, and an `INSERT` whose id already exists.
+  The first attempt closed the `INSERT OR REPLACE` bypass with
+  `PRAGMA recursive_triggers`, which is per-connection — so a plain `sqlite3`
+  shell, the tool Chapter 1 teaches, still silently overwrote events while the
+  verifier reported "ACCEPTED and true". Migration 3 replaces that with a
+  `BEFORE INSERT` guard needing no pragma, and a test that opens its own
+  connection proves it. Evidence gains a foreign key, so a fabricated evidence
+  id cannot be inserted at all.
+- Named limits rather than silent ones: `docs/persistence-boundary.md` records
+  that `outcomes` has no triggers, so an attacker with raw database write access
+  can retarget `outcome.subject` and make all three checks pass coherently. The
+  durable fix (binding subject into the evidence digest) is identified as the
+  next step, not claimed as done.
+- Migrations become forward-only and numbered. Migration 1 is unchanged;
+  migration 2 adds the guards and evidence binding. Fresh-database and
+  upgrade-from-v1 paths are both tested.
+- Chapters 1 and 2 are written, Chapters 0 and 3 gain the required structure,
+  and `scripts/verify_curriculum.py` detects missing sections, broken solution
+  imports, and references to scripts that do not exist.
+- New verification: `scripts/verify_store_outcome.py`,
+  `scripts/verify_projections.py`, `scripts/evaluate_andrea_alpha.py`.
+
+Tests grow from 59 to 98, including a falsification suite that proves acceptance
+is refused for missing, failed, unrelated, unbound, stale, and fabricated
+evidence, and a fault-injection suite that proves rollback after a partial write.
+
+**Not claimed:** the credentialed provider smokes for Claude, Codex, and Cursor
+have **not** been run. They remain a Unit 12 release gate. Installed is not
+authenticated.
+
+### Branch policy correction
+
+`main` became the 1.x educational integration line when Units 0–6 merged. The
+earlier holding that "`main` remains the 0.7 line" is superseded. Tag `v0.7.0`
+remains immutable at `be2a41bbee202c52a40b2e87c00215827be302a0`; pin
+`sovereign-agent<1` for the 0.x framework. No claim is made that 1.0 has met its
+release gates. See
+[docs/rulings/2026-08-25-main-is-the-1x-line.md](docs/rulings/2026-08-25-main-is-the-1x-line.md)
+and [docs/persistence-boundary.md](docs/persistence-boundary.md).
+
 ### Providers (Unit 6)
 
 Claude, Codex, and Cursor adapters implement `probe` / `build_invocation` /

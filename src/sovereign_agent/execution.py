@@ -114,9 +114,11 @@ def write_failed_receipt(
     category: str,
     message: str,
     started_at: datetime | None = None,
+    assignment_id: str = "",
 ) -> Receipt:
     receipt = Receipt(
         id=new_id("rct"),
+        assignment_id=assignment_id,
         actor_id=actor.id,
         provider=actor.provider,
         provider_session_ref=None,
@@ -138,6 +140,7 @@ def invoke_actor(
     workspace: Path,
     output: Path,
     provider_session_id: str | None = None,
+    assignment_id: str = "",
 ) -> tuple[Receipt, ActorReport | None]:
     workspace_write = "write_workspace" in actor.authority
     if "report" not in actor.authority or not workspace_write:
@@ -240,6 +243,7 @@ def invoke_actor(
         failure_message = "Provider did not write the mandatory report."
     receipt = Receipt(
         id=new_id("rct"),
+        assignment_id=assignment_id,
         actor_id=actor.id,
         provider=actor.provider,
         provider_session_ref=session_ref,
