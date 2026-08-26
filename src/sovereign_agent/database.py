@@ -303,6 +303,36 @@ CREATE INDEX IF NOT EXISTS verifications_by_sow ON verifications(sow_id);
 """
 
 
+# Every table acceptance reads as PROOF. Append-only belongs on all of them, not
+# on whichever one happened to be load-bearing when the guards were written.
+PROOF_TABLES: tuple[str, ...] = ("events", "effects", "verifications", "reviews", "evidence")
+
+
+def _append_only_triggers(table: str) -> str:
+    """The same three guards, for one proof-bearing table."""
+    return f"""
+CREATE TRIGGER IF NOT EXISTS {table}_no_update
+BEFORE UPDATE ON {table}
+BEGIN
+    SELECT RAISE(ABORT, '{table} are append-only: update refused');
+END;
+CREATE TRIGGER IF NOT EXISTS {table}_no_delete
+BEFORE DELETE ON {table}
+BEGIN
+    SELECT RAISE(ABORT, '{table} are append-only: delete refused');
+END;
+CREATE TRIGGER IF NOT EXISTS {table}_no_replace
+BEFORE INSERT ON {table}
+WHEN EXISTS (SELECT 1 FROM {table} WHERE id = NEW.id)
+BEGIN
+    SELECT RAISE(ABORT, '{table} are append-only: replace refused');
+END;
+"""
+
+
+MIGRATION_12 = "".join(_append_only_triggers(table) for table in PROOF_TABLES if table != "events")
+
+
 MIGRATIONS: tuple[tuple[int, str], ...] = (
     (1, MIGRATION_1),
     (2, MIGRATION_2),
@@ -315,6 +345,7 @@ MIGRATIONS: tuple[tuple[int, str], ...] = (
     (9, MIGRATION_9),
     (10, MIGRATION_10),
     (11, MIGRATION_11),
+    (12, MIGRATION_12),
 )
 
 

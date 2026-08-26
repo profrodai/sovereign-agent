@@ -592,11 +592,34 @@ class Organization:
         return {str(row["assignment_id"]) for row in rows}
 
     def effect_kinds_for_execution(self, assignment_id: str) -> set[str]:
-        """What this specific execution changed, by kind."""
+        """What this specific execution changed, CORROBORATED BY THE EVENT LOG.
+
+        Append-only cannot stop a forged APPEND -- inserting is exactly what it
+        permits -- so a new `effects` row naming an idle assignment would
+        otherwise credit it with work it never did. Every effect is committed in
+        the same transaction as its event, so an effect with no matching event
+        is not a record of anything that happened.
+
+        `events` is the one table where a forged append is also detectable: the
+        payload names the assignment, and rewriting an existing event is refused
+        outright. Corroboration puts the proof back on the guarded table.
+        """
         rows = self.db.connection.execute(
             "SELECT DISTINCT kind FROM effects WHERE assignment_id = ?", (assignment_id,)
         ).fetchall()
-        return {str(row["kind"]) for row in rows}
+        claimed = {str(row["kind"]) for row in rows}
+        if not claimed:
+            return claimed
+        corroborated: set[str] = set()
+        for kind in claimed:
+            witnessed = self.db.connection.execute(
+                "SELECT COUNT(*) AS c FROM events "
+                "WHERE kind = ? AND json_extract(payload, '$.assignment_id') = ?",
+                (f"{kind}.committed", assignment_id),
+            ).fetchone()
+            if int(witnessed["c"]) > 0:
+                corroborated.add(kind)
+        return corroborated
 
     def performers_for(self, outcome_id: str) -> set[str]:
         """Who actually did the work, DERIVED FROM THE LEDGER.

@@ -29,6 +29,30 @@ def accepted_org(tmp_path: Path) -> tuple[Organization, str]:
     return org, outcome_id
 
 
+def tamper(org: Organization, statement: str, parameters: tuple = ()) -> None:
+    """Force a change the append-only guards refuse, to test acceptance itself.
+
+    Proof tables carry BEFORE UPDATE/DELETE/REPLACE triggers, so a tampered
+    ledger is not reachable through the database. These tests still matter:
+    acceptance must be independently sound, not merely shielded. Dropping the
+    guard for one statement is defence-in-depth testing — it asks "if the
+    database were compromised, does acceptance still refuse?"
+    """
+    table = statement.split()[1] if statement.upper().startswith("UPDATE") else statement.split()[2]
+    for guard in ("update", "delete", "replace"):
+        org.db.connection.execute(f"DROP TRIGGER IF EXISTS {table}_no_{guard}")
+    try:
+        org.db.connection.execute(statement, parameters)
+        org.db.connection.commit()
+    finally:
+        from sovereign_agent.database import _append_only_triggers
+
+        for piece in _append_only_triggers(table).split("END;"):
+            if piece.strip():
+                org.db.connection.execute(piece + "END;")
+        org.db.connection.commit()
+
+
 def reopen_for_acceptance(org: Organization, outcome_id: str) -> None:
     """Put the outcome back into VERIFYING so accept() can be re-attempted."""
     org.db.connection.execute(
@@ -49,8 +73,7 @@ def test_refuses_when_inventory_is_below_reorder_point(tmp_path: Path) -> None:
 
 def test_refuses_when_evidence_reports_failure(tmp_path: Path) -> None:
     org, outcome_id = accepted_org(tmp_path)
-    org.db.connection.execute("UPDATE evidence SET success = 0")
-    org.db.connection.commit()
+    tamper(org, "UPDATE evidence SET success = 0")
     reopen_for_acceptance(org, outcome_id)
     with pytest.raises(Refusal, match="reports failure"):
         org.accept(outcome_id, "principal-human")
@@ -58,8 +81,7 @@ def test_refuses_when_evidence_reports_failure(tmp_path: Path) -> None:
 
 def test_refuses_when_a_required_check_has_no_evidence(tmp_path: Path) -> None:
     org, outcome_id = accepted_org(tmp_path)
-    org.db.connection.execute("DELETE FROM evidence WHERE check_id = 'cash_reconciles'")
-    org.db.connection.commit()
+    tamper(org, "DELETE FROM evidence WHERE check_id = 'cash_reconciles'")
     reopen_for_acceptance(org, outcome_id)
     # Now caught earlier and more precisely: the batch the reviewer signed off
     # is no longer the batch supporting acceptance.
@@ -84,8 +106,7 @@ def test_refuses_stale_evidence_even_when_checks_still_pass(tmp_path: Path) -> N
 
 def test_refuses_evidence_bound_to_another_execution(tmp_path: Path) -> None:
     org, outcome_id = accepted_org(tmp_path)
-    org.db.connection.execute("UPDATE evidence SET assignment_id = 'asg_SOME_OTHER_RUN'")
-    org.db.connection.commit()
+    tamper(org, "UPDATE evidence SET assignment_id = 'asg_SOME_OTHER_RUN'")
     reopen_for_acceptance(org, outcome_id)
     with pytest.raises(Refusal, match="not bound to this execution"):
         org.accept(outcome_id, "principal-human")
@@ -94,10 +115,9 @@ def test_refuses_evidence_bound_to_another_execution(tmp_path: Path) -> None:
 def test_refuses_evidence_belonging_to_another_outcome(tmp_path: Path) -> None:
     org, outcome_id = accepted_org(tmp_path)
     other = org.create_outcome("other", "d", ["cash_reconciles"], "principal-human")
-    org.db.connection.execute(
-        "UPDATE evidence SET outcome_id = ? WHERE check_id = 'cash_reconciles'", (other.id,)
+    tamper(
+        org, "UPDATE evidence SET outcome_id = ? WHERE check_id = 'cash_reconciles'", (other.id,)
     )
-    org.db.connection.commit()
     reopen_for_acceptance(org, outcome_id)
     with pytest.raises(Refusal, match="not the evidence supporting acceptance"):
         org.accept(outcome_id, "principal-human")
@@ -313,8 +333,7 @@ def test_refuses_a_receipt_belonging_to_another_execution(tmp_path: Path) -> Non
 def test_refuses_when_no_review_record_exists(tmp_path: Path) -> None:
     """A status field that once changed is not a review."""
     org, outcome_id = accepted_org(tmp_path)
-    org.db.connection.execute("DELETE FROM reviews")
-    org.db.connection.commit()
+    tamper(org, "DELETE FROM reviews")
     reopen_for_acceptance(org, outcome_id)
     with pytest.raises(Refusal, match="no review of its current verification"):
         org.accept(outcome_id, "principal-human")
@@ -322,8 +341,7 @@ def test_refuses_when_no_review_record_exists(tmp_path: Path) -> None:
 
 def test_refuses_when_the_review_requested_changes(tmp_path: Path) -> None:
     org, outcome_id = accepted_org(tmp_path)
-    org.db.connection.execute("UPDATE reviews SET decision = 'changes_requested'")
-    org.db.connection.commit()
+    tamper(org, "UPDATE reviews SET decision = 'changes_requested'")
     reopen_for_acceptance(org, outcome_id)
     with pytest.raises(Refusal, match="disagrees with its index on decision"):
         org.accept(outcome_id, "principal-human")
@@ -339,11 +357,11 @@ def test_the_reviewer_cannot_also_accept(tmp_path: Path) -> None:
     row = org.db.connection.execute("SELECT id, record FROM reviews").fetchone()
     record = json.loads(row["record"])
     record["reviewer_actor_id"] = "principal-human"
-    org.db.connection.execute(
+    tamper(
+        org,
         "UPDATE reviews SET reviewer_actor_id = 'principal-human', record = ? WHERE id = ?",
         (json.dumps(record), row["id"]),
     )
-    org.db.connection.commit()
     reopen_for_acceptance(org, outcome_id)
     with pytest.raises(Refusal, match="reviewed this work and cannot also accept"):
         org.accept(outcome_id, "principal-human")
@@ -527,7 +545,7 @@ def test_the_documented_residual_limit_is_real(tmp_path: Path) -> None:
         "UPDATE outcomes SET record = json_set(record, '$.subject', 'SKU-DECOY') WHERE id = ?",
         (outcome_id,),
     )
-    org.db.connection.execute("DELETE FROM evidence WHERE outcome_id = ?", (outcome_id,))
+    tamper(org, "DELETE FROM evidence WHERE outcome_id = ?", (outcome_id,))
     org.db.connection.commit()
     reopen_for_acceptance(org, outcome_id)
     org.verify_outcome(outcome_id, "verifier-course")

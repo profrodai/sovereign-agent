@@ -364,3 +364,40 @@ def test_a_sow_must_produce_its_declared_deliverable(tmp_path: Path) -> None:
 
     with pytest.raises(Refusal, match="promised report.json and did not produce it"):
         org.accept(outcome_id, "principal-human")
+
+
+def test_a_forged_effect_row_does_not_credit_idle_work(tmp_path: Path) -> None:
+    """Append-only cannot stop a forged APPEND. Corroboration can.
+
+    Inserting is exactly what an append-only table permits, so a new `effects`
+    row naming an idle assignment would credit it with work it never did. Every
+    effect is committed in the same transaction as its event, so an effect with
+    no matching event is not a record of anything that happened — and rewriting
+    an existing event is refused outright.
+    """
+    org, outcome_id = build(tmp_path, ["inventory_at_or_above_reorder_point"])
+    signal = record_sale(org.db, "SKU-TEA", 2, 400)
+    real_sow, real = run_sow(org, outcome_id, "real", "replenishment")
+    apply_restock(org.db, RestockProposal("SKU-TEA", 6), real, signal.id)
+    idle_sow, idle = run_sow(org, outcome_id, "idle", "replenishment")
+
+    for sow_id in (real_sow, idle_sow):
+        org.verify_sow(sow_id, "verifier-course")
+    for sow_id in (real_sow, idle_sow):
+        org.review(sow_id, "sparring-course")
+
+    # A brand-new row, so no append-only trigger fires.
+    org.db.connection.execute(
+        "INSERT INTO effects(id, assignment_id, kind, subject, payload, created_at, outcome_id) "
+        "SELECT 'eff_forged', ?, kind, subject, payload, created_at, outcome_id "
+        "FROM effects LIMIT 1",
+        (idle,),
+    )
+    org.db.connection.commit()
+    assert idle in org.contributing_executions(outcome_id), "precondition: the row was accepted"
+    assert "replenishment" not in org.effect_kinds_for_execution(idle), (
+        "an uncorroborated effect must not count as work done"
+    )
+
+    with pytest.raises(Refusal, match="produced no replenishment effect"):
+        org.accept(outcome_id, "principal-human")

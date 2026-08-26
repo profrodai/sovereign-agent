@@ -400,3 +400,70 @@ def test_a_migration_that_cannot_preserve_the_ledger_refuses_to_run(tmp_path: Pa
         ).fetchone(), "the original table was dropped despite the failure"
     finally:
         inspector.close()
+
+
+def test_every_proof_bearing_table_is_append_only(tmp_path: Path) -> None:
+    """The guarantee must sit where the load is, and stay there.
+
+    Append-only was added to `events` because acceptance rested on events. It
+    then came to rest on `effects`, `verifications`, `reviews` and `evidence` —
+    and the guards stayed put. An outside INSERT into `effects` flipped a
+    correctly-refused outcome to ACCEPTED. Raised by Sparring, who counted it as
+    the seventh time on this PR that a guarantee stayed while the load moved.
+
+    This asserts the SET, not one table, so a future proof-bearing table added
+    without guards fails here rather than shipping unguarded.
+    """
+    from sovereign_agent.database import PROOF_TABLES
+
+    db = Database(tmp_path / "guards.db")
+    try:
+        for table in PROOF_TABLES:
+            triggers = {
+                str(row["name"])
+                for row in db.connection.execute(
+                    "SELECT name FROM sqlite_master WHERE type = 'trigger' AND tbl_name = ?",
+                    (table,),
+                )
+            }
+            assert triggers == {
+                f"{table}_no_update",
+                f"{table}_no_delete",
+                f"{table}_no_replace",
+            }, f"{table} carries proof but is not append-only: {sorted(triggers)}"
+    finally:
+        db.close()
+
+
+def test_a_forged_effect_cannot_be_inserted_from_outside(tmp_path: Path) -> None:
+    """The concrete attack: re-attributing an effect to credit idle work."""
+    from sovereign_agent.models import Role
+
+    org = Organization.init(tmp_path)
+    seed(org.db)
+    outcome = org.create_outcome(
+        "t", "d", ["inventory_at_or_above_reorder_point"], "principal-human", "SKU-TEA"
+    )
+    org.activate(outcome.id, "master-course")
+    signal = record_sale(org.db, "SKU-TEA", 2, 400)
+    sow = org.create_sow(outcome.id, "w", Role.OPERATOR, "master-course", "replenishment")
+    org.ready_sow(sow.id)
+    assignment = org.run_assignment(org.assign(sow.id, "operator-course", "master-course").id)
+    apply_restock(org.db, RestockProposal("SKU-TEA", 6), assignment.id, signal.id)
+    org.db.close()
+
+    outsider = sqlite3.connect(tmp_path / ".sovereign" / "organization.db")
+    outsider.row_factory = sqlite3.Row
+    try:
+        row = outsider.execute("SELECT id FROM effects LIMIT 1").fetchone()
+        with pytest.raises(sqlite3.IntegrityError, match="append-only"):
+            outsider.execute(
+                "UPDATE effects SET assignment_id = 'asg_FORGED' WHERE id = ?", (row["id"],)
+            )
+            outsider.commit()
+        outsider.rollback()
+        with pytest.raises(sqlite3.IntegrityError, match="append-only"):
+            outsider.execute("DELETE FROM effects WHERE id = ?", (row["id"],))
+            outsider.commit()
+    finally:
+        outsider.close()

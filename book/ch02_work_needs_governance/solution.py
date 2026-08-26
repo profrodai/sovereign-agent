@@ -8,6 +8,7 @@ from __future__ import annotations
 
 import argparse
 import json
+import sqlite3
 from pathlib import Path
 from typing import Any
 
@@ -62,28 +63,21 @@ def explore_governance(root: Path) -> dict[str, Any]:
     # The operator who did the work cannot accept it.
     refusals["operator_self_approval"] = _attempt(org, outcome_id, "operator-course")
 
-    # Evidence that reports failure is a record of a problem, not a permission.
-    org.db.connection.execute("UPDATE evidence SET success = 0")
-    org.db.connection.commit()
-    refusals["failed_evidence"] = _attempt(org, outcome_id)
-    org.db.connection.execute("UPDATE evidence SET success = 1")
-    org.db.connection.commit()
-
-    # A declared check with no evidence at all.
-    removed = org.db.connection.execute(
-        "SELECT id, assignment_id, record, outcome_id, check_id, success, state_digest "
-        "FROM evidence WHERE check_id = 'cash_reconciles'"
-    ).fetchall()
-    org.db.connection.execute("DELETE FROM evidence WHERE check_id = 'cash_reconciles'")
-    org.db.connection.commit()
-    refusals["missing_evidence"] = _attempt(org, outcome_id)
-    for row in removed:
-        org.db.connection.execute(
-            "INSERT INTO evidence(id, assignment_id, record, outcome_id, check_id, "
-            "success, state_digest) VALUES (?, ?, ?, ?, ?, ?, ?)",
-            tuple(row),
-        )
-    org.db.connection.commit()
+    # Evidence cannot be rewritten at all: proof-bearing tables are append-only
+    # at the database boundary, so the tamper is refused before acceptance is
+    # ever consulted. That is a stronger guarantee than "acceptance notices".
+    for statement in (
+        "UPDATE evidence SET success = 0",
+        "DELETE FROM evidence WHERE check_id = 'cash_reconciles'",
+        "UPDATE reviews SET decision = 'changes_requested'",
+    ):
+        try:
+            org.db.connection.execute(statement)
+            org.db.connection.commit()
+            refusals[statement.split()[1].lower()] = "ALLOWED (this would be a bug)"
+        except sqlite3.IntegrityError as error:
+            org.db.connection.rollback()
+            refusals[f"tamper_{statement.split()[1].lower()}"] = f"refused: {error}"
 
     # The world moves after verification: the claim itself becomes false.
     org.db.connection.execute("UPDATE inventory SET on_hand = 0 WHERE sku = ?", (SKU,))

@@ -168,7 +168,32 @@ status field and run no checks at all — a verification step that verified
 nothing. Now it executes every declared check, and an unknown or crashing check
 **fails closed** rather than being skipped.
 
-## Exercise 6: being refused is not the end
+## Exercise 6: the proof itself cannot be rewritten
+
+Chapter 1 showed that `events` refuses `UPDATE` and `DELETE`. The same guarantee
+now covers every table acceptance reads as proof — `effects`, `verifications`,
+`reviews`, `evidence`:
+
+```bash
+sqlite3 /tmp/andrea-gov/.sovereign/organization.db \
+  "UPDATE evidence SET success = 1;"
+```
+
+Expected: `Error: stepping, evidence are append-only: update refused`.
+
+This was not always true, and the story is worth knowing. Append-only was added
+to `events` because acceptance rested on events. Then acceptance came to rest on
+evidence, reviews, verifications and effects — and the guards stayed where they
+were. For a while the tables carrying the proof were the ones with no
+protection, while the table they replaced was still immune. A reviewer put it
+exactly: *the guarantee stayed put while the load moved.*
+
+One thing append-only cannot do is stop a forged **append**: inserting is
+precisely what it permits. So an effect must also be corroborated by the event
+committed alongside it. An effect with no matching event is not a record of
+anything that happened.
+
+## Exercise 7: being refused is not the end
 
 Chapter 2 has spent five exercises showing the organization refusing things. A
 fair question: what happens to work that gets refused? Is it dead?
@@ -230,6 +255,10 @@ above, and that authority cannot be self-granted.
    an execution; the other describes a fact about the world. Which is which?
 6. Recovery from `changes_requested` creates a *new* assignment rather than
    reusing the failed one. What would you lose if it reused it?
+7. `events` was append-only long before `evidence` was. Explain, in terms of
+   where the proof lives, why protecting only `events` stopped being enough.
+8. Append-only refuses rewriting a row but permits adding one. Why does that
+   make corroboration necessary, and what corroborates an effect?
 7. Acceptance requires a review of the **exact** verification batch it is
    accepting on. Describe the lie that would be possible if it accepted any
    review of the outcome instead.

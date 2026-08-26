@@ -52,6 +52,10 @@ def test_verifier_fails_closed_on_an_empty_subject(store: Path) -> None:
 
 def test_verifier_requires_a_review_record(store: Path) -> None:
     org = Organization(store)
+    # reviews are append-only at the database boundary; drop the guard for this
+    # one statement to test the VERIFIER, not the trigger.
+    for guard in ("update", "delete", "replace"):
+        org.db.connection.execute(f"DROP TRIGGER IF EXISTS reviews_no_{guard}")
     org.db.connection.execute("DELETE FROM reviews")
     org.db.connection.commit()
     org.db.close()
