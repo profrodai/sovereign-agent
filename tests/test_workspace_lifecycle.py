@@ -107,6 +107,15 @@ def test_interrupted_assignment_still_reclaims_its_scratch_space(tmp_path: Path)
     workspace = workspace_dir(org, assignment_id)
     workspace.mkdir(parents=True)
     (workspace / ".sovereign-out").mkdir()
+    # The actor's own disposable scratch output -- exactly what "reclaim"
+    # means, and exactly what test_workspace_reclaimed_after_terminal_state
+    # checks for the non-interrupted path. Without this, the test has no
+    # precondition reclaim could possibly observe: `.sovereign-out` is on
+    # `_PRESERVED_DIR_ON_RECLAIM` and survives whether or not reclaim ever
+    # runs, so a test that only creates it cannot tell "reclaim ran and
+    # preserved evidence" from "reclaim never ran at all."
+    (workspace / "provider-raw").mkdir()
+    (workspace / "provider-raw" / "scratch.txt").write_text("disposable")
 
     with patch.object(organization_module, "invoke_actor", side_effect=KeyboardInterrupt("stop")):
         with pytest.raises(KeyboardInterrupt):
@@ -118,6 +127,9 @@ def test_interrupted_assignment_still_reclaims_its_scratch_space(tmp_path: Path)
         "SELECT record FROM receipts WHERE assignment_id = ?", (assignment_id,)
     ).fetchone()
     assert json.loads(row["record"])["failure_category"] == "interrupted"
+    assert not (workspace / "provider-raw").exists(), (
+        "reclaim did not run on the interrupted path: disposable scratch space survived"
+    )
 
 
 def test_a_hard_kill_that_never_returns_leaves_the_workspace_alone(tmp_path: Path) -> None:
