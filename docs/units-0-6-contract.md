@@ -157,7 +157,7 @@ removed:
 
 | File | Removed symbols it imports | Warning |
 | --- | --- | --- |
-| `docs/api_reference.md` | 25, including `Config`, `Half`, `Orchestrator`, `Registry` | identifies itself as the v0.7.0 contract in prose |
+| `docs/api_reference.md` | the legacy v0.7 surface, including `Config`, `Half`, `Orchestrator`, `Registry` | identifies itself as the v0.7.0 contract in prose |
 | `docs/tutorials/first-agent.md` | `Config`, `run_task` | explicit banner: *Legacy — describes software removed in 1.0* |
 | `docs/tutorials/structured-and-approval.md` | `Rule`, `StructuredHalf` | **none** |
 
@@ -180,6 +180,18 @@ one-liner, `python -c "from sovereign_agent.organization import Organization; \`
 and the parser captured `Organization; \` as an imported name, then checked that
 against top-level `sovereign_agent` and concluded a valid submodule import had
 been removed. `Organization` exists.
+
+An earlier version of this table also said `api_reference.md` imports **25**
+removed symbols. That number came from the same broken parser: it matched only
+the first line of each import, so eleven multi-line parenthesised blocks were
+read as one symbol apiece. Those blocks alone contain seventy.
+
+The correction is deliberately **not** a better number. Two reviewers recounted
+independently and got 83 and 90; one of them reached 19 and 95 on earlier
+attempts before reading the raw blocks. When careful people disagree by seven on
+a hand-parse, the integer is not the verifiable part — that every top-level
+symbol the file imports was removed is, and the `rg` reproduction proves the
+file set without claiming to enumerate symbols.
 
 That is worth leaving on the record rather than quietly deleting. The section
 documenting instrument failures contained one: a parser whose own output showed
