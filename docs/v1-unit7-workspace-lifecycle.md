@@ -85,6 +85,57 @@ more important, already-happened fact always wins, and a snapshot fault that
 occurs with no prior failure becomes the reported failure itself rather than
 being silently absorbed.
 
+**Corrected by review round three** (finding A): review round two's own
+after-snapshot guard (`if failure is None: failure = snapshot_error`) was
+written to stop a snapshot fault from *overwriting* an already-caught, more
+important failure. It said nothing about what to persist when there was no
+prior failure to protect in the first place — the provider ran and
+succeeded normally, and only the *after*-snapshot faulted afterward. In
+that shape, the persistence block a few lines down still read `report` (the
+provider's own genuine `completed` result) and committed `COMPLETED` to the
+ledger, while `failure` being newly non-`None` meant `run_assignment` still
+raised the `OSError` to the caller at the method's final `raise failure` —
+the caller saw a raised exception while the ledger recorded success, two
+facts that must never disagree. Fixed: when the after-snapshot faults and
+there was no earlier failure, the snapshot fault itself becomes the
+terminal failure — `FAILED` is persisted, not `COMPLETED`, with a fresh
+failed receipt (`internal_error`) overwriting the stale successful one
+already written to `receipt.json`, so the receipt on disk agrees with the
+ledger's own verdict. The provider's own successful result is not silently
+discarded either: the failure message names that the provider itself
+succeeded (or whatever its report said) before the boundary check could not
+be confirmed.
+
+A workspace root being a symlink is now also refused *before* the workspace
+is ever created or the provider invoked, not only inside `reclaim_workspace`
+at the very end. **Corrected by review round three** (finding B): the
+review-round-two symlink guard inside `reclaim_workspace` only fires during
+reclaim, by which point a pre-planted symlink at the workspace path had
+already let the provider read and write through it for real — into
+whatever external directory the link pointed at — with `COMPLETED` already
+committed to the ledger before reclaim's own refusal ever fired. Fixed by
+checking the workspace path for a symlink at the very first opportunity,
+immediately alongside the `workspace_policy` validation and before the SOW
+or assignment state is touched, before the directory is created, and before
+the provider is ever invoked — proven with the same
+invocation-counter-stays-zero pattern the policy check already established,
+plus a byte-for-byte hash of the external target's whole tree, before and
+after, not merely a check for new top-level names. On this path,
+`reclaim_workspace`'s own symlink guard never gets exercised at all — the
+early refusal is the only one the caller sees — but that guard stays in
+place unchanged as defense in depth for whatever other path might reach
+`reclaim_workspace` directly.
+
+The check also walks every ancestor directory from the workspace path up to
+(but not including) `self.root`, not only the workspace leaf itself: a
+leaf-only check is blind to `.sovereign/runs/` (or `.sovereign/`) itself
+being a symlink, since the leaf workspace directory underneath a symlinked
+ancestor is, on its own, a perfectly ordinary, non-symlink directory —
+`workspace.is_symlink()` alone would traverse straight through such an
+ancestor transparently. `self.root` itself is excluded from the walk
+because it is the organization's own allocated real directory, not
+something this method traverses into on the provider's behalf.
+
 ### Property 2 — `Actor.workspace_policy` is enforced
 
 `models.py:120` declared the field (`workspace_policy: str =
@@ -213,17 +264,22 @@ python scripts/verify_curriculum.py
 
 # Property 1 — reclaim tied to terminal state, including the interrupted path;
 # a snapshot fault at either bracket still reaches a terminal state and never
-# masks a real interruption (review round two, P1 finding 1); reclaim refuses
-# a symlinked workspace root and unlinks (never rmtrees) a symlinked child
+# masks a real interruption (review round two, P1 finding 1); a snapshot
+# fault with NO prior failure becomes the terminal failure itself instead of
+# a false COMPLETED (review round three, finding A); reclaim refuses a
+# symlinked workspace root and unlinks (never rmtrees) a symlinked child
 # entry without touching its external target (review round two, P1 finding 3)
 python -m pytest -q tests/test_workspace_lifecycle.py \
   -k "reclaimed_after_terminal_state or survives_non_terminal_state or interrupted_assignment or hard_kill or fault_in_before_snapshot or fault_in_after_snapshot or reclaim_refuses_a_symlinked or reclaim_unlinks_a_symlinked"
 
 # Property 2 — workspace_policy drives real branching, loads from TOML, fails
 # closed on an unrecognized value, and validates before the provider ever
-# runs, proven by a spy/counter at zero (review round two, P1 finding 2)
+# runs, proven by a spy/counter at zero (review round two, P1 finding 2); a
+# symlinked workspace root -- leaf or ancestor -- is refused before the
+# provider ever runs too, same spy/counter plus a byte-for-byte external-tree
+# hash (review round three, finding B)
 python -m pytest -q tests/test_workspace_lifecycle.py \
-  -k "persistent_policy or temporary_directory_policy or unknown_workspace_policy or policy_loads_from_toml"
+  -k "persistent_policy or temporary_directory_policy or unknown_workspace_policy or policy_loads_from_toml or symlinked_workspace_root_refused_before or symlinked_runs_directory_ancestor"
 
 # Property 3 — boundary violation detected end to end, mutation-checked both
 # directions (a real escape is caught; legitimate in-workspace writes are
@@ -254,13 +310,17 @@ estimated:
 | Before (Units 0-6 accepted, `33e51d19`) | 23/40 | 3696/6000 | 7/30 |
 | After (this unit, original) | 24/40 | 3916/6000 | 7/30 |
 | After (review round two's four P1 fixes + P2) | 24/40 | 4056/6000 | 7/30 |
+| After (review round three's two findings) | 24/40 | 4134/6000 | 7/30 |
 
 One new module (`src/sovereign_agent/workspace.py`), no new root export —
 `Organization.run_assignment` and `_require_deliverables` call the new module
 internally; nothing in `workspace.py` is re-exported from the package root.
 Review round two's fixes stayed inside the same two modules (`workspace.py`,
 `organization.py`) plus their tests — no new module, no new root export.
-Headroom remaining: 16 modules, 1944 nonblank lines, 23 root exports.
+Review round three's fixes stayed inside `organization.py` and its test file
+only — `workspace.py`'s own `reclaim_workspace` symlink guard is untouched,
+kept in place as defense in depth — no new module, no new root export.
+Headroom remaining: 16 modules, 1866 nonblank lines, 23 root exports.
 
 ## What this unit did not do
 

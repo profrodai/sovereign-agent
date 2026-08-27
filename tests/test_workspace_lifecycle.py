@@ -62,6 +62,23 @@ def workspace_dir(org: Organization, assignment_id: str) -> Path:
     return org.root / ".sovereign" / "runs" / assignment.workspace_id
 
 
+def hash_tree(root: Path) -> str:
+    """A byte-for-byte digest of every path and file's contents under
+    `root`, sorted for determinism. Used where "the directory wasn't
+    touched" must mean the whole tree is unchanged, not merely that it
+    didn't gain new top-level names -- a check that a symlinked-root refusal
+    must survive.
+    """
+    import hashlib
+
+    digest = hashlib.sha256()
+    for path in sorted(root.rglob("*")):
+        digest.update(str(path.relative_to(root)).encode())
+        if path.is_file():
+            digest.update(path.read_bytes())
+    return digest.hexdigest()
+
+
 # --- Property 1: reclaim tied to terminal state -----------------------------
 
 
@@ -211,6 +228,67 @@ def test_fault_in_after_snapshot_never_masks_a_real_interruption(tmp_path: Path)
     assert payload["computed"] is False, (
         "a faulted after-snapshot must record that the check could not run, "
         "not silently claim 'violated: False'"
+    )
+    assert payload["violated"] is None
+
+
+def test_fault_in_after_snapshot_with_no_prior_failure_records_honest_failure(
+    tmp_path: Path,
+) -> None:
+    """Distinct from the interruption case above: here there was NO earlier
+    failure to protect -- the real scripted provider runs to completion
+    normally, uninterrupted -- and THEN the after-snapshot faults. The old
+    guard (`if failure is None: failure = snapshot_error`) was written only
+    to stop a snapshot fault from overwriting an already-caught, more
+    important failure; it says nothing about what to persist when there was
+    no prior failure at all. Left as `report and report.status ==
+    "completed"`, the persistence block below still committed COMPLETED
+    from the provider's own genuine success, while `failure` being newly
+    non-None meant `run_assignment` still raised the OSError to the caller
+    -- caller sees a raised exception, ledger says success, and the two
+    disagree. This test guards that the snapshot fault must itself become
+    the honestly-recorded terminal failure when nothing else already was.
+    """
+    org, _sow_id, assignment_id = dispatched(tmp_path)
+
+    call_count = {"n": 0}
+    real_snapshot = organization_module.snapshot_boundary
+
+    def flaky_after(*args, **kwargs):  # noqa: ANN001, ANN002, ANN003
+        call_count["n"] += 1
+        if call_count["n"] == 2:  # the AFTER snapshot -- the second call
+            raise OSError("simulated fault on after-snapshot, provider succeeded")
+        return real_snapshot(*args, **kwargs)
+
+    with patch.object(organization_module, "snapshot_boundary", side_effect=flaky_after):
+        with pytest.raises(OSError, match="simulated fault on after-snapshot"):
+            org.run_assignment(assignment_id)
+
+    final = org._assignment(assignment_id)  # noqa: SLF001
+    assert final.state == AssignmentState.FAILED, (
+        "the ledger must not record COMPLETED when the caller was handed a "
+        "raised exception -- the two must never disagree"
+    )
+    row = org.db.connection.execute(
+        "SELECT record FROM receipts WHERE assignment_id = ?", (assignment_id,)
+    ).fetchone()
+    assert row is not None
+    record = json.loads(row["record"])
+    assert record["status"] == "failed", (
+        "the receipt on disk must match the ledger's own FAILED verdict, "
+        "not the provider's stale successful result"
+    )
+    assert record["failure_category"] == "internal_error"
+    assert "provider" in record["failure_message"].lower(), (
+        "the provider's own successful result must not be silently discarded "
+        "without a trace -- the failure message names what actually happened"
+    )
+    event_row = org.db.connection.execute(
+        "SELECT payload FROM events WHERE kind = 'assignment.workspace_boundary_checked'"
+    ).fetchone()
+    payload = json.loads(event_row["payload"])
+    assert payload["computed"] is False, (
+        "a faulted after-snapshot must record that the check could not run"
     )
     assert payload["violated"] is None
 
@@ -377,6 +455,116 @@ def test_workspace_policy_loads_from_toml(tmp_path: Path) -> None:
     )
     reloaded = Organization(tmp_path)
     assert reloaded.actors["operator-course"].workspace_policy == PERSISTENT
+
+
+def test_symlinked_workspace_root_refused_before_the_provider_ever_runs(tmp_path: Path) -> None:
+    """Master's finding: a symlinked workspace root used to be refused only
+    inside `reclaim_workspace`, at the very end of `run_assignment` -- by
+    which point the provider had already run for real THROUGH the symlink,
+    writing real files into whatever external directory the link pointed
+    at, and COMPLETED was already committed to the ledger. This test
+    pre-creates the workspace path AS a symlink before `run_assignment`
+    ever touches it, the same shape as
+    `test_unknown_workspace_policy_refuses_before_the_provider_ever_runs`
+    above: `invoke_actor` is spied on with a counter to prove the provider
+    is never invoked, and the external target's whole tree is hashed
+    before and after -- not just checked for new top-level names -- to
+    prove nothing was written through the link at all.
+
+    The early refusal is also the ONLY refusal the caller sees on this
+    path: `reclaim_workspace`'s own symlink guard never even gets
+    exercised here, because `run_assignment` never reaches the reclaim
+    call site once it refuses up front. That guard stays in place as
+    defense in depth for whatever other path might reach `reclaim_workspace`
+    directly (as `test_reclaim_refuses_a_symlinked_workspace_root` above
+    already covers), but on this path there is exactly one Refusal, not a
+    race between two.
+    """
+    org, _sow_id, assignment_id = dispatched(tmp_path)
+    assignment = org._assignment(assignment_id)  # noqa: SLF001
+    workspace_path = org.root / ".sovereign" / "runs" / assignment.workspace_id
+    external = tmp_path / "external-target"
+    external.mkdir()
+
+    workspace_path.parent.mkdir(parents=True, exist_ok=True)
+    workspace_path.symlink_to(external, target_is_directory=True)
+
+    before_hash = hash_tree(external)
+
+    invoked = {"count": 0}
+    real_invoke = organization_module.invoke_actor
+
+    def counting_invoke(*args, **kwargs):  # noqa: ANN001, ANN002, ANN003
+        invoked["count"] += 1
+        return real_invoke(*args, **kwargs)
+
+    with patch.object(organization_module, "invoke_actor", side_effect=counting_invoke):
+        with pytest.raises(Refusal, match="symlink") as excinfo:
+            org.run_assignment(assignment_id)
+
+    assert excinfo.value.category == "symlinked_workspace_root"
+    assert invoked["count"] == 0, "the provider must never be invoked through a symlinked root"
+    final = org._assignment(assignment_id)  # noqa: SLF001
+    assert final.state == AssignmentState.CREATED, (
+        "the assignment must not even reach RUNNING when the root is a symlink"
+    )
+    row = org.db.connection.execute(
+        "SELECT record FROM receipts WHERE assignment_id = ?", (assignment_id,)
+    ).fetchone()
+    assert row is None, "no receipt: the run never happened, it was not merely discarded"
+    assert hash_tree(external) == before_hash, (
+        "the external target's whole tree must be byte-for-byte unchanged, "
+        "not merely free of new top-level names"
+    )
+
+
+def test_symlinked_runs_directory_ancestor_is_also_refused_before_the_provider_runs(
+    tmp_path: Path,
+) -> None:
+    """The reviewer's own non-blocking note, taken seriously: a leaf-only
+    check (`workspace.is_symlink()`) is blind to `.sovereign/runs/` itself
+    being a symlink -- the workspace path underneath it would still be an
+    ordinary, non-symlink directory, so a check that only looks at the leaf
+    would traverse straight through a symlinked *ancestor* transparently.
+    This test symlinks `.sovereign/runs/` itself (not the leaf workspace
+    directory) to an external target and proves the same early refusal,
+    the same zero-invocation guarantee, and the same byte-for-byte-
+    unchanged external target as the leaf-symlink case above.
+    """
+    org, _sow_id, assignment_id = dispatched(tmp_path)
+    runs_dir = org.root / ".sovereign" / "runs"
+    external = tmp_path / "external-runs-target"
+    external.mkdir()
+
+    runs_dir.parent.mkdir(parents=True, exist_ok=True)
+    runs_dir.symlink_to(external, target_is_directory=True)
+
+    before_hash = hash_tree(external)
+
+    invoked = {"count": 0}
+    real_invoke = organization_module.invoke_actor
+
+    def counting_invoke(*args, **kwargs):  # noqa: ANN001, ANN002, ANN003
+        invoked["count"] += 1
+        return real_invoke(*args, **kwargs)
+
+    with patch.object(organization_module, "invoke_actor", side_effect=counting_invoke):
+        with pytest.raises(Refusal, match="symlink") as excinfo:
+            org.run_assignment(assignment_id)
+
+    assert excinfo.value.category == "symlinked_workspace_root"
+    assert invoked["count"] == 0, (
+        "the provider must never be invoked through a symlinked runs/ ancestor"
+    )
+    final = org._assignment(assignment_id)  # noqa: SLF001
+    assert final.state == AssignmentState.CREATED
+    row = org.db.connection.execute(
+        "SELECT record FROM receipts WHERE assignment_id = ?", (assignment_id,)
+    ).fetchone()
+    assert row is None
+    assert hash_tree(external) == before_hash, (
+        "a symlinked ancestor must be refused before anything is written through it"
+    )
 
 
 # --- Property 3: the workspace boundary is detectable -----------------------

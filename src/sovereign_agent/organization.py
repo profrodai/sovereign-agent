@@ -268,9 +268,54 @@ class Organization:
                 f"Use one of: {', '.join(sorted(WORKSPACE_POLICIES))}.",
                 category="unknown_workspace_policy",
             )
+        workspace = self.root / ".sovereign" / "runs" / assignment.workspace_id
+        # Checked here, alongside the policy validation above and before
+        # ANYTHING else -- same reasoning, same placement. The symlink guard
+        # inside reclaim_workspace only fires at the very end of this
+        # method, by which point a pre-planted symlink at this exact path
+        # already let the provider read and write through it for real: the
+        # workspace boundary this unit's whole subject is confining is
+        # defeated at the point of use, not merely at cleanup. A symlink
+        # here means some other code path substituted a link for the
+        # directory this method is about to allocate, so refuse before the
+        # SOW or assignment state is touched, before the directory is
+        # created, and before the provider is ever invoked -- exactly the
+        # same fail-closed shape as the policy check just above.
+        # The leaf is not the only place a symlink can substitute a real
+        # organization-owned directory for a link: `.sovereign/runs/`
+        # itself (or `.sovereign/`) being a symlink would traverse
+        # transparently to a leaf check that only looks at `workspace`
+        # itself, since `workspace.is_symlink()` is false for a workspace
+        # path that is a perfectly ordinary directory sitting under a
+        # symlinked ancestor. Walked from `workspace` up to (but not
+        # including) `self.root`, because `self.root` itself is the
+        # organization's own allocated real directory -- checking it here
+        # would be checking something this method did not just traverse
+        # into on the provider's behalf.
+        offending = None
+        for ancestor in (workspace, *workspace.parents):
+            if ancestor == self.root:
+                break  # self.root is the organization's own real directory
+            if ancestor.is_symlink():
+                offending = ancestor
+                break
+        if offending is not None:
+            raise Refusal(
+                f"Workspace path component {str(offending)!r} is a symlink.",
+                "A symlinked workspace root -- or a symlinked ancestor "
+                "directory on the path to it -- would let the provider "
+                "read and write through it for real, into whatever the "
+                "link points at -- a boundary defeated at the point of "
+                "use, not merely at cleanup. The provider must never run "
+                "against a workspace path this method did not allocate "
+                "as real directories the whole way down.",
+                worker.id,
+                "Investigate how that path component became a symlink "
+                "before retrying this assignment.",
+                category="symlinked_workspace_root",
+            )
         sow = self._sow(assignment.sow_id)
         sow.state = advance_sow(sow.state, SowState.RUNNING)
-        workspace = self.root / ".sovereign" / "runs" / assignment.workspace_id
         output = workspace / ".sovereign-out"
         workspace.mkdir(parents=True, exist_ok=True)
         assignment.state = AssignmentState.RUNNING
@@ -368,6 +413,39 @@ class Organization:
         except OSError as snapshot_error:
             boundary_report = None
             if failure is None:
+                # The provider itself succeeded (or was refused cleanly) --
+                # no prior failure exists to protect. Leaving `failure` at
+                # `None` here would mean the exception still propagates to
+                # the caller (the `raise failure` guard below only fires
+                # when `failure is not None`... except this branch sets it),
+                # while the persistence block a few lines down commits
+                # whatever `report` says, which for a successful provider
+                # is COMPLETED. That combination -- caller sees a raised
+                # OSError, ledger says success -- is exactly the disagreement
+                # this branch exists to prevent. With no earlier failure to
+                # protect, the snapshot fault becomes the terminal failure
+                # itself: `report` is discarded for persistence purposes
+                # (see below) and a fresh failed receipt overwrites the
+                # stale successful one already on disk, so the receipt and
+                # the ledger agree with what the caller is about to see.
+                # The provider's own result is not silently dropped either:
+                # the failure message names it explicitly.
+                provider_note = (
+                    f"provider reported {report.status!r}"
+                    if report is not None
+                    else "provider raised no report"
+                )
+                receipt = write_failed_receipt(
+                    worker,
+                    workspace,
+                    "internal_error",
+                    "after-snapshot fault; boundary could not be confirmed "
+                    f"({provider_note}): {type(snapshot_error).__name__}: {snapshot_error}",
+                    started_at,
+                    assignment_id=assignment.id,
+                )
+                receipt_json = (workspace / "receipt.json").read_text(encoding="utf-8")
+                report = None
                 failure = snapshot_error
         with self.db.transaction():
             self.db.put_serialized("receipts", receipt.id, receipt_json)
