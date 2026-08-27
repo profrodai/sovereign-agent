@@ -25,7 +25,7 @@ uv run sovereign-agent doctor
 
 ## Development loop
 
-The Makefile has five targets and no others:
+The Makefile has five working targets, plus `help` as the default goal:
 
 ```bash
 make install   # uv sync --python 3.14 --group dev
