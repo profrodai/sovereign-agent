@@ -121,6 +121,17 @@ def _assignment(
 ) -> tuple[Organization, str, str]:
     org = Organization.init(root)
     org.actors["operator-course"].provider = provider
+    # This suite inspects scratch files (`observed-envelope.json`,
+    # `observed-argv.json`) the fake CLI leaves directly in the workspace
+    # root, after `run_assignment` returns. Unit 7's default policy,
+    # `temporary_directory`, reclaims exactly that scratch space once the
+    # assignment is terminal -- correct new behaviour that would otherwise
+    # delete the fixtures these tests are built to read. `persistent` is the
+    # actor's own declared opt-out, and using it here doubles as a live
+    # demonstration that the policy is load-bearing: flip it back to the
+    # default and `test_temporary_directory_policy_reclaims_scratch_files`
+    # in test_workspace_lifecycle.py shows the opposite outcome.
+    org.actors["operator-course"].workspace_policy = "persistent"
     outcome = org.create_outcome("fixture", "report exists", ["receipt valid"], "principal-human")
     org.activate(outcome.id, "master-course")
     sow = org.create_sow(

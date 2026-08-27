@@ -42,6 +42,7 @@ from sovereign_agent.policy import (
 from sovereign_agent.providers import get_provider
 from sovereign_agent.relay import inbox as relay_inbox
 from sovereign_agent.relay import send as relay_send
+from sovereign_agent.workspace import diff_boundary, reclaim_workspace, safe_join, snapshot_boundary
 
 
 class Organization:
@@ -249,6 +250,11 @@ class Organization:
         self._save_assignment(assignment, sow, "assignment.running")
         started_at = utc_now()
         failure: BaseException | None = None
+        # Taken BEFORE the provider runs, so the boundary check below proves
+        # something about THIS invocation, not about drift left over from an
+        # earlier one. Every exception path still runs the invocation (or
+        # attempts to), so the snapshot covers every path, not just success.
+        boundary_before = snapshot_boundary(self.root, workspace)
         try:
             receipt, report = invoke_actor(
                 worker, sow, workspace, output, assignment_id=assignment.id
@@ -298,6 +304,12 @@ class Organization:
             report = None
             failure = error
         receipt_json = (workspace / "receipt.json").read_text(encoding="utf-8")
+        # Diffed AFTER the provider has fully run (or failed to), whichever
+        # exception path was taken above -- detection, not prevention, per
+        # the governing ruling: this proves what changed outside the
+        # workspace, it does not claim to have stopped it.
+        boundary_after = snapshot_boundary(self.root, workspace)
+        boundary_report = diff_boundary(boundary_before, boundary_after)
         with self.db.transaction():
             self.db.put_serialized("receipts", receipt.id, receipt_json)
             if report and report.status == "completed":
@@ -314,7 +326,31 @@ class Organization:
             append_event(
                 self.db, "assignment.finished", {"id": assignment.id, "status": assignment.state}
             )
+            # A durable, queryable fact regardless of verdict: a clean report
+            # is itself evidence the boundary held for this invocation, not
+            # merely the absence of a complaint.
+            append_event(
+                self.db,
+                "assignment.workspace_boundary_checked",
+                {
+                    "assignment_id": assignment.id,
+                    "actor_id": worker.id,
+                    "provider": worker.provider,
+                    "violated": boundary_report.violated,
+                    "changed": list(boundary_report.changed),
+                    "added": list(boundary_report.added),
+                    "removed": list(boundary_report.removed),
+                },
+            )
         self._project_outcome(sow.outcome_id)
+        # The assignment is terminal on every path that reaches this line
+        # (COMPLETED, BLOCKED, or FAILED was just written above -- including
+        # the interrupted path, which records FAILED before re-raising).
+        # Reclaim runs against that terminal record, never against an
+        # assignment still RUNNING: a hard kill that never reaches this line
+        # leaves the workspace in place, which is the correct, fail-closed
+        # outcome -- Unit 8 recovery territory, not silently deleted evidence.
+        reclaim_workspace(workspace, worker.workspace_policy)
         if failure is not None:
             raise failure
         return assignment
@@ -742,7 +778,13 @@ class Organization:
         assignment = self._assignment(execution)
         output = self.root / ".sovereign" / "runs" / assignment.workspace_id / ".sovereign-out"
         for deliverable in sow.deliverables:
-            if not (output / deliverable).is_file():
+            # A deliverable name comes from a governed record, but it is still
+            # an unvalidated string: a `../` segment or an absolute path must
+            # not be allowed to escape this SOW's own output directory to
+            # check -- or later, once acceptance trusts this method -- claim
+            # the existence of a file anywhere else on disk.
+            path = safe_join(output, deliverable)
+            if not path.is_file():
                 raise Refusal(
                     f"SOW {sow.id} promised {deliverable} and did not produce it.",
                     "A unit of work is done when its deliverable exists, not "
