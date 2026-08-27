@@ -1,4 +1,4 @@
-# Ruling: Unit 7 is workspace lifecycle; Pulse stays out until Unit 9
+# Ruling: Unit 7 is workspace lifecycle; Unit 9 owns the pulse pipeline
 
 - **id:** `ruling-2026-08-27-unit7-is-workspaces-not-pulse`
 - **decided:** 2026-08-27
@@ -6,59 +6,47 @@
 - **applies_to:** Sovereign Agent 1.x, Unit 7
 - **status:** ACTIVE
 
-## The conflict
+## There was no conflict of authorities. There was a transcription error.
 
-Two sources in this project's own history disagreed about what Unit 7 is.
+This ruling's first draft framed this as two sources disagreeing and weighed
+which should win. That framing was wrong, and the corrected version says so
+rather than quietly fixing the wording: the deciding fact was already ratified
+and in-tree the whole time, and the first draft never grepped for it.
 
-`book/ch00_first_shift/README.md` — part of the executable textbook, gate-verified
-by `scripts/verify_curriculum.py`, checkpoint-tagged, and merged as part of the
-Units 0–6 acceptance record — tells the reader:
+`docs/sows/sovereign-agent-v1-educational-control-plane.md`, sequencing
+amendment 5, ratified by the principal and committed to `main` at `43d1dff`:
 
-> "The organization has no heartbeat yet. It cannot notice that stock fell, or
-> decide on its own that the tea needs reordering... That capacity... is called
-> **Pulse**, and it does not exist yet. It arrives in Unit 9. Nothing in this book
-> simulates it, and no event in the ledger you just inspected pretends otherwise.
-> You can check that claim the same way you checked the others."
+> "**Unit 9 is the first fully proactive milestone:** sale -> inventory signal
+> -> deterministic wake gate -> pulse -> replenishment work created without a
+> human prompt -> Scripted Operator -> evidence -> Sparring -> acceptance."
 
-A Sparring handover SOW filed in the corpus
-(`org/projects/sovereign-agent/sow/v1-educational-reboot/...-sparring-handover-units-0-6.md`)
-instead describes Unit 7 as "the first proactive milestone: sale -> inventory
-signal -> deterministic wake gate -> pulse -> replenishment."
+That is the sentence the book's ch00 was written against.
 
-These cannot both be true. If Unit 7 means building Pulse, the book — already
-reviewed twice, accepted, and shipped to readers — teaches a false claim about
-its own software, and does so while instructing the reader to independently
-verify a falsehood.
+This ruling's first draft cited the handover as
+`org/projects/sovereign-agent/sow/v1-educational-reboot/...-sparring-handover-units-0-6.md`
+— a corpus-relative path that does not resolve inside this repository. That was
+a ghost citation inside a ruling written to resolve a citation dispute. The
+correct reference: the source is **external to this repository**, held in the
+corpus at `rodriveracom/org-zeroemployeeorg`, path
+`projects/sovereign-agent/sow/v1-educational-reboot/v1-educational-reboot-SOW-01-sparring-handover-units-0-6.md`,
+committed there at `07ec2081`. It transcribed the pipeline from amendment 5
+under the wrong unit number, as Unit 7 rather than Unit 9 — a copying error in
+a working handover note, not a second ratified position. The corpus-side
+correction is filed at
+[org PR #62](https://github.com/rodriveracom/org-zeroemployeeorg/pull/62),
+"SOW-01 correction: Unit 7 is workspace lifecycle; proactive pipeline is Unit 9."
 
 ## Holding
 
-**The book governs. Unit 7 is workspace lifecycle. Pulse remains out of scope
-until Unit 9.**
+**Unit 7 is workspace lifecycle. Unit 9 owns the proactive pipeline — sale,
+signal, wake gate, pulse, replenishment — exactly as amendment 5 states.**
 
-This is not a new decision — it is the original mission brief holding: *"do not
-simulate a Pulse event before Unit 9"* was stated directly by the operator before
-any Unit 6.5 work began, predates the handover SOW, and was never amended. The
-handover memo describing Unit 7 as proactive-wake is superseded by that standing
-instruction and by the book it was never reconciled against.
-
-## Why the book wins over an internal handover memo
-
-1. **The book is the accepted artifact; the handover is a working note.** The book
-   was gate-checked, independently reviewed by two seats across many rounds, and
-   merged into the record this project now calls ACCEPTED. The handover SOW was
-   never reviewed against it and was written for a different audience —
-   coordinating a review, not fixing a scope.
-2. **Reviewer silence is evidence, not proof, but it counts.** Both reviewers who
-   approved the book's final state had every opportunity to flag ch00's Pulse
-   claim as premature or wrong. Neither did. The claim is also self-checking —
-   the chapter invites the reader to verify it — which is a stronger form of
-   claim than an unreviewed sentence in a handover doc.
-3. **A design memo not in this repository cannot silently override one that is.**
-   `docs/units-0-6-contract.md` already establishes this principle for the 1.x
-   SOW itself: "The full design memo lives with the originating stream... An
-   acceptance record that points at a document not in the tree is the same
-   defect this project exists to remove, one level up." The same reasoning
-   applies to a handover SOW that contradicts an in-tree, gate-verified claim.
+This was never open. The book's ch00 (`book/ch00_first_shift/README.md:116-118`)
+and `docs/sows/sovereign-agent-v1-educational-control-plane.md:59-61` already
+agreed; only the handover transcription disagreed with both. This ruling exists
+to put the correction on the record and to stop implementation until the
+transcription error is fixed at its source, not to choose between two rulings
+that were never in tension.
 
 ## What Unit 7 is, per the grounded proposal
 
@@ -70,8 +58,9 @@ the basis for Unit 7:
 1. **Reclaim tied to assignment terminal state.** `organization.py` allocates a
    run workspace per assignment (`~line 245`) and nothing in the package ever
    reclaims it.
-2. **`Actor.workspace_policy` is either enforced or removed.**
-   `models.py` declares the field; nothing reads it.
+2. **`Actor.workspace_policy` is enforced.** `models.py` declares the field and
+   nothing in the package reads it. The operator ruling here is enforcement, not a
+   choice between enforcing and deleting it: Unit 7 must make it read and honored.
 3. **The workspace boundary becomes detectable, not merely declared.** Only the
    `codex` provider has real OS-level containment (`--sandbox workspace-write`);
    `cursor`'s `--workspace` is explicitly documented as "not a sandbox";
@@ -95,10 +84,12 @@ the basis for Unit 7:
 ```console
 grep -n "does not exist yet. It arrives in" book/ch00_first_shift/README.md
 grep -n "lifecycle policies arrive in Unit 7" book/ch03_actor_is_not_a_model/README.md
+grep -n "Unit 9 is the first fully proactive milestone" docs/sows/sovereign-agent-v1-educational-control-plane.md
 grep -rn "workspace_policy" src/sovereign_agent/models.py
 python scripts/verify_curriculum.py
 ```
 
-The book's Pulse claim and Unit 7's workspace citation are what this ruling
-resolves between; the curriculum gate is what keeps the book itself honest going
-forward.
+The first three confirm the book, the ratified sequencing amendment, and Unit
+7's workspace citation all already agreed. The fourth shows the field this
+ruling requires Unit 7 to enforce. The curriculum gate is what keeps the book
+itself honest going forward.
