@@ -112,6 +112,49 @@ accepted.
 | 5 | `CHANGES_REQUESTED` → remediated | catchable interruption left an assignment recorded `RUNNING` with no receipt; Scripted provider's own failure branches untested |
 | 6 | `CHANGES_REQUESTED` (curriculum execution) | adapters, probing and fixtures verified; Chapter 3's exercise was required but never executed; credentialed smokes deferred to Unit 12 |
 
+## Final acceptance at `33e51d19`
+
+- **status:** ACCEPTED
+- **recorded:** 2026-08-27
+- **target:** `33e51d1972d9d10150765a9504fe668519bf7b23` (merged `main`, PR #26)
+
+The three `CHANGES_REQUESTED` verdicts above were remediated and re-reviewed.
+This section records what closed them; the table above is left unedited as the
+audit's finding of record at `9c242828`.
+
+| Unit | Was | Now | What closed it |
+| --- | --- | --- | --- |
+| 0 | `CHANGES_REQUESTED` | `ACCEPTED` | quickstart, `CONTRIBUTING` and documented imports corrected against the software that exists; the MkDocs pipeline removed rather than repaired, so there is no second site to drift |
+| 5 | `CHANGES_REQUESTED` | `ACCEPTED` | catchable interruption now writes a durable `interrupted` receipt before re-raising; the Scripted provider's failure branches are driven by real subprocesses rather than pre-classified fixtures |
+| 6 | `CHANGES_REQUESTED` | `ACCEPTED_WITH_EXPLICIT_DEFERRALS` | the curriculum gate now **executes** every required exercise -- the tags show it: 3 executed at `9c242828`, 4 at `f7d84f92`. Credentialed smokes remain deferred to Unit 12 |
+
+Units 1, 2 and 3 are unchanged at `ACCEPTED`; Unit 4 unchanged at
+`ACCEPTED_WITH_EXPLICIT_DEFERRALS`.
+
+**Units 0-6 are ACCEPTED.** Unit 7 is authorized.
+
+### What acceptance does not claim
+
+Credentialed Claude Code, Codex and Cursor smokes have **never been run**. No
+live-provider evidence exists anywhere in this repository, and default CI needs
+no credential and no commercial CLI. Multi-process fencing is deferred to Unit
+8. Both are recorded below as deferrals rather than absences.
+
+The curriculum gate executes each chapter's `solution.py`. It does **not**
+execute commands shown in prose -- stated exactly in `book/CONTENT-SOURCE.md`,
+including the reproduction that proves it.
+
+### Checkpoint tags
+
+Annotated, in `main`'s ancestry, each gating green at its own target:
+
+| Tag | Commit | Why there |
+| --- | --- | --- |
+| `book-v1-ch00` | `9c242828` | Chapter 0's exercise executes |
+| `book-v1-ch01` | `9c242828` | Chapter 1's exercise executes |
+| `book-v1-ch02` | `9c242828` | Chapter 2's exercise executes |
+| `book-v1-ch03` | `f7d84f92` | Chapter 3's exercise was *required but never executed* at `9c242828`; `f7d84f92` is where it first runs |
+
 ## Deferrals, on the record rather than as absences
 
 - [Unit 4 multi-process fencing → Unit 8](rulings/2026-08-26-deferral-unit4-fencing.md)
