@@ -15,8 +15,9 @@ cd sovereign-agent
 make install
 ```
 
-No API key is needed for anything in this repository, including the full test
-suite. Verify the installed CLI with:
+No API key is needed for the default test suite or for CI. (Provider smoke
+tests that need credentials exist, but are deselected by default -- see below.)
+Verify the installed CLI with:
 
 ```bash
 uv run sovereign-agent doctor
@@ -27,22 +28,27 @@ uv run sovereign-agent doctor
 The Makefile has five targets and no others:
 
 ```bash
-make install   # uv sync --all-groups
-make lint      # ruff format --check, ruff check, mypy
+make install   # uv sync --python 3.14 --group dev
+make lint      # ruff format --check, ruff check, mypy (src tests scripts book)
 make test      # pytest
-make verify    # lint + test
+make verify    # lint + test + runtime deps, source budget, doctor, demo
 make doctor    # the CLI's own environment check
 ```
 
-Before opening a pull request, run `make verify`, plus the checks CI runs that
-the Makefile does not wrap:
+`make lint` runs the identical target list to CI, so it cannot pass while CI
+fails on a path the Makefile forgot.
+
+Before opening a pull request, run `make verify`, plus the two checks CI runs
+that it does not wrap:
 
 ```bash
 uv lock --check
-uv run python scripts/verify_runtime_dependencies.py
-uv run python scripts/verify_source_budget.py
 uv run python scripts/verify_curriculum.py
 ```
+
+If you change a Makefile target, change this list in the same commit. A
+contributor guide that describes gates the Makefile does not run is the same
+defect as a ruling the code contradicts.
 
 Provider smoke tests that need credentials are opt-in, deselected by default,
 and gated behind `SOVEREIGN_AGENT_LIVE_ASSIGNMENTS=1`. Default CI needs no

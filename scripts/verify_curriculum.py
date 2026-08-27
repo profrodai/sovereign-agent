@@ -141,24 +141,31 @@ def check_chapter(name: str) -> list[str]:
 
 
 def check_rulings_index() -> list[str]:
-    """Every ruling must appear in the rulings index.
+    """The rulings index and the rulings directory must agree, both ways.
 
-    The index was written for a site navigation that no longer exists, and was
-    already stale at 9 of 10 the moment a new ruling landed. An unreferenced
-    listing that drifts is the ghost citation this project keeps deleting -- so
-    it is either checked or removed. It is checked.
+    The index was written for a site navigation that no longer exists, was
+    referenced by nothing, and was already stale at 9 of 10 the moment a new
+    ruling landed. An unreferenced listing that drifts is the ghost citation
+    this project keeps deleting -- so it is either checked or removed. It is
+    checked.
+
+    The first version compared raw text with `in`, which can only ever detect
+    an OMISSION. A ghost row pointing at a ruling that does not exist passed
+    silently, and this seat reported the check as proven after testing one
+    direction. Comparing two SETS makes both failures the same failure.
     """
     directory = REPO_ROOT / "docs" / "rulings"
     index = directory / "index.md"
     if not index.is_file():
         return ["docs/rulings/index.md is missing"]
-    listed = index.read_text(encoding="utf-8")
-    problems = []
-    for ruling in sorted(directory.glob("*.md")):
-        if ruling.name == "index.md":
-            continue
-        if ruling.name not in listed:
-            problems.append(f"docs/rulings/index.md does not list {ruling.name}")
+
+    on_disk = {r.name for r in directory.glob("*.md") if r.name != "index.md"}
+    linked = set(re.findall(r"\]\(([^)#]+\.md)\)", index.read_text(encoding="utf-8")))
+
+    problems = [f"docs/rulings/index.md does not list {n}" for n in sorted(on_disk - linked)]
+    problems += [
+        f"docs/rulings/index.md links {n}, which does not exist" for n in sorted(linked - on_disk)
+    ]
     return problems
 
 

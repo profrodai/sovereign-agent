@@ -104,7 +104,7 @@ accepted.
 
 | Unit | Verdict | Grounds |
 | --- | --- | --- |
-| 0 | `CHANGES_REQUESTED` → remediated | the site published a legacy curriculum whose directory and drift-tool do not exist; quickstart specified Python 3.13 and three nonexistent commands; `CONTRIBUTING` advertised six `make` targets and a `--skip-llm` flag that do not exist; 26 of 28 documented imports did not resolve. `book/` being unpublished was **not** a defect — publication belongs to the consuming site — and the MkDocs pipeline was removed rather than repaired |
+| 0 | `CHANGES_REQUESTED` → remediated | the MkDocs navigation was configured to publish a legacy curriculum whose directory and drift-tool do not exist (Pages was never enabled, so nothing was ever actually served -- the defect was the configured surface and the repository's own legacy documentation, not a live page); quickstart specified Python 3.13 and three nonexistent commands; `CONTRIBUTING` advertised six `make` targets and a `--skip-llm` flag that do not exist; 26 of 28 documented imports did not resolve. `book/` being unpublished was **not** a defect — publication belongs to the consuming site — and the MkDocs pipeline was removed rather than repaired |
 | 1 | `ACCEPTED` | 12/12 subcommands respond; fresh 3.14 wheel installs and runs; runtime requires exactly `pydantic<3,>=2`; budgets 23/40 modules, 3631/6000 lines, 7/30 exports |
 | 2 | `ACCEPTED` | migrations forward-only and byte-frozen; append-only enforced from an outside connection; transactional store state with rollback proven by fault injection |
 | 3 | `ACCEPTED` | per-SOW proof chains; causal binding through the effect edge; separation derived from the ledger; falsification suite refuses every known lie |
