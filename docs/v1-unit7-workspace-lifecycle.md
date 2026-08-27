@@ -136,6 +136,29 @@ ancestor transparently. `self.root` itself is excluded from the walk
 because it is the organization's own allocated real directory, not
 something this method traverses into on the provider's behalf.
 
+**Corrected by review round three, second finding** (B3): the ancestor walk
+above guards the workspace root and everything above it, but a workspace
+root can pass every one of those checks as an ordinary real directory while
+`.sovereign-out` — the organization-allocated *output child* living one
+level *below* the workspace root — was pre-planted as a symlink. The
+reviewer's own framing: probe the dual of every fix, same mechanism,
+opposite position; round three's first finding (B) guarded the path above
+the workspace, this one is the path below it. Before this fix, the provider
+wrote its report and every declared artifact through that symlink for real,
+into whatever external directory it pointed at, and `_require_deliverables`
+— which reconstructs the same `.sovereign-out` path independently and joins
+onto it with `safe_join` — resolved through the same symlink and accepted
+evidence sitting entirely outside the workspace boundary as proof the SOW
+was satisfied. Fixed by checking `.sovereign-out` for a symlink immediately
+after the ancestor walk, in the same place, before the SOW or assignment
+state is touched, before the workspace directory is created, and before the
+provider is ever invoked — refusing with a distinct category
+(`symlinked_output_directory`, not `symlinked_workspace_root`) because it is
+a different path component (a child, not a root or an ancestor) that the
+ancestor walk cannot see. Proven with the same invocation-counter-stays-zero
+and byte-for-byte external-tree-hash pattern the two round-three-B tests
+already established.
+
 ### Property 2 — `Actor.workspace_policy` is enforced
 
 `models.py:120` declared the field (`workspace_policy: str =
@@ -277,9 +300,11 @@ python -m pytest -q tests/test_workspace_lifecycle.py \
 # runs, proven by a spy/counter at zero (review round two, P1 finding 2); a
 # symlinked workspace root -- leaf or ancestor -- is refused before the
 # provider ever runs too, same spy/counter plus a byte-for-byte external-tree
-# hash (review round three, finding B)
+# hash (review round three, finding B); a symlinked *output child*
+# (.sovereign-out) one level below the workspace root is refused the same
+# way (review round three, finding B3)
 python -m pytest -q tests/test_workspace_lifecycle.py \
-  -k "persistent_policy or temporary_directory_policy or unknown_workspace_policy or policy_loads_from_toml or symlinked_workspace_root_refused_before or symlinked_runs_directory_ancestor"
+  -k "persistent_policy or temporary_directory_policy or unknown_workspace_policy or policy_loads_from_toml or symlinked_workspace_root_refused_before or symlinked_runs_directory_ancestor or symlinked_output_directory_refused_before"
 
 # Property 3 — boundary violation detected end to end, mutation-checked both
 # directions (a real escape is caught; legitimate in-workspace writes are
@@ -311,16 +336,18 @@ estimated:
 | After (this unit, original) | 24/40 | 3916/6000 | 7/30 |
 | After (review round two's four P1 fixes + P2) | 24/40 | 4056/6000 | 7/30 |
 | After (review round three's two findings) | 24/40 | 4134/6000 | 7/30 |
+| After (review round three's third finding, B3) | 24/40 | 4168/6000 | 7/30 |
 
 One new module (`src/sovereign_agent/workspace.py`), no new root export —
 `Organization.run_assignment` and `_require_deliverables` call the new module
 internally; nothing in `workspace.py` is re-exported from the package root.
 Review round two's fixes stayed inside the same two modules (`workspace.py`,
 `organization.py`) plus their tests — no new module, no new root export.
-Review round three's fixes stayed inside `organization.py` and its test file
-only — `workspace.py`'s own `reclaim_workspace` symlink guard is untouched,
-kept in place as defense in depth — no new module, no new root export.
-Headroom remaining: 16 modules, 1866 nonblank lines, 23 root exports.
+Review round three's fixes (both finding B and finding B3) stayed inside
+`organization.py` and its test file only — `workspace.py`'s own
+`reclaim_workspace` symlink guard and `safe_join` are both untouched, kept in
+place as defense in depth — no new module, no new root export.
+Headroom remaining: 16 modules, 1832 nonblank lines, 23 root exports.
 
 ## What this unit did not do
 

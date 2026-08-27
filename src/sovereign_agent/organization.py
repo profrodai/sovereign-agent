@@ -314,9 +314,43 @@ class Organization:
                 "before retrying this assignment.",
                 category="symlinked_workspace_root",
             )
+        # The ancestor walk above guards the workspace ROOT and everything
+        # above it. It says nothing about `.sovereign-out`, the
+        # organization-allocated OUTPUT CHILD living one level *below* the
+        # workspace root -- the dual of the check above, same mechanism,
+        # opposite position. `workspace` can pass every check above as an
+        # ordinary real directory while `.sovereign-out` inside it was
+        # pre-planted as a symlink: the provider would then write its
+        # report and every declared artifact through that link, for real,
+        # into whatever external directory it points at, and
+        # `_require_deliverables` -- which reconstructs this exact path
+        # independently and joins onto it via `safe_join` -- resolves
+        # through the same symlink and accepts evidence sitting entirely
+        # outside the workspace boundary as proof the SOW was satisfied.
+        # Refused here, before the SOW or assignment state is touched,
+        # before `workspace` itself is created, and before the provider is
+        # ever invoked -- the same fail-closed shape as the check above,
+        # not folded into it, because it is a distinct path component
+        # (a child, not an ancestor) that a single symlink check on
+        # `workspace` and its parents cannot see.
+        output = workspace / ".sovereign-out"
+        if output.is_symlink():
+            raise Refusal(
+                f"Workspace output path {str(output)!r} is a symlink.",
+                "A symlinked output child would let the provider write its "
+                "report and every declared artifact through it for real, "
+                "into whatever the link points at -- and "
+                "`_require_deliverables` would then resolve through the "
+                "same link and accept evidence sitting entirely outside "
+                "the workspace boundary as proof the SOW was satisfied. "
+                "The provider must never run against an output path this "
+                "method did not allocate as a real directory.",
+                worker.id,
+                "Investigate how that path became a symlink before retrying this assignment.",
+                category="symlinked_output_directory",
+            )
         sow = self._sow(assignment.sow_id)
         sow.state = advance_sow(sow.state, SowState.RUNNING)
-        output = workspace / ".sovereign-out"
         workspace.mkdir(parents=True, exist_ok=True)
         assignment.state = AssignmentState.RUNNING
         self._save_assignment(assignment, sow, "assignment.running")

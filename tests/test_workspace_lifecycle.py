@@ -567,6 +567,76 @@ def test_symlinked_runs_directory_ancestor_is_also_refused_before_the_provider_r
     )
 
 
+def test_symlinked_output_directory_refused_before_the_provider_ever_runs(
+    tmp_path: Path,
+) -> None:
+    """Round three's finding (B3): the two checks above guard the workspace
+    ROOT and its ancestors, but neither one looks at `.sovereign-out`, the
+    organization-allocated OUTPUT CHILD living one level *below* the
+    workspace root. This test allocates `workspace` itself as an ordinary
+    real directory -- so the ancestor-walk above does not fire -- and
+    pre-plants `.sovereign-out` as a symlink to an external target before
+    `run_assignment` ever touches it.
+
+    Before the fix: the provider runs for real and writes its report and
+    artifacts straight through the link into the external directory,
+    `run_assignment` returns COMPLETED, and `_require_deliverables` (which
+    reconstructs the same `.sovereign-out` path independently and calls
+    `safe_join` against it) resolves through the symlink and ACCEPTS a
+    deliverable planted directly in the external directory -- evidence the
+    run never produced -- as satisfying the SOW. Same threat model as the
+    workspace-root case above (a governed path substituted with a symlink
+    before use), one level down: the write-through and the accept-through
+    are two faces of the same unchecked path.
+
+    Same shape as the two tests above: `invoke_actor` is spied on with a
+    counter to prove the provider is never invoked, and the external
+    target's whole tree is hashed before and after to prove nothing was
+    written through the link at all.
+    """
+    org, _sow_id, assignment_id = dispatched(tmp_path)
+    assignment = org._assignment(assignment_id)  # noqa: SLF001
+    workspace_path = org.root / ".sovereign" / "runs" / assignment.workspace_id
+    external = tmp_path / "external-output-target"
+    external.mkdir()
+
+    # The workspace root itself is an ordinary real directory -- allocated
+    # the way `run_assignment` allocates it -- so the ancestor-walk check
+    # above does not fire and this test isolates the output-child gap.
+    workspace_path.mkdir(parents=True, exist_ok=True)
+    (workspace_path / ".sovereign-out").symlink_to(external, target_is_directory=True)
+
+    before_hash = hash_tree(external)
+
+    invoked = {"count": 0}
+    real_invoke = organization_module.invoke_actor
+
+    def counting_invoke(*args, **kwargs):  # noqa: ANN001, ANN002, ANN003
+        invoked["count"] += 1
+        return real_invoke(*args, **kwargs)
+
+    with patch.object(organization_module, "invoke_actor", side_effect=counting_invoke):
+        with pytest.raises(Refusal, match="symlink") as excinfo:
+            org.run_assignment(assignment_id)
+
+    assert excinfo.value.category == "symlinked_output_directory"
+    assert invoked["count"] == 0, (
+        "the provider must never be invoked with an output path that is a symlink"
+    )
+    final = org._assignment(assignment_id)  # noqa: SLF001
+    assert final.state == AssignmentState.CREATED, (
+        "the assignment must not even reach RUNNING when the output child is a symlink"
+    )
+    row = org.db.connection.execute(
+        "SELECT record FROM receipts WHERE assignment_id = ?", (assignment_id,)
+    ).fetchone()
+    assert row is None, "no receipt: the run never happened, it was not merely discarded"
+    assert hash_tree(external) == before_hash, (
+        "the external target's whole tree must be byte-for-byte unchanged -- "
+        "nothing written through the symlinked output child at all"
+    )
+
+
 # --- Property 3: the workspace boundary is detectable -----------------------
 
 
