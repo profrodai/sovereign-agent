@@ -1,9 +1,15 @@
 # Units 0–6: the contract, and how it was accepted
 
-- **status:** RATIFIED, 2026-08-26
+- **status:** ACCEPTED, 2026-08-27 (ratified as a contract 2026-08-26)
 - **authority:** principal
 - **applies to:** Sovereign Agent 1.x, Units 0 through 6
-- **acceptance target:** `9c242828a99f469896de940878ae3bf735257800`
+- **audit target:** `9c242828a99f469896de940878ae3bf735257800` — the commit the
+  read-only audit examined, with findings outstanding
+- **accepted target:** `33e51d1972d9d10150765a9504fe668519bf7b23`
+
+Both are named because they are different commits. `9c242828` is where the
+audit found three `CHANGES_REQUESTED`; naming it alone as "the acceptance
+target" would make a failing commit read as accepted.
 
 ## Why this document exists
 
@@ -124,7 +130,7 @@ audit's finding of record at `9c242828`.
 
 | Unit | Was | Now | What closed it |
 | --- | --- | --- | --- |
-| 0 | `CHANGES_REQUESTED` | `ACCEPTED` | quickstart, `CONTRIBUTING` and documented imports corrected against the software that exists; the MkDocs pipeline removed rather than repaired, so there is no second site to drift |
+| 0 | `CHANGES_REQUESTED` | `ACCEPTED` | the **current** surface — README, quickstart, `CONTRIBUTING`, `book/` — corrected against the software that exists, and the MkDocs navigation removed, which took the legacy import-heavy tutorials off the rendered surface. **The 0.x documentation corpus was not rewritten:** four files under `docs/` still import symbols 1.x removed, three of them without a historical warning. They are off the navigation surface, not fixed. See the limit below |
 | 5 | `CHANGES_REQUESTED` | `ACCEPTED` | catchable interruption now writes a durable `interrupted` receipt before re-raising; the Scripted provider's failure branches are driven by real subprocesses rather than pre-classified fixtures |
 | 6 | `CHANGES_REQUESTED` | `ACCEPTED_WITH_EXPLICIT_DEFERRALS` | the curriculum gate now **executes** every required exercise -- the tags show it: 3 executed at `9c242828`, 4 at `f7d84f92`. Credentialed smokes remain deferred to Unit 12 |
 
@@ -143,6 +149,38 @@ no credential and no commercial CLI. Multi-process fencing is deferred to Unit
 The curriculum gate executes each chapter's `solution.py`. It does **not**
 execute commands shown in prose -- stated exactly in `book/CONTENT-SOURCE.md`,
 including the reproduction that proves it.
+
+### The Unit 0 limit, stated exactly
+
+`docs/` retains 0.x-era documentation that imports symbols 1.x removed —
+`docs/api_reference.md`, `docs/persistence-boundary.md`,
+`docs/tutorials/first-agent.md` and `docs/tutorials/structured-and-approval.md`.
+Only `first-agent.md` carries a historical warning.
+
+Unit 0's requirement was documentation describing the software that exists.
+That is met for everything a reader reaches: README, quickstart, `book/` and the
+contributor path all resolve. The legacy corpus was taken **off the navigation
+surface** rather than rewritten, which is a narrower remediation than "documented
+imports corrected" — the claim an earlier draft of this section made, and which
+was false.
+
+Reproduce:
+
+```bash
+python - <<'EOF'
+import pathlib, re, sovereign_agent as s
+for f in sorted(pathlib.Path("docs").rglob("*.md")):
+    names = set()
+    for m in re.finditer(r"from sovereign_agent(?:[.\w]*)? import ([^\n]+)", f.read_text()):
+        names |= {n.strip().split(" as ")[0] for n in m.group(1).split(",")}
+    missing = {n for n in names if n and n[0].isupper() and not hasattr(s, n)}
+    if missing:
+        print(f, sorted(missing))
+EOF
+```
+
+Rewriting or removing that corpus is deliberately **not** in scope here; an
+acceptance record is the wrong place to reopen it.
 
 ### Checkpoint tags
 
