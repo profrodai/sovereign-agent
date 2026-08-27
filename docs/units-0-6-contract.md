@@ -1,9 +1,15 @@
 # Units 0–6: the contract, and how it was accepted
 
-- **status:** RATIFIED, 2026-08-26
+- **status:** ACCEPTED, 2026-08-27 (ratified as a contract 2026-08-26)
 - **authority:** principal
 - **applies to:** Sovereign Agent 1.x, Units 0 through 6
-- **acceptance target:** `9c242828a99f469896de940878ae3bf735257800`
+- **audit target:** `9c242828a99f469896de940878ae3bf735257800` — the commit the
+  read-only audit examined, with findings outstanding
+- **accepted target:** `33e51d1972d9d10150765a9504fe668519bf7b23`
+
+Both are named because they are different commits. `9c242828` is where the
+audit found three `CHANGES_REQUESTED`; naming it alone as "the acceptance
+target" would make a failing commit read as accepted.
 
 ## Why this document exists
 
@@ -111,6 +117,83 @@ accepted.
 | 4 | `ACCEPTED_WITH_EXPLICIT_DEFERRALS` | identity, authority, leases and concurrency verified; fencing deferred to Unit 8; `F-U4-1` recorded as a named limit |
 | 5 | `CHANGES_REQUESTED` → remediated | catchable interruption left an assignment recorded `RUNNING` with no receipt; Scripted provider's own failure branches untested |
 | 6 | `CHANGES_REQUESTED` (curriculum execution) | adapters, probing and fixtures verified; Chapter 3's exercise was required but never executed; credentialed smokes deferred to Unit 12 |
+
+## Final acceptance at `33e51d19`
+
+- **status:** ACCEPTED
+- **recorded:** 2026-08-27
+- **target:** `33e51d1972d9d10150765a9504fe668519bf7b23` (merged `main`, PR #26)
+
+The three `CHANGES_REQUESTED` verdicts above were remediated and re-reviewed.
+This section records what closed them; the table above is left unedited as the
+audit's finding of record at `9c242828`.
+
+| Unit | Was | Now | What closed it |
+| --- | --- | --- | --- |
+| 0 | `CHANGES_REQUESTED` | `ACCEPTED` | the **current** surface — README, quickstart, `CONTRIBUTING`, `book/` — corrected against the software that exists, and the MkDocs navigation removed, which took the legacy import-heavy tutorials off the rendered surface. **The 0.x documentation corpus was not rewritten:** three files under `docs/` still import symbols 1.x removed, and one of them carries no warning at all. They are off the navigation surface, not fixed. See the limit below |
+| 5 | `CHANGES_REQUESTED` | `ACCEPTED` | catchable interruption now writes a durable `interrupted` receipt before re-raising; the Scripted provider's failure branches are driven by real subprocesses rather than pre-classified fixtures |
+| 6 | `CHANGES_REQUESTED` | `ACCEPTED_WITH_EXPLICIT_DEFERRALS` | the curriculum gate now **executes** every required exercise -- the tags show it: 3 executed at `9c242828`, 4 at `f7d84f92`. Credentialed smokes remain deferred to Unit 12 |
+
+Units 1, 2 and 3 are unchanged at `ACCEPTED`; Unit 4 unchanged at
+`ACCEPTED_WITH_EXPLICIT_DEFERRALS`.
+
+**Units 0-6 are ACCEPTED.** Unit 7 is authorized.
+
+### What acceptance does not claim
+
+Credentialed Claude Code, Codex and Cursor smokes have **never been run**. No
+live-provider evidence exists anywhere in this repository, and default CI needs
+no credential and no commercial CLI. Multi-process fencing is deferred to Unit
+8. Both are recorded below as deferrals rather than absences.
+
+The curriculum gate executes each chapter's `solution.py`. It does **not**
+execute commands shown in prose -- stated exactly in `book/CONTENT-SOURCE.md`,
+including the reproduction that proves it.
+
+### The Unit 0 limit, stated exactly
+
+Three files under `docs/` retain 0.x-era documentation importing symbols 1.x
+removed:
+
+| File | Removed symbols it imports | Warning |
+| --- | --- | --- |
+| `docs/api_reference.md` | the legacy v0.7 surface, including `Config`, `Half`, `Orchestrator`, `Registry` | identifies itself as the v0.7.0 contract in prose |
+| `docs/tutorials/first-agent.md` | `Config`, `run_task` | explicit banner: *Legacy — describes software removed in 1.0* |
+| `docs/tutorials/structured-and-approval.md` | `Rule`, `StructuredHalf` | **none** |
+
+Unit 0's requirement was documentation describing the software that exists.
+That is met for everything a reader reaches: README, quickstart, `book/` and the
+contributor path all resolve. The legacy corpus was taken **off the navigation
+surface** rather than rewritten, which is a narrower remediation than "documented
+imports corrected" — the claim an earlier draft of this section made, and which
+was false.
+
+Reproduce:
+
+```bash
+rg -l '^from sovereign_agent import ' docs --glob '*.md'
+```
+
+An earlier version of this section ran a Python parser here and reported **four**
+files. `docs/persistence-boundary.md` was a false positive: it contains a shell
+one-liner, `python -c "from sovereign_agent.organization import Organization; \`,
+and the parser captured `Organization; \` as an imported name, then checked that
+against top-level `sovereign_agent` and concluded a valid submodule import had
+been removed. `Organization` exists.
+
+The replacement matches only top-level imports at line start, which is what the
+claim is about.
+
+### Checkpoint tags
+
+Annotated, in `main`'s ancestry, each gating green at its own target:
+
+| Tag | Commit | Why there |
+| --- | --- | --- |
+| `book-v1-ch00` | `9c242828` | Chapter 0's exercise executes |
+| `book-v1-ch01` | `9c242828` | Chapter 1's exercise executes |
+| `book-v1-ch02` | `9c242828` | Chapter 2's exercise executes |
+| `book-v1-ch03` | `f7d84f92` | Chapter 3's exercise was *required but never executed* at `9c242828`; `f7d84f92` is where it first runs |
 
 ## Deferrals, on the record rather than as absences
 
