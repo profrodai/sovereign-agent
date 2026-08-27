@@ -42,7 +42,14 @@ from sovereign_agent.policy import (
 from sovereign_agent.providers import get_provider
 from sovereign_agent.relay import inbox as relay_inbox
 from sovereign_agent.relay import send as relay_send
-from sovereign_agent.workspace import diff_boundary, reclaim_workspace, safe_join, snapshot_boundary
+from sovereign_agent.workspace import (
+    WORKSPACE_POLICIES,
+    BoundarySnapshot,
+    diff_boundary,
+    reclaim_workspace,
+    safe_join,
+    snapshot_boundary,
+)
 
 
 class Organization:
@@ -241,6 +248,26 @@ class Organization:
         assignment = self._assignment(assignment_id)
         assignment_may_run(assignment.state)
         worker = self.actor(assignment.actor_id)
+        # Validated before ANYTHING else -- before the SOW or assignment
+        # state is touched, before the workspace directory is created, and
+        # long before the provider is invoked. An unrecognized policy used
+        # to surface only inside `reclaim_workspace`, at the very end of this
+        # method, by which point the provider had already run for real and
+        # COMPLETED was already committed to the ledger -- an invalid
+        # configuration value should mean the run never happened at all, not
+        # that it happened and then the bookkeeping afterward refused.
+        if worker.workspace_policy not in WORKSPACE_POLICIES:
+            raise Refusal(
+                f"Unknown workspace policy {worker.workspace_policy!r}.",
+                "A policy this module does not recognize must not be "
+                "silently treated as either 'reclaim' or 'keep' -- both are "
+                "real, consequential choices, and the provider must never "
+                "run for an actor whose policy cannot be enforced "
+                "afterward.",
+                worker.id,
+                f"Use one of: {', '.join(sorted(WORKSPACE_POLICIES))}.",
+                category="unknown_workspace_policy",
+            )
         sow = self._sow(assignment.sow_id)
         sow.state = advance_sow(sow.state, SowState.RUNNING)
         workspace = self.root / ".sovereign" / "runs" / assignment.workspace_id
@@ -250,12 +277,21 @@ class Organization:
         self._save_assignment(assignment, sow, "assignment.running")
         started_at = utc_now()
         failure: BaseException | None = None
-        # Taken BEFORE the provider runs, so the boundary check below proves
-        # something about THIS invocation, not about drift left over from an
-        # earlier one. Every exception path still runs the invocation (or
-        # attempts to), so the snapshot covers every path, not just success.
-        boundary_before = snapshot_boundary(self.root, workspace)
+        boundary_before: BoundarySnapshot | None = None
         try:
+            # Taken BEFORE the provider runs, so the boundary check below
+            # proves something about THIS invocation, not about drift left
+            # over from an earlier one. Folded into this same try block (it
+            # used to run unguarded, ahead of the try): a fault here --
+            # e.g. a transient OSError reading the tree to digest -- used to
+            # propagate straight out of `run_assignment` before the provider
+            # was ever invoked and before any receipt was written, leaving
+            # the assignment stuck at RUNNING (already persisted above) with
+            # no terminal record at all. Caught by the same three handlers
+            # as a provider fault, it now produces the same honest failed
+            # receipt and terminal state every other fault in this method
+            # produces.
+            boundary_before = snapshot_boundary(self.root, workspace)
             receipt, report = invoke_actor(
                 worker, sow, workspace, output, assignment_id=assignment.id
             )
@@ -308,8 +344,31 @@ class Organization:
         # exception path was taken above -- detection, not prevention, per
         # the governing ruling: this proves what changed outside the
         # workspace, it does not claim to have stopped it.
-        boundary_after = snapshot_boundary(self.root, workspace)
-        boundary_report = diff_boundary(boundary_before, boundary_after)
+        #
+        # Guarded, not bare: by this point `receipt` is already durable proof
+        # of whatever happened above (including an interruption, which is
+        # already recorded and captured in `failure`). A fault taking THIS
+        # snapshot -- e.g. the same transient OSError the before-snapshot
+        # could hit -- used to propagate completely unguarded, which, if a
+        # real interruption had already been caught above, would replace
+        # that interruption's own exception with this unrelated one at the
+        # `raise failure` line near the end of this method: the caller would
+        # see an OSError from bookkeeping instead of the KeyboardInterrupt
+        # that actually happened. A fault here is caught, recorded as an
+        # honestly-empty boundary report (nothing claimed, not "no
+        # violation"), and never allowed to overwrite an already-determined
+        # `failure` -- the more important fact always wins.
+        try:
+            boundary_after = snapshot_boundary(self.root, workspace)
+            boundary_report = (
+                diff_boundary(boundary_before, boundary_after)
+                if boundary_before is not None
+                else None
+            )
+        except OSError as snapshot_error:
+            boundary_report = None
+            if failure is None:
+                failure = snapshot_error
         with self.db.transaction():
             self.db.put_serialized("receipts", receipt.id, receipt_json)
             if report and report.status == "completed":
@@ -328,7 +387,12 @@ class Organization:
             )
             # A durable, queryable fact regardless of verdict: a clean report
             # is itself evidence the boundary held for this invocation, not
-            # merely the absence of a complaint.
+            # merely the absence of a complaint. `boundary_report` is `None`
+            # only when a snapshot itself faulted (see above) -- recorded
+            # here as `computed: False` rather than as `violated: False`,
+            # because "the check could not run" and "the check ran and
+            # found nothing" are different facts and must not share one
+            # boolean.
             append_event(
                 self.db,
                 "assignment.workspace_boundary_checked",
@@ -336,10 +400,12 @@ class Organization:
                     "assignment_id": assignment.id,
                     "actor_id": worker.id,
                     "provider": worker.provider,
-                    "violated": boundary_report.violated,
-                    "changed": list(boundary_report.changed),
-                    "added": list(boundary_report.added),
-                    "removed": list(boundary_report.removed),
+                    "computed": boundary_report is not None,
+                    "scope": boundary_report.scope if boundary_report is not None else None,
+                    "violated": boundary_report.violated if boundary_report is not None else None,
+                    "changed": list(boundary_report.changed) if boundary_report is not None else [],
+                    "added": list(boundary_report.added) if boundary_report is not None else [],
+                    "removed": list(boundary_report.removed) if boundary_report is not None else [],
                 },
             )
         self._project_outcome(sow.outcome_id)

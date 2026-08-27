@@ -54,6 +54,37 @@ workspace root. A reclaim policy that deleted them would silently break
 re-verification — the exact risk the investigation that grounded this unit
 named as an open question rather than guessing past it.
 
+A workspace root that is itself a symlink is refused, not reclaimed: reclaim
+never recurses through it, because the organization allocates a real
+directory at that path and a symlink there would delete whatever the link
+points at instead — territory this function has no authority over. A symlink
+*entry inside* an otherwise real workspace is unlinked directly
+(`Path.unlink()`, which removes the link and never follows it into its
+target) rather than passed to `shutil.rmtree`, which refuses to recurse into
+a symlinked directory and raises `OSError` instead — unguarded, that
+exception used to have no protection at its only call site and could
+propagate after the assignment's terminal state was already durably written,
+which is the review round below reports fixing.
+
+**Corrected by review round two** (P1 finding 1): the two `snapshot_boundary`
+calls that bracket the provider invocation (Property 3) used to sit partly
+outside the receipt-producing exception handling. A fault taking the
+*before* snapshot used to propagate straight out of `run_assignment`,
+skipping the persistence block entirely and leaving the assignment stuck at
+`RUNNING` (already committed a few lines earlier) with no receipt at all. A
+fault taking the *after* snapshot used to be completely unguarded and could
+replace an already-caught interruption's own exception at the method's final
+`raise failure` — the caller would see an unrelated `OSError` from
+bookkeeping instead of the `KeyboardInterrupt` that actually happened, even
+though the interruption's own receipt had already been correctly written.
+Fixed: the before-snapshot is now taken inside the same try block as the
+provider invocation, covered by the same three exception handlers every
+other fault in this method already used; the after-snapshot is wrapped in
+its own guard that never overwrites an already-determined `failure` — the
+more important, already-happened fact always wins, and a snapshot fault that
+occurs with no prior failure becomes the reported failure itself rather than
+being silently absorbed.
+
 ### Property 2 — `Actor.workspace_policy` is enforced
 
 `models.py:120` declared the field (`workspace_policy: str =
@@ -70,6 +101,18 @@ close that gap:
    outside that set is refused, fail-closed, rather than silently treated as
    either "reclaim" or "keep" — both are real, consequential choices, and an
    unrecognized string must not pick one by accident.
+
+**Corrected by review round two** (P1 finding 2): that validation used to
+happen only inside `reclaim_workspace`, called at the very end of
+`run_assignment` — by which point the provider had already run for real and
+`COMPLETED` was already committed to the ledger, so an invalid policy meant
+"the run happened, then the bookkeeping afterward refused," not "the run
+never happened." `run_assignment` now validates `worker.workspace_policy`
+against the same `WORKSPACE_POLICIES` set as its very first act, before the
+SOW or assignment state is touched, before the workspace directory is
+created, and before the provider is invoked — an invalid policy means the
+provider never runs at all. Proven with a spy/counter on `invoke_actor` that
+must stay at zero, not merely by asserting the final ledger state.
 
 ### Property 3 — the workspace boundary is detectable
 
@@ -96,6 +139,25 @@ not block the assignment from completing — it puts the fact on the ledger
 either way, exactly as the governing ruling specifies ("you can determine
 after the fact whether execution stayed inside it").
 
+**Corrected by review round two** (P1 finding 4): `violated: False` on its
+own reads as "execution stayed inside the workspace," but the check is
+structurally blind to two things by design — the workspace itself (the actor
+is authorized to write there) and `.sovereign/organization.db*` (written by
+this same process's own transaction, not by the subprocess under test). A
+real schema change or row write to the ledger between two snapshots is
+genuinely invisible to `diff_boundary`, and the review correctly named this
+a coverage-*honesty* problem, not a "must detect DB writes" problem — the
+check was never meant to watch the ledger, per the paragraph above. Fixed by
+making the report say what it covers rather than widening what it watches:
+`BoundaryReport` (and the `assignment.workspace_boundary_checked` event) now
+carries `scope: "organization_root_excluding_workspace_and_ledger"`
+(`workspace.BOUNDARY_SCOPE`), naming the same exclusion this section already
+documented, as a value a reader can check rather than only a docstring they
+must already be looking at. The event also carries `computed: bool`,
+distinguishing "the check ran and found nothing" from "the check itself
+could not run" (see Property 1's fault-injection correction above) — the two
+must never share one boolean.
+
 ### Property 4 — `_require_deliverables` gets a traversal check
 
 `organization.py`'s `_require_deliverables` joined an unvalidated
@@ -107,6 +169,17 @@ the joined candidate and requires the candidate to sit at or under the
 resolved root, which defeats a mixed-separator or symlink string a
 prefix-string check would miss. `_require_deliverables` now calls it for
 every declared deliverable before checking existence.
+
+**Corrected by review round two** (P2): `safe_join` used to accept an
+absolute input whenever it happened to *resolve* inside root, checking only
+the resolved candidate and never whether the input itself was absolute —
+looser than the function's own docstring (workspace-relative paths) and than
+the "absolute path refused" test category already asserted for the
+non-resolving case. `_require_deliverables`'s only real caller passes
+workspace-relative deliverable names, so an absolute input is never a
+legitimate case here regardless of where it resolves. Fixed to reject any
+absolute `relative` argument outright, matching the apparent contract rather
+than loosening the docstring to fit the looser behaviour.
 
 ### Property 5 — parity across all four providers, no live credential
 
@@ -138,19 +211,27 @@ python -m pytest -q
 python scripts/verify_source_budget.py
 python scripts/verify_curriculum.py
 
-# Property 1 — reclaim tied to terminal state, including the interrupted path
+# Property 1 — reclaim tied to terminal state, including the interrupted path;
+# a snapshot fault at either bracket still reaches a terminal state and never
+# masks a real interruption (review round two, P1 finding 1); reclaim refuses
+# a symlinked workspace root and unlinks (never rmtrees) a symlinked child
+# entry without touching its external target (review round two, P1 finding 3)
 python -m pytest -q tests/test_workspace_lifecycle.py \
-  -k "reclaimed_after_terminal_state or survives_non_terminal_state or interrupted_assignment or hard_kill"
+  -k "reclaimed_after_terminal_state or survives_non_terminal_state or interrupted_assignment or hard_kill or fault_in_before_snapshot or fault_in_after_snapshot or reclaim_refuses_a_symlinked or reclaim_unlinks_a_symlinked"
 
-# Property 2 — workspace_policy drives real branching, loads from TOML,
-# fails closed on an unrecognized value
+# Property 2 — workspace_policy drives real branching, loads from TOML, fails
+# closed on an unrecognized value, and validates before the provider ever
+# runs, proven by a spy/counter at zero (review round two, P1 finding 2)
 python -m pytest -q tests/test_workspace_lifecycle.py \
   -k "persistent_policy or temporary_directory_policy or unknown_workspace_policy or policy_loads_from_toml"
 
 # Property 3 — boundary violation detected end to end, mutation-checked both
-# directions (a real escape is caught; legitimate in-workspace writes are not)
+# directions (a real escape is caught; legitimate in-workspace writes are
+# not); the report carries an honest scope and a real DB write stays outside
+# it on purpose, not silently overclaimed as violated=False (review round
+# two, P1 finding 4)
 python -m pytest -q tests/test_workspace_lifecycle.py \
-  -k "detects_write_outside or do_not_trip_the_boundary or new_file_outside or clean_boundary_event or caught_by_run_assignment"
+  -k "detects_write_outside or do_not_trip_the_boundary or new_file_outside or clean_boundary_event or caught_by_run_assignment or does_not_see_a_real_database_write"
 
 # Property 4 — traversal refused fail-closed; a legitimate nested path still
 # succeeds
@@ -171,12 +252,15 @@ estimated:
 | | modules | nonblank lines | root exports |
 | --- | --- | --- | --- |
 | Before (Units 0-6 accepted, `33e51d19`) | 23/40 | 3696/6000 | 7/30 |
-| After (this unit) | 24/40 | 3916/6000 | 7/30 |
+| After (this unit, original) | 24/40 | 3916/6000 | 7/30 |
+| After (review round two's four P1 fixes + P2) | 24/40 | 4056/6000 | 7/30 |
 
 One new module (`src/sovereign_agent/workspace.py`), no new root export —
 `Organization.run_assignment` and `_require_deliverables` call the new module
 internally; nothing in `workspace.py` is re-exported from the package root.
-Headroom remaining: 16 modules, 2084 nonblank lines, 23 root exports.
+Review round two's fixes stayed inside the same two modules (`workspace.py`,
+`organization.py`) plus their tests — no new module, no new root export.
+Headroom remaining: 16 modules, 1944 nonblank lines, 23 root exports.
 
 ## What this unit did not do
 

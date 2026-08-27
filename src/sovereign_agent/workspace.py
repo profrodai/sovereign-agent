@@ -50,6 +50,14 @@ def safe_join(root: Path, relative: str) -> Path:
     mixed separators. This resolves both `root` and the joined candidate and
     requires the candidate to sit at or under the resolved root -- the check
     is on the resolved filesystem path, not on the string.
+
+    An absolute `relative` is refused outright, regardless of where it would
+    resolve. The contract this function serves is "name something inside
+    root" -- a caller with a legitimate reason to name an absolute path does
+    not have a workspace-relative name to begin with, and accepting one only
+    when it happens to land inside root makes the refusal depend on where the
+    caller's filesystem happens to put things rather than on the shape of the
+    input itself.
     """
     if not relative or relative.strip() == "":
         raise Refusal(
@@ -57,6 +65,17 @@ def safe_join(root: Path, relative: str) -> Path:
             "A workspace-relative path must name something.",
             str(root),
             "Supply a non-empty relative path.",
+            category="path_traversal",
+        )
+    if Path(relative).is_absolute():
+        raise Refusal(
+            f"Path {relative!r} escapes its workspace root.",
+            "A workspace-relative path must be relative, not absolute -- "
+            "even one that would resolve inside root is refused, so "
+            "whether a path is accepted never depends on where root "
+            "happens to sit on this filesystem.",
+            str(root.resolve()),
+            "Use a path that stays inside the workspace.",
             category="path_traversal",
         )
     resolved_root = root.resolve()
@@ -88,6 +107,21 @@ def _iter_files(root: Path, *, exclude: frozenset[Path]) -> list[Path]:
     return files
 
 
+# What a `BoundarySnapshot` / `BoundaryReport` actually covers, named so the
+# report can say so of itself rather than let a bare `violated: False` be
+# misread as "execution stayed inside the workspace" in general. Two things
+# under the organization root are structurally invisible to this check, both
+# for reasons named in this module's own docstring and in Property 3 of
+# docs/v1-unit7-workspace-lifecycle.md: the assignment's own workspace (the
+# actor is *authorized* to write there, so it is excluded on purpose, not
+# missed) and `.sovereign/organization.db*` (legitimately written by this
+# same process's own transaction, not by the subprocess under test -- a real
+# schema or row write there is invisible here by design). Anything the host
+# filesystem holds outside the organization root entirely was never in scope
+# to begin with -- this was never a full scan of the host.
+BOUNDARY_SCOPE = "organization_root_excluding_workspace_and_ledger"
+
+
 @dataclass(frozen=True)
 class BoundarySnapshot:
     """A digest of every tracked file outside one assignment's workspace.
@@ -99,6 +133,8 @@ class BoundarySnapshot:
     assignment's own progress, not by the subprocess under test. The
     workspace directory itself is excluded because the actor is *authorized*
     to write there; the boundary this snapshot protects is everything else.
+    See `BOUNDARY_SCOPE` for the same fact stated as a value a report can
+    carry, not only as a docstring a reader must already be looking at.
     """
 
     digests: dict[str, str]
@@ -130,16 +166,22 @@ class BoundaryReport:
     """What changed outside the workspace between two snapshots.
 
     Named for what it proves: DETECTED, not prevented. A clean report means no
-    tracked file outside the workspace changed during this invocation, on the
+    tracked file *within `scope`* changed during this invocation, on the
     provider whose adapter has no OS-level sandbox exactly as much as on the
     one that does -- the check does not depend on the provider having told the
-    truth about its own containment.
+    truth about its own containment. `scope` is carried on every report
+    (always `BOUNDARY_SCOPE` for a report `diff_boundary` produces) so
+    `violated: False` reads as "nothing changed in what this check can see,"
+    never as an unqualified claim that execution stayed inside the workspace
+    -- the DB and the workspace itself are outside what this check can see,
+    by the same design `BOUNDARY_SCOPE`'s own docstring states.
     """
 
     violated: bool
     changed: tuple[str, ...]
     added: tuple[str, ...]
     removed: tuple[str, ...]
+    scope: str = BOUNDARY_SCOPE
 
 
 def diff_boundary(before: BoundarySnapshot, after: BoundarySnapshot) -> BoundaryReport:
@@ -166,6 +208,27 @@ def reclaim_workspace(workspace: Path, policy: str) -> bool:
     Chapter 3 exercise) reads them long after this call returns. `persistent`
     reclaims nothing: the whole point of choosing it is to leave the run
     inspectable. An unrecognized policy fails closed rather than guessing.
+
+    Two symlink shapes are handled deliberately, not by accident of
+    `shutil.rmtree`'s own behaviour:
+
+    - `workspace` itself being a symlink is REFUSED outright, before any
+      removal is attempted. `workspace` is supposed to be an organization-
+      allocated real directory (`.sovereign/runs/<workspace_id>/`); a symlink
+      there means some other code path substituted a link for that
+      allocation, and recursing through it would delete whatever real
+      directory the link points at -- data this function has no authority
+      over and no way to know is safe to remove. Refusing is a `Refusal`,
+      not a silent no-op, because a caller relying on reclaim actually
+      running needs to see that it did not.
+    - A symlink *entry inside* an otherwise-real workspace is unlinked with
+      `Path.unlink()`, which removes the link itself and never follows it
+      into its target, instead of `shutil.rmtree`, which refuses to recurse
+      into a symlinked directory and raises `OSError` -- an exception with
+      no guard at this function's only call site (`Organization.
+      run_assignment`), where it would propagate after the assignment's
+      terminal state and receipt are already durably written, potentially
+      masking whatever the run itself did or did not raise.
     """
     if policy not in WORKSPACE_POLICIES:
         raise Refusal(
@@ -179,14 +242,30 @@ def reclaim_workspace(workspace: Path, policy: str) -> bool:
         )
     if policy == PERSISTENT:
         return False
-    if not workspace.exists():
+    if not workspace.exists() and not workspace.is_symlink():
         return False
+    if workspace.is_symlink():
+        raise Refusal(
+            f"Workspace root {str(workspace)!r} is a symlink.",
+            "Reclaim never recurses through a symlinked workspace root -- "
+            "the organization allocates a real directory at this path, and "
+            "a symlink here would make removal delete whatever the link "
+            "points at instead, which this function has no authority over.",
+            str(workspace),
+            "Investigate how the workspace root became a symlink before retrying reclaim.",
+            category="symlinked_workspace_root",
+        )
     reclaimed = False
     for entry in sorted(workspace.iterdir()):
         if entry.name in _PRESERVED_ON_RECLAIM or entry.name == _PRESERVED_DIR_ON_RECLAIM:
             continue
         reclaimed = True
-        if entry.is_dir():
+        if entry.is_symlink():
+            # Removes the link itself, never follows it into its target --
+            # the target may be anything, including a real directory this
+            # function must not touch.
+            entry.unlink()
+        elif entry.is_dir():
             shutil.rmtree(entry)
         else:
             entry.unlink()

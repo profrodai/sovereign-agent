@@ -25,9 +25,11 @@ import pytest
 import sovereign_agent.organization as organization_module
 from reference_organizations.store import seed
 from sovereign_agent.errors import Refusal
+from sovereign_agent.events import append_event
 from sovereign_agent.models import AssignmentState, Role
 from sovereign_agent.organization import Organization
 from sovereign_agent.workspace import (
+    BOUNDARY_SCOPE,
     PERSISTENT,
     TEMPORARY_DIRECTORY,
     diff_boundary,
@@ -132,6 +134,87 @@ def test_interrupted_assignment_still_reclaims_its_scratch_space(tmp_path: Path)
     )
 
 
+def test_fault_in_before_snapshot_still_reaches_a_terminal_state(tmp_path: Path) -> None:
+    """Reviewer finding 1 (also independently reproduced by Master): the
+    boundary snapshot taken BEFORE the provider runs used to sit outside the
+    try/except that produces a receipt -- an OSError there propagated
+    straight out of `run_assignment`, past the persistence block, leaving
+    the assignment stuck at RUNNING (already committed a few lines above)
+    with no receipt at all. It is now taken inside the same try block, so
+    the same three handlers that catch a provider fault catch this one too.
+    """
+    org, _sow_id, assignment_id = dispatched(tmp_path)
+
+    call_count = {"n": 0}
+    real_snapshot = organization_module.snapshot_boundary
+
+    def flaky_before(*args, **kwargs):  # noqa: ANN001, ANN002, ANN003
+        call_count["n"] += 1
+        if call_count["n"] == 1:
+            raise OSError("simulated fault reading the tree to digest")
+        return real_snapshot(*args, **kwargs)
+
+    with patch.object(organization_module, "snapshot_boundary", side_effect=flaky_before):
+        with pytest.raises(OSError, match="simulated fault"):
+            org.run_assignment(assignment_id)
+
+    final = org._assignment(assignment_id)  # noqa: SLF001
+    assert final.state == AssignmentState.FAILED, (
+        "a before-snapshot fault must still reach a terminal state, not strand RUNNING"
+    )
+    row = org.db.connection.execute(
+        "SELECT record FROM receipts WHERE assignment_id = ?", (assignment_id,)
+    ).fetchone()
+    assert row is not None, "a receipt must exist even when the fault is in bookkeeping"
+    assert json.loads(row["record"])["failure_category"] == "internal_error"
+
+
+def test_fault_in_after_snapshot_never_masks_a_real_interruption(tmp_path: Path) -> None:
+    """Reviewer finding 1's sharper sub-case, overlapping finding 3's own
+    'masking' concern: the provider itself is interrupted (a real
+    KeyboardInterrupt, recorded as an 'interrupted' receipt), and THEN the
+    AFTER snapshot also faults. The snapshot fault must never replace the
+    interruption at the final `raise failure` -- the more important fact,
+    that the run was interrupted, must win and be what the caller sees.
+    """
+    org, _sow_id, assignment_id = dispatched(tmp_path)
+
+    call_count = {"n": 0}
+    real_snapshot = organization_module.snapshot_boundary
+
+    def flaky_after(*args, **kwargs):  # noqa: ANN001, ANN002, ANN003
+        call_count["n"] += 1
+        if call_count["n"] == 2:  # the AFTER snapshot -- the second call
+            raise OSError("simulated fault on the after-snapshot")
+        return real_snapshot(*args, **kwargs)
+
+    with (
+        patch.object(organization_module, "snapshot_boundary", side_effect=flaky_after),
+        patch.object(organization_module, "invoke_actor", side_effect=KeyboardInterrupt("killed")),
+    ):
+        with pytest.raises(KeyboardInterrupt):
+            org.run_assignment(assignment_id)
+
+    final = org._assignment(assignment_id)  # noqa: SLF001
+    assert final.state == AssignmentState.FAILED
+    row = org.db.connection.execute(
+        "SELECT record FROM receipts WHERE assignment_id = ?", (assignment_id,)
+    ).fetchone()
+    assert row is not None
+    assert json.loads(row["record"])["failure_category"] == "interrupted", (
+        "the interruption's own receipt must survive a subsequent bookkeeping fault"
+    )
+    event_row = org.db.connection.execute(
+        "SELECT payload FROM events WHERE kind = 'assignment.workspace_boundary_checked'"
+    ).fetchone()
+    payload = json.loads(event_row["payload"])
+    assert payload["computed"] is False, (
+        "a faulted after-snapshot must record that the check could not run, "
+        "not silently claim 'violated: False'"
+    )
+    assert payload["violated"] is None
+
+
 def test_a_hard_kill_that_never_returns_leaves_the_workspace_alone(tmp_path: Path) -> None:
     """A process that dies before `run_assignment` reaches its persistence
     block never calls reclaim at all -- simulated here not by raising inside
@@ -179,6 +262,103 @@ def test_unknown_workspace_policy_fails_closed(tmp_path: Path) -> None:
     workspace.mkdir()
     with pytest.raises(Refusal, match="Unknown workspace policy"):
         reclaim_workspace(workspace, "delete_immediately")
+
+
+# --- Master's finding 3: reclaim must never delete through a symlink -------
+
+
+def test_reclaim_refuses_a_symlinked_workspace_root(tmp_path: Path) -> None:
+    """Master independently reproduced this against the real library
+    function, outside any fixture: a workspace root that is itself a
+    symlink used to have `reclaim_workspace` recurse straight through it via
+    `shutil.rmtree`, deleting whatever real directory the link pointed at.
+    Fixed to refuse outright -- a `Refusal`, not a silent no-op, and the
+    external target's own file is checked byte-identical afterward, not
+    merely "still present."
+    """
+    external = tmp_path / "external-target"
+    external.mkdir()
+    marker = external / "external-marker"
+    marker.write_text("must survive")
+    original_bytes = marker.read_bytes()
+
+    workspace = tmp_path / "workspace-symlink"
+    workspace.symlink_to(external, target_is_directory=True)
+
+    with pytest.raises(Refusal, match="symlink"):
+        reclaim_workspace(workspace, TEMPORARY_DIRECTORY)
+
+    assert marker.exists(), "the external target must not be touched at all"
+    assert marker.read_bytes() == original_bytes, "byte-identical, not merely present"
+    assert external.is_dir(), "the external directory itself must survive"
+
+
+def test_reclaim_unlinks_a_symlinked_child_without_following_it(tmp_path: Path) -> None:
+    """The review's own named sub-case: a *child* entry inside an otherwise
+    real, legitimate workspace is a symlink to something external.
+    `shutil.rmtree` refuses to recurse into a symlinked directory and raises
+    `OSError` instead -- unguarded, that would propagate out of
+    `run_assignment` after the ledger is already terminal, potentially
+    masking whatever the run itself did or did not raise (see
+    test_fault_in_after_snapshot_never_masks_a_real_interruption for that
+    interaction). Fixed to `Path.unlink()` the symlink entry itself --
+    removing the link, never following it into its target.
+    """
+    external = tmp_path / "external-target-child"
+    external.mkdir()
+    marker = external / "external-marker-child"
+    marker.write_text("must survive too")
+    original_bytes = marker.read_bytes()
+
+    workspace = tmp_path / "workspace-real"
+    workspace.mkdir()
+    (workspace / ".sovereign-out").mkdir()
+    child_link = workspace / "linked-child"
+    child_link.symlink_to(external, target_is_directory=True)
+
+    reclaimed = reclaim_workspace(workspace, TEMPORARY_DIRECTORY)
+
+    assert reclaimed is True
+    assert not child_link.exists() and not child_link.is_symlink(), (
+        "the symlink entry itself must be gone from the workspace"
+    )
+    assert marker.exists(), "the external target must not be touched at all"
+    assert marker.read_bytes() == original_bytes, "byte-identical, not merely present"
+    assert external.is_dir(), "the external directory itself must survive"
+
+
+def test_unknown_workspace_policy_refuses_before_the_provider_ever_runs(tmp_path: Path) -> None:
+    """Reviewer finding 2: an invalid `workspace_policy` used to be caught
+    only inside `reclaim_workspace`, at the very end of `run_assignment` --
+    by which point the provider had already run for real and COMPLETED was
+    already committed to the ledger. `invoke_actor` is spied on with a
+    counter (not merely re-asserted against network/side-effect absence) to
+    prove it is never called at all when the policy is invalid: the run
+    must not have happened, not merely have its result discarded afterward.
+    """
+    org, _sow_id, assignment_id = dispatched(tmp_path)
+    org.actors["operator-course"].workspace_policy = "delete_everything_now"
+
+    invoked = {"count": 0}
+    real_invoke = organization_module.invoke_actor
+
+    def counting_invoke(*args, **kwargs):  # noqa: ANN001, ANN002, ANN003
+        invoked["count"] += 1
+        return real_invoke(*args, **kwargs)
+
+    with patch.object(organization_module, "invoke_actor", side_effect=counting_invoke):
+        with pytest.raises(Refusal, match="Unknown workspace policy"):
+            org.run_assignment(assignment_id)
+
+    assert invoked["count"] == 0, "the provider must never be invoked for an invalid policy"
+    final = org._assignment(assignment_id)  # noqa: SLF001
+    assert final.state == AssignmentState.CREATED, (
+        "the assignment must not even reach RUNNING when the policy is invalid"
+    )
+    row = org.db.connection.execute(
+        "SELECT record FROM receipts WHERE assignment_id = ?", (assignment_id,)
+    ).fetchone()
+    assert row is None, "no receipt: the run never happened, it was not merely discarded"
 
 
 def test_workspace_policy_loads_from_toml(tmp_path: Path) -> None:
@@ -269,6 +449,44 @@ def test_a_completed_assignment_records_a_clean_boundary_event(tmp_path: Path) -
     payload = json.loads(rows[0]["payload"])
     assert payload["assignment_id"] == assignment_id
     assert payload["violated"] is False
+    assert payload["computed"] is True
+    assert payload["scope"] == BOUNDARY_SCOPE, (
+        "the event must name what it covers, not let 'violated: False' be "
+        "misread as an unqualified claim"
+    )
+
+
+def test_boundary_report_does_not_see_a_real_database_write(tmp_path: Path) -> None:
+    """Reviewer finding 4: `organization.db*` is excluded from the digested
+    tree on purpose (Property 3's own documented rationale -- it is written
+    by this same process's transaction, not by the subprocess under test),
+    so a real schema/row write there is structurally invisible to
+    `diff_boundary`. This is not a defect to make disappear by widening
+    coverage; it is a coverage-honesty property: the report must say what
+    it covers (`scope`) rather than let `violated: False` be misread as
+    "nothing changed anywhere," including in the ledger.
+    """
+    org = Organization.init(tmp_path)
+    db_path = org.root / ".sovereign" / "organization.db"
+    workspace = tmp_path / ".sovereign" / "runs" / "ws_test"
+    workspace.mkdir(parents=True)
+
+    before = snapshot_boundary(org.root, workspace)
+    # A real write to the ledger the check is documented to exclude.
+    with org.db.transaction():
+        append_event(org.db, "test.probe", {"marker": "a real db write happened"})
+    after = snapshot_boundary(org.root, workspace)
+
+    report = diff_boundary(before, after)
+    assert db_path.exists(), "sanity: the db file is real and was actually written to"
+    assert not report.violated, (
+        "the db write is genuinely outside this check's scope -- it must not "
+        "spuriously report a violation for a path it was never told to watch"
+    )
+    assert report.scope == BOUNDARY_SCOPE, (
+        "the report must carry an honest scope value so violated=False is "
+        "never misread as full-organization coverage"
+    )
 
 
 def test_a_provider_that_writes_outside_its_workspace_is_caught_by_run_assignment(
@@ -320,6 +538,30 @@ def test_absolute_deliverable_path_is_refused(tmp_path: Path) -> None:
     root.mkdir()
     with pytest.raises(Refusal, match="escapes its workspace root"):
         safe_join(root, "/etc/passwd")
+
+
+def test_absolute_deliverable_path_is_refused_even_when_it_resolves_inside_root(
+    tmp_path: Path,
+) -> None:
+    """P2: an absolute path that happens to land inside `root` used to be
+    ACCEPTED, because the old check only compared resolved paths and never
+    looked at whether the input itself was absolute -- despite this
+    function's own docstring implying workspace-relative paths only, and
+    `test_absolute_deliverable_path_is_refused` above already asserting the
+    contract is "absolute is refused," not "absolute is refused unless it
+    resolves inside root." `_require_deliverables`'s only real caller passes
+    workspace-relative deliverable names, so accepting an absolute one that
+    happens to resolve inside root is never a legitimate use case here --
+    the fix rejects any absolute input outright, matching the apparent
+    contract rather than papering over the mismatch by loosening the
+    docstring instead.
+    """
+    root = tmp_path / "output"
+    root.mkdir()
+    (root / "report.json").write_text("{}")
+    absolute_but_inside = str(root / "report.json")
+    with pytest.raises(Refusal, match="escapes its workspace root"):
+        safe_join(root, absolute_but_inside)
 
 
 def test_legitimate_nested_deliverable_still_succeeds(tmp_path: Path) -> None:
