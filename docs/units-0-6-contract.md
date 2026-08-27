@@ -130,7 +130,7 @@ audit's finding of record at `9c242828`.
 
 | Unit | Was | Now | What closed it |
 | --- | --- | --- | --- |
-| 0 | `CHANGES_REQUESTED` | `ACCEPTED` | the **current** surface — README, quickstart, `CONTRIBUTING`, `book/` — corrected against the software that exists, and the MkDocs navigation removed, which took the legacy import-heavy tutorials off the rendered surface. **The 0.x documentation corpus was not rewritten:** four files under `docs/` still import symbols 1.x removed, three of them without a historical warning. They are off the navigation surface, not fixed. See the limit below |
+| 0 | `CHANGES_REQUESTED` | `ACCEPTED` | the **current** surface — README, quickstart, `CONTRIBUTING`, `book/` — corrected against the software that exists, and the MkDocs navigation removed, which took the legacy import-heavy tutorials off the rendered surface. **The 0.x documentation corpus was not rewritten:** three files under `docs/` still import symbols 1.x removed, and one of them carries no warning at all. They are off the navigation surface, not fixed. See the limit below |
 | 5 | `CHANGES_REQUESTED` | `ACCEPTED` | catchable interruption now writes a durable `interrupted` receipt before re-raising; the Scripted provider's failure branches are driven by real subprocesses rather than pre-classified fixtures |
 | 6 | `CHANGES_REQUESTED` | `ACCEPTED_WITH_EXPLICIT_DEFERRALS` | the curriculum gate now **executes** every required exercise -- the tags show it: 3 executed at `9c242828`, 4 at `f7d84f92`. Credentialed smokes remain deferred to Unit 12 |
 
@@ -152,10 +152,14 @@ including the reproduction that proves it.
 
 ### The Unit 0 limit, stated exactly
 
-`docs/` retains 0.x-era documentation that imports symbols 1.x removed —
-`docs/api_reference.md`, `docs/persistence-boundary.md`,
-`docs/tutorials/first-agent.md` and `docs/tutorials/structured-and-approval.md`.
-Only `first-agent.md` carries a historical warning.
+Three files under `docs/` retain 0.x-era documentation importing symbols 1.x
+removed:
+
+| File | Removed symbols it imports | Warning |
+| --- | --- | --- |
+| `docs/api_reference.md` | 25, including `Config`, `Half`, `Orchestrator`, `Registry` | identifies itself as the v0.7.0 contract in prose |
+| `docs/tutorials/first-agent.md` | `Config`, `run_task` | explicit banner: *Legacy — describes software removed in 1.0* |
+| `docs/tutorials/structured-and-approval.md` | `Rule`, `StructuredHalf` | **none** |
 
 Unit 0's requirement was documentation describing the software that exists.
 That is met for everything a reader reaches: README, quickstart, `book/` and the
@@ -167,20 +171,22 @@ was false.
 Reproduce:
 
 ```bash
-python - <<'EOF'
-import pathlib, re, sovereign_agent as s
-for f in sorted(pathlib.Path("docs").rglob("*.md")):
-    names = set()
-    for m in re.finditer(r"from sovereign_agent(?:[.\w]*)? import ([^\n]+)", f.read_text()):
-        names |= {n.strip().split(" as ")[0] for n in m.group(1).split(",")}
-    missing = {n for n in names if n and n[0].isupper() and not hasattr(s, n)}
-    if missing:
-        print(f, sorted(missing))
-EOF
+rg -l '^from sovereign_agent import ' docs --glob '*.md'
 ```
 
-Rewriting or removing that corpus is deliberately **not** in scope here; an
-acceptance record is the wrong place to reopen it.
+An earlier version of this section ran a Python parser here and reported **four**
+files. `docs/persistence-boundary.md` was a false positive: it contains a shell
+one-liner, `python -c "from sovereign_agent.organization import Organization; \`,
+and the parser captured `Organization; \` as an imported name, then checked that
+against top-level `sovereign_agent` and concluded a valid submodule import had
+been removed. `Organization` exists.
+
+That is worth leaving on the record rather than quietly deleting. The section
+documenting instrument failures contained one: a parser whose own output showed
+a name with a trailing backslash — visible evidence it had mis-parsed — which
+this seat read past because the count it produced looked plausible. The
+replacement matches only top-level imports at line start, which is what the
+claim is about.
 
 ### Checkpoint tags
 
