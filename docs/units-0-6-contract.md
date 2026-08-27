@@ -32,8 +32,9 @@ records for users pinning `<1`; **documentation that describes the software that
 exists**; and a **validated textbook source** in `book/`.
 
 Publication is explicitly NOT a Units 0-6 dependency. This repository builds no
-site: the textbook is rendered and published by the consuming profrod.ai site,
-and `book/CONTENT-SOURCE.md` states the contract that consumer inherits. An
+site: the textbook is rendered and published by `zeroemployeeorg/zeo-site`, per
+[the publication ruling](rulings/2026-08-27-book-publication-destination.md), and
+`book/CONTENT-SOURCE.md` states the contract that consumer inherits. An
 earlier version of this contract said "a published site is part of the reset",
 which was written while this repository still carried a MkDocs pipeline aimed at
 a second site nobody wanted. Amended rather than quietly dropped, because a

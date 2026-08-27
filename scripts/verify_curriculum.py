@@ -140,8 +140,31 @@ def check_chapter(name: str) -> list[str]:
     return problems
 
 
+def check_rulings_index() -> list[str]:
+    """Every ruling must appear in the rulings index.
+
+    The index was written for a site navigation that no longer exists, and was
+    already stale at 9 of 10 the moment a new ruling landed. An unreferenced
+    listing that drifts is the ghost citation this project keeps deleting -- so
+    it is either checked or removed. It is checked.
+    """
+    directory = REPO_ROOT / "docs" / "rulings"
+    index = directory / "index.md"
+    if not index.is_file():
+        return ["docs/rulings/index.md is missing"]
+    listed = index.read_text(encoding="utf-8")
+    problems = []
+    for ruling in sorted(directory.glob("*.md")):
+        if ruling.name == "index.md":
+            continue
+        if ruling.name not in listed:
+            problems.append(f"docs/rulings/index.md does not list {ruling.name}")
+    return problems
+
+
 def main() -> int:
     problems: list[str] = []
+    problems.extend(check_rulings_index())
 
     index = BOOK / "README.md"
     if not index.is_file():

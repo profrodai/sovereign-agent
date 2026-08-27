@@ -1,9 +1,15 @@
 # `book/` is a content source, not a site
 
 This directory is the source of truth for the Sovereign Agent textbook. It is
-**designated** for rendering by the profrod.ai site. That integration does not
-exist yet, so this document describes the contract a consumer will inherit, not
-a pipeline you can observe running.
+designated for rendering by a separate site repository; **which** repository is
+recorded in the ruling, not here. That integration does not exist yet, so this
+document describes the contract a consumer inherits, not a pipeline you can
+watch run.
+
+This file names no consumer on purpose. A source that hardcodes its destination
+has to be edited whenever the destination changes — and it did change: an
+earlier draft named the wrong site in three files. The contract a renderer
+inherits does not depend on which renderer it is.
 
 **This repository builds no site of its own.** It previously carried a MkDocs
 configuration and a Documentation workflow; those existed only to produce a

@@ -1,7 +1,9 @@
 # Rulings
 
-Binding decisions for the 1.x line. A ruling the code contradicts is
-worse than no ruling, so each names how to check it against the repository.
+Binding decisions for the 1.x line. A ruling the code contradicts is worse
+than no ruling, so each records how to check it against the repository.
+`scripts/verify_curriculum.py` fails if a ruling file is missing from this
+list, so the list cannot silently drift behind the directory.
 
 - [Ruling: Sovereign Agent 1.x educational reset](2026-08-25-educational-reset.md)
 - [Ruling amendment: `main` is the 1.x educational integration line](2026-08-25-main-is-the-1x-line.md)
@@ -12,3 +14,4 @@ worse than no ruling, so each names how to check it against the repository.
 - [Ruling: an outcome is a standing condition; a SOW is a unit of work](2026-08-26-outcomes-are-conditions-sows-are-work.md)
 - [Ruling: the persistence boundary, refined](2026-08-26-persistence-boundary-refinement.md)
 - [Ruling: SQLite writers are inside the trust boundary](2026-08-26-sqlite-writers-are-inside-the-boundary.md)
+- [Ruling: the book is published by `zeo-site`; this repository builds no site](2026-08-27-book-publication-destination.md)

@@ -55,8 +55,11 @@ fixtures, or session artifacts.
 - The reference organization: `src/reference_organizations/store/`
 - Deterministic tests: `tests/`
 - The executable textbook: `book/` — the source of truth for chapters. It is
-  designated for rendering by the profrod.ai site; this repository builds no
-  site of its own. See [`book/CONTENT-SOURCE.md`](book/CONTENT-SOURCE.md).
+  rendered and published by `zeroemployeeorg/zeo-site`; this repository builds
+  no site of its own. See [`book/CONTENT-SOURCE.md`](book/CONTENT-SOURCE.md)
+  for the contract a renderer inherits, and
+  [the publication ruling](docs/rulings/2026-08-27-book-publication-destination.md)
+  for why the destination lives there rather than here.
 - Verification scripts: `scripts/`
 - Rulings and reference notes: `docs/` — much of it documents the 0.x line and
   is labelled as historical.
