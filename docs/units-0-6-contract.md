@@ -28,8 +28,17 @@ external dependency. It is the contract from here on.
 ### Unit 0 — reset and coherent published documentation
 
 Educational reset ruling; `v0.7.0` frozen at its tag; migration and removal
-records for users pinning `<1`; and **documentation that describes the software
-that exists**. A published site is part of the reset, not separate from it.
+records for users pinning `<1`; **documentation that describes the software that
+exists**; and a **validated textbook source** in `book/`.
+
+Publication is explicitly NOT a Units 0-6 dependency. This repository builds no
+site: the textbook is rendered and published by `zeroemployeeorg/zeo-site`, per
+[the publication ruling](rulings/2026-08-27-book-publication-destination.md), and
+`book/CONTENT-SOURCE.md` states the contract that consumer inherits. An
+earlier version of this contract said "a published site is part of the reset",
+which was written while this repository still carried a MkDocs pipeline aimed at
+a second site nobody wanted. Amended rather than quietly dropped, because a
+contract edited to match whatever was built is not a contract.
 
 ### Unit 1 — the skeleton that runs
 
@@ -95,7 +104,7 @@ accepted.
 
 | Unit | Verdict | Grounds |
 | --- | --- | --- |
-| 0 | `CHANGES_REQUESTED` | site published a legacy curriculum whose directory and drift-tool do not exist, while `book/` was unpublished; quickstart specified Python 3.13 and three nonexistent commands; 26 of 28 documented imports did not resolve |
+| 0 | `CHANGES_REQUESTED` → remediated | the MkDocs navigation was configured to publish a legacy curriculum whose directory and drift-tool do not exist (Pages was never enabled, so nothing was ever actually served -- the defect was the configured surface and the repository's own legacy documentation, not a live page); quickstart specified Python 3.13 and three nonexistent commands; `CONTRIBUTING` advertised six `make` targets and a `--skip-llm` flag that do not exist; 26 of 28 documented imports did not resolve. `book/` being unpublished was **not** a defect — publication belongs to the consuming site — and the MkDocs pipeline was removed rather than repaired |
 | 1 | `ACCEPTED` | 12/12 subcommands respond; fresh 3.14 wheel installs and runs; runtime requires exactly `pydantic<3,>=2`; budgets 23/40 modules, 3631/6000 lines, 7/30 exports |
 | 2 | `ACCEPTED` | migrations forward-only and byte-frozen; append-only enforced from an outside connection; transactional store state with rollback proven by fault injection |
 | 3 | `ACCEPTED` | per-SOW proof chains; causal binding through the effect edge; separation derived from the ledger; falsification suite refuses every known lie |

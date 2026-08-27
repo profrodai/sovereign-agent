@@ -21,8 +21,8 @@ test:
 
 .PHONY: lint
 lint:
-	$(UV) run --python 3.14 ruff format --check src tests scripts
-	$(UV) run --python 3.14 ruff check src tests scripts
+	$(UV) run --python 3.14 ruff format --check src tests scripts book
+	$(UV) run --python 3.14 ruff check src tests scripts book
 	$(UV) run --python 3.14 mypy src/sovereign_agent
 
 .PHONY: doctor

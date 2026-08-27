@@ -140,51 +140,38 @@ def check_chapter(name: str) -> list[str]:
     return problems
 
 
-PUBLISHED = {
-    "README.md": "index.md",
-    "ch00_first_shift/README.md": "ch00_first_shift.md",
-    "ch01_organization_remembers/README.md": "ch01_organization_remembers.md",
-    "ch02_work_needs_governance/README.md": "ch02_work_needs_governance.md",
-    "ch03_actor_is_not_a_model/README.md": "ch03_actor_is_not_a_model.md",
-}
+def check_rulings_index() -> list[str]:
+    """The rulings index and the rulings directory must agree, both ways.
 
+    The index was written for a site navigation that no longer exists, was
+    referenced by nothing, and was already stale at 9 of 10 the moment a new
+    ruling landed. An unreferenced listing that drifts is the ghost citation
+    this project keeps deleting -- so it is either checked or removed. It is
+    checked.
 
-def check_published_copies() -> list[str]:
-    """The site copy of a chapter must not drift from the source of truth.
-
-    Publishing book/ into docs/ creates two copies, and two copies of anything
-    is the shape of every defect this project has spent its life removing. The
-    published page is a PROJECTION of book/, so it is regenerated and compared,
-    never hand-edited -- the same rule the governance projections follow.
+    The first version compared raw text with `in`, which can only ever detect
+    an OMISSION. A ghost row pointing at a ruling that does not exist passed
+    silently, and this seat reported the check as proven after testing one
+    direction. Comparing two SETS makes both failures the same failure.
     """
-    problems: list[str] = []
-    for source_rel, published_rel in PUBLISHED.items():
-        source = BOOK / source_rel
-        published = REPO_ROOT / "docs" / "book" / published_rel
-        if not published.is_file():
-            problems.append(f"docs/book/{published_rel} is missing; run scripts/publish_book.py")
-            continue
-        expected = render_published(source.read_text(encoding="utf-8"))
-        if published.read_text(encoding="utf-8") != expected:
-            problems.append(
-                f"docs/book/{published_rel} has drifted from book/{source_rel}; "
-                "regenerate with scripts/publish_book.py"
-            )
+    directory = REPO_ROOT / "docs" / "rulings"
+    index = directory / "index.md"
+    if not index.is_file():
+        return ["docs/rulings/index.md is missing"]
+
+    on_disk = {r.name for r in directory.glob("*.md") if r.name != "index.md"}
+    linked = set(re.findall(r"\]\(([^)#]+\.md)\)", index.read_text(encoding="utf-8")))
+
+    problems = [f"docs/rulings/index.md does not list {n}" for n in sorted(on_disk - linked)]
+    problems += [
+        f"docs/rulings/index.md links {n}, which does not exist" for n in sorted(linked - on_disk)
+    ]
     return problems
-
-
-def render_published(text: str) -> str:
-    """Source chapter -> published page. Pure; used to publish AND to verify."""
-    text = re.sub(r"\]\(\.\./ch(\d\d)_([a-z_]+)/README\.md\)", r"](ch\1_\2.md)", text)
-    text = re.sub(r"\]\(ch(\d\d)_([a-z_]+)/README\.md\)", r"](ch\1_\2.md)", text)
-    text = text.replace("](../../docs/", "](../")
-    text = text.replace("](../README.md)", "](index.md)")
-    return text
 
 
 def main() -> int:
     problems: list[str] = []
-    problems.extend(check_published_copies())
+    problems.extend(check_rulings_index())
 
     index = BOOK / "README.md"
     if not index.is_file():
