@@ -6,6 +6,7 @@ lives only in a convention is a rule that a tired contributor removes.
 
 from __future__ import annotations
 
+import json
 import sqlite3
 from pathlib import Path
 from unittest.mock import patch
@@ -586,4 +587,341 @@ def test_migration_12_does_not_depend_on_the_shared_helper() -> None:
     assignment = body.split("MIGRATION_12 = ", 1)[1][:120]
     assert "_append_only_triggers" not in assignment, (
         "MIGRATION_12 is generated again; an applied migration must be a literal"
+    )
+
+
+# === Migration 13 (Unit 8: fencing) against a populated Unit 7 database =====
+
+
+def _build_unit7_shaped_database(path: Path) -> None:
+    """Apply migrations 1-12 by hand and populate real operational rows --
+    an outcome, a SOW, an assignment, a claimed message with real lease
+    state, and a receipt -- the shape a real Unit-7-era organization.db
+    would have on disk the moment before Unit 8's migration 13 first runs
+    against it. Mirrors `test_a_migration_that_cannot_preserve_the_ledger_
+    refuses_to_run`'s own hand-migration pattern."""
+    import sovereign_agent.database as database_module
+
+    connection = sqlite3.connect(path)
+    for version, script in database_module.MIGRATIONS:
+        if version > 12:
+            break
+        for statement in database_module._split_statements(script):  # noqa: SLF001
+            connection.execute(statement)
+        connection.execute(
+            "INSERT INTO schema_migrations(version, applied_at) VALUES (?, datetime('now'))",
+            (version,),
+        )
+    connection.execute("INSERT INTO actors(id, record) VALUES ('operator-course', '{}')")
+    connection.execute("INSERT INTO outcomes(id, record) VALUES ('out_legacy', '{}')")
+    connection.execute(
+        "INSERT INTO sows(id, outcome_id, record) VALUES ('sow_legacy', 'out_legacy', '{}')"
+    )
+    connection.execute(
+        "INSERT INTO assignments(id, sow_id, actor_id, record) "
+        "VALUES ('asg_legacy', 'sow_legacy', 'operator-course', "
+        '\'{"id": "asg_legacy", "state": "COMPLETED"}\')'
+    )
+    connection.execute(
+        "INSERT INTO messages(id, recipient, record, state, claim_owner, claim_expires_at) "
+        "VALUES ('msg_legacy', 'operator-course', "
+        '\'{"id": "msg_legacy", "state": "CLAIMED", "claim_owner": "operator-course"}\', '
+        "'CLAIMED', 'operator-course', '2020-01-01T00:00:00+00:00')"
+    )
+    connection.execute(
+        "INSERT INTO receipts(id, record, assignment_id, status) "
+        "VALUES ('rct_legacy', '{\"id\": \"rct_legacy\"}', 'asg_legacy', 'completed')"
+    )
+    connection.commit()
+    connection.close()
+
+
+def test_migration_13_upgrade_from_a_populated_unit7_database_preserves_every_record(
+    tmp_path: Path,
+) -> None:
+    """The upgrade path: a real Unit-7-shaped database (migrations 1-12,
+    with genuine operational rows already on disk) opens cleanly under
+    Unit 8's code, applies migration 13, and loses nothing."""
+    path = tmp_path / "unit7.db"
+    _build_unit7_shaped_database(path)
+
+    db = Database(path)
+    assert db.applied_versions() == {version for version, _ in MIGRATIONS}
+    assert 13 in db.applied_versions()
+
+    assert (
+        db.connection.execute(
+            "SELECT COUNT(*) AS c FROM assignments WHERE id = 'asg_legacy'"
+        ).fetchone()["c"]
+        == 1
+    ), "the upgrade destroyed a pre-existing assignment"
+    assert (
+        db.connection.execute(
+            "SELECT COUNT(*) AS c FROM messages WHERE id = 'msg_legacy'"
+        ).fetchone()["c"]
+        == 1
+    ), "the upgrade destroyed a pre-existing message"
+    assert (
+        db.connection.execute(
+            "SELECT COUNT(*) AS c FROM receipts WHERE id = 'rct_legacy'"
+        ).fetchone()["c"]
+        == 1
+    ), "the upgrade destroyed a pre-existing receipt"
+
+    # The new columns exist and are NULL for pre-existing rows -- absence of
+    # a fence, not a fabricated one, for history that predates fencing.
+    assignment_row = db.connection.execute(
+        "SELECT current_execution_attempt FROM assignments WHERE id = 'asg_legacy'"
+    ).fetchone()
+    assert assignment_row["current_execution_attempt"] is None
+    message_row = db.connection.execute(
+        "SELECT fencing_token FROM messages WHERE id = 'msg_legacy'"
+    ).fetchone()
+    assert message_row["fencing_token"] is None
+
+    # The message's pre-existing claim state (predating fencing tokens
+    # entirely) is untouched -- migration 13 adds a column, it does not
+    # rewrite existing rows' other columns.
+    assert message_row is not None
+    claim_row = db.connection.execute(
+        "SELECT state, claim_owner, claim_expires_at FROM messages WHERE id = 'msg_legacy'"
+    ).fetchone()
+    assert claim_row["state"] == "CLAIMED"
+    assert claim_row["claim_owner"] == "operator-course"
+
+    # The new tables exist and are queryable, empty until something acquires
+    # a lease or an execution attempt.
+    assert db.connection.execute("SELECT COUNT(*) AS c FROM actor_leases").fetchone()["c"] == 0
+    assert (
+        db.connection.execute("SELECT COUNT(*) AS c FROM execution_attempts").fetchone()["c"] == 0
+    )
+    assert db.connection.execute("SELECT COUNT(*) AS c FROM lease_tokens").fetchone()["c"] == 0
+
+
+def test_migration_13_is_idempotently_recognized_after_success(tmp_path: Path) -> None:
+    """Reopening a database that already has migration 13 applied does not
+    re-run it -- the same no-op-on-reopen property every prior migration has."""
+    path = tmp_path / "unit7.db"
+    _build_unit7_shaped_database(path)
+    first = Database(path)
+    stamps_first = first.connection.execute(
+        "SELECT version, applied_at FROM schema_migrations WHERE version = 13"
+    ).fetchall()
+    assert len(stamps_first) == 1
+
+    second = Database(path)
+    stamps_second = second.connection.execute(
+        "SELECT version, applied_at FROM schema_migrations WHERE version = 13"
+    ).fetchall()
+    assert [tuple(row) for row in stamps_first] == [tuple(row) for row in stamps_second]
+
+    # Real operational work through the fencing tables after a reopen proves
+    # the schema is genuinely usable, not merely present.
+    from sovereign_agent import fencing
+
+    lease = fencing.acquire_actor_lease(second, "operator-course", "proc_test")
+    assert lease.fencing_token >= 1
+
+
+def test_migration_13_rolls_back_completely_on_a_simulated_failure(tmp_path: Path) -> None:
+    """A migration 13 that cannot complete must leave NEITHER a stamped
+    version 13 NOR any partially-created fencing table behind -- the same
+    fail-closed, all-or-nothing property `test_a_failed_migration_rolls_
+    back_schema_and_stamp` already proves for the general mechanism, applied
+    here specifically to Unit 8's own migration and a populated Unit 7
+    database, so the two are proven together rather than the general
+    mechanism being trusted to cover a specific migration by extrapolation."""
+    path = tmp_path / "unit7.db"
+    _build_unit7_shaped_database(path)
+
+    import sovereign_agent.database as database_module
+
+    broken_migration_13 = database_module.MIGRATION_13 + "\nSELECT this_is_not_valid_sql_syntax;"
+    broken_migrations = tuple(
+        (13, broken_migration_13) if version == 13 else (version, script)
+        for version, script in database_module.MIGRATIONS
+    )
+    with patch.object(database_module, "MIGRATIONS", broken_migrations):
+        with pytest.raises(sqlite3.OperationalError):
+            Database(path)
+
+    inspector = sqlite3.connect(path)
+    try:
+        stamped = [
+            int(row[0]) for row in inspector.execute("SELECT version FROM schema_migrations")
+        ]
+        assert 13 not in stamped, "a failed migration was stamped as applied"
+        table_names = {
+            row[0]
+            for row in inspector.execute("SELECT name FROM sqlite_master WHERE type = 'table'")
+        }
+        assert "actor_leases" not in table_names, (
+            "a partially-applied migration left a table behind"
+        )
+        assert "execution_attempts" not in table_names, (
+            "a partially-applied migration left a table behind"
+        )
+        # The pre-existing operational record from the populated Unit 7
+        # database must still be there, completely untouched by the failure.
+        assert (
+            inspector.execute(
+                "SELECT COUNT(*) FROM assignments WHERE id = 'asg_legacy'"
+            ).fetchone()[0]
+            == 1
+        )
+        columns = {row[1] for row in inspector.execute("PRAGMA table_info(messages)")}
+        assert "fencing_token" not in columns, (
+            "a partially-applied ALTER TABLE survived the rollback"
+        )
+    finally:
+        inspector.close()
+
+    # The database is still usable at its pre-13 state -- a fresh open
+    # retries migration 13 (with the real, unbroken script this time) and
+    # succeeds, rather than being permanently wedged by the earlier failure.
+    recovered = Database(path)
+    assert 13 in recovered.applied_versions()
+    assert (
+        recovered.connection.execute(
+            "SELECT COUNT(*) AS c FROM assignments WHERE id = 'asg_legacy'"
+        ).fetchone()["c"]
+        == 1
+    )
+
+
+# === Migration 14 (Principal ruling on PR #31: bind execution attempts to =
+# === the actor lease live at acquisition time) =============================
+
+
+def test_migration_14_upgrade_from_a_database_already_at_migration_13_preserves_a_live_attempt(
+    tmp_path: Path,
+) -> None:
+    """The REAL regression this migration exists to fix, reproduced exactly:
+    a database that already has migration 13 applied in its shipped shape
+    (execution_attempts with no actor_lease_fencing_token column at all --
+    not merely NULL, the column itself did not exist) must upgrade cleanly
+    under the current code, preserving a genuinely LIVE execution_attempts
+    row rather than raising `sqlite3.OperationalError: table
+    execution_attempts has no column named actor_lease_fencing_token`, which
+    is exactly what happened live against a real local `make verify` demo
+    database when migration 13 was first (incorrectly) amended in place
+    instead of adding this migration."""
+    import sovereign_agent.database as database_module
+
+    path = tmp_path / "at13.db"
+    connection = sqlite3.connect(path)
+    for version, script in database_module.MIGRATIONS:
+        if version > 13:
+            break
+        for statement in database_module._split_statements(script):  # noqa: SLF001
+            connection.execute(statement)
+        connection.execute(
+            "INSERT INTO schema_migrations(version, applied_at) VALUES (?, datetime('now'))",
+            (version,),
+        )
+    connection.execute("INSERT INTO actors(id, record) VALUES ('operator-course', '{}')")
+    connection.execute("INSERT INTO outcomes(id, record) VALUES ('out', '{}')")
+    connection.execute("INSERT INTO sows(id, outcome_id, record) VALUES ('sow', 'out', '{}')")
+    live_record = json.dumps({"id": "asg_live", "state": "RUNNING"})
+    connection.execute(
+        "INSERT INTO assignments(id, sow_id, actor_id, record, current_execution_attempt) "
+        "VALUES (?, ?, ?, ?, ?)",
+        ("asg_live", "sow", "operator-course", live_record, "att_live"),
+    )
+    connection.execute(
+        "INSERT INTO execution_attempts(id, assignment_id, actor_id, process_identity, "
+        "fencing_token, acquired_at, expires_at, status) VALUES "
+        "('att_live', 'asg_live', 'operator-course', 'proc_legacy', 1, "
+        "'2026-01-01T00:00:00+00:00', '2026-01-01T00:15:00+00:00', 'ACTIVE')"
+    )
+    connection.commit()
+    connection.close()
+
+    db = Database(path)
+    assert db.applied_versions() == {version for version, _ in MIGRATIONS}
+    assert 14 in db.applied_versions()
+
+    row = db.connection.execute(
+        "SELECT actor_lease_fencing_token, status FROM execution_attempts WHERE id = 'att_live'"
+    ).fetchone()
+    assert row is not None, "the upgrade destroyed a pre-existing execution attempt"
+    assert row["actor_lease_fencing_token"] is None, (
+        "a pre-migration-14 row has no real binding to backfill -- NULL, not a fabricated one"
+    )
+    assert row["status"] == "ACTIVE"
+
+    # The row is still usable through the current application code: fencing.
+    # py's own NULL-tolerant read (fencing._NO_ACTOR_LEASE_BINDING) must not
+    # crash reading it back.
+    from sovereign_agent import fencing
+
+    attempt = fencing.current_execution_attempt(db, "asg_live")
+    assert attempt is not None
+    assert attempt.actor_lease_fencing_token == fencing._NO_ACTOR_LEASE_BINDING  # noqa: SLF001
+
+
+def test_migration_14_is_idempotently_recognized_after_success(tmp_path: Path) -> None:
+    path = tmp_path / "fresh.db"
+    first = Database(path)
+    assert 14 in first.applied_versions()
+    stamps_first = first.connection.execute(
+        "SELECT applied_at FROM schema_migrations WHERE version = 14"
+    ).fetchall()
+
+    second = Database(path)
+    stamps_second = second.connection.execute(
+        "SELECT applied_at FROM schema_migrations WHERE version = 14"
+    ).fetchall()
+    assert [tuple(row) for row in stamps_first] == [tuple(row) for row in stamps_second]
+
+    columns = {row[1] for row in second.connection.execute("PRAGMA table_info(execution_attempts)")}
+    assert "actor_lease_fencing_token" in columns
+
+
+def test_migration_14_rolls_back_completely_on_a_simulated_failure(tmp_path: Path) -> None:
+    """Same fail-closed, all-or-nothing property as migration 13's own
+    rollback test, applied to migration 14: a broken migration 14 must not
+    leave a stamped version 14, must not leave a partially-applied ALTER
+    TABLE column, and must not disturb the pre-existing data."""
+    import sovereign_agent.database as database_module
+
+    path = tmp_path / "unit7.db"
+    _build_unit7_shaped_database(path)
+
+    broken_migration_14 = database_module.MIGRATION_14 + "\nSELECT this_is_not_valid_sql_syntax;"
+    broken_migrations = tuple(
+        (14, broken_migration_14) if version == 14 else (version, script)
+        for version, script in database_module.MIGRATIONS
+    )
+    with patch.object(database_module, "MIGRATIONS", broken_migrations):
+        with pytest.raises(sqlite3.OperationalError):
+            Database(path)
+
+    inspector = sqlite3.connect(path)
+    try:
+        stamped = [
+            int(row[0]) for row in inspector.execute("SELECT version FROM schema_migrations")
+        ]
+        assert 13 in stamped, "migration 13 should still have succeeded"
+        assert 14 not in stamped, "a failed migration was stamped as applied"
+        columns = {row[1] for row in inspector.execute("PRAGMA table_info(execution_attempts)")}
+        assert "actor_lease_fencing_token" not in columns, (
+            "a partially-applied ALTER TABLE survived the rollback"
+        )
+        assert (
+            inspector.execute(
+                "SELECT COUNT(*) FROM assignments WHERE id = 'asg_legacy'"
+            ).fetchone()[0]
+            == 1
+        )
+    finally:
+        inspector.close()
+
+    recovered = Database(path)
+    assert 14 in recovered.applied_versions()
+    assert (
+        recovered.connection.execute(
+            "SELECT COUNT(*) AS c FROM assignments WHERE id = 'asg_legacy'"
+        ).fetchone()["c"]
+        == 1
     )

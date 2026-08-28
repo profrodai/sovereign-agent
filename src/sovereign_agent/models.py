@@ -141,6 +141,12 @@ class Message(StrictModel):
     state: MessageState
     claim_owner: str | None = None
     claim_expires_at: datetime | None = None
+    # Unit 8: minted fresh every time a claim is won (never on the idempotent
+    # same-owner-unexpired return). complete()/dead_letter() must present the
+    # exact token bound at claim time, verified atomically -- closes F-U4-1's
+    # "returns the stale lease without renewing it" defect by making the
+    # returned lease carry proof of whether it is fresh or stale.
+    fencing_token: int | None = None
     retry_count: int = 0
     created_at: datetime
 

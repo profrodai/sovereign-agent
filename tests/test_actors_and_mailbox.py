@@ -161,10 +161,11 @@ def test_expired_lease_is_reclaimable(tmp_path: Path) -> None:
 def test_only_the_claimant_can_complete(tmp_path: Path) -> None:
     org = Organization.init(tmp_path)
     message = send(org.db, "master-course", "sparring-course", "s", "b")
-    claim(org.db, message.id, "sparring-course")
+    claimed = claim(org.db, message.id, "sparring-course")
     with pytest.raises(Refusal, match="Only the claimant"):
-        complete(org.db, message.id, "operator-course")
-    assert complete(org.db, message.id, "sparring-course").state == MessageState.DONE
+        complete(org.db, message.id, "operator-course", fencing_token=claimed.fencing_token)
+    done = complete(org.db, message.id, "sparring-course", fencing_token=claimed.fencing_token)
+    assert done.state == MessageState.DONE
 
 
 def test_retry_then_dead_letter(tmp_path: Path) -> None:
