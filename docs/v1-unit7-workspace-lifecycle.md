@@ -1,11 +1,24 @@
 # Unit 7: workspace lifecycle
 
-- **status:** proposed for acceptance (this document is new; it has not yet
-  been through the same audit pass that closed `docs/units-0-6-contract.md`)
+- **status:** ACCEPTED, 2026-08-28 (ratified as a contract 2026-08-28)
+- **authority:** principal
 - **base:** `main = 5120ebf3` (Units 0-6 accepted at `33e51d19`; this ruling
   merged as `5120ebf3`)
-- **authority:** ruled by
+- **audit target:** `26235956a0887753d8b10c04b0d4201a53b8cd04` — PR #29's
+  merge commit into `main`, the commit Sparring's acceptance-record audit
+  examined
+- **accepted target:** `26235956a0887753d8b10c04b0d4201a53b8cd04` — the same
+  commit. Unlike `docs/units-0-6-contract.md`, where the audit ran at a
+  commit (`9c242828`) with findings outstanding and acceptance landed later
+  at a different, remediated commit (`33e51d19`), Unit 7's six review rounds
+  and their fixes all happened *before* merge, on the PR branch; the audit
+  ran once, after merge, against `main` at its head, and passed there with no
+  further remediation needed. One commit is both the audit target and the
+  accepted target because there is no gap between them to name two commits
+  for.
+- **governing ruling:**
   [`docs/rulings/2026-08-27-unit7-is-workspaces-not-pulse.md`](rulings/2026-08-27-unit7-is-workspaces-not-pulse.md)
+  (scope: workspace lifecycle, not Pulse; unchanged by this acceptance)
 - **applies_to:** Sovereign Agent 1.x, Unit 7
 - **requested_by:** `.unit7/SCOPE-PROPOSAL.md`, the read-only investigation
   the governing ruling cites as the source of Unit 7's five properties
@@ -14,6 +27,46 @@ This document follows `docs/units-0-6-contract.md`'s own shape: a contract
 stated as testable properties, then how to check each one against the
 repository. It is **additive** — nothing in the Units 0-6 acceptance table is
 touched or revised here.
+
+## Acceptance audit at `26235956`
+
+Audited read-only by Sparring against merged `main`
+([GitHub comment id 5447432090 on PR #29](https://github.com/zeroemployeeorg/sovereign-agent/pull/29#issuecomment-5447432090)),
+verdict PASS. Every command in "How to check this document against the
+repository" was executed directly, exit codes read from the run rather than
+assumed, no pipes:
+
+- Full gate: 230 passed / 9 deselected, exit 0. `verify_source_budget.py`
+  exit 0. `verify_curriculum.py` exit 0 (4 chapters, 4 exercises executed,
+  all links resolve).
+- Property-block selections, all exit 0, all counts non-trivial: Property 1
+  — 9 passed; Property 2 — 13 passed; Property 3 — 6 passed; Property 4 — 6
+  passed; Property 5 — 4 passed.
+- Budget table verified in both directions against the script's own output,
+  not the prose: the final row (`24/40`, `4307/6000`, `7/30`) matches a live
+  run on `main` byte-for-byte; the historical baseline row (`23/40`,
+  `3696/6000`, `7/30`) was independently re-verified by running the script in
+  a worktree at `33e51d19` itself.
+- Credential absence confirmed: the required env grep is empty; the 9
+  deselected tests are exactly the Unit 12 credentialed provider smokes
+  deferred below — no live-provider evidence is claimed anywhere in this
+  record.
+- Pulse-clean: every "pulse" occurrence in this unit's code, tests, and this
+  record is either a reference to the governing ruling or the explicit
+  non-scope declaration below. Nothing creates work, reads a signal, or
+  fires a gate.
+- Deferrals confirmed named and nowhere claimed as done: Unit 8
+  (fencing/supervisor/hard-kill, `F-U4-1` stands), Unit 9 (Pulse), Unit 12
+  (credentialed smokes).
+- This document's own six-round review narrative (below) was checked
+  against the filed review chain on PR #29 and matches: each finding, each
+  fix, each round's verdict as filed.
+
+Per standing doctrine, this audit is Sparring's alone; the status flip
+above — this record moving from "proposed for acceptance" to `ACCEPTED` — is
+authored work, done by Master/stream and co-signed on the PR that carries
+it, not by Sparring. The Principal's acceptance of Unit 7 arrived as an
+explicit message, not inferred from this audit or any green gate.
 
 ## Why workspaces, not Pulse
 
