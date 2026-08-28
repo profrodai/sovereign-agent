@@ -1,10 +1,14 @@
 # Unit 8: supervisor, fencing, and hard-kill recovery
 
-- **status:** PROPOSED, 2026-08-28 (this status is set by the authoring
-  stream; the flip to ACCEPTED happens later, by Master/Sparring/Principal
-  process, not by this document)
-- **authority:** principal (ratifying prior rulings this unit closes);
-  status flip to ACCEPTED is a separate later act
+- **status:** ACCEPTED, 2026-08-28 (Principal acceptance granted at exact
+  head `2b9e99ffe2da7c7b54cd53fabdd8c0d1d1066ff7`; merged into `main` at
+  `1d3bb55585f9fcfb04c63e11126665c8ad5635ea`; acceptance record filed as
+  [PR #31 comment 5456428388](https://github.com/zeroemployeeorg/sovereign-agent/pull/31#issuecomment-5456428388);
+  this status flip itself lands as a separate, Sparring-reviewed change —
+  review before merge, not authored-and-co-signed by the same act, not
+  backdated)
+- **authority:** principal (ratified acceptance; the prior rulings this
+  unit closes are ratified by the same authority)
 - **base:** `main = 5dbcabca640426a4510a9a82c78beff0889696f6` (Units 0-7
   ACCEPTED, clean tree; the exact commit this branch forked from)
 - **review history:** PR #31, first head `344b77b`. Sparring's independent

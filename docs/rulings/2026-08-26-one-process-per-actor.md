@@ -94,3 +94,21 @@ lease` as the first thing it does, before anything else is touched, and
 connecting the two mechanisms rather than leaving the lease unused. See
 `docs/v1-unit8-supervisor-fencing-recovery.md`'s Property 1 for the full,
 current account.
+
+### Second addendum (A-U8-1, Unit 8 audit finding, closed same day)
+
+`test_the_same_actor_from_two_processes_is_idempotent_not_exclusive`, cited
+above as verification, was the exact test the Unit 8 SOW ordered replaced
+with tests proving the new process-level guarantee — "not merely renamed."
+That replacement landed (`tests/test_fencing.py::
+test_actor_lease_blocks_a_second_assignment_for_the_same_actor_before_invocation`),
+but this original test itself survived byte-identical through all three PR
+#31 rounds, still asserting a docstring claim — "1.x does not provide
+fencing" — that became false the moment Unit 8 merged. A second, independent
+Sparring audit of the merged `main` (distinct from the PR review rounds
+above) found it. Renamed to
+`test_the_same_actor_from_two_processes_is_idempotent_within_an_unexpired_lease`
+and its docstring narrowed to state only what remains true — same-owner,
+same-lease-window idempotency — with an explicit historical note. The
+citation above is left unedited as the historical record of this ruling's
+own verification at the time it was written.

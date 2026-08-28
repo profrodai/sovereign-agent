@@ -147,18 +147,38 @@ def test_only_one_contender_wins_a_contested_lease(tmp_path: Path) -> None:
     assert claimed_events == 1
 
 
-def test_the_same_actor_from_two_processes_is_idempotent_not_exclusive(tmp_path: Path) -> None:
-    """State the property honestly rather than overclaiming exclusivity.
+def test_the_same_actor_from_two_processes_is_idempotent_within_an_unexpired_lease(
+    tmp_path: Path,
+) -> None:
+    """A-U8-1 (Unit 8 audit finding): this test predates Unit 8 and used to be
+    named `..._is_idempotent_not_exclusive`, with a docstring stating three
+    things that were true when it was written (pre-Unit-8 `main`) and are
+    FALSE now, on merged `main`, present tense: "1.x does not provide
+    fencing", "two processes hosting one actor can therefore both proceed",
+    and "lease fencing is deferred to Unit 8's supervisor." Unit 8 landed
+    exactly that fencing -- `sovereign_agent.fencing`, proven end to end by
+    `tests/test_fencing.py::
+    test_actor_lease_blocks_a_second_assignment_for_the_same_actor_before_invocation`,
+    which shows a second process CANNOT proceed while a first process's actor
+    lease is live: its `invoke_actor` is spied on and shown to fire zero
+    times. The Unit 8 SOW ordered this exact test replaced with tests proving
+    the new process-level guarantee, "not merely renamed" -- that replacement
+    (the test named above) landed in `test_fencing.py`, but this test itself
+    was left byte-identical, unselected by any of Unit 8's own audit
+    commands, and its docstring was never corrected. Caught by a second,
+    independent Sparring audit reading the SOW's own requirement rather than
+    only the accepting document's self-attestation.
 
-    A second connection using the SAME actor id is granted the claim, because a
-    claim already held by that actor short circuits. Two processes hosting one
-    actor can therefore both proceed. That is actor-level idempotency; it is NOT
-    process-level fencing, and 1.x does not provide fencing.
-
-    The governing rule is recorded in
-    docs/rulings/2026-08-26-one-process-per-actor.md: one process may host an
-    actor, and lease fencing is deferred to Unit 8's supervisor. This test
-    exists so nobody reads the mailbox as offering a guarantee it does not.
+    What survives, narrowed and renamed to say only what remains true: a
+    SECOND CONNECTION reclaiming a lease it ALREADY HOLDS, before that lease
+    EXPIRES, is granted the same claim back rather than refused -- the
+    same-owner-unexpired short-circuit in `relay.claim()`, a deliberate
+    idempotency feature (a retried worker inside its own lease window is
+    harmless), not a gap. It says nothing about two DIFFERENT processes, or
+    about a lease that has EXPIRED -- see F-U4-1's closure
+    (`docs/rulings/2026-08-26-deferral-unit4-fencing.md`) for the expired
+    case, and `test_fencing.py` for actual process-level exclusivity, which
+    this test never tested and does not test now.
     """
     org = Organization.init(tmp_path)
     message = send(org.db, "master-course", "sparring-course", "s", "b")
