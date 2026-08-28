@@ -461,6 +461,18 @@ credential." Credentialed Claude/Codex/Cursor smokes remain deferred to Unit
   Property 1's reclaim runs in the same single process already writing
   receipts synchronously in `run_assignment`; nothing here introduces a
   fencing token or an independent sweep process.
+
+  > **Forward pointer (added 2026-08-28, Unit 8 — additive, not a
+  > revision):** this deferral is now closed. Unit 8
+  > (`docs/v1-unit8-supervisor-fencing-recovery.md`) adds an execution-attempt
+  > fencing token bound to the `RUNNING` transition and a supervisor that
+  > recovers a hard-killed assignment. It does not reopen or restate this
+  > unit's own properties: Property 1's reclaim still runs in the same call
+  > that writes the terminal receipt, unchanged; Unit 8 adds a fence check
+  > immediately around that same write and a separate recovery path for the
+  > case where no process ever reaches it. This unit's text above is left
+  > exactly as it was written, describing accurately what was true when Unit
+  > 7 landed.
 - **Credentialed Claude/Codex/Cursor smokes** — Unit 12. Never run, not
   claimed here.
 
