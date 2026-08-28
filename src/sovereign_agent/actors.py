@@ -54,12 +54,25 @@ def load_actors(path: Path) -> list[Actor]:
     data = tomllib.loads(path.read_text(encoding="utf-8"))
     actors = []
     for raw in data.get("actors", []):
-        actors.append(
+        # workspace_policy is genuinely optional: omitted from TOML, the
+        # model's own default ("temporary_directory") applies. Passed only
+        # when present, rather than always passed with a `.get(..., default)`
+        # that would need to duplicate the model's default here too.
+        actor = (
             Actor(
+                id=raw["id"],
+                role=Role(raw["role"]),
+                provider=raw["provider"],
+                authority=list(raw.get("authority", [])),
+                workspace_policy=raw["workspace_policy"],
+            )
+            if "workspace_policy" in raw
+            else Actor(
                 id=raw["id"],
                 role=Role(raw["role"]),
                 provider=raw["provider"],
                 authority=list(raw.get("authority", [])),
             )
         )
+        actors.append(actor)
     return actors

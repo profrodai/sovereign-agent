@@ -5,6 +5,7 @@ from __future__ import annotations
 import hashlib
 import json
 import os
+import shutil
 import subprocess
 import sys
 from datetime import datetime
@@ -177,7 +178,63 @@ def invoke_actor(
     result = run_spec(spec)
     ended = utc_now()
     raw = workspace / "provider-raw"
-    raw.mkdir(parents=True, exist_ok=True)
+    # Round four's review (C1) found this path is the organization's OTHER
+    # write path with the same defect class as `.sovereign-out` in
+    # `organization.py::run_assignment`: `provider-raw` used to be created
+    # with a bare `mkdir(parents=True, exist_ok=True)`, which never
+    # disturbs pre-existing content -- a pre-planted symlink at this exact
+    # path (e.g. `provider-raw -> <external dir>`) would let the three
+    # writes just below land in whatever the link points at, for real.
+    # Removed and recreated fresh here, immediately before anything is
+    # written into it and after the subprocess has already run (nothing
+    # the provider does during its own execution touches `provider-raw` --
+    # only this function's own bookkeeping populates it afterward, so
+    # recreating fresh at this point closes the hole with no earlier write
+    # left exposed). `shutil.rmtree` unlinks a symlink entry -- or a real
+    # directory with any interior content -- without following a symlinked
+    # child out of the tree being removed, so an external target is never
+    # touched by the removal itself. `run_assignment` never invokes this
+    # function unless `workspace` itself already passed its own
+    # symlinked-ancestor and symlinked-`.sovereign-out` checks, but
+    # `provider-raw` is a third, independent path this function allocates
+    # on its own and those checks never looked at -- so it needs its own
+    # guard rather than relying on the caller's.
+    if raw.is_symlink():
+        raw.unlink()
+    elif raw.exists() and not raw.is_dir():
+        # Round five's review (E1), applied here for consistency with the
+        # identical fix in `organization.py::run_assignment`: a pre-planted
+        # ORDINARY FILE at `provider-raw` is not a symlink (the branch
+        # above does not fire) and is not a directory either -- the old
+        # unconditional `shutil.rmtree(raw)` on this path would raise
+        # `NotADirectoryError` trying to `scandir` it. That fault was
+        # already fail-closed here (this call happens inside
+        # `run_assignment`'s try block, so `except Exception` already
+        # caught it, wrote a `internal_error` receipt, and left the
+        # assignment FAILED honestly) -- but a raised `Refusal` is a more
+        # specific, more diagnosable failure than a generic caught
+        # exception, and this codebase's standing pattern is to name a
+        # malformed shape explicitly rather than let a generic exception
+        # describe it by accident. Raised, not silently swallowed: it is
+        # still caught by the same `except Refusal` handler in
+        # `run_assignment`, so the assignment still fails honestly -- only
+        # the receipt's category improves, from `internal_error` to
+        # this shape's own name.
+        raise Refusal(
+            f"Provider output path {str(raw)!r} exists and is not a directory.",
+            "`provider-raw` must be a real directory (or absent) for this "
+            "recreate to remove and repopulate it safely. A plain file "
+            "(or other non-directory node) at this path would make "
+            "`shutil.rmtree` raise `NotADirectoryError` instead of a "
+            "clear, diagnosable refusal -- so it is refused explicitly "
+            "here instead.",
+            actor.id,
+            "Remove the file at that path before retrying this assignment.",
+            category="non_directory_output_path",
+        )
+    elif raw.exists():
+        shutil.rmtree(raw)
+    raw.mkdir(parents=True, exist_ok=False)
     (raw / "stdout.txt").write_text(result.stdout)
     (raw / "stderr.txt").write_text(result.stderr)
     events = []

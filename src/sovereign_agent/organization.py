@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import json
+import shutil
 from pathlib import Path
 from typing import Any
 
@@ -42,6 +43,14 @@ from sovereign_agent.policy import (
 from sovereign_agent.providers import get_provider
 from sovereign_agent.relay import inbox as relay_inbox
 from sovereign_agent.relay import send as relay_send
+from sovereign_agent.workspace import (
+    WORKSPACE_POLICIES,
+    BoundarySnapshot,
+    diff_boundary,
+    reclaim_workspace,
+    safe_join,
+    snapshot_boundary,
+)
 
 
 class Organization:
@@ -240,16 +249,210 @@ class Organization:
         assignment = self._assignment(assignment_id)
         assignment_may_run(assignment.state)
         worker = self.actor(assignment.actor_id)
+        # Validated before ANYTHING else -- before the SOW or assignment
+        # state is touched, before the workspace directory is created, and
+        # long before the provider is invoked. An unrecognized policy used
+        # to surface only inside `reclaim_workspace`, at the very end of this
+        # method, by which point the provider had already run for real and
+        # COMPLETED was already committed to the ledger -- an invalid
+        # configuration value should mean the run never happened at all, not
+        # that it happened and then the bookkeeping afterward refused.
+        if worker.workspace_policy not in WORKSPACE_POLICIES:
+            raise Refusal(
+                f"Unknown workspace policy {worker.workspace_policy!r}.",
+                "A policy this module does not recognize must not be "
+                "silently treated as either 'reclaim' or 'keep' -- both are "
+                "real, consequential choices, and the provider must never "
+                "run for an actor whose policy cannot be enforced "
+                "afterward.",
+                worker.id,
+                f"Use one of: {', '.join(sorted(WORKSPACE_POLICIES))}.",
+                category="unknown_workspace_policy",
+            )
+        workspace = self.root / ".sovereign" / "runs" / assignment.workspace_id
+        # Checked here, alongside the policy validation above and before
+        # ANYTHING else -- same reasoning, same placement. The symlink guard
+        # inside reclaim_workspace only fires at the very end of this
+        # method, by which point a pre-planted symlink at this exact path
+        # already let the provider read and write through it for real: the
+        # workspace boundary this unit's whole subject is confining is
+        # defeated at the point of use, not merely at cleanup. A symlink
+        # here means some other code path substituted a link for the
+        # directory this method is about to allocate, so refuse before the
+        # SOW or assignment state is touched, before the directory is
+        # created, and before the provider is ever invoked -- exactly the
+        # same fail-closed shape as the policy check just above.
+        # The leaf is not the only place a symlink can substitute a real
+        # organization-owned directory for a link: `.sovereign/runs/`
+        # itself (or `.sovereign/`) being a symlink would traverse
+        # transparently to a leaf check that only looks at `workspace`
+        # itself, since `workspace.is_symlink()` is false for a workspace
+        # path that is a perfectly ordinary directory sitting under a
+        # symlinked ancestor. Walked from `workspace` up to (but not
+        # including) `self.root`, because `self.root` itself is the
+        # organization's own allocated real directory -- checking it here
+        # would be checking something this method did not just traverse
+        # into on the provider's behalf.
+        offending = None
+        for ancestor in (workspace, *workspace.parents):
+            if ancestor == self.root:
+                break  # self.root is the organization's own real directory
+            if ancestor.is_symlink():
+                offending = ancestor
+                break
+        if offending is not None:
+            raise Refusal(
+                f"Workspace path component {str(offending)!r} is a symlink.",
+                "A symlinked workspace root -- or a symlinked ancestor "
+                "directory on the path to it -- would let the provider "
+                "read and write through it for real, into whatever the "
+                "link points at -- a boundary defeated at the point of "
+                "use, not merely at cleanup. The provider must never run "
+                "against a workspace path this method did not allocate "
+                "as real directories the whole way down.",
+                worker.id,
+                "Investigate how that path component became a symlink "
+                "before retrying this assignment.",
+                category="symlinked_workspace_root",
+            )
+        # The ancestor walk above guards the workspace ROOT and everything
+        # above it. It says nothing about `.sovereign-out`, the
+        # organization-allocated OUTPUT CHILD living one level *below* the
+        # workspace root -- the dual of the check above, same mechanism,
+        # opposite position. `workspace` can pass every check above as an
+        # ordinary real directory while `.sovereign-out` inside it was
+        # pre-planted as a symlink: the provider would then write its
+        # report and every declared artifact through that link, for real,
+        # into whatever external directory it points at, and
+        # `_require_deliverables` -- which reconstructs this exact path
+        # independently and joins onto it via `safe_join` -- resolves
+        # through the same symlink and accepts evidence sitting entirely
+        # outside the workspace boundary as proof the SOW was satisfied.
+        # Refused here, before the SOW or assignment state is touched,
+        # before `workspace` itself is created, and before the provider is
+        # ever invoked -- the same fail-closed shape as the check above,
+        # not folded into it, because it is a distinct path component
+        # (a child, not an ancestor) that a single symlink check on
+        # `workspace` and its parents cannot see.
+        #
+        # This check alone only catches ONE hostile shape: `.sovereign-out`
+        # being a symlink itself. Round four's review (C1/C2) found the
+        # dual of THIS fix: `.sovereign-out` pre-planted as an ordinary
+        # REAL directory with a hostile interior -- a symlinked child
+        # (`report.json` pointing out of the workspace, so the provider's
+        # real write lands on the external target through it) or a
+        # fabricated deliverable (a file already sitting there, never
+        # written by the provider, that `_require_deliverables` would then
+        # accept as proof the run produced it). Neither shape is a symlink
+        # at the `.sovereign-out` path itself, so the check above passes
+        # both through untouched -- the provider's own
+        # `mkdir(parents=True, exist_ok=True)` never disturbs pre-existing
+        # content, so whatever was planted here survives to be written
+        # through or read as evidence.
+        output = workspace / ".sovereign-out"
+        if output.is_symlink():
+            raise Refusal(
+                f"Workspace output path {str(output)!r} is a symlink.",
+                "A symlinked output child would let the provider write its "
+                "report and every declared artifact through it for real, "
+                "into whatever the link points at -- and "
+                "`_require_deliverables` would then resolve through the "
+                "same link and accept evidence sitting entirely outside "
+                "the workspace boundary as proof the SOW was satisfied. "
+                "The provider must never run against an output path this "
+                "method did not allocate as a real directory.",
+                worker.id,
+                "Investigate how that path became a symlink before retrying this assignment.",
+                category="symlinked_output_directory",
+            )
+        # Round five's review (E1): the symlink check above is not the only
+        # non-directory shape this path can hold. A pre-planted ORDINARY
+        # FILE at `.sovereign-out` is not a symlink (the check above lets
+        # it through) and is not a directory either -- `shutil.rmtree`
+        # just below would raise `NotADirectoryError` trying to `scandir`
+        # it, a fault the recreate block was never written to expect. That
+        # fault is fail-closed in both places it can occur (this refusal
+        # closes the .sovereign-out case before it can happen at all;
+        # `execution.py::invoke_actor`'s identical guard on `provider-raw`
+        # is the fault's other occurrence, closed the same way just below)
+        # -- but a silent `NotADirectoryError` is a worse diagnostic than a
+        # named Refusal, and this codebase's standing pattern is to name a
+        # hostile or malformed shape explicitly rather than let a generic
+        # exception describe it by accident. Given its own category, not
+        # folded into `symlinked_output_directory`: it is a different
+        # shape with a different likely cause (leftover file from a prior
+        # run's crash, not necessarily an adversarial link) and a
+        # different fix ("remove the file"), so the category should say
+        # which one applies rather than making the operator re-diagnose it
+        # from the message alone.
+        elif output.exists() and not output.is_dir():
+            raise Refusal(
+                f"Workspace output path {str(output)!r} exists and is not a directory.",
+                "`.sovereign-out` must be a real directory (or absent) for "
+                "the recreate below to remove and repopulate it safely. A "
+                "plain file (or other non-directory node) at this path "
+                "would make `shutil.rmtree` raise `NotADirectoryError` "
+                "before the provider ever runs, instead of a clear, "
+                "diagnosable refusal -- so it is refused explicitly here "
+                "instead.",
+                worker.id,
+                "Remove the file at that path before retrying this assignment.",
+                category="non_directory_output_path",
+            )
         sow = self._sow(assignment.sow_id)
         sow.state = advance_sow(sow.state, SowState.RUNNING)
-        workspace = self.root / ".sovereign" / "runs" / assignment.workspace_id
-        output = workspace / ".sovereign-out"
         workspace.mkdir(parents=True, exist_ok=True)
+        # Allocated fresh here, not merely checked: this is the actual fix
+        # for C1/C2. `shutil.rmtree` removes whatever is at `.sovereign-out`
+        # -- a real directory with any interior content, however that
+        # content got there -- WITHOUT following a symlinked child out of
+        # the tree it is deleting (a symlink entry inside a directory being
+        # removed is unlinked itself, never traversed into), so a hostage
+        # file a symlinked child pointed at is never touched by the
+        # removal. `missing_ok`-equivalent via `ignore_errors=False` would
+        # raise on a path that does not exist yet, which is the common
+        # case (the workspace is usually new); guarded explicitly instead
+        # of swallowing errors broadly, so a real permission fault here
+        # still surfaces rather than being silently absorbed. The mkdir
+        # that follows creates a fresh, empty, real directory with no
+        # pre-existing content of any kind for the provider to write
+        # through or for acceptance to trust -- making the claim in the
+        # comment above (and in the Refusal message: "the provider must
+        # never run against an output path this method did not allocate
+        # as a real directory") actually true, closing C1 and C2 in one
+        # move regardless of which hostile interior shape was planted.
+        # (The symlink check and the non-directory check just above have
+        # already refused every shape `output` could hold other than a
+        # real directory or nothing at all -- a symlink is refused first,
+        # a plain file or other non-directory node is refused second, so
+        # by construction only a real directory or an absent path can
+        # reach this line. `output.exists()` alone is therefore a complete
+        # test of "is there a directory to remove", not an approximation:
+        # every non-directory shape was already turned away above, rather
+        # than left for `shutil.rmtree` to discover as a raw
+        # `NotADirectoryError`.)
+        if output.exists():
+            shutil.rmtree(output)
+        output.mkdir(parents=True, exist_ok=False)
         assignment.state = AssignmentState.RUNNING
         self._save_assignment(assignment, sow, "assignment.running")
         started_at = utc_now()
         failure: BaseException | None = None
+        boundary_before: BoundarySnapshot | None = None
         try:
+            # Taken BEFORE the provider runs, so the boundary check below
+            # proves something about THIS invocation, not about drift left
+            # over from an earlier one. Folded into this same try block (it
+            # used to run unguarded, ahead of the try): a fault here --
+            # e.g. a transient OSError reading the tree to digest -- used to
+            # propagate straight out of `run_assignment` before the provider
+            # was ever invoked and before any receipt was written, leaving
+            # the assignment stuck at RUNNING (already persisted above) with
+            # no terminal record at all. Caught by the same three handlers
+            # as a provider fault, it now produces the same honest failed
+            # receipt and terminal state every other fault in this method
+            # produces.
+            boundary_before = snapshot_boundary(self.root, workspace)
             receipt, report = invoke_actor(
                 worker, sow, workspace, output, assignment_id=assignment.id
             )
@@ -298,6 +501,68 @@ class Organization:
             report = None
             failure = error
         receipt_json = (workspace / "receipt.json").read_text(encoding="utf-8")
+        # Diffed AFTER the provider has fully run (or failed to), whichever
+        # exception path was taken above -- detection, not prevention, per
+        # the governing ruling: this proves what changed outside the
+        # workspace, it does not claim to have stopped it.
+        #
+        # Guarded, not bare: by this point `receipt` is already durable proof
+        # of whatever happened above (including an interruption, which is
+        # already recorded and captured in `failure`). A fault taking THIS
+        # snapshot -- e.g. the same transient OSError the before-snapshot
+        # could hit -- used to propagate completely unguarded, which, if a
+        # real interruption had already been caught above, would replace
+        # that interruption's own exception with this unrelated one at the
+        # `raise failure` line near the end of this method: the caller would
+        # see an OSError from bookkeeping instead of the KeyboardInterrupt
+        # that actually happened. A fault here is caught, recorded as an
+        # honestly-empty boundary report (nothing claimed, not "no
+        # violation"), and never allowed to overwrite an already-determined
+        # `failure` -- the more important fact always wins.
+        try:
+            boundary_after = snapshot_boundary(self.root, workspace)
+            boundary_report = (
+                diff_boundary(boundary_before, boundary_after)
+                if boundary_before is not None
+                else None
+            )
+        except OSError as snapshot_error:
+            boundary_report = None
+            if failure is None:
+                # The provider itself succeeded (or was refused cleanly) --
+                # no prior failure exists to protect. Leaving `failure` at
+                # `None` here would mean the exception still propagates to
+                # the caller (the `raise failure` guard below only fires
+                # when `failure is not None`... except this branch sets it),
+                # while the persistence block a few lines down commits
+                # whatever `report` says, which for a successful provider
+                # is COMPLETED. That combination -- caller sees a raised
+                # OSError, ledger says success -- is exactly the disagreement
+                # this branch exists to prevent. With no earlier failure to
+                # protect, the snapshot fault becomes the terminal failure
+                # itself: `report` is discarded for persistence purposes
+                # (see below) and a fresh failed receipt overwrites the
+                # stale successful one already on disk, so the receipt and
+                # the ledger agree with what the caller is about to see.
+                # The provider's own result is not silently dropped either:
+                # the failure message names it explicitly.
+                provider_note = (
+                    f"provider reported {report.status!r}"
+                    if report is not None
+                    else "provider raised no report"
+                )
+                receipt = write_failed_receipt(
+                    worker,
+                    workspace,
+                    "internal_error",
+                    "after-snapshot fault; boundary could not be confirmed "
+                    f"({provider_note}): {type(snapshot_error).__name__}: {snapshot_error}",
+                    started_at,
+                    assignment_id=assignment.id,
+                )
+                receipt_json = (workspace / "receipt.json").read_text(encoding="utf-8")
+                report = None
+                failure = snapshot_error
         with self.db.transaction():
             self.db.put_serialized("receipts", receipt.id, receipt_json)
             if report and report.status == "completed":
@@ -314,7 +579,38 @@ class Organization:
             append_event(
                 self.db, "assignment.finished", {"id": assignment.id, "status": assignment.state}
             )
+            # A durable, queryable fact regardless of verdict: a clean report
+            # is itself evidence the boundary held for this invocation, not
+            # merely the absence of a complaint. `boundary_report` is `None`
+            # only when a snapshot itself faulted (see above) -- recorded
+            # here as `computed: False` rather than as `violated: False`,
+            # because "the check could not run" and "the check ran and
+            # found nothing" are different facts and must not share one
+            # boolean.
+            append_event(
+                self.db,
+                "assignment.workspace_boundary_checked",
+                {
+                    "assignment_id": assignment.id,
+                    "actor_id": worker.id,
+                    "provider": worker.provider,
+                    "computed": boundary_report is not None,
+                    "scope": boundary_report.scope if boundary_report is not None else None,
+                    "violated": boundary_report.violated if boundary_report is not None else None,
+                    "changed": list(boundary_report.changed) if boundary_report is not None else [],
+                    "added": list(boundary_report.added) if boundary_report is not None else [],
+                    "removed": list(boundary_report.removed) if boundary_report is not None else [],
+                },
+            )
         self._project_outcome(sow.outcome_id)
+        # The assignment is terminal on every path that reaches this line
+        # (COMPLETED, BLOCKED, or FAILED was just written above -- including
+        # the interrupted path, which records FAILED before re-raising).
+        # Reclaim runs against that terminal record, never against an
+        # assignment still RUNNING: a hard kill that never reaches this line
+        # leaves the workspace in place, which is the correct, fail-closed
+        # outcome -- Unit 8 recovery territory, not silently deleted evidence.
+        reclaim_workspace(workspace, worker.workspace_policy)
         if failure is not None:
             raise failure
         return assignment
@@ -742,7 +1038,13 @@ class Organization:
         assignment = self._assignment(execution)
         output = self.root / ".sovereign" / "runs" / assignment.workspace_id / ".sovereign-out"
         for deliverable in sow.deliverables:
-            if not (output / deliverable).is_file():
+            # A deliverable name comes from a governed record, but it is still
+            # an unvalidated string: a `../` segment or an absolute path must
+            # not be allowed to escape this SOW's own output directory to
+            # check -- or later, once acceptance trusts this method -- claim
+            # the existence of a file anywhere else on disk.
+            path = safe_join(output, deliverable)
+            if not path.is_file():
                 raise Refusal(
                     f"SOW {sow.id} promised {deliverable} and did not produce it.",
                     "A unit of work is done when its deliverable exists, not "
