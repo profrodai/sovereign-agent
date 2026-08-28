@@ -5,6 +5,7 @@ from __future__ import annotations
 import hashlib
 import json
 import os
+import shutil
 import subprocess
 import sys
 from datetime import datetime
@@ -177,7 +178,32 @@ def invoke_actor(
     result = run_spec(spec)
     ended = utc_now()
     raw = workspace / "provider-raw"
-    raw.mkdir(parents=True, exist_ok=True)
+    # Round four's review (C1) found this path is the organization's OTHER
+    # write path with the same defect class as `.sovereign-out` in
+    # `organization.py::run_assignment`: `provider-raw` used to be created
+    # with a bare `mkdir(parents=True, exist_ok=True)`, which never
+    # disturbs pre-existing content -- a pre-planted symlink at this exact
+    # path (e.g. `provider-raw -> <external dir>`) would let the three
+    # writes just below land in whatever the link points at, for real.
+    # Removed and recreated fresh here, immediately before anything is
+    # written into it and after the subprocess has already run (nothing
+    # the provider does during its own execution touches `provider-raw` --
+    # only this function's own bookkeeping populates it afterward, so
+    # recreating fresh at this point closes the hole with no earlier write
+    # left exposed). `shutil.rmtree` unlinks a symlink entry -- or a real
+    # directory with any interior content -- without following a symlinked
+    # child out of the tree being removed, so an external target is never
+    # touched by the removal itself. `run_assignment` never invokes this
+    # function unless `workspace` itself already passed its own
+    # symlinked-ancestor and symlinked-`.sovereign-out` checks, but
+    # `provider-raw` is a third, independent path this function allocates
+    # on its own and those checks never looked at -- so it needs its own
+    # guard rather than relying on the caller's.
+    if raw.is_symlink():
+        raw.unlink()
+    elif raw.exists():
+        shutil.rmtree(raw)
+    raw.mkdir(parents=True, exist_ok=False)
     (raw / "stdout.txt").write_text(result.stdout)
     (raw / "stderr.txt").write_text(result.stderr)
     events = []

@@ -637,6 +637,168 @@ def test_symlinked_output_directory_refused_before_the_provider_ever_runs(
     )
 
 
+def test_symlinked_child_inside_a_real_output_directory_cannot_be_written_through(
+    tmp_path: Path,
+) -> None:
+    """Round four's review (finding C1, the dual of the fix above): the
+    symlink check just above only refuses `.sovereign-out` *being* a
+    symlink. It says nothing about `.sovereign-out` pre-planted as an
+    ORDINARY REAL directory whose interior is hostile -- e.g. a symlinked
+    child, `report.json -> <external file>`. The provider's own
+    `mkdir(parents=True, exist_ok=True)` never disturbs pre-existing
+    content, so before the fix the provider would write its real report
+    bytes straight through that child link, into the external file, for
+    real -- a write escaping the workspace boundary with success
+    committed, not a refusal.
+
+    This test does not assert "refuse before running" (there is nothing to
+    refuse -- `.sovereign-out` itself is a perfectly ordinary real
+    directory). It asserts the run either cannot be corrupted this way at
+    all, or refuses honestly if it detects it was. The actual fix makes it
+    the former: `run_assignment` removes and recreates `.sovereign-out`
+    fresh immediately before the provider runs, so the pre-planted
+    symlinked child is gone before the provider ever gets a chance to
+    write through it.
+    """
+    org, _sow_id, assignment_id = dispatched(tmp_path)
+    assignment = org._assignment(assignment_id)  # noqa: SLF001
+    workspace_path = org.root / ".sovereign" / "runs" / assignment.workspace_id
+    external = tmp_path / "external-hostage"
+    external.mkdir()
+    hostage = external / "hostage.txt"
+    hostage.write_text("ORIGINAL EXTERNAL BYTES")
+    before_hash = hash_tree(external)
+
+    # `.sovereign-out` itself is an ORDINARY REAL directory -- the existing
+    # symlink check does not fire -- but its child is a symlink pointing at
+    # a file entirely outside the workspace.
+    workspace_path.mkdir(parents=True, exist_ok=True)
+    output_dir = workspace_path / ".sovereign-out"
+    output_dir.mkdir()
+    (output_dir / "report.json").symlink_to(hostage)
+
+    result = org.run_assignment(assignment_id)
+
+    assert result.state == AssignmentState.COMPLETED, (
+        "a real, non-hostile run must still complete normally -- the fix "
+        "must not turn ordinary success into a refusal"
+    )
+    assert hostage.read_text() == "ORIGINAL EXTERNAL BYTES", (
+        "the provider's report must never be written through a pre-planted "
+        "symlinked child -- the hostage file outside the workspace must be "
+        "byte-for-byte untouched"
+    )
+    assert hash_tree(external) == before_hash, (
+        "the external target's whole tree must be unchanged -- recreating "
+        ".sovereign-out fresh must remove the symlinked child before the "
+        "provider ever runs"
+    )
+    assert (output_dir / "report.json").is_file(), (
+        "the real report must exist at the usual path -- written by the "
+        "provider into the freshly recreated, real .sovereign-out"
+    )
+    assert not (output_dir / "report.json").is_symlink(), (
+        "the report path itself must be a real file, not still the pre-planted symlink"
+    )
+
+
+def test_fabricated_deliverable_preplanted_in_a_real_output_directory_is_not_accepted(
+    tmp_path: Path,
+) -> None:
+    """Round four's review (finding C2, the other dual): pre-plant
+    `.sovereign-out` as a real directory containing a file already named
+    as the SOW's deliverable -- never written by the provider at all.
+    Before the fix, the provider's `mkdir(exist_ok=True)` left the
+    fabricated file in place, the run completed, and
+    `_require_deliverables` accepted the pre-planted file as proof the SOW
+    was satisfied -- evidence the run never produced, exactly the
+    "unit of work is done when its deliverable exists" contract this
+    module states, defeated by evidence provenance rather than by a
+    missing file.
+
+    After the fix, recreating `.sovereign-out` fresh at allocation time
+    removes the fabricated file before the provider ever runs, so the run
+    completes with its OWN real output, and asking `_require_deliverables`
+    to accept the fabricated (now-absent) name correctly refuses --
+    honestly, not silently.
+    """
+    org, sow_id, assignment_id = dispatched(tmp_path)
+    assignment = org._assignment(assignment_id)  # noqa: SLF001
+    workspace_path = org.root / ".sovereign" / "runs" / assignment.workspace_id
+
+    workspace_path.mkdir(parents=True, exist_ok=True)
+    output_dir = workspace_path / ".sovereign-out"
+    output_dir.mkdir()
+    fabricated = output_dir / "fabricated-analysis.md"
+    fabricated.write_text("evidence the provider never wrote")
+
+    result = org.run_assignment(assignment_id)
+    assert result.state == AssignmentState.COMPLETED, (
+        "a real, non-hostile run must still complete normally"
+    )
+    assert not fabricated.exists(), (
+        "the fabricated file must not survive allocation-time recreate -- "
+        "if it did, it would still be sitting there unconnected to "
+        "anything the real provider run wrote"
+    )
+
+    sow = org._sow(sow_id)  # noqa: SLF001
+    sow.deliverables = ["fabricated-analysis.md"]
+    with pytest.raises(Refusal) as excinfo:
+        org._require_deliverables(sow, assignment_id)  # noqa: SLF001
+    assert "did not produce it" in str(excinfo.value)
+
+
+def test_symlinked_provider_raw_cannot_be_written_through(tmp_path: Path) -> None:
+    """The organization's OTHER write path: `invoke_actor`
+    (`execution.py`) writes `stdout.txt`, `stderr.txt`, and `events.jsonl`
+    into `workspace / "provider-raw"`, allocated with its own
+    `mkdir(parents=True, exist_ok=True)` -- the same unchecked-allocation
+    shape `.sovereign-out` had before this round's fix, on a path
+    `run_assignment`'s own checks never look at (they check `workspace`
+    and its ancestors, and `.sovereign-out`; `provider-raw` is a third,
+    independent child). Pre-planting `provider-raw` as a symlink to an
+    external directory, before the fix, let the three post-subprocess
+    writes land for real in the external directory.
+
+    `invoke_actor` now recreates `provider-raw` fresh immediately before
+    writing into it, closing the same class of hole on this second path.
+
+    Uses the `persistent` workspace policy (rather than the default
+    `temporary_directory`) so `provider-raw` survives reclaim at the end of
+    `run_assignment` and can actually be inspected afterward -- reclaim
+    legitimately removes `provider-raw` as disposable scratch under the
+    default policy, which is correct, existing behavior unrelated to this
+    fix and not what this test is about.
+    """
+    org, _sow_id, assignment_id = dispatched(tmp_path)
+    org.actors["operator-course"].workspace_policy = PERSISTENT
+    assignment = org._assignment(assignment_id)  # noqa: SLF001
+    workspace_path = org.root / ".sovereign" / "runs" / assignment.workspace_id
+    external = tmp_path / "external-provider-raw"
+    external.mkdir()
+    before_hash = hash_tree(external)
+
+    workspace_path.mkdir(parents=True, exist_ok=True)
+    (workspace_path / "provider-raw").symlink_to(external, target_is_directory=True)
+
+    result = org.run_assignment(assignment_id)
+
+    assert result.state == AssignmentState.COMPLETED
+    assert hash_tree(external) == before_hash, (
+        "the external target must be byte-for-byte unchanged -- nothing "
+        "written through the pre-planted provider-raw symlink"
+    )
+    raw_dir = workspace_path / "provider-raw"
+    assert raw_dir.is_dir() and not raw_dir.is_symlink(), (
+        "provider-raw must be a real directory after the run, not still the pre-planted symlink"
+    )
+    assert (raw_dir / "stdout.txt").is_file(), (
+        "the real bookkeeping files must exist at the usual path, written "
+        "into the freshly recreated, real provider-raw"
+    )
+
+
 # --- Property 3: the workspace boundary is detectable -----------------------
 
 

@@ -159,6 +159,82 @@ ancestor walk cannot see. Proven with the same invocation-counter-stays-zero
 and byte-for-byte external-tree-hash pattern the two round-three-B tests
 already established.
 
+**Corrected by review round four** (findings C1 and C2, the dual of B3):
+the B3 check above refuses `.sovereign-out` *being* a symlink, but says
+nothing about `.sovereign-out` pre-planted as an ordinary *real* directory
+with a hostile interior — the provider's own `mkdir(parents=True,
+exist_ok=True)` (`providers/scripted.py`) never disturbs pre-existing
+content, so a real directory sitting there before `run_assignment` runs
+survives untouched. Two shapes, both reproduced against the unfixed code
+before any edit: **C1**, a symlinked *child* (`.sovereign-out/report.json`
+pointing at an external file) — the provider's real report bytes wrote
+through the link, overwriting the external file, with `COMPLETED`
+committed; and **C2**, a real file already sitting at the exact name a
+SOW declares as its deliverable, never written by the provider at all —
+`_require_deliverables` accepted it as proof the run produced evidence it
+never produced. The same defect class was independently present on the
+organization's *other* write path: `execution.py::invoke_actor` allocates
+`workspace / "provider-raw"` the same unchecked way, and a pre-planted
+symlink there let the post-subprocess bookkeeping (`stdout.txt`,
+`stderr.txt`, `events.jsonl`) write straight through it.
+
+Fixed at the root, not by adding a third `is_symlink()` refusal: the
+allocation-time comment above claimed "the provider must never run
+against an output path this method did not allocate as a real
+directory," but the method never allocated it at all — it only ever
+checked what was already there. `run_assignment` now actually allocates
+`.sovereign-out` fresh: immediately after the existing symlink check (and
+after `workspace.mkdir()`, since the output child lives inside the
+workspace root), any pre-existing content at that path — real directory,
+hostile interior, whatever shape — is removed with `shutil.rmtree` and
+replaced with a clean, empty, real `mkdir`. `shutil.rmtree` unlinks a
+symlinked child *entry* without following it into its target, so a
+hostage file the symlink pointed at is never touched by the removal
+itself, only by whatever the (now-absent) link would have let the
+provider write afterward. `execution.py::invoke_actor` gets the identical
+treatment for `provider-raw`, immediately before its own three writes.
+Because the symlink check upstream already refused a top-level symlink at
+`.sovereign-out`, the recreate step there only ever needs to handle "real
+directory or nothing"; `provider-raw` has no upstream check of its own
+(a third, independent path `run_assignment`'s checks never look at), so
+its own recreate step handles the symlink case directly too. This closes
+C1 and C2 (and their `provider-raw` sibling) regardless of which hostile
+shape was planted, rather than adding a growing list of shape-specific
+refusals — the next dual of this fix, if one exists, would have to be a
+substitution happening *after* the recreate and *before* the provider
+runs (a live TOCTOU race), which is out of this unit's scope by the same
+reasoning every prior round used: Unit 8 fencing territory, not a
+pre-planted-content question this allocation-time fix already answers
+regardless of timing before the provider starts.
+
+**Design note on resume, checked rather than assumed**: `run_assignment`
+never currently passes `provider_session_id` to `invoke_actor` — the
+parameter exists on `invoke_actor` and `InvocationRequest`, but nothing in
+`run_assignment`'s own call site wires a resumed session through it (the
+call is `invoke_actor(worker, sow, workspace, output,
+assignment_id=assignment.id)`, no fifth argument). Recreating
+`.sovereign-out` fresh on every call therefore does not break any *live*
+resume path today, because there is not one. If a future unit wires
+`provider_session_id` through `run_assignment` for a real resume case that
+needs prior output content to survive between calls, that unit will need
+to make the recreate conditional on whether the call is a fresh
+allocation or a genuine resume — this fix does not attempt to anticipate
+that shape, since guessing at an unbuilt resume contract risks getting it
+wrong in a security-relevant way. Recorded here as a known scope boundary,
+not a silent decision.
+
+Proven the same way as every fix in this unit: reproduced against the
+unfixed code first (three standalone scripts, not suite tests, matching
+this project's own pattern), then covered by three new tests
+(`test_symlinked_child_inside_a_real_output_directory_cannot_be_written_through`,
+`test_fabricated_deliverable_preplanted_in_a_real_output_directory_is_not_accepted`,
+`test_symlinked_provider_raw_cannot_be_written_through`), then falsified
+by disabling the recreate in both files, confirming all three tests fail
+with the exact same symptom the unfixed reproduction showed (real bytes
+landing in the external target; the fabricated file surviving), then
+restored and confirmed byte-identical via `diff` before re-confirming
+green.
+
 ### Property 2 — `Actor.workspace_policy` is enforced
 
 `models.py:120` declared the field (`workspace_policy: str =
@@ -302,9 +378,13 @@ python -m pytest -q tests/test_workspace_lifecycle.py \
 # provider ever runs too, same spy/counter plus a byte-for-byte external-tree
 # hash (review round three, finding B); a symlinked *output child*
 # (.sovereign-out) one level below the workspace root is refused the same
-# way (review round three, finding B3)
+# way (review round three, finding B3); a REAL .sovereign-out with a hostile
+# interior -- a symlinked child, or a fabricated deliverable -- cannot be
+# written through or accepted, because it is removed and recreated fresh at
+# allocation time, and the organization's other write path (provider-raw)
+# gets the same treatment (review round four, findings C1 and C2)
 python -m pytest -q tests/test_workspace_lifecycle.py \
-  -k "persistent_policy or temporary_directory_policy or unknown_workspace_policy or policy_loads_from_toml or symlinked_workspace_root_refused_before or symlinked_runs_directory_ancestor or symlinked_output_directory_refused_before"
+  -k "persistent_policy or temporary_directory_policy or unknown_workspace_policy or policy_loads_from_toml or symlinked_workspace_root_refused_before or symlinked_runs_directory_ancestor or symlinked_output_directory_refused_before or symlinked_child_inside_a_real_output_directory or fabricated_deliverable_preplanted or symlinked_provider_raw"
 
 # Property 3 — boundary violation detected end to end, mutation-checked both
 # directions (a real escape is caught; legitimate in-workspace writes are
@@ -337,6 +417,7 @@ estimated:
 | After (review round two's four P1 fixes + P2) | 24/40 | 4056/6000 | 7/30 |
 | After (review round three's two findings) | 24/40 | 4134/6000 | 7/30 |
 | After (review round three's third finding, B3) | 24/40 | 4168/6000 | 7/30 |
+| After (review round four's findings, C1/C2) | 24/40 | 4236/6000 | 7/30 |
 
 One new module (`src/sovereign_agent/workspace.py`), no new root export —
 `Organization.run_assignment` and `_require_deliverables` call the new module
@@ -347,7 +428,12 @@ Review round three's fixes (both finding B and finding B3) stayed inside
 `organization.py` and its test file only — `workspace.py`'s own
 `reclaim_workspace` symlink guard and `safe_join` are both untouched, kept in
 place as defense in depth — no new module, no new root export.
-Headroom remaining: 16 modules, 1832 nonblank lines, 23 root exports.
+Review round four's fixes touched `organization.py`, `execution.py`
+(the `provider-raw` recreate), and their shared test file — no new module,
+no new root export; `execution.py` already existed and already owned
+`provider-raw`'s allocation, so extending its own `mkdir` call site is not
+a new dependency surface.
+Headroom remaining: 16 modules, 1764 nonblank lines, 23 root exports.
 
 ## What this unit did not do
 

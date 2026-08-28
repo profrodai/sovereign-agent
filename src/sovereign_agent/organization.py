@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import json
+import shutil
 from pathlib import Path
 from typing import Any
 
@@ -333,6 +334,21 @@ class Organization:
         # not folded into it, because it is a distinct path component
         # (a child, not an ancestor) that a single symlink check on
         # `workspace` and its parents cannot see.
+        #
+        # This check alone only catches ONE hostile shape: `.sovereign-out`
+        # being a symlink itself. Round four's review (C1/C2) found the
+        # dual of THIS fix: `.sovereign-out` pre-planted as an ordinary
+        # REAL directory with a hostile interior -- a symlinked child
+        # (`report.json` pointing out of the workspace, so the provider's
+        # real write lands on the external target through it) or a
+        # fabricated deliverable (a file already sitting there, never
+        # written by the provider, that `_require_deliverables` would then
+        # accept as proof the run produced it). Neither shape is a symlink
+        # at the `.sovereign-out` path itself, so the check above passes
+        # both through untouched -- the provider's own
+        # `mkdir(parents=True, exist_ok=True)` never disturbs pre-existing
+        # content, so whatever was planted here survives to be written
+        # through or read as evidence.
         output = workspace / ".sovereign-out"
         if output.is_symlink():
             raise Refusal(
@@ -352,6 +368,32 @@ class Organization:
         sow = self._sow(assignment.sow_id)
         sow.state = advance_sow(sow.state, SowState.RUNNING)
         workspace.mkdir(parents=True, exist_ok=True)
+        # Allocated fresh here, not merely checked: this is the actual fix
+        # for C1/C2. `shutil.rmtree` removes whatever is at `.sovereign-out`
+        # -- a real directory with any interior content, however that
+        # content got there -- WITHOUT following a symlinked child out of
+        # the tree it is deleting (a symlink entry inside a directory being
+        # removed is unlinked itself, never traversed into), so a hostage
+        # file a symlinked child pointed at is never touched by the
+        # removal. `missing_ok`-equivalent via `ignore_errors=False` would
+        # raise on a path that does not exist yet, which is the common
+        # case (the workspace is usually new); guarded explicitly instead
+        # of swallowing errors broadly, so a real permission fault here
+        # still surfaces rather than being silently absorbed. The mkdir
+        # that follows creates a fresh, empty, real directory with no
+        # pre-existing content of any kind for the provider to write
+        # through or for acceptance to trust -- making the claim in the
+        # comment above (and in the Refusal message: "the provider must
+        # never run against an output path this method did not allocate
+        # as a real directory") actually true, closing C1 and C2 in one
+        # move regardless of which hostile interior shape was planted.
+        # (The symlink check just above already refused `output` being a
+        # symlink itself, so by construction only a real directory -- or
+        # nothing at all -- can remain here; `output.exists()` alone is
+        # therefore a complete test, not an approximation.)
+        if output.exists():
+            shutil.rmtree(output)
+        output.mkdir(parents=True, exist_ok=False)
         assignment.state = AssignmentState.RUNNING
         self._save_assignment(assignment, sow, "assignment.running")
         started_at = utc_now()
