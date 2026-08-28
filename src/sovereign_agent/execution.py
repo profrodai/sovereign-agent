@@ -201,6 +201,37 @@ def invoke_actor(
     # guard rather than relying on the caller's.
     if raw.is_symlink():
         raw.unlink()
+    elif raw.exists() and not raw.is_dir():
+        # Round five's review (E1), applied here for consistency with the
+        # identical fix in `organization.py::run_assignment`: a pre-planted
+        # ORDINARY FILE at `provider-raw` is not a symlink (the branch
+        # above does not fire) and is not a directory either -- the old
+        # unconditional `shutil.rmtree(raw)` on this path would raise
+        # `NotADirectoryError` trying to `scandir` it. That fault was
+        # already fail-closed here (this call happens inside
+        # `run_assignment`'s try block, so `except Exception` already
+        # caught it, wrote a `internal_error` receipt, and left the
+        # assignment FAILED honestly) -- but a raised `Refusal` is a more
+        # specific, more diagnosable failure than a generic caught
+        # exception, and this codebase's standing pattern is to name a
+        # malformed shape explicitly rather than let a generic exception
+        # describe it by accident. Raised, not silently swallowed: it is
+        # still caught by the same `except Refusal` handler in
+        # `run_assignment`, so the assignment still fails honestly -- only
+        # the receipt's category improves, from `internal_error` to
+        # this shape's own name.
+        raise Refusal(
+            f"Provider output path {str(raw)!r} exists and is not a directory.",
+            "`provider-raw` must be a real directory (or absent) for this "
+            "recreate to remove and repopulate it safely. A plain file "
+            "(or other non-directory node) at this path would make "
+            "`shutil.rmtree` raise `NotADirectoryError` instead of a "
+            "clear, diagnosable refusal -- so it is refused explicitly "
+            "here instead.",
+            actor.id,
+            "Remove the file at that path before retrying this assignment.",
+            category="non_directory_output_path",
+        )
     elif raw.exists():
         shutil.rmtree(raw)
     raw.mkdir(parents=True, exist_ok=False)

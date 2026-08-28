@@ -235,6 +235,64 @@ landing in the external target; the fabricated file surviving), then
 restored and confirmed byte-identical via `diff` before re-confirming
 green.
 
+**Corrected by review round five** (finding E1, a comment-correctness
+defect, not a behavioural one): round four's own closing comment on the
+recreate above claimed a completeness property — "by construction only a
+real directory — or nothing at all — can remain here; `output.exists()`
+alone is therefore a complete test, not an approximation." That claim was
+false at round four's head. The symlink check just above only refuses
+`.sovereign-out` *being* a symlink; it says nothing about the path
+existing as some *other* non-directory shape — most simply, an ordinary
+plain file, left over from an earlier crash or planted by something that
+stopped short of a symlink. Reproduced against round four's own head
+before any edit: a pre-planted plain file at `.sovereign-out` is not a
+symlink (passes the check above) and is not a directory (`exists()` is
+`True`), so `shutil.rmtree` reached a `scandir` call on a file and raised
+a raw `NotADirectoryError` — a third shape the comment's enumeration
+missed. The same shape at `provider-raw` (`execution.py::invoke_actor`)
+reproduced too, with a different outcome: because that recreate happens
+*inside* `run_assignment`'s own `try`/`except` block (the `.sovereign-out`
+recreate happens *before* it), the `NotADirectoryError` there was already
+caught by `except Exception`, already produced an honest `FAILED` receipt
+with category `internal_error`. Both paths were already fail-closed with
+a truthful ledger — nobody was harmed by the bug — but a proven-false
+completeness claim, in a codebase whose whole subject is that a claim
+must not outrun the check behind it, is exactly the pattern review rounds
+two and four already put on record as the shape that precedes a paid
+failure, even when (as here) the underlying behaviour is safe.
+
+Fixed by refusing the shape explicitly rather than only correcting the
+comment (the reviewer's own preferred resolution, called the better
+teaching artifact: a named `Refusal` with a clear message teaches more
+than a rewritten sentence does). `run_assignment` now refuses
+`.sovereign-out` existing as anything other than a directory — a second,
+independent `elif` right after the existing symlink check, with its own
+category (`non_directory_output_path`, not folded into
+`symlinked_output_directory`: a different shape, most likely a different
+cause — leftover state, not necessarily an adversarial link — and a
+different fix, "remove the file," so the category should say which one
+applies). `execution.py::invoke_actor` gets the identical treatment for
+`provider-raw`, for consistency, even though its own un-fixed failure was
+already honest: the `Refusal` there is still caught by the same
+`except Exception` handler in `run_assignment`, so the assignment still
+fails exactly as before — only the receipt's category improves, from the
+generic `internal_error` to this shape's own name. The closing comment
+above the recreate is corrected to describe what actually makes
+`output.exists()` a complete test now: both the symlink check and the new
+non-directory check have already turned away every shape but "real
+directory" or "absent" by the time that line runs, so the claim is true
+for the first time, not merely re-asserted.
+
+Proven the same way as every fix in this unit: reproduced against
+round four's head first (two standalone scripts, not suite tests), then
+covered by two new tests
+(`test_non_directory_output_path_is_refused_before_the_provider_ever_runs`,
+`test_non_directory_provider_raw_is_refused_with_a_named_category`), then
+falsified by disabling the new `elif` in both files, confirming both
+tests fail with the exact `NotADirectoryError` symptom the unfixed
+reproduction showed, then restored and confirmed byte-identical before
+re-confirming green.
+
 ### Property 2 — `Actor.workspace_policy` is enforced
 
 `models.py:120` declared the field (`workspace_policy: str =
@@ -382,9 +440,12 @@ python -m pytest -q tests/test_workspace_lifecycle.py \
 # interior -- a symlinked child, or a fabricated deliverable -- cannot be
 # written through or accepted, because it is removed and recreated fresh at
 # allocation time, and the organization's other write path (provider-raw)
-# gets the same treatment (review round four, findings C1 and C2)
+# gets the same treatment (review round four, findings C1 and C2); a
+# non-directory shape (a plain file) at either .sovereign-out or
+# provider-raw is refused explicitly, by name, instead of surfacing as a
+# raw NotADirectoryError from shutil.rmtree (review round five, finding E1)
 python -m pytest -q tests/test_workspace_lifecycle.py \
-  -k "persistent_policy or temporary_directory_policy or unknown_workspace_policy or policy_loads_from_toml or symlinked_workspace_root_refused_before or symlinked_runs_directory_ancestor or symlinked_output_directory_refused_before or symlinked_child_inside_a_real_output_directory or fabricated_deliverable_preplanted or symlinked_provider_raw"
+  -k "persistent_policy or temporary_directory_policy or unknown_workspace_policy or policy_loads_from_toml or symlinked_workspace_root_refused_before or symlinked_runs_directory_ancestor or symlinked_output_directory_refused_before or symlinked_child_inside_a_real_output_directory or fabricated_deliverable_preplanted or symlinked_provider_raw or non_directory_output_path or non_directory_provider_raw"
 
 # Property 3 — boundary violation detected end to end, mutation-checked both
 # directions (a real escape is caught; legitimate in-workspace writes are
@@ -418,6 +479,7 @@ estimated:
 | After (review round three's two findings) | 24/40 | 4134/6000 | 7/30 |
 | After (review round three's third finding, B3) | 24/40 | 4168/6000 | 7/30 |
 | After (review round four's findings, C1/C2) | 24/40 | 4236/6000 | 7/30 |
+| After (review round five's finding, E1) | 24/40 | 4307/6000 | 7/30 |
 
 One new module (`src/sovereign_agent/workspace.py`), no new root export —
 `Organization.run_assignment` and `_require_deliverables` call the new module

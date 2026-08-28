@@ -365,6 +365,40 @@ class Organization:
                 "Investigate how that path became a symlink before retrying this assignment.",
                 category="symlinked_output_directory",
             )
+        # Round five's review (E1): the symlink check above is not the only
+        # non-directory shape this path can hold. A pre-planted ORDINARY
+        # FILE at `.sovereign-out` is not a symlink (the check above lets
+        # it through) and is not a directory either -- `shutil.rmtree`
+        # just below would raise `NotADirectoryError` trying to `scandir`
+        # it, a fault the recreate block was never written to expect. That
+        # fault is fail-closed in both places it can occur (this refusal
+        # closes the .sovereign-out case before it can happen at all;
+        # `execution.py::invoke_actor`'s identical guard on `provider-raw`
+        # is the fault's other occurrence, closed the same way just below)
+        # -- but a silent `NotADirectoryError` is a worse diagnostic than a
+        # named Refusal, and this codebase's standing pattern is to name a
+        # hostile or malformed shape explicitly rather than let a generic
+        # exception describe it by accident. Given its own category, not
+        # folded into `symlinked_output_directory`: it is a different
+        # shape with a different likely cause (leftover file from a prior
+        # run's crash, not necessarily an adversarial link) and a
+        # different fix ("remove the file"), so the category should say
+        # which one applies rather than making the operator re-diagnose it
+        # from the message alone.
+        elif output.exists() and not output.is_dir():
+            raise Refusal(
+                f"Workspace output path {str(output)!r} exists and is not a directory.",
+                "`.sovereign-out` must be a real directory (or absent) for "
+                "the recreate below to remove and repopulate it safely. A "
+                "plain file (or other non-directory node) at this path "
+                "would make `shutil.rmtree` raise `NotADirectoryError` "
+                "before the provider ever runs, instead of a clear, "
+                "diagnosable refusal -- so it is refused explicitly here "
+                "instead.",
+                worker.id,
+                "Remove the file at that path before retrying this assignment.",
+                category="non_directory_output_path",
+            )
         sow = self._sow(assignment.sow_id)
         sow.state = advance_sow(sow.state, SowState.RUNNING)
         workspace.mkdir(parents=True, exist_ok=True)
@@ -387,10 +421,16 @@ class Organization:
         # never run against an output path this method did not allocate
         # as a real directory") actually true, closing C1 and C2 in one
         # move regardless of which hostile interior shape was planted.
-        # (The symlink check just above already refused `output` being a
-        # symlink itself, so by construction only a real directory -- or
-        # nothing at all -- can remain here; `output.exists()` alone is
-        # therefore a complete test, not an approximation.)
+        # (The symlink check and the non-directory check just above have
+        # already refused every shape `output` could hold other than a
+        # real directory or nothing at all -- a symlink is refused first,
+        # a plain file or other non-directory node is refused second, so
+        # by construction only a real directory or an absent path can
+        # reach this line. `output.exists()` alone is therefore a complete
+        # test of "is there a directory to remove", not an approximation:
+        # every non-directory shape was already turned away above, rather
+        # than left for `shutil.rmtree` to discover as a raw
+        # `NotADirectoryError`.)
         if output.exists():
             shutil.rmtree(output)
         output.mkdir(parents=True, exist_ok=False)

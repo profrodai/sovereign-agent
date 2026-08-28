@@ -799,6 +799,124 @@ def test_symlinked_provider_raw_cannot_be_written_through(tmp_path: Path) -> Non
     )
 
 
+def test_non_directory_output_path_is_refused_before_the_provider_ever_runs(
+    tmp_path: Path,
+) -> None:
+    """Round five's review (finding E1): the symlink check on
+    `.sovereign-out` only refuses that path BEING a symlink. It says
+    nothing about the path existing as some OTHER non-directory shape --
+    e.g. a plain file left over from an earlier crash, or planted by
+    something hostile that stops short of a symlink. Before this fix,
+    `run_assignment` would sail past the symlink check (a plain file is
+    not a symlink), reach the recreate's `if output.exists():
+    shutil.rmtree(output)`, and `shutil.rmtree` would raise a raw
+    `NotADirectoryError` trying to `scandir` a file -- fail-closed (the
+    assignment stays CREATED, no receipt, nothing persisted) but with no
+    named Refusal, no category, and no clear next step, and a code comment
+    at this exact call site that flatly claimed this shape could not
+    occur ("by construction only a real directory -- or nothing at all --
+    can remain here").
+
+    This test proves the fixed behavior: the same fault now produces a
+    named `Refusal` with an actionable message, raised BEFORE the provider
+    is ever invoked, before `.sovereign-out` is EVER modified. Same shape
+    of proof as the symlink test above it: `invoke_actor` is spied on with
+    a counter to prove the provider is never invoked, and the plain file
+    is asserted still present and unmodified afterward.
+    """
+    org, _sow_id, assignment_id = dispatched(tmp_path)
+    assignment = org._assignment(assignment_id)  # noqa: SLF001
+    workspace_path = org.root / ".sovereign" / "runs" / assignment.workspace_id
+    workspace_path.mkdir(parents=True, exist_ok=True)
+
+    output_path = workspace_path / ".sovereign-out"
+    output_path.write_text("leftover file, not a directory")
+
+    invoked = {"count": 0}
+    real_invoke = organization_module.invoke_actor
+
+    def counting_invoke(*args, **kwargs):  # noqa: ANN001, ANN002, ANN003
+        invoked["count"] += 1
+        return real_invoke(*args, **kwargs)
+
+    with patch.object(organization_module, "invoke_actor", side_effect=counting_invoke):
+        with pytest.raises(Refusal, match="not a directory") as excinfo:
+            org.run_assignment(assignment_id)
+
+    assert excinfo.value.category == "non_directory_output_path"
+    assert invoked["count"] == 0, (
+        "the provider must never be invoked when the output path is not a directory"
+    )
+    final = org._assignment(assignment_id)  # noqa: SLF001
+    assert final.state == AssignmentState.CREATED, (
+        "the assignment must not even reach RUNNING when .sovereign-out is a non-directory shape"
+    )
+    row = org.db.connection.execute(
+        "SELECT record FROM receipts WHERE assignment_id = ?", (assignment_id,)
+    ).fetchone()
+    assert row is None, "no receipt: the run never happened, it was not merely discarded"
+    assert output_path.is_file() and not output_path.is_dir(), (
+        "the pre-planted file must still be exactly what it was -- refused, not touched"
+    )
+    assert output_path.read_text() == "leftover file, not a directory", (
+        "the file's content must be byte-for-byte unchanged by the refusal"
+    )
+
+
+def test_non_directory_provider_raw_is_refused_with_a_named_category(tmp_path: Path) -> None:
+    """The `provider-raw` sibling of the test above: round five's review
+    asked for the identical fix to be applied to `execution.py`'s
+    `provider-raw` allocation for consistency, even though that path's
+    un-fixed failure was already honest (caught by `run_assignment`'s
+    `except Exception` handler, `FAILED`, `internal_error`) rather than
+    escaping uncaught. This test proves the upgrade: the same pre-planted
+    plain file now produces a specific `non_directory_output_path`
+    category instead of the generic `internal_error` a raw
+    `NotADirectoryError` produced before, while the assignment still ends
+    up FAILED either way -- the ledger was already truthful; only the
+    diagnostic got better.
+
+    Uses the `persistent` workspace policy so `provider-raw` (and its
+    pre-planted file) survive reclaim and can be inspected after the run,
+    same reasoning as the symlinked-provider-raw test above.
+    """
+    org, _sow_id, assignment_id = dispatched(tmp_path)
+    org.actors["operator-course"].workspace_policy = PERSISTENT
+    assignment = org._assignment(assignment_id)  # noqa: SLF001
+    workspace_path = org.root / ".sovereign" / "runs" / assignment.workspace_id
+    workspace_path.mkdir(parents=True, exist_ok=True)
+
+    raw_path = workspace_path / "provider-raw"
+    raw_path.write_text("leftover file, not a directory")
+
+    # `invoke_actor`'s Refusal is caught by `run_assignment`'s own
+    # `except Exception` handler, which persists the failed receipt and
+    # terminal state -- and then, like every other fault caught there,
+    # RE-RAISES it to the caller once persistence is done (see the
+    # `interrupted`-path comment in `organization.py` for why: the caller
+    # still learns what happened, the ledger no longer merely implies it).
+    with pytest.raises(Refusal, match="not a directory"):
+        org.run_assignment(assignment_id)
+
+    final = org._assignment(assignment_id)  # noqa: SLF001
+    assert final.state == AssignmentState.FAILED, (
+        "a non-directory provider-raw must still fail the assignment honestly"
+    )
+    row = org.db.connection.execute(
+        "SELECT record FROM receipts WHERE assignment_id = ?", (assignment_id,)
+    ).fetchone()
+    assert row is not None, "a receipt must be written even though the fault is now a Refusal"
+    receipt = json.loads(row["record"])
+    assert receipt["status"] == "failed"
+    assert receipt["failure_category"] == "non_directory_output_path", (
+        "the category must name the actual shape refused, not fall back to the "
+        "generic internal_error a raw NotADirectoryError used to produce"
+    )
+    assert raw_path.is_file() and not raw_path.is_dir(), (
+        "the pre-planted file must still be exactly what it was -- refused, not touched"
+    )
+
+
 # --- Property 3: the workspace boundary is detectable -----------------------
 
 
