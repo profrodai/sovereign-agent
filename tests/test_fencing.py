@@ -194,6 +194,44 @@ def test_corrupt_lease_state_fails_closed_not_silently(tmp_path: Path) -> None:
         pass  # fail-closed: refused rather than silently granted
 
 
+def test_release_actor_lease_succeeds_when_the_token_still_matches(tmp_path: Path) -> None:
+    org = Organization.init(tmp_path)
+    p1 = fencing.new_process_identity()
+    lease = fencing.acquire_actor_lease(org.db, "operator-course", p1)
+    released = fencing.release_actor_lease(org.db, "operator-course", p1, lease.fencing_token)
+    assert released is True
+    assert fencing.current_actor_lease(org.db, "operator-course") is None
+
+
+def test_release_actor_lease_is_a_no_op_after_a_takeover(tmp_path: Path) -> None:
+    """The exact safety property Sparring's fix for F-R2-1 depends on: a
+    process releasing a lease it no longer actually holds (because a
+    different process already took it over) must not clear the NEW owner's
+    lease. This is what makes it safe for `organization.run_assignment` to
+    call `release_actor_lease` unconditionally in a `finally` block on
+    every path out, including a path where this process's own lease was
+    already superseded before the release runs."""
+    org = Organization.init(tmp_path)
+    p1 = fencing.new_process_identity()
+    stale_lease = fencing.acquire_actor_lease(org.db, "operator-course", p1)
+
+    org.db.connection.execute(
+        "UPDATE actor_leases SET expires_at = ? WHERE actor_id = ?",
+        ("2020-01-01T00:00:00+00:00", "operator-course"),
+    )
+    org.db.connection.commit()
+    p2 = fencing.new_process_identity()
+    fresh_lease = fencing.acquire_actor_lease(org.db, "operator-course", p2)
+
+    released = fencing.release_actor_lease(org.db, "operator-course", p1, stale_lease.fencing_token)
+    assert released is False, "releasing a superseded lease must be a no-op, not a real release"
+
+    current = fencing.current_actor_lease(org.db, "operator-course")
+    assert current is not None
+    assert current.process_identity == p2
+    assert current.fencing_token == fresh_lease.fencing_token
+
+
 # === 3. Mailbox fencing (F-U4-1 closure + proof matrix) ======================
 
 
@@ -453,6 +491,50 @@ def test_a_completed_run_releases_the_actor_lease_for_a_fresh_process(tmp_path: 
     result_b = org_b.run_assignment(assignment_b_id)
     assert result_b.state.value == "COMPLETED", (
         "a second, later process must not be blocked by a lease the first process already released"
+    )
+
+
+def test_a_refused_run_also_releases_the_actor_lease_fu_r2_1(tmp_path: Path) -> None:
+    """F-R2-1: the actor lease leaked on every REFUSAL path, not merely the
+    success path the test above covers. `release_actor_lease` was called
+    exactly once, at the very end of `run_assignment`, AFTER `reclaim_
+    workspace` -- so every `raise Refusal` between the lease acquisition at
+    the top of the method (workspace_policy, either symlink check, or,
+    inside `acquire_execution_attempt`, `execution_attempt_held` or a lost
+    fence) propagated straight out and skipped that release entirely. The
+    lease then stayed held for the rest of its TTL even though the process
+    that acquired it had already exited -- reachable on an ordinary
+    retry-after-a-refused-run path, not an adversarial edge case.
+
+    Reproduced here with the simplest early-refusal shape (an unrecognized
+    `workspace_policy`, exactly the same shape Sparring's own independent
+    reproduction used): a first process's run is refused before the
+    workspace is ever created; a second, genuinely separate process then
+    attempts a DIFFERENT assignment for the SAME actor and must succeed,
+    not be refused `actor_lease_held` by a lease the first process no
+    longer has any process alive to hold.
+    """
+    import sovereign_agent.organization as organization_module
+
+    org_a, assignment_a_id, assignment_b_id = _governed_twice(tmp_path)
+    org_a.actors["operator-course"].workspace_policy = "not_a_real_policy"
+    with pytest.raises(Refusal, match="Unknown workspace policy"):
+        org_a.run_assignment(assignment_a_id)
+
+    assert fencing.current_actor_lease(org_a.db, "operator-course") is None, (
+        "the actor lease must be released even when run_assignment refuses "
+        "before the provider is ever invoked, not held for the rest of its TTL"
+    )
+
+    # A genuinely separate process -- fresh Organization, fresh
+    # process_identity -- retrying a DIFFERENT assignment for the SAME
+    # actor. Must succeed: nothing alive still holds the lease.
+    org_b = organization_module.Organization(tmp_path)
+    org_b.actors["operator-course"].workspace_policy = "temporary_directory"
+    result_b = org_b.run_assignment(assignment_b_id)
+    assert result_b.state.value == "COMPLETED", (
+        "a legitimate retry from a fresh process must not be blocked by a "
+        "lease the first, now-exited process's refused run left behind"
     )
 
 

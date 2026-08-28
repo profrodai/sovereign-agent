@@ -13,8 +13,15 @@
   run under two separate processes unaffected by execution-attempt fencing
   alone. Principal ruled that gap must close, not merely be documented as a
   scope boundary — see Property 1 below, and the migration-14 entry in
-  Property 2. Corrected in place on the same branch; PR #31 carries the
-  correction commits.
+  Property 2. Corrected at head `684ca84`. A second Sparring review at that
+  head confirmed all six of the Principal's required-correction items met
+  (independently falsified, not merely re-run) but found one new defect,
+  **F-R2-1**: the actor lease leaked on every *refusal* path — `release_
+  actor_lease` was called only once, unconditionally, at the very end of
+  `run_assignment`, so any `Refusal` between acquisition and that line
+  skipped it entirely. Closed by wrapping the method body in `try`/
+  `finally` — see Property 1's own account below. Corrected in place on
+  the same branch; PR #31 carries all correction commits.
 - **governing rulings closed by this unit:**
   [`docs/rulings/2026-08-26-deferral-unit4-fencing.md`](rulings/2026-08-26-deferral-unit4-fencing.md)
   (F-U4-1, closed) and
@@ -128,13 +135,38 @@ expired) or attempts a fresh acquisition otherwise — before the
 assignment state is touched: the identical validate-before-anything-
 touched slot Unit 7 established. A competing live process for the same
 actor is refused there, before workspace allocation, before the provider
-is ever invoked. The lease is released (`fencing.release_actor_lease`, a
-compare-and-set `DELETE`) at the very end of a successful call, right
-after `reclaim_workspace` — reachable only when this same call's own
-fenced terminal write won — so a short-lived process (the CLI `run`
-command, one assignment per invocation) does not keep the actor locked out
-for the rest of the lease TTL after it has already exited; a long-running
-process simply re-acquires cheaply on its next call.
+is ever invoked.
+
+**F-R2-1, closed.** The lease is released (`fencing.release_actor_lease`,
+a compare-and-set `DELETE`) in a `finally` block wrapping the entire
+remainder of `run_assignment`'s body — **every** path out of the method
+after acquisition, not only a successful terminal write. The first version
+of this release called `release_actor_lease` as an ordinary statement at
+the very end of the method, after `reclaim_workspace`, with a comment
+claiming it was "reachable only after this same fenced write won." That
+was true of the call site's *position* in the source but false of whether
+it actually *ran*: every `raise Refusal` between the acquisition at the
+top of the method and that old call site — the `workspace_policy` check,
+either symlink check, or (inside `acquire_execution_attempt`) the
+`execution_attempt_held` or lost-fence refusals — propagated straight out
+of `run_assignment` and skipped the release entirely, exactly the shape of
+a proven-false completeness comment Unit 7's own E1 finding named. Caught
+by Sparring's independent review, reproduced directly (plant an early
+refusal, confirm the lease is still held afterward; close that process's
+connection, open a fresh one for a *different* assignment for the *same*
+actor, confirm it is wrongly refused `actor_lease_held` by a lease nothing
+alive still holds) before the fix landed. `release_actor_lease`'s own
+compare-and-set makes the unconditional `finally` call safe even on a path
+where this process's lease was already superseded by a takeover before the
+release runs: it only clears a row matching both this process's identity
+*and* the exact token it acquired, so a stale release is a silent no-op,
+never a release of a different, now-current process's lease — proven
+directly by `tests/test_fencing.py::
+test_release_actor_lease_is_a_no_op_after_a_takeover`. A short-lived
+process (the CLI `run` command, one assignment per invocation) does not
+keep the actor locked out for the rest of the lease TTL after it has
+already exited, on *any* path, success or refusal; a long-running process
+simply re-acquires cheaply on its next call.
 
 ### Property 2 — execution-attempt fencing, bound to the RUNNING transition and to the actor lease
 
@@ -325,7 +357,7 @@ python scripts/verify_runtime_dependencies.py
 # Property 1 -- process identity and actor leases (CAS exclusivity, renewal,
 # takeover after expiry, corrupt-state fail-closed, release on completion)
 python -m pytest -q tests/test_fencing.py -k \
-  "process_identity or actor_lease or renewal or takeover or corrupt_lease or releases_the_actor_lease"
+  "process_identity or actor_lease or renewal or takeover or corrupt_lease or releases_the_actor_lease or fu_r2_1 or release_actor_lease"
 
 # Property 1, wired in as a hard precondition -- a REAL two-process proof:
 # two genuinely separate Organization instances, two DIFFERENT assignments
@@ -440,6 +472,35 @@ wiring as a hard precondition to invocation, migration 14):
    for the same actor, both expected to complete with no wait) went red
    under this mutation; restored.
 
+A third round followed Sparring's independent review of PR #31 at head
+`684ca84` (F-R2-1: the actor lease leaked on every REFUSAL path, not only
+success):
+
+8. **The `try`/`finally` wrapping `run_assignment`'s body** — reverted to
+   the pre-fix shape (`release_actor_lease` called once, unconditionally,
+   at the very end of the method, after `reclaim_workspace`, with no
+   `finally`). The new decisive test,
+   `test_a_refused_run_also_releases_the_actor_lease_fu_r2_1` (a
+   `workspace_policy` refusal — the same shape Sparring's own independent
+   reproduction used — followed by a genuinely separate process
+   successfully running a *different* assignment for the *same* actor),
+   was reproduced against this exact pre-fix shape FIRST and confirmed red
+   before the fix was written, then confirmed red again under this
+   deliberate reversion; restored to a byte-identical file via `diff`
+   before re-confirming green. The existing decisive two-process test
+   (`test_actor_lease_blocks_a_second_assignment_for_the_same_actor_
+   before_invocation`) was re-run unchanged and still passes: it holds
+   process A mid-invocation via a real `threading.Event` stall, strictly
+   *before* `invoke_actor` returns and the `finally` block can run, so the
+   `finally` wrap does not shorten the window that test depends on. The
+   stale-release safety property the `finally` wrap relies on — a process
+   releasing a lease already superseded by a takeover must be a silent
+   no-op, never a release of the new owner's lease — is proven directly by
+   two new unit tests,
+   `test_release_actor_lease_succeeds_when_the_token_still_matches` and
+   `test_release_actor_lease_is_a_no_op_after_a_takeover`, rather than only
+   inferred from `release_actor_lease`'s own compare-and-set.
+
 ## Budget impact
 
 Reproduced by `scripts/verify_source_budget.py`, before and after this
@@ -450,6 +511,7 @@ unit's change, both figures read from the script's own printed output.
 | Before (Units 0-7 accepted, `5dbcabca`) | 24/40 | 4307/6000 | 7/30 |
 | After (initial implementation) | 26/40 | 5263/6000 | 7/30 |
 | After (Principal-ruled correction: actor lease wired as a hard precondition, migration 14) | 26/40 | 5454/6000 | 7/30 |
+| After (Sparring-found correction: F-R2-1, lease release wrapped in `finally`) | 26/40 | 5473/6000 | 7/30 |
 
 Two new modules: `src/sovereign_agent/fencing.py` (process identity, actor
 leases, execution-attempt fencing) and `src/sovereign_agent/supervisor.py`
@@ -458,7 +520,7 @@ leases, execution-attempt fencing) and `src/sovereign_agent/supervisor.py`
 `cli.py`; nothing from either module is re-exported from the package root.
 The correction added no new module (the wiring, the release helper, and
 migration 14 all landed inside the same two modules), only lines.
-Headroom remaining: 14 modules, 546 nonblank lines, 23 root exports.
+Headroom remaining: 14 modules, 527 nonblank lines, 23 root exports.
 
 ## What this unit did not do
 
