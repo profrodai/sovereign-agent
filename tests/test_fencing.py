@@ -374,3 +374,41 @@ def test_a_completed_assignment_run_via_the_real_path_leaves_no_recoverable_atte
         "SELECT current_execution_attempt FROM assignments WHERE id = ?", (assignment_id,)
     ).fetchone()
     assert row["current_execution_attempt"] is None
+
+
+def test_a_stolen_fence_mid_invocation_refuses_the_terminal_write(tmp_path: Path) -> None:
+    """THE decisive fencing property: fencing is not an OS sandbox, so a
+    provider subprocess a stale worker started can still run to completion
+    and produce a real receipt in memory -- but if something else (in
+    production, the supervisor recovering the assignment) has taken over
+    the fence by the time `run_assignment` reaches its terminal transaction,
+    that transaction's own atomic WHERE current_execution_attempt = ? clause
+    must refuse the write rather than let the stale result become canonical.
+
+    Simulated here by stealing the fence (clearing
+    `current_execution_attempt` directly, the same durable fact a real
+    supervisor recovery would leave behind) from inside `invoke_actor`,
+    mid-call -- after this invocation's own attempt was acquired, before its
+    terminal transaction runs. This is the specific mechanism review of this
+    unit's own reproduction relied on; see the mutation check in this
+    module's own history (organization.py's fence-check WHERE clause,
+    falsified by removing it, confirmed this test goes red and restored)."""
+    import sovereign_agent.organization as organization_module
+
+    org, assignment_id = _governed(tmp_path)
+    real_invoke_actor = organization_module.invoke_actor
+
+    def stealing_invoke_actor(worker, sow, workspace, output, assignment_id=""):  # noqa: ANN001
+        org.db.connection.execute(
+            "UPDATE assignments SET current_execution_attempt = NULL WHERE id = ?",
+            (assignment_id,),
+        )
+        org.db.connection.commit()
+        return real_invoke_actor(worker, sow, workspace, output, assignment_id=assignment_id)
+
+    organization_module.invoke_actor = stealing_invoke_actor
+    try:
+        with pytest.raises(Refusal, match="lost its execution attempt"):
+            org.run_assignment(assignment_id)
+    finally:
+        organization_module.invoke_actor = real_invoke_actor

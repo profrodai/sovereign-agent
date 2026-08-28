@@ -202,6 +202,15 @@ def test_never_guesses_success_recovery_receipt_is_always_failed(tmp_path: Path)
     supervisor.tick(org2, clock=_far_future_clock)
     assignment = org2._assignment(assignment_id)  # noqa: SLF001
     assert assignment.state != AssignmentState.COMPLETED
+    # The assignment-state check alone is not decisive on its own -- a
+    # mutation that flipped only the RECEIPT's status to "completed" while
+    # leaving the hardcoded assignment.state = FAILED untouched would still
+    # pass it. The receipt is the artifact `_require_deliverables`/`accept`
+    # actually trust as proof of what happened, so it is checked directly.
+    receipt_row = org2.db.connection.execute(
+        "SELECT record FROM receipts WHERE assignment_id = ?", (assignment_id,)
+    ).fetchone()
+    assert json.loads(receipt_row["record"])["status"] == "failed"
 
 
 def test_workspace_reclaim_applies_only_after_the_terminal_write_is_durable(
