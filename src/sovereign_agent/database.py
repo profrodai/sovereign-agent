@@ -473,12 +473,22 @@ CREATE TABLE IF NOT EXISTS actor_leases (
 -- write that assignment's terminal state -- the fencing token the terminal
 -- transaction in `run_assignment` (and the supervisor's recovery path)
 -- compares against atomically before committing.
+--
+-- `actor_lease_fencing_token` BINDS this attempt to the actor lease that
+-- was live at the moment the attempt was acquired -- not a second,
+-- unrelated CAS mechanism that happens to also exist. An execution attempt
+-- answers "may THIS process write THIS assignment's terminal state"; the
+-- actor lease answers "may THIS process host THIS actor at all, across
+-- every assignment it might run." Recording the lease's token on the
+-- attempt row makes the binding a durable, queryable fact rather than an
+-- implicit assumption two independent tables happen to agree on.
 CREATE TABLE IF NOT EXISTS execution_attempts (
     id TEXT PRIMARY KEY,
     assignment_id TEXT NOT NULL,
     actor_id TEXT NOT NULL,
     process_identity TEXT NOT NULL,
     fencing_token INTEGER NOT NULL,
+    actor_lease_fencing_token INTEGER NOT NULL,
     acquired_at TEXT NOT NULL,
     expires_at TEXT NOT NULL,
     status TEXT NOT NULL,

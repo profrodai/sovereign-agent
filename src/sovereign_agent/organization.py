@@ -16,6 +16,7 @@ from sovereign_agent.evidence import digest_payload
 from sovereign_agent.execution import invoke_actor, write_failed_receipt
 from sovereign_agent.fencing import (
     acquire_execution_attempt,
+    acquire_or_renew_actor_lease,
     new_process_identity,
     release_execution_attempt,
 )
@@ -261,6 +262,26 @@ class Organization:
         assignment = self._assignment(assignment_id)
         assignment_may_run(assignment.state)
         worker = self.actor(assignment.actor_id)
+        # Acquired first, before ANYTHING else -- the same validate-before-
+        # anything-touched slot as the workspace_policy and symlink checks
+        # just below, and for the identical reason: a competing live process
+        # for this actor must be refused before the SOW or assignment state
+        # is touched, before the workspace directory is created, and before
+        # the provider is ever invoked, not merely before the ledger commits
+        # a terminal state. `acquire_execution_attempt` alone (below) only
+        # ever asked "is another attempt live for THIS ONE assignment" -- it
+        # was keyed by assignment_id, so two DIFFERENT assignments for the
+        # SAME actor could each acquire their own attempt and both run under
+        # two separate processes, exactly the process-level exclusivity gap
+        # `docs/rulings/2026-08-26-one-process-per-actor.md` named and
+        # deferred to this unit. This is that close: an actor-hosting lease,
+        # checked before any assignment-scoped state exists to reason about.
+        # `acquire_or_renew_actor_lease` extends this process's own lease if
+        # it already holds one (the ordinary shape of one long-running
+        # supervisor or CLI process running several assignments for the
+        # same actor across its lifetime) or refuses if a DIFFERENT live
+        # process holds it.
+        actor_lease = acquire_or_renew_actor_lease(self.db, worker.id, self.process_identity)
         # Validated before ANYTHING else -- before the SOW or assignment
         # state is touched, before the workspace directory is created, and
         # long before the provider is invoked. An unrecognized policy used
@@ -450,15 +471,19 @@ class Organization:
         # rest of this call. `acquire_execution_attempt` itself refuses
         # (fail-closed) if this assignment already has a live attempt --
         # a second concurrent invocation of the same assignment_id cannot
-        # both believe they may run it. The attempt's fencing token is what
-        # the terminal transaction below checks atomically before it commits
-        # COMPLETED/BLOCKED/FAILED, and what `reclaim_workspace` is guarded
-        # by at the very end of this method -- a worker that loses this fence
-        # (a supervisor recovered the assignment out from under it) may still
-        # finish writing local files, but neither of those two consequential
-        # writes will land.
+        # both believe they may run it. It ALSO refuses (re-verified inside
+        # its own transaction, not merely trusted from the acquisition
+        # above) if `actor_lease` is no longer this process's live lease --
+        # connecting the two fences rather than leaving them as independent
+        # mechanisms that happen to both exist. The attempt's fencing token
+        # is what the terminal transaction below checks atomically before it
+        # commits COMPLETED/BLOCKED/FAILED, and what `reclaim_workspace` is
+        # guarded by at the very end of this method -- a worker that loses
+        # this fence (a supervisor recovered the assignment out from under
+        # it) may still finish writing local files, but neither of those two
+        # consequential writes will land.
         attempt = acquire_execution_attempt(
-            self.db, assignment.id, worker.id, self.process_identity
+            self.db, assignment.id, worker.id, self.process_identity, actor_lease.fencing_token
         )
         assignment.state = AssignmentState.RUNNING
         self._save_assignment(assignment, sow, "assignment.running")

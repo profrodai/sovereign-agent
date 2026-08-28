@@ -94,6 +94,12 @@ class ExecutionAttempt:
     writes the assignment's terminal state, so a stale attempt cannot win the
     write even if its provider subprocess is still running and reaches that
     line.
+
+    `actor_lease_fencing_token` binds this attempt to the actor lease that
+    was live at the moment it was acquired -- `acquire_execution_attempt`
+    requires a caller to already hold a current, unexpired actor lease and
+    records its token here, connecting the two mechanisms rather than
+    leaving them as independent CAS tables that merely happen to agree.
     """
 
     id: str
@@ -101,6 +107,7 @@ class ExecutionAttempt:
     actor_id: str
     process_identity: str
     fencing_token: int
+    actor_lease_fencing_token: int
     acquired_at: datetime
     expires_at: datetime
     status: str
@@ -240,6 +247,45 @@ def renew_actor_lease(
     return leased
 
 
+def acquire_or_renew_actor_lease(
+    db: Database,
+    actor_id: str,
+    process_identity: str,
+    *,
+    ttl: timedelta = ACTOR_LEASE_TTL,
+    clock: Clock = utc_now,
+) -> ActorLease:
+    """The idiom `organization.run_assignment` actually needs: extend this
+    process's own lease if it already holds one, or take a fresh one if not.
+
+    `acquire_actor_lease` alone is not enough here -- its CAS only succeeds
+    when no row exists or the existing row's lease has EXPIRED, so calling
+    it a second time from a process that already holds a live lease on this
+    actor (the ordinary shape of that process running a second assignment
+    for the same actor before the first lease's TTL lapses) would fail with
+    `actor_lease_held`, refusing a process to run its OWN actor's next
+    assignment. This function checks who currently holds the lease first: if
+    it is this exact `process_identity`, it renews (same token, extended
+    expiry); otherwise it attempts a fresh acquisition, which correctly
+    refuses if a DIFFERENT live process holds it, or succeeds if the lease
+    is absent or expired.
+
+    There is a real, unavoidable race between the read and the renew/acquire
+    below -- another process could take over between them. That race is not
+    a defect: whichever call (the renew or the fresh acquire) actually runs
+    is itself a compare-and-set against the current row, so it still fails
+    closed if the lease changed hands in between; this function's own
+    "which branch to take" read is an optimization to avoid the common-case
+    Refusal, not the enforcement itself.
+    """
+    current = current_actor_lease(db, actor_id)
+    if current is not None and current.process_identity == process_identity:
+        return renew_actor_lease(
+            db, actor_id, process_identity, current.fencing_token, ttl=ttl, clock=clock
+        )
+    return acquire_actor_lease(db, actor_id, process_identity, ttl=ttl, clock=clock)
+
+
 def current_execution_attempt(db: Database, assignment_id: str) -> ExecutionAttempt | None:
     row = db.connection.execute(
         "SELECT ea.* FROM execution_attempts ea "
@@ -259,6 +305,7 @@ def _attempt_from_row(row: sqlite3.Row) -> ExecutionAttempt:
         actor_id=row["actor_id"],
         process_identity=row["process_identity"],
         fencing_token=int(row["fencing_token"]),
+        actor_lease_fencing_token=int(row["actor_lease_fencing_token"]),
         acquired_at=datetime.fromisoformat(row["acquired_at"]),
         expires_at=datetime.fromisoformat(row["expires_at"]),
         status=row["status"],
@@ -270,11 +317,32 @@ def acquire_execution_attempt(
     assignment_id: str,
     actor_id: str,
     process_identity: str,
+    actor_lease_fencing_token: int,
     *,
     ttl: timedelta = EXECUTION_ATTEMPT_TTL,
     clock: Clock = utc_now,
 ) -> ExecutionAttempt:
-    """Bind a fresh fencing token to one attempt at running `assignment_id`.
+    """Bind a fresh fencing token to one attempt at running `assignment_id`,
+    itself bound to the actor lease the caller already holds.
+
+    `actor_lease_fencing_token` is REQUIRED, no default: a caller must
+    already hold a current, unexpired lease on `actor_id` (via
+    `acquire_actor_lease`/`renew_actor_lease`, called by `organization.
+    run_assignment` before anything else is touched -- the same
+    validate-first slot Unit 7 established for `workspace_policy` and the
+    symlink checks) before it may acquire an execution attempt at all. This
+    is what connects the two CAS mechanisms: an execution attempt is not
+    merely "no other attempt is live for this ONE assignment" -- it is
+    "no other attempt is live for this assignment, acquired by a process
+    that currently holds the actor's own hosting lease, right now." The
+    presented token is re-verified against the durable `actor_leases` row
+    inside this SAME `db.immediate()` transaction, not merely trusted from
+    an earlier call -- a lease acquired moments ago and since taken over by
+    a fresher process (a genuine race, not a hypothetical one) must not let
+    a stale token still mint a valid execution attempt. Only once that
+    check passes is the token recorded on the attempt row, both as the
+    enforcement and as a durable, queryable fact of what was true at
+    acquisition time.
 
     Called once per invocation, before the provider runs, inside the same
     `db.immediate()` transaction that moves the assignment to `RUNNING`
@@ -287,6 +355,28 @@ def acquire_execution_attempt(
     """
     now = clock()
     with db.immediate() as connection:
+        lease_row = connection.execute(
+            "SELECT fencing_token, expires_at FROM actor_leases WHERE actor_id = ?",
+            (actor_id,),
+        ).fetchone()
+        lease_current = (
+            lease_row is not None
+            and int(lease_row["fencing_token"]) == actor_lease_fencing_token
+            and lease_row["expires_at"] > now.isoformat()
+        )
+        if not lease_current:
+            raise Refusal(
+                f"{actor_id!r} does not currently hold a live lease with "
+                f"fencing token {actor_lease_fencing_token}.",
+                "An execution attempt may only be acquired by a process that "
+                "still holds its actor's hosting lease at the moment of "
+                "acquisition -- the presented token is checked against the "
+                "durable actor_leases row inside this same transaction, not "
+                "merely trusted from an earlier, possibly superseded call.",
+                "sovereign-agent supervisor --root PATH --once",
+                "Re-acquire the actor lease before retrying.",
+                category="actor_lease_lost",
+            )
         row = connection.execute(
             "SELECT a.current_execution_attempt AS attempt_id, ea.expires_at AS expires_at "
             "FROM assignments a LEFT JOIN execution_attempts ea "
@@ -318,13 +408,15 @@ def acquire_execution_attempt(
         expires_at = now + ttl
         connection.execute(
             "INSERT INTO execution_attempts(id, assignment_id, actor_id, process_identity, "
-            "fencing_token, acquired_at, expires_at, status) VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
+            "fencing_token, actor_lease_fencing_token, acquired_at, expires_at, status) "
+            "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)",
             (
                 attempt_id,
                 assignment_id,
                 actor_id,
                 process_identity,
                 token,
+                actor_lease_fencing_token,
                 now.isoformat(),
                 expires_at.isoformat(),
                 "ACTIVE",

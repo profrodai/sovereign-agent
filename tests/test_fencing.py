@@ -13,6 +13,7 @@ from __future__ import annotations
 
 from datetime import timedelta
 from pathlib import Path
+from unittest.mock import patch
 
 import pytest
 
@@ -20,7 +21,7 @@ from reference_organizations.store import seed
 from sovereign_agent import fencing
 from sovereign_agent.errors import Refusal
 from sovereign_agent.ids import utc_now
-from sovereign_agent.models import Role
+from sovereign_agent.models import AssignmentState, Role
 from sovereign_agent.organization import Organization
 from sovereign_agent.relay import claim, complete, dead_letter, send
 
@@ -277,40 +278,83 @@ def test_never_claimed_message_has_no_fencing_token(tmp_path: Path) -> None:
 # === 4. Assignment / execution-attempt fencing (proof matrix) ================
 
 
+def _leased(org, actor_id: str, process_identity: str, *, ttl=None, clock=utc_now):  # noqa: ANN001
+    """Acquire the actor lease `acquire_execution_attempt` now requires,
+    returning its fencing token -- the precondition every direct
+    fencing.acquire_execution_attempt call below must establish first,
+    mirroring what organization.run_assignment does at the top of its own
+    method."""
+    kwargs = {"clock": clock}
+    if ttl is not None:
+        kwargs["ttl"] = ttl
+    return fencing.acquire_actor_lease(org.db, actor_id, process_identity, **kwargs).fencing_token
+
+
 def test_acquire_execution_attempt_succeeds_for_a_fresh_assignment(tmp_path: Path) -> None:
     org, assignment_id = _governed(tmp_path)
+    process_identity = fencing.new_process_identity()
+    lease_token = _leased(org, "operator-course", process_identity)
     attempt = fencing.acquire_execution_attempt(
-        org.db, assignment_id, "operator-course", fencing.new_process_identity()
+        org.db, assignment_id, "operator-course", process_identity, lease_token
     )
     assert attempt.assignment_id == assignment_id
+    assert attempt.actor_lease_fencing_token == lease_token
     assert fencing.verify_execution_attempt(org.db, assignment_id, attempt.id)
+
+
+def test_acquire_execution_attempt_refuses_without_a_live_actor_lease(tmp_path: Path) -> None:
+    """The decisive binding property: presenting a fencing_token that does
+    NOT correspond to a live actor_leases row -- because none was ever
+    acquired, here -- is refused, even though the ASSIGNMENT itself has no
+    competing attempt. An execution attempt is not merely 'no other attempt
+    for this assignment'; it is 'no other attempt for this assignment, and
+    the caller currently holds the actor hosting lease.'
+    """
+    org, assignment_id = _governed(tmp_path)
+    with pytest.raises(Refusal, match="does not currently hold a live lease"):
+        fencing.acquire_execution_attempt(
+            org.db, assignment_id, "operator-course", fencing.new_process_identity(), 999999
+        )
 
 
 def test_second_concurrent_acquire_is_refused_while_first_is_live(tmp_path: Path) -> None:
     org, assignment_id = _governed(tmp_path)
+    process_identity = fencing.new_process_identity()
+    lease_token = _leased(org, "operator-course", process_identity)
     fencing.acquire_execution_attempt(
-        org.db, assignment_id, "operator-course", fencing.new_process_identity()
+        org.db, assignment_id, "operator-course", process_identity, lease_token
     )
     with pytest.raises(Refusal, match="already has a live execution attempt"):
         fencing.acquire_execution_attempt(
-            org.db, assignment_id, "operator-course", fencing.new_process_identity()
+            org.db, assignment_id, "operator-course", process_identity, lease_token
         )
 
 
 def test_acquire_after_the_prior_attempt_expired_succeeds(tmp_path: Path) -> None:
     org, assignment_id = _governed(tmp_path)
     clock = FakeClock()
+    process_identity = fencing.new_process_identity()
+    lease_token = _leased(org, "operator-course", process_identity, clock=clock)
     first = fencing.acquire_execution_attempt(
         org.db,
         assignment_id,
         "operator-course",
-        fencing.new_process_identity(),
+        process_identity,
+        lease_token,
         ttl=timedelta(minutes=1),
         clock=clock,
     )
     clock.advance(timedelta(minutes=2))
+    # Renew (not re-acquire) the SAME process's actor lease -- this test is
+    # about the EXECUTION attempt re-acquiring cleanly after its own expiry,
+    # not about the actor lease changing hands, so the actor lease itself
+    # should simply still be held and extended by the same process, the
+    # ordinary shape acquire_or_renew_actor_lease exists for.
+    lease_token_2 = fencing.acquire_or_renew_actor_lease(
+        org.db, "operator-course", process_identity, clock=clock
+    ).fencing_token
     second = fencing.acquire_execution_attempt(
-        org.db, assignment_id, "operator-course", fencing.new_process_identity(), clock=clock
+        org.db, assignment_id, "operator-course", process_identity, lease_token_2, clock=clock
     )
     assert second.fencing_token > first.fencing_token
     assert not fencing.verify_execution_attempt(org.db, assignment_id, first.id)
@@ -319,16 +363,20 @@ def test_acquire_after_the_prior_attempt_expired_succeeds(tmp_path: Path) -> Non
 
 def test_verify_execution_attempt_is_false_for_a_bogus_id(tmp_path: Path) -> None:
     org, assignment_id = _governed(tmp_path)
+    process_identity = fencing.new_process_identity()
+    lease_token = _leased(org, "operator-course", process_identity)
     fencing.acquire_execution_attempt(
-        org.db, assignment_id, "operator-course", fencing.new_process_identity()
+        org.db, assignment_id, "operator-course", process_identity, lease_token
     )
     assert not fencing.verify_execution_attempt(org.db, assignment_id, "att_bogus")
 
 
 def test_release_execution_attempt_clears_the_fence(tmp_path: Path) -> None:
     org, assignment_id = _governed(tmp_path)
+    process_identity = fencing.new_process_identity()
+    lease_token = _leased(org, "operator-course", process_identity)
     attempt = fencing.acquire_execution_attempt(
-        org.db, assignment_id, "operator-course", fencing.new_process_identity()
+        org.db, assignment_id, "operator-course", process_identity, lease_token
     )
     with org.db.transaction() as connection:
         fencing.release_execution_attempt(connection, assignment_id, attempt.id, "DONE")
@@ -346,11 +394,14 @@ def test_expired_execution_attempts_lists_only_still_current_ones(tmp_path: Path
     counts, which is what makes recovery idempotent."""
     org, assignment_id = _governed(tmp_path)
     clock = FakeClock()
+    process_identity = fencing.new_process_identity()
+    lease_token = _leased(org, "operator-course", process_identity, clock=clock)
     attempt = fencing.acquire_execution_attempt(
         org.db,
         assignment_id,
         "operator-course",
-        fencing.new_process_identity(),
+        process_identity,
+        lease_token,
         ttl=timedelta(minutes=1),
         clock=clock,
     )
@@ -374,6 +425,138 @@ def test_a_completed_assignment_run_via_the_real_path_leaves_no_recoverable_atte
         "SELECT current_execution_attempt FROM assignments WHERE id = ?", (assignment_id,)
     ).fetchone()
     assert row["current_execution_attempt"] is None
+
+
+def _governed_twice(tmp_path: Path) -> tuple[Organization, str, str]:
+    """One organization, one actor (`operator-course`), TWO distinct SOWs
+    and assignments -- the shape requirement 5's decisive test needs: two
+    DIFFERENT assignment_ids for the SAME actor, not the same assignment
+    acquired twice (which the execution-attempt tests above already cover)."""
+    org = Organization.init(tmp_path)
+    seed(org.db)
+    outcome = org.create_outcome(
+        "t", "d", ["inventory_at_or_above_reorder_point"], "principal-human", "SKU-TEA"
+    )
+    org.activate(outcome.id, "master-course")
+    sow_a = org.create_sow(outcome.id, "a", Role.OPERATOR, "master-course")
+    org.ready_sow(sow_a.id)
+    assignment_a = org.assign(sow_a.id, "operator-course", "master-course")
+    sow_b = org.create_sow(outcome.id, "b", Role.OPERATOR, "master-course")
+    org.ready_sow(sow_b.id)
+    assignment_b = org.assign(sow_b.id, "operator-course", "master-course")
+    return org, assignment_a.id, assignment_b.id
+
+
+def test_actor_lease_blocks_a_second_assignment_for_the_same_actor_before_invocation(
+    tmp_path: Path,
+) -> None:
+    """THE decisive actor-lease binding property, ruled on directly by the
+    Principal: `acquire_execution_attempt` alone is keyed by assignment_id,
+    so two DIFFERENT assignments for the SAME actor could each acquire
+    their own execution attempt and both run under two separate processes
+    -- exactly the process-level exclusivity gap
+    docs/rulings/2026-08-26-one-process-per-actor.md named and deferred to
+    this unit. This is a REAL two-process proof, not a lease-table check in
+    isolation: two genuinely separate `Organization` instances (distinct
+    `process_identity`, distinct SQLite connections, opened against the
+    SAME root) each attempt `run_assignment` on a DIFFERENT assignment for
+    the SAME actor. The first process's call is left holding a live actor
+    lease (its assignment's execution attempt has a long TTL by default, so
+    the lease from the top of `run_assignment` is still unexpired when the
+    second process's call is attempted). The second process's `invoke_actor`
+    is spied on with a counter, following the exact pattern Unit 7 already
+    established (`test_unknown_workspace_policy_refuses_before_the_provider_
+    ever_runs`): the provider must never be invoked at all for the second
+    process, not merely have its result discarded afterward.
+    """
+    import sovereign_agent.execution as execution_module
+    import sovereign_agent.organization as organization_module
+
+    org_a, assignment_a_id, assignment_b_id = _governed_twice(tmp_path)
+
+    # Process A: runs assignment A to completion for real. Its own actor
+    # lease is acquired and released back to... no -- leases are NOT
+    # released on completion (only execution attempts are); the actor
+    # lease persists at its full TTL (5 minutes) past this call, exactly
+    # the durable fact the second process below must be refused against.
+    result_a = org_a.run_assignment(assignment_a_id)
+    assert result_a.state.value == "COMPLETED"
+
+    # Process B: a GENUINELY SEPARATE Organization instance against the
+    # SAME root -- its own process_identity, its own Database/SQLite
+    # connection, opened fresh, the same way a second real CLI invocation
+    # or a second supervisor tick would open one.
+    org_b = organization_module.Organization(tmp_path)
+    assert org_b.process_identity != org_a.process_identity
+
+    invoked = {"count": 0}
+    real_invoke = execution_module.invoke_actor
+
+    def counting_invoke(*args, **kwargs):  # noqa: ANN001, ANN002, ANN003
+        invoked["count"] += 1
+        return real_invoke(*args, **kwargs)
+
+    with patch.object(organization_module, "invoke_actor", side_effect=counting_invoke):
+        with pytest.raises(Refusal, match="already hosted by another live process"):
+            org_b.run_assignment(assignment_b_id)
+
+    assert invoked["count"] == 0, (
+        "the provider must never be invoked for the second process while "
+        "the first process's actor lease is still live"
+    )
+    final_b = org_b._assignment(assignment_b_id)  # noqa: SLF001
+    assert final_b.state == AssignmentState.CREATED, (
+        "the second assignment must not even reach RUNNING -- refused before "
+        "workspace allocation, matching Unit 7's own validate-before-anything- "
+        "touched precedent for workspace_policy and the symlink checks"
+    )
+
+
+def test_the_ordinary_run_assignment_path_cannot_bypass_the_actor_lease(tmp_path: Path) -> None:
+    """Requirement 6: the ordinary CLI `run` command dispatches straight to
+    `Organization.run_assignment` (cli.py's `_run` handler: `org.assign(...)`
+    then `org.run_assignment(assignment.id)`, no other code path in
+    between) -- so calling `run_assignment` directly, exactly as `_run`
+    does, IS the proof that the CLI path cannot bypass this requirement.
+    There is no separate enforcement layer in the CLI itself to
+    accidentally skip; the fence lives in the one method both the CLI and
+    the supervisor's own future dispatch would have to call."""
+    org_a, assignment_a_id, assignment_b_id = _governed_twice(tmp_path)
+    org_a.run_assignment(assignment_a_id)
+
+    import sovereign_agent.organization as organization_module
+
+    org_b = organization_module.Organization(tmp_path)
+    with pytest.raises(Refusal, match="already hosted by another live process"):
+        # The exact call cli.py's _run handler makes: org.run_assignment(assignment.id).
+        org_b.run_assignment(assignment_b_id)
+
+
+def test_acquire_execution_attempt_reverifies_the_lease_even_if_the_caller_lost_it_since(
+    tmp_path: Path,
+) -> None:
+    """Isolates the SECOND, independent check `acquire_execution_attempt`
+    performs, distinct from `run_assignment`'s own top-of-method actor-lease
+    acquisition: even a caller that legitimately held a live lease when it
+    computed `actor_lease_fencing_token` must be re-verified against the
+    CURRENT durable row at the moment `acquire_execution_attempt` itself
+    runs -- a real TOCTOU race (the lease could be taken over by a fresher
+    process between the two calls), not merely trusting the token the
+    caller presents. Simulated directly: acquire a real lease, then let a
+    DIFFERENT process take it over (advancing a fake clock past its TTL)
+    before presenting the FIRST process's now-stale token."""
+    org, assignment_id = _governed(tmp_path)
+    clock = FakeClock()
+    p1 = fencing.new_process_identity()
+    stale_lease = fencing.acquire_actor_lease(org.db, "operator-course", p1, clock=clock)
+    clock.advance(timedelta(minutes=10))
+    p2 = fencing.new_process_identity()
+    fencing.acquire_actor_lease(org.db, "operator-course", p2, clock=clock)  # takeover
+
+    with pytest.raises(Refusal, match="does not currently hold a live lease"):
+        fencing.acquire_execution_attempt(
+            org.db, assignment_id, "operator-course", p1, stale_lease.fencing_token, clock=clock
+        )
 
 
 def test_a_stolen_fence_mid_invocation_refuses_the_terminal_write(tmp_path: Path) -> None:
