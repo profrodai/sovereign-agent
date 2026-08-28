@@ -14,6 +14,7 @@ from sovereign_agent.errors import Refusal
 from sovereign_agent.events import append_event
 from sovereign_agent.evidence import digest_payload
 from sovereign_agent.execution import invoke_actor, write_failed_receipt
+from sovereign_agent.fencing import acquire_execution_attempt, new_process_identity, release_execution_attempt
 from sovereign_agent.governance import project_outcome, project_ruling
 from sovereign_agent.ids import new_id, utc_now
 from sovereign_agent.models import (
@@ -63,6 +64,13 @@ class Organization:
             if self.config_path.exists()
             else {}
         )
+        # A fresh identity per `Organization` instance -- one per process, by
+        # construction, since this constructor runs once per process's own
+        # handle to the organization. Never a PID: PIDs are reused by the
+        # operating system, so a process that resumes after losing its
+        # execution attempt must not be able to look like a brand-new one by
+        # coincidence of PID reuse. See fencing.py's module docstring.
+        self.process_identity = new_process_identity()
 
     @classmethod
     def init(cls, root: Path) -> Organization:
@@ -434,6 +442,20 @@ class Organization:
         if output.exists():
             shutil.rmtree(output)
         output.mkdir(parents=True, exist_ok=False)
+        # Unit 8: acquired BEFORE the RUNNING transition, bound to it for the
+        # rest of this call. `acquire_execution_attempt` itself refuses
+        # (fail-closed) if this assignment already has a live attempt --
+        # a second concurrent invocation of the same assignment_id cannot
+        # both believe they may run it. The attempt's fencing token is what
+        # the terminal transaction below checks atomically before it commits
+        # COMPLETED/BLOCKED/FAILED, and what `reclaim_workspace` is guarded
+        # by at the very end of this method -- a worker that loses this fence
+        # (a supervisor recovered the assignment out from under it) may still
+        # finish writing local files, but neither of those two consequential
+        # writes will land.
+        attempt = acquire_execution_attempt(
+            self.db, assignment.id, worker.id, self.process_identity
+        )
         assignment.state = AssignmentState.RUNNING
         self._save_assignment(assignment, sow, "assignment.running")
         started_at = utc_now()
@@ -563,18 +585,58 @@ class Organization:
                 receipt_json = (workspace / "receipt.json").read_text(encoding="utf-8")
                 report = None
                 failure = snapshot_error
-        with self.db.transaction():
+        with self.db.transaction() as connection:
+            # Unit 8's fence check, atomic with the write it guards: the
+            # UPDATE below only affects a row when `current_execution_attempt`
+            # still equals the token this call acquired at the top of this
+            # method. A worker whose attempt was recovered by the supervisor
+            # while its provider subprocess kept running (a stale worker,
+            # possible because fencing is not an OS sandbox -- see fencing.py)
+            # reaches this line with a `receipt_json` and a `report` it
+            # computed for real, but that computation never becomes canonical:
+            # the WHERE clause matches zero rows, `fenced` stays False, and
+            # every write below this point is skipped. The caller still gets
+            # its own `assignment` object back with the state it locally
+            # computed -- Python state, not ledger truth -- so `raise failure`
+            # a few lines down still reports what THIS invocation observed,
+            # but nothing here claims the ledger agrees.
             self.db.put_serialized("receipts", receipt.id, receipt_json)
             if report and report.status == "completed":
-                assignment.state = AssignmentState.COMPLETED
-                sow.state = advance_sow(SowState.RUNNING, SowState.REVIEW)
+                terminal_state = AssignmentState.COMPLETED
+                terminal_sow_state = advance_sow(SowState.RUNNING, SowState.REVIEW)
             elif report and report.status == "blocked":
-                assignment.state = AssignmentState.BLOCKED
-                sow.state = advance_sow(SowState.RUNNING, SowState.BLOCKED)
+                terminal_state = AssignmentState.BLOCKED
+                terminal_sow_state = advance_sow(SowState.RUNNING, SowState.BLOCKED)
             else:
-                assignment.state = AssignmentState.FAILED
-                sow.state = advance_sow(SowState.RUNNING, SowState.FAILED)
-            self.db.put("assignments", assignment.id, assignment.model_dump(mode="json"))
+                terminal_state = AssignmentState.FAILED
+                terminal_sow_state = advance_sow(SowState.RUNNING, SowState.FAILED)
+            assignment.state = terminal_state
+            sow.state = terminal_sow_state
+            cursor = connection.execute(
+                "UPDATE assignments SET record = ?, current_execution_attempt = NULL "
+                "WHERE id = ? AND current_execution_attempt = ?",
+                (
+                    json.dumps(assignment.model_dump(mode="json"), default=str),
+                    assignment.id,
+                    attempt.id,
+                ),
+            )
+            fenced = cursor.rowcount == 1
+            if not fenced:
+                raise Refusal(
+                    f"Assignment {assignment.id!r} lost its execution attempt "
+                    "before the terminal write could commit.",
+                    "The supervisor recovered this assignment while this "
+                    "process's provider was still running -- fencing is not "
+                    "an OS sandbox, so the subprocess ran to completion, but "
+                    "its result may not become the ledger's canonical record "
+                    "once a newer attempt exists.",
+                    "sovereign-agent status",
+                    "Inspect the assignment's current state; do not retry "
+                    "automatically.",
+                    category="execution_attempt_lost",
+                )
+            release_execution_attempt(connection, assignment.id, attempt.id, "DONE")
             self.db.put("sows", sow.id, sow.model_dump(mode="json"))
             append_event(
                 self.db, "assignment.finished", {"id": assignment.id, "status": assignment.state}
@@ -610,6 +672,14 @@ class Organization:
         # assignment still RUNNING: a hard kill that never reaches this line
         # leaves the workspace in place, which is the correct, fail-closed
         # outcome -- Unit 8 recovery territory, not silently deleted evidence.
+        #
+        # Unit 8: this line is reachable only when the fence check above
+        # actually won (a lost fence raises `Refusal` inside the transaction
+        # block and this line is never reached) -- so reclaim here always
+        # runs under the same execution attempt that just won the terminal
+        # write, exactly the "only the current fenced owner may reclaim"
+        # requirement, without needing a second explicit check: the Refusal
+        # already enforces it structurally.
         reclaim_workspace(workspace, worker.workspace_policy)
         if failure is not None:
             raise failure

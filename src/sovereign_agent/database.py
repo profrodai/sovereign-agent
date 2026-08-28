@@ -435,6 +435,73 @@ END;
 """
 
 
+MIGRATION_13 = """
+-- Unit 8: process-level fencing. Actor-level idempotency (Unit 4's claim())
+-- and single-process bookkeeping (Unit 7's synchronous reclaim) both assumed
+-- one process per actor. A supervisor that can recover after a hard kill
+-- needs a durable, queryable fencing token -- not one hidden inside a JSON
+-- blob a CAS statement cannot compare against in a WHERE clause.
+
+-- The single monotonic source every fencing token in this database is drawn
+-- from. AUTOINCREMENT guarantees each row's rowid is strictly greater than
+-- every prior row's, even across process restarts, which is the one property
+-- a fencing token must have: an old token must always compare less than a
+-- fresh one, forever, with no wraparound and no reissue.
+CREATE TABLE IF NOT EXISTS lease_tokens (
+    token INTEGER PRIMARY KEY AUTOINCREMENT,
+    kind TEXT NOT NULL,
+    created_at TEXT NOT NULL
+);
+
+-- One row per actor: the process currently authorized to host it. Acquiring
+-- or renewing is a compare-and-set against this table, the same discipline
+-- `relay.claim()` already uses -- one UPDATE (or INSERT for a first
+-- acquisition) that only succeeds when no unexpired lease exists, so two
+-- racing acquirers produce exactly one winner.
+CREATE TABLE IF NOT EXISTS actor_leases (
+    actor_id TEXT PRIMARY KEY,
+    process_identity TEXT NOT NULL,
+    fencing_token INTEGER NOT NULL,
+    acquired_at TEXT NOT NULL,
+    expires_at TEXT NOT NULL,
+    renewed_at TEXT NOT NULL,
+    FOREIGN KEY(actor_id) REFERENCES actors(id)
+);
+
+-- One row per attempt to run an assignment. `assignments.current_execution_
+-- attempt` (below) names which row, if any, is presently authorized to
+-- write that assignment's terminal state -- the fencing token the terminal
+-- transaction in `run_assignment` (and the supervisor's recovery path)
+-- compares against atomically before committing.
+CREATE TABLE IF NOT EXISTS execution_attempts (
+    id TEXT PRIMARY KEY,
+    assignment_id TEXT NOT NULL,
+    actor_id TEXT NOT NULL,
+    process_identity TEXT NOT NULL,
+    fencing_token INTEGER NOT NULL,
+    acquired_at TEXT NOT NULL,
+    expires_at TEXT NOT NULL,
+    status TEXT NOT NULL,
+    FOREIGN KEY(assignment_id) REFERENCES assignments(id)
+);
+CREATE INDEX IF NOT EXISTS execution_attempts_by_assignment
+    ON execution_attempts(assignment_id);
+
+-- NULL until an attempt is acquired; cleared back to NULL once the terminal
+-- transaction commits (or the supervisor recovers the assignment). Reading
+-- this column and comparing it to an attempt id IS the fence check -- no
+-- other table needs to be consulted to know whether a given attempt may
+-- still write.
+ALTER TABLE assignments ADD COLUMN current_execution_attempt TEXT;
+
+-- Mailbox completion/retry/dead-letter now verify the token bound at claim
+-- time, closing F-U4-1: the same-actor expired-lease branch inside claim()
+-- becomes reachable (it issues a fresh token) instead of short-circuiting
+-- back to a stale, unrenewed claim.
+ALTER TABLE messages ADD COLUMN fencing_token INTEGER;
+"""
+
+
 MIGRATIONS: tuple[tuple[int, str], ...] = (
     (1, MIGRATION_1),
     (2, MIGRATION_2),
@@ -448,6 +515,7 @@ MIGRATIONS: tuple[tuple[int, str], ...] = (
     (10, MIGRATION_10),
     (11, MIGRATION_11),
     (12, MIGRATION_12),
+    (13, MIGRATION_13),
 )
 
 
@@ -587,9 +655,20 @@ class Database:
                 (record_id, payload),
             )
         elif table == "assignments":
+            # NOT a plain `INSERT OR REPLACE`: that statement fully replaces
+            # the row, including columns it does not name -- which would
+            # silently reset `current_execution_attempt` (Unit 8's fencing
+            # pointer) to NULL on every ordinary state save, undoing an
+            # attempt `fencing.acquire_execution_attempt` had just bound a
+            # moment earlier in the same call. `ON CONFLICT ... DO UPDATE`
+            # updates only the columns this call actually owns and leaves
+            # `current_execution_attempt` exactly as it was -- that column is
+            # written ONLY by `fencing.py`'s own dedicated SQL and by the
+            # terminal-transaction fence check in `organization.run_assignment`.
             self.connection.execute(
-                "INSERT OR REPLACE INTO assignments(id, sow_id, actor_id, record) "
-                "VALUES (?, ?, ?, ?)",
+                "INSERT INTO assignments(id, sow_id, actor_id, record) VALUES (?, ?, ?, ?) "
+                "ON CONFLICT(id) DO UPDATE SET sow_id = excluded.sow_id, "
+                "actor_id = excluded.actor_id, record = excluded.record",
                 (record_id, record["sow_id"], record["actor_id"], payload),
             )
         elif table == "messages":
