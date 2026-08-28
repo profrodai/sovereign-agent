@@ -15,8 +15,8 @@ from datetime import timedelta
 from pathlib import Path
 
 import pytest
-from reference_organizations.store import seed
 
+from reference_organizations.store import seed
 from sovereign_agent import fencing
 from sovereign_agent.errors import Refusal
 from sovereign_agent.ids import utc_now
