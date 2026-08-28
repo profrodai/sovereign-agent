@@ -1496,6 +1496,15 @@ class Organization:
     def _project_outcome(self, outcome_id: str) -> None:
         project_outcome(self.root, self._outcome(outcome_id), self.sows_for(outcome_id))
 
+    def reproject_outcome(self, outcome_id: str) -> None:
+        """Public seam for a caller outside this class to refresh the governance
+        projection after writing to the ledger directly -- `supervisor.py`'s
+        recovery path is the one caller today. Delegates to the same private
+        helper every in-class write path already uses, so there is exactly
+        one projection implementation regardless of which caller triggers it.
+        """
+        self._project_outcome(outcome_id)
+
     def status_text(self, outcome_id: str) -> str:
         outcome = self._outcome(outcome_id)
         sows = self.sows_for(outcome_id)

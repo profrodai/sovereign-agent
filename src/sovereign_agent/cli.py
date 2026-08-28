@@ -14,6 +14,7 @@ from sovereign_agent.errors import Refusal
 from sovereign_agent.models import Outcome, Role
 from sovereign_agent.organization import Organization
 from sovereign_agent.providers import PROVIDERS
+from sovereign_agent.supervisor import run as run_supervisor
 
 
 def _installed_version(distribution: str) -> str:
@@ -191,6 +192,23 @@ def _accept(namespace: argparse.Namespace) -> int:
     return 0
 
 
+def _supervisor(namespace: argparse.Namespace) -> int:
+    """The reconciliation loop: leases, expired mailbox claims, hard-kill recovery.
+
+    `--once` runs a single deterministic tick and exits -- the shape a script
+    or a test uses. Without it, this loops in the foreground, sleeping
+    between ticks, until an ordinary interruption (Ctrl-C / SIGINT) asks it
+    to stop -- caught cleanly, not left to crash with a traceback. No hidden
+    daemonization: this never forks, never detaches from its terminal, and
+    never installs itself as an OS service. Distinct from the not-yet-built
+    `service` (future OS-level install/status/uninstall, unimplemented) and
+    `pulse` (future proactive wake, Unit 9, unimplemented) -- this command is
+    the supervisor itself, the only one of the three this unit builds.
+    """
+    org = Organization(_root(namespace))
+    return run_supervisor(org, once=namespace.once)
+
+
 def _demo(namespace: argparse.Namespace) -> int:
     from reference_organizations.store.demo import run_simulated
 
@@ -294,6 +312,23 @@ def build_parser() -> argparse.ArgumentParser:
     demo.add_argument("target", choices=["store"])
     demo.add_argument("--mode", default="simulated", choices=["simulated"])
     demo.set_defaults(handler=_demo)
+
+    supervisor = subparsers.add_parser(
+        "supervisor",
+        parents=[shared],
+        help=(
+            "reconcile leases, expired claims, and hard-killed assignments "
+            "(the runtime loop; not 'service' [future OS hosting, "
+            "unimplemented] or 'pulse' [future proactive wake, Unit 9, "
+            "unimplemented])"
+        ),
+    )
+    supervisor.add_argument(
+        "--once",
+        action="store_true",
+        help="run a single deterministic reconciliation tick and exit, instead of looping",
+    )
+    supervisor.set_defaults(handler=_supervisor)
     return parser
 
 
