@@ -14,7 +14,11 @@ from sovereign_agent.errors import Refusal
 from sovereign_agent.events import append_event
 from sovereign_agent.evidence import digest_payload
 from sovereign_agent.execution import invoke_actor, write_failed_receipt
-from sovereign_agent.fencing import acquire_execution_attempt, new_process_identity, release_execution_attempt
+from sovereign_agent.fencing import (
+    acquire_execution_attempt,
+    new_process_identity,
+    release_execution_attempt,
+)
 from sovereign_agent.governance import project_outcome, project_ruling
 from sovereign_agent.ids import new_id, utc_now
 from sovereign_agent.models import (
@@ -632,8 +636,7 @@ class Organization:
                     "its result may not become the ledger's canonical record "
                     "once a newer attempt exists.",
                     "sovereign-agent status",
-                    "Inspect the assignment's current state; do not retry "
-                    "automatically.",
+                    "Inspect the assignment's current state; do not retry automatically.",
                     category="execution_attempt_lost",
                 )
             release_execution_attempt(connection, assignment.id, attempt.id, "DONE")

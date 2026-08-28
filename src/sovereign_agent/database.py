@@ -674,7 +674,7 @@ class Database:
         elif table == "messages":
             self.connection.execute(
                 "INSERT OR REPLACE INTO messages(id, recipient, record, state, claim_owner, "
-                "claim_expires_at) VALUES (?, ?, ?, ?, ?, ?)",
+                "claim_expires_at, fencing_token) VALUES (?, ?, ?, ?, ?, ?, ?)",
                 (
                     record_id,
                     record["recipient"],
@@ -682,6 +682,7 @@ class Database:
                     record.get("state", "NEW"),
                     record.get("claim_owner"),
                     record.get("claim_expires_at"),
+                    record.get("fencing_token"),
                 ),
             )
         else:
