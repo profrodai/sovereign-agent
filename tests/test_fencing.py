@@ -427,6 +427,35 @@ def test_a_completed_assignment_run_via_the_real_path_leaves_no_recoverable_atte
     assert row["current_execution_attempt"] is None
 
 
+def test_a_completed_run_releases_the_actor_lease_for_a_fresh_process(tmp_path: Path) -> None:
+    """A real usability property, found by reproduction rather than
+    theorized: a short-lived process (the ordinary CLI `run` command, one
+    assignment per process invocation, or `demo store`) must not keep the
+    actor locked out for the rest of ACTOR_LEASE_TTL after it has already
+    exited and completed its work. Two consecutive `run_assignment` calls,
+    each through a genuinely fresh `Organization` instance (fresh process_
+    identity), against DIFFERENT assignments for the SAME actor, must both
+    succeed with no wait -- reproduces the exact failure this fix closes:
+    two consecutive `sovereign-agent demo store` invocations against the
+    same root used to collide even with no crash between them."""
+    import sovereign_agent.organization as organization_module
+
+    org_a, assignment_a_id, assignment_b_id = _governed_twice(tmp_path)
+    result_a = org_a.run_assignment(assignment_a_id)
+    assert result_a.state.value == "COMPLETED"
+
+    assert fencing.current_actor_lease(org_a.db, "operator-course") is None, (
+        "the actor lease must be released once this process's own run has "
+        "terminally completed, not held for the rest of its TTL"
+    )
+
+    org_b = organization_module.Organization(tmp_path)
+    result_b = org_b.run_assignment(assignment_b_id)
+    assert result_b.state.value == "COMPLETED", (
+        "a second, later process must not be blocked by a lease the first process already released"
+    )
+
+
 def _governed_twice(tmp_path: Path) -> tuple[Organization, str, str]:
     """One organization, one actor (`operator-course`), TWO distinct SOWs
     and assignments -- the shape requirement 5's decisive test needs: two
@@ -460,47 +489,81 @@ def test_actor_lease_blocks_a_second_assignment_for_the_same_actor_before_invoca
     isolation: two genuinely separate `Organization` instances (distinct
     `process_identity`, distinct SQLite connections, opened against the
     SAME root) each attempt `run_assignment` on a DIFFERENT assignment for
-    the SAME actor. The first process's call is left holding a live actor
-    lease (its assignment's execution attempt has a long TTL by default, so
-    the lease from the top of `run_assignment` is still unexpired when the
-    second process's call is attempted). The second process's `invoke_actor`
-    is spied on with a counter, following the exact pattern Unit 7 already
-    established (`test_unknown_workspace_policy_refuses_before_the_provider_
-    ever_runs`): the provider must never be invoked at all for the second
-    process, not merely have its result discarded afterward.
+    the SAME actor.
+
+    Process A is made to stall mid-invocation -- `invoke_actor` is patched
+    to block on a `threading.Event` process B sets only after its own
+    attempt has already been refused -- so process A's actor lease is
+    GENUINELY still live (not released; `run_assignment` only releases the
+    lease after its OWN terminal write succeeds, and process A's write has
+    not happened yet) at the exact moment process B contends for it. This
+    is the realistic shape: one process still legitimately busy running
+    assignment A, a second process trying to start assignment B for the
+    same actor. Process B's `invoke_actor` is spied on with a counter,
+    following the exact pattern Unit 7 already established
+    (`test_unknown_workspace_policy_refuses_before_the_provider_ever_runs`):
+    the provider must never be invoked at all for process B, not merely
+    have its result discarded afterward.
     """
+    import threading
+
     import sovereign_agent.execution as execution_module
     import sovereign_agent.organization as organization_module
 
-    org_a, assignment_a_id, assignment_b_id = _governed_twice(tmp_path)
+    setup_org, assignment_a_id, assignment_b_id = _governed_twice(tmp_path)
+    setup_org.db.close()
 
-    # Process A: runs assignment A to completion for real. Its own actor
-    # lease is acquired and released back to... no -- leases are NOT
-    # released on completion (only execution attempts are); the actor
-    # lease persists at its full TTL (5 minutes) past this call, exactly
-    # the durable fact the second process below must be refused against.
-    result_a = org_a.run_assignment(assignment_a_id)
-    assert result_a.state.value == "COMPLETED"
-
-    # Process B: a GENUINELY SEPARATE Organization instance against the
-    # SAME root -- its own process_identity, its own Database/SQLite
-    # connection, opened fresh, the same way a second real CLI invocation
-    # or a second supervisor tick would open one.
-    org_b = organization_module.Organization(tmp_path)
-    assert org_b.process_identity != org_a.process_identity
-
-    invoked = {"count": 0}
+    release_a = threading.Event()
+    a_lease_acquired = threading.Event()
     real_invoke = execution_module.invoke_actor
+    b_invoked = {"count": 0}
 
-    def counting_invoke(*args, **kwargs):  # noqa: ANN001, ANN002, ANN003
-        invoked["count"] += 1
+    def stalling_invoke_for_a(*args, **kwargs):  # noqa: ANN001, ANN002, ANN003
+        # Process A has acquired its actor lease and its execution attempt
+        # by the time this fires (both happen before invoke_actor in
+        # run_assignment) -- signal readiness, then hold here so the lease
+        # stays live while process B, on a separate real connection below,
+        # contends for it.
+        a_lease_acquired.set()
+        release_a.wait(timeout=10)
         return real_invoke(*args, **kwargs)
 
-    with patch.object(organization_module, "invoke_actor", side_effect=counting_invoke):
-        with pytest.raises(Refusal, match="already hosted by another live process"):
-            org_b.run_assignment(assignment_b_id)
+    def counting_invoke_for_b(*args, **kwargs):  # noqa: ANN001, ANN002, ANN003
+        b_invoked["count"] += 1
+        return real_invoke(*args, **kwargs)
 
-    assert invoked["count"] == 0, (
+    result_a: dict[str, object] = {}
+
+    def run_a() -> None:
+        # A genuinely SEPARATE Organization instance, opened INSIDE this
+        # thread -- SQLite connections are not usable across threads, and a
+        # real second connection (not a shared one) is the whole point of
+        # this being a REAL two-process proof, matching test_concurrency.
+        # py's own _run_concurrently pattern.
+        org_a = organization_module.Organization(tmp_path)
+        with patch.object(organization_module, "invoke_actor", side_effect=stalling_invoke_for_a):
+            result_a["assignment"] = org_a.run_assignment(assignment_a_id)
+            result_a["process_identity"] = org_a.process_identity
+
+    thread_a = threading.Thread(target=run_a)
+    thread_a.start()
+    try:
+        assert a_lease_acquired.wait(timeout=10), (
+            "process A never reached invoke_actor (and therefore never "
+            "acquired its actor lease) before the deadline"
+        )
+        org_b = organization_module.Organization(tmp_path)
+        assert org_b.process_identity != result_a.get("process_identity")
+
+        with patch.object(organization_module, "invoke_actor", side_effect=counting_invoke_for_b):
+            with pytest.raises(Refusal, match="already hosted by another live process"):
+                org_b.run_assignment(assignment_b_id)
+    finally:
+        release_a.set()
+        thread_a.join(timeout=10)
+
+    assert result_a.get("assignment") is not None, "process A's own run must have completed"
+    assert b_invoked["count"] == 0, (
         "the provider must never be invoked for the second process while "
         "the first process's actor lease is still live"
     )
@@ -520,9 +583,19 @@ def test_the_ordinary_run_assignment_path_cannot_bypass_the_actor_lease(tmp_path
     does, IS the proof that the CLI path cannot bypass this requirement.
     There is no separate enforcement layer in the CLI itself to
     accidentally skip; the fence lives in the one method both the CLI and
-    the supervisor's own future dispatch would have to call."""
+    the supervisor's own future dispatch would have to call.
+
+    A live, not-yet-expired lease is established directly (the same
+    primitive `run_assignment` itself calls at its own top) rather than by
+    leaving a first `run_assignment` call's own lease around -- a
+    completed `run_assignment` call now correctly RELEASES its actor lease
+    (a short-lived CLI process must not keep the actor locked out for the
+    rest of ACTOR_LEASE_TTL after it has already exited), so a genuinely
+    live lease from a DIFFERENT, still-active process is what this test
+    must establish to prove the refusal."""
     org_a, assignment_a_id, assignment_b_id = _governed_twice(tmp_path)
-    org_a.run_assignment(assignment_a_id)
+    other_process = fencing.new_process_identity()
+    fencing.acquire_actor_lease(org_a.db, "operator-course", other_process)
 
     import sovereign_agent.organization as organization_module
 

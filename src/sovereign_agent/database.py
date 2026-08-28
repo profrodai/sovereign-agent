@@ -473,22 +473,12 @@ CREATE TABLE IF NOT EXISTS actor_leases (
 -- write that assignment's terminal state -- the fencing token the terminal
 -- transaction in `run_assignment` (and the supervisor's recovery path)
 -- compares against atomically before committing.
---
--- `actor_lease_fencing_token` BINDS this attempt to the actor lease that
--- was live at the moment the attempt was acquired -- not a second,
--- unrelated CAS mechanism that happens to also exist. An execution attempt
--- answers "may THIS process write THIS assignment's terminal state"; the
--- actor lease answers "may THIS process host THIS actor at all, across
--- every assignment it might run." Recording the lease's token on the
--- attempt row makes the binding a durable, queryable fact rather than an
--- implicit assumption two independent tables happen to agree on.
 CREATE TABLE IF NOT EXISTS execution_attempts (
     id TEXT PRIMARY KEY,
     assignment_id TEXT NOT NULL,
     actor_id TEXT NOT NULL,
     process_identity TEXT NOT NULL,
     fencing_token INTEGER NOT NULL,
-    actor_lease_fencing_token INTEGER NOT NULL,
     acquired_at TEXT NOT NULL,
     expires_at TEXT NOT NULL,
     status TEXT NOT NULL,
@@ -512,6 +502,35 @@ ALTER TABLE messages ADD COLUMN fencing_token INTEGER;
 """
 
 
+MIGRATION_14 = """
+-- Unit 8, Principal ruling on PR #31: execution-attempt fencing alone
+-- (migration 13) answered "may THIS process write THIS ONE assignment's
+-- terminal state" -- keyed by assignment_id, it never asked whether the
+-- process was allowed to be hosting the actor at all. Two DIFFERENT
+-- assignments for the SAME actor could each acquire their own execution
+-- attempt and run under two separate processes, unaffected by anything
+-- migration 13 built. This column BINDS an execution attempt to the actor
+-- lease that was live at the moment it was acquired, connecting the two
+-- CAS mechanisms instead of leaving them independent tables that merely
+-- happen to coexist.
+--
+-- Nullable, not NOT NULL: migration 13 already shipped (this branch's own
+-- earlier commits ran `make verify` against real local databases, and
+-- amending an already-applied migration in place broke every one of them
+-- with a real `sqlite3.OperationalError` -- the exact failure this
+-- forward-only discipline exists to prevent, caught live rather than
+-- theorized). A NOT NULL rebuild (migration 8's or migration 10's own
+-- pattern) is not warranted here: execution_attempts is a transient table
+-- -- a row exists only while an attempt is genuinely live, cleared back out
+-- by release_execution_attempt on completion or supervisor recovery -- so
+-- any pre-existing row at upgrade time is, by construction, already stale
+-- or about to be recovered, never a record whose absence of this new fact
+-- (fencing.acquire_execution_attempt now populates it going forward) is a
+-- loss worth refusing the migration over.
+ALTER TABLE execution_attempts ADD COLUMN actor_lease_fencing_token INTEGER;
+"""
+
+
 MIGRATIONS: tuple[tuple[int, str], ...] = (
     (1, MIGRATION_1),
     (2, MIGRATION_2),
@@ -526,6 +545,7 @@ MIGRATIONS: tuple[tuple[int, str], ...] = (
     (11, MIGRATION_11),
     (12, MIGRATION_12),
     (13, MIGRATION_13),
+    (14, MIGRATION_14),
 )
 
 

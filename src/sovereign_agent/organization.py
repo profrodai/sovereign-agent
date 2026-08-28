@@ -18,6 +18,7 @@ from sovereign_agent.fencing import (
     acquire_execution_attempt,
     acquire_or_renew_actor_lease,
     new_process_identity,
+    release_actor_lease,
     release_execution_attempt,
 )
 from sovereign_agent.governance import project_outcome, project_ruling
@@ -709,6 +710,20 @@ class Organization:
         # requirement, without needing a second explicit check: the Refusal
         # already enforces it structurally.
         reclaim_workspace(workspace, worker.workspace_policy)
+        # Released here, not held for the rest of ACTOR_LEASE_TTL: this
+        # call is done with the actor for now. A short-lived process (the
+        # ordinary CLI `run` command, one assignment per process) would
+        # otherwise keep the actor locked out for minutes after it has
+        # already exited -- a real defect this reproduced against, not a
+        # hypothetical one, when two consecutive `sovereign-agent demo
+        # store` invocations against the same root collided even with no
+        # crash between them. A long-running process (the supervisor, or
+        # this same process invoked again) simply re-acquires on its next
+        # call, cheaply. Reachable only after this same fenced write won
+        # (a lost fence raises `Refusal` above and this line is never
+        # reached), so a stale process's lost race never releases a
+        # DIFFERENT process's now-current lease.
+        release_actor_lease(self.db, worker.id, self.process_identity, actor_lease.fencing_token)
         if failure is not None:
             raise failure
         return assignment

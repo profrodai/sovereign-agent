@@ -247,6 +247,36 @@ def renew_actor_lease(
     return leased
 
 
+def release_actor_lease(
+    db: Database, actor_id: str, process_identity: str, fencing_token: int
+) -> bool:
+    """Give up this process's own hosting lease on `actor_id`, if it still
+    holds it.
+
+    Called at the natural end of `organization.run_assignment` -- the same
+    place `release_execution_attempt` runs -- so a short-lived process (the
+    ordinary CLI `run` command, one assignment per process invocation) does
+    not keep the actor locked out for the rest of `ACTOR_LEASE_TTL` after it
+    has already exited. A long-running process (the supervisor, or a CLI
+    process invoked again moments later) simply re-acquires on its next
+    call via `acquire_or_renew_actor_lease` -- cheap, since "no current
+    lease" is the fast successful-acquisition path, not a Refusal.
+
+    Compare-and-set, like every other write in this module: only removes
+    the row if BOTH `process_identity` and `fencing_token` still match the
+    durable one, so a process that already lost the lease to a takeover
+    cannot release (and thereby clear) a DIFFERENT process's now-current
+    lease out from under it. Returns whether anything was actually released.
+    """
+    with db.immediate() as connection:
+        cursor = connection.execute(
+            "DELETE FROM actor_leases WHERE actor_id = ? AND process_identity = ? "
+            "AND fencing_token = ?",
+            (actor_id, process_identity, fencing_token),
+        )
+    return cursor.rowcount == 1
+
+
 def acquire_or_renew_actor_lease(
     db: Database,
     actor_id: str,
@@ -298,14 +328,27 @@ def current_execution_attempt(db: Database, assignment_id: str) -> ExecutionAtte
     return _attempt_from_row(row)
 
 
+# A row written before migration 14 added this column (or, in principle,
+# any other row this application never itself produces with a NULL here --
+# fencing.acquire_execution_attempt always supplies a real integer) has no
+# real binding to compare against. -1 can never equal a genuine token:
+# lease_tokens is an AUTOINCREMENT counter starting at 1 and only ever
+# increasing, so this sentinel always fails an equality check against a
+# real lease's fencing_token -- fail-closed, not a crash on a legacy shape.
+_NO_ACTOR_LEASE_BINDING = -1
+
+
 def _attempt_from_row(row: sqlite3.Row) -> ExecutionAttempt:
+    raw_lease_token = row["actor_lease_fencing_token"]
     return ExecutionAttempt(
         id=row["id"],
         assignment_id=row["assignment_id"],
         actor_id=row["actor_id"],
         process_identity=row["process_identity"],
         fencing_token=int(row["fencing_token"]),
-        actor_lease_fencing_token=int(row["actor_lease_fencing_token"]),
+        actor_lease_fencing_token=(
+            int(raw_lease_token) if raw_lease_token is not None else _NO_ACTOR_LEASE_BINDING
+        ),
         acquired_at=datetime.fromisoformat(row["acquired_at"]),
         expires_at=datetime.fromisoformat(row["expires_at"]),
         status=row["status"],

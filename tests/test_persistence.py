@@ -6,6 +6,7 @@ lives only in a convention is a rule that a tired contributor removes.
 
 from __future__ import annotations
 
+import json
 import sqlite3
 from pathlib import Path
 from unittest.mock import patch
@@ -780,6 +781,144 @@ def test_migration_13_rolls_back_completely_on_a_simulated_failure(tmp_path: Pat
     # succeeds, rather than being permanently wedged by the earlier failure.
     recovered = Database(path)
     assert 13 in recovered.applied_versions()
+    assert (
+        recovered.connection.execute(
+            "SELECT COUNT(*) AS c FROM assignments WHERE id = 'asg_legacy'"
+        ).fetchone()["c"]
+        == 1
+    )
+
+
+# === Migration 14 (Principal ruling on PR #31: bind execution attempts to =
+# === the actor lease live at acquisition time) =============================
+
+
+def test_migration_14_upgrade_from_a_database_already_at_migration_13_preserves_a_live_attempt(
+    tmp_path: Path,
+) -> None:
+    """The REAL regression this migration exists to fix, reproduced exactly:
+    a database that already has migration 13 applied in its shipped shape
+    (execution_attempts with no actor_lease_fencing_token column at all --
+    not merely NULL, the column itself did not exist) must upgrade cleanly
+    under the current code, preserving a genuinely LIVE execution_attempts
+    row rather than raising `sqlite3.OperationalError: table
+    execution_attempts has no column named actor_lease_fencing_token`, which
+    is exactly what happened live against a real local `make verify` demo
+    database when migration 13 was first (incorrectly) amended in place
+    instead of adding this migration."""
+    import sovereign_agent.database as database_module
+
+    path = tmp_path / "at13.db"
+    connection = sqlite3.connect(path)
+    for version, script in database_module.MIGRATIONS:
+        if version > 13:
+            break
+        for statement in database_module._split_statements(script):  # noqa: SLF001
+            connection.execute(statement)
+        connection.execute(
+            "INSERT INTO schema_migrations(version, applied_at) VALUES (?, datetime('now'))",
+            (version,),
+        )
+    connection.execute("INSERT INTO actors(id, record) VALUES ('operator-course', '{}')")
+    connection.execute("INSERT INTO outcomes(id, record) VALUES ('out', '{}')")
+    connection.execute("INSERT INTO sows(id, outcome_id, record) VALUES ('sow', 'out', '{}')")
+    live_record = json.dumps({"id": "asg_live", "state": "RUNNING"})
+    connection.execute(
+        "INSERT INTO assignments(id, sow_id, actor_id, record, current_execution_attempt) "
+        "VALUES (?, ?, ?, ?, ?)",
+        ("asg_live", "sow", "operator-course", live_record, "att_live"),
+    )
+    connection.execute(
+        "INSERT INTO execution_attempts(id, assignment_id, actor_id, process_identity, "
+        "fencing_token, acquired_at, expires_at, status) VALUES "
+        "('att_live', 'asg_live', 'operator-course', 'proc_legacy', 1, "
+        "'2026-01-01T00:00:00+00:00', '2026-01-01T00:15:00+00:00', 'ACTIVE')"
+    )
+    connection.commit()
+    connection.close()
+
+    db = Database(path)
+    assert db.applied_versions() == {version for version, _ in MIGRATIONS}
+    assert 14 in db.applied_versions()
+
+    row = db.connection.execute(
+        "SELECT actor_lease_fencing_token, status FROM execution_attempts WHERE id = 'att_live'"
+    ).fetchone()
+    assert row is not None, "the upgrade destroyed a pre-existing execution attempt"
+    assert row["actor_lease_fencing_token"] is None, (
+        "a pre-migration-14 row has no real binding to backfill -- NULL, not a fabricated one"
+    )
+    assert row["status"] == "ACTIVE"
+
+    # The row is still usable through the current application code: fencing.
+    # py's own NULL-tolerant read (fencing._NO_ACTOR_LEASE_BINDING) must not
+    # crash reading it back.
+    from sovereign_agent import fencing
+
+    attempt = fencing.current_execution_attempt(db, "asg_live")
+    assert attempt is not None
+    assert attempt.actor_lease_fencing_token == fencing._NO_ACTOR_LEASE_BINDING  # noqa: SLF001
+
+
+def test_migration_14_is_idempotently_recognized_after_success(tmp_path: Path) -> None:
+    path = tmp_path / "fresh.db"
+    first = Database(path)
+    assert 14 in first.applied_versions()
+    stamps_first = first.connection.execute(
+        "SELECT applied_at FROM schema_migrations WHERE version = 14"
+    ).fetchall()
+
+    second = Database(path)
+    stamps_second = second.connection.execute(
+        "SELECT applied_at FROM schema_migrations WHERE version = 14"
+    ).fetchall()
+    assert [tuple(row) for row in stamps_first] == [tuple(row) for row in stamps_second]
+
+    columns = {row[1] for row in second.connection.execute("PRAGMA table_info(execution_attempts)")}
+    assert "actor_lease_fencing_token" in columns
+
+
+def test_migration_14_rolls_back_completely_on_a_simulated_failure(tmp_path: Path) -> None:
+    """Same fail-closed, all-or-nothing property as migration 13's own
+    rollback test, applied to migration 14: a broken migration 14 must not
+    leave a stamped version 14, must not leave a partially-applied ALTER
+    TABLE column, and must not disturb the pre-existing data."""
+    import sovereign_agent.database as database_module
+
+    path = tmp_path / "unit7.db"
+    _build_unit7_shaped_database(path)
+
+    broken_migration_14 = database_module.MIGRATION_14 + "\nSELECT this_is_not_valid_sql_syntax;"
+    broken_migrations = tuple(
+        (14, broken_migration_14) if version == 14 else (version, script)
+        for version, script in database_module.MIGRATIONS
+    )
+    with patch.object(database_module, "MIGRATIONS", broken_migrations):
+        with pytest.raises(sqlite3.OperationalError):
+            Database(path)
+
+    inspector = sqlite3.connect(path)
+    try:
+        stamped = [
+            int(row[0]) for row in inspector.execute("SELECT version FROM schema_migrations")
+        ]
+        assert 13 in stamped, "migration 13 should still have succeeded"
+        assert 14 not in stamped, "a failed migration was stamped as applied"
+        columns = {row[1] for row in inspector.execute("PRAGMA table_info(execution_attempts)")}
+        assert "actor_lease_fencing_token" not in columns, (
+            "a partially-applied ALTER TABLE survived the rollback"
+        )
+        assert (
+            inspector.execute(
+                "SELECT COUNT(*) FROM assignments WHERE id = 'asg_legacy'"
+            ).fetchone()[0]
+            == 1
+        )
+    finally:
+        inspector.close()
+
+    recovered = Database(path)
+    assert 14 in recovered.applied_versions()
     assert (
         recovered.connection.execute(
             "SELECT COUNT(*) AS c FROM assignments WHERE id = 'asg_legacy'"

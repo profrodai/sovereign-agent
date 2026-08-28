@@ -70,3 +70,27 @@ true in 1.x before Unit 8 landed, and are left unedited as the historical
 record. See `docs/v1-unit8-supervisor-fencing-recovery.md` for the complete
 contract, proof matrix, and what fencing does and does not claim (it is not
 an OS sandbox).
+
+### Addendum (2026-08-28, same day): the closure above was correct but incomplete
+
+The paragraph above, describing `acquire_actor_lease`'s own compare-and-set
+as "defending" holding 2, is true of the primitive in isolation and remains
+true. It did not say the primitive was actually *required* before a
+provider could be invoked — Unit 8's first implementation built and tested
+the lease mechanism without calling it from `organization.run_assignment`
+at all, relying on execution-attempt fencing (assignment-scoped) alone.
+Sparring's independent review of PR #31 caught this precisely:
+`acquire_execution_attempt` is keyed by `assignment_id`, so two *different*
+assignments for the *same* actor could each acquire their own attempt and
+run under two separate processes — untouched by anything the first
+implementation built, since neither assignment's execution-attempt fence
+has any way to know about the other. The Principal ruled this must close
+as a real precondition, not remain documented as a scope boundary:
+"Assignment fencing prevents stale canonical commits, but it does not
+enforce actor-hosting exclusivity before invocation. They are different
+guarantees." `run_assignment` now calls `fencing.acquire_or_renew_actor_
+lease` as the first thing it does, before anything else is touched, and
+`acquire_execution_attempt` requires and re-verifies the resulting token —
+connecting the two mechanisms rather than leaving the lease unused. See
+`docs/v1-unit8-supervisor-fencing-recovery.md`'s Property 1 for the full,
+current account.

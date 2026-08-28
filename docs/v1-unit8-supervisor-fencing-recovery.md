@@ -7,6 +7,14 @@
   status flip to ACCEPTED is a separate later act
 - **base:** `main = 5dbcabca640426a4510a9a82c78beff0889696f6` (Units 0-7
   ACCEPTED, clean tree; the exact commit this branch forked from)
+- **review history:** PR #31, first head `344b77b`. Sparring's independent
+  review found `fencing.acquire_execution_attempt` keyed purely by
+  `assignment_id`, so two different assignments for the same actor could
+  run under two separate processes unaffected by execution-attempt fencing
+  alone. Principal ruled that gap must close, not merely be documented as a
+  scope boundary — see Property 1 below, and the migration-14 entry in
+  Property 2. Corrected in place on the same branch; PR #31 carries the
+  correction commits.
 - **governing rulings closed by this unit:**
   [`docs/rulings/2026-08-26-deferral-unit4-fencing.md`](rulings/2026-08-26-deferral-unit4-fencing.md)
   (F-U4-1, closed) and
@@ -76,7 +84,7 @@ below).
 
 ## The contract
 
-### Property 1 — process identity and actor leases
+### Property 1 — process identity and actor-hosting leases, a hard precondition to invocation
 
 `fencing.new_process_identity()` returns a fresh, random id
 (`proc_<uuid4 hex>`), generated once per `Organization` instance —
@@ -100,19 +108,56 @@ either "always valid" or "always expired" — the same `WHERE expires_at <=
 ?` comparison SQLite would use for any other row governs it, refusing
 acquisition rather than granting blindly on an ambiguous read.
 
-### Property 2 — execution-attempt fencing bound to the RUNNING transition
+**Wired in as a hard precondition, not merely an available primitive.**
+Principal ruling on PR #31: execution-attempt fencing (Property 2) alone
+answers "may this process write THIS ONE assignment's terminal state" —
+keyed by `assignment_id`, it never asked whether the process was allowed
+to be hosting the actor at all. Two *different* assignments for the *same*
+actor could each acquire their own execution attempt and run under two
+separate processes, exactly the process-level exclusivity gap
+`docs/rulings/2026-08-26-one-process-per-actor.md` named and deferred to
+this unit. `organization.run_assignment` now calls
+`fencing.acquire_or_renew_actor_lease` as the **first thing it does** — a
+new helper that extends this process's own lease if it already holds one
+(the ordinary shape of a long-running supervisor or CLI process running
+several assignments for one actor across its lifetime; `acquire_actor_
+lease` alone would incorrectly refuse a process trying to acquire what it
+already holds, since its CAS only succeeds when the row is absent or
+expired) or attempts a fresh acquisition otherwise — before the
+`workspace_policy` check, before any symlink check, before the SOW or
+assignment state is touched: the identical validate-before-anything-
+touched slot Unit 7 established. A competing live process for the same
+actor is refused there, before workspace allocation, before the provider
+is ever invoked. The lease is released (`fencing.release_actor_lease`, a
+compare-and-set `DELETE`) at the very end of a successful call, right
+after `reclaim_workspace` — reachable only when this same call's own
+fenced terminal write won — so a short-lived process (the CLI `run`
+command, one assignment per invocation) does not keep the actor locked out
+for the rest of the lease TTL after it has already exited; a long-running
+process simply re-acquires cheaply on its next call.
+
+### Property 2 — execution-attempt fencing, bound to the RUNNING transition and to the actor lease
 
 `organization.run_assignment` calls `fencing.acquire_execution_attempt`
 immediately before the `RUNNING` transition it already made — refusing
 (fail closed) if the assignment already has a live, unexpired attempt, so
 two concurrent invocations of the same `assignment_id` cannot both believe
-they may run it. The returned attempt's id is held in a local variable for
-the rest of the call. The terminal transaction (`with self.db.transaction()
-as connection:`) that used to write `COMPLETED`/`BLOCKED`/`FAILED`
-unconditionally now does so through one `UPDATE assignments SET record =
-?, current_execution_attempt = NULL WHERE id = ? AND
-current_execution_attempt = ?` — a single atomic statement that is both the
-write and the fence check. `cursor.rowcount == 1` means this attempt won;
+they may run it. It now also **requires** the actor lease's own fencing
+token (Property 1) as a parameter and re-verifies it against the durable
+`actor_leases` row inside its own `db.immediate()` transaction — not
+merely trusted from the caller's earlier acquisition, which would leave a
+real TOCTOU race open between a process's lease acquisition and its
+execution-attempt acquisition. The token is recorded on the attempt row
+(`execution_attempts.actor_lease_fencing_token`, migration 14), connecting
+the two CAS mechanisms as a durable, queryable fact rather than leaving
+them as independent tables that merely happen to agree. The returned
+attempt's id is held in a local variable for the rest of the call. The
+terminal transaction (`with self.db.transaction() as connection:`) that
+used to write `COMPLETED`/`BLOCKED`/`FAILED` unconditionally now does so
+through one `UPDATE assignments SET record = ?, current_execution_attempt
+= NULL WHERE id = ? AND current_execution_attempt = ?` — a single atomic
+statement that is both the write and the fence check. `cursor.rowcount ==
+1` means this attempt won;
 anything else raises `Refusal(category="execution_attempt_lost")` **inside**
 the transaction, which rolls back the receipt write too (`db.transaction()`
 rolls back on any exception). `reclaim_workspace` is called only after this
@@ -278,14 +323,23 @@ python scripts/verify_curriculum.py
 python scripts/verify_runtime_dependencies.py
 
 # Property 1 -- process identity and actor leases (CAS exclusivity, renewal,
-# takeover after expiry, corrupt-state fail-closed)
+# takeover after expiry, corrupt-state fail-closed, release on completion)
 python -m pytest -q tests/test_fencing.py -k \
-  "process_identity or actor_lease or renewal or takeover or corrupt_lease"
+  "process_identity or actor_lease or renewal or takeover or corrupt_lease or releases_the_actor_lease"
 
-# Property 2 -- execution-attempt fencing, including the decisive
-# stolen-fence-mid-invocation property (mutation-checked, see below)
+# Property 1, wired in as a hard precondition -- a REAL two-process proof:
+# two genuinely separate Organization instances, two DIFFERENT assignments
+# for the SAME actor, the second process's invoke_actor spied on and shown
+# to fire zero times; and proof the ordinary CLI `run` path cannot bypass it
 python -m pytest -q tests/test_fencing.py -k \
-  "execution_attempt or stolen_fence or completed_assignment_run_via_the_real_path"
+  "second_assignment_for_the_same_actor or bypass_the_actor_lease"
+
+# Property 2 -- execution-attempt fencing bound to BOTH the RUNNING
+# transition and the actor lease, including the decisive stolen-fence-mid-
+# invocation property and the isolated actor-lease re-verification
+# (mutation-checked, see below)
+python -m pytest -q tests/test_fencing.py -k \
+  "execution_attempt or stolen_fence or completed_assignment_run_via_the_real_path or reverifies_the_lease"
 
 # Property 3 -- F-U4-1 closed: same-owner-expired reclaim mints a fresh
 # token; complete()/dead_letter() refuse a stale one; distinct-contenders
@@ -344,6 +398,48 @@ re-confirming green.
    receipt's own `status` field directly; re-mutated to confirm the
    strengthened test now catches it; restored.
 
+Two further rounds followed the Principal's ruling on PR #31 (actor-lease
+wiring as a hard precondition to invocation, migration 14):
+
+5. **The top-of-method actor-lease acquisition itself** — bypassed with a
+   fake lease object carrying a token that could never match a real row.
+   Both decisive two-process tests
+   (`test_actor_lease_blocks_a_second_assignment_for_the_same_actor_
+   before_invocation`, `test_the_ordinary_run_assignment_path_cannot_
+   bypass_the_actor_lease`) went red — via a different, still-correct
+   `Refusal` raised by `acquire_execution_attempt`'s own re-verification
+   (real defense in depth, not a masked failure: the mutation broke the
+   FIRST process's own acquisition too, so its execution attempt could
+   never bind to a real lease either). Restored.
+6. **`acquire_execution_attempt`'s own lease re-verification, in
+   isolation** — forced `lease_current = True` unconditionally. The two
+   top-of-method-covered tests from round 5 stayed green (correctly — the
+   top-of-method acquisition in `run_assignment` still refused the second
+   process first, before this code ever ran), which is exactly what
+   motivated adding a THIRD test,
+   `test_acquire_execution_attempt_reverifies_the_lease_even_if_the_
+   caller_lost_it_since`, that isolates this specific check from `run_
+   assignment`'s own acquisition (acquire a lease, let a different process
+   take it over via clock advancement, then present the first process's
+   now-stale token directly to `fencing.acquire_execution_attempt`). That
+   isolated test went red under this mutation, confirming the re-
+   verification is independently load-bearing — closing a real TOCTOU gap,
+   not dead code duplicating the caller's own check. Restored.
+7. **The actor-lease release on completion**
+   (`organization.py`'s `release_actor_lease(...)` call at the end of a
+   successful `run_assignment`) — removed. Found necessary by re-running
+   the full gate, not anticipated in the original design: two consecutive
+   `make verify` invocations (which run `sovereign-agent demo store
+   --mode simulated --root /tmp/sovereign-agent-demo` against the SAME
+   fixed path every time) collided even with no crash between them, because
+   a completed `run_assignment` call was never releasing its actor lease,
+   only its execution attempt — a short CLI-shaped process kept the actor
+   locked out for the rest of `ACTOR_LEASE_TTL` after it had already
+   exited. `test_a_completed_run_releases_the_actor_lease_for_a_fresh_
+   process` (two fresh `Organization` instances, two different assignments
+   for the same actor, both expected to complete with no wait) went red
+   under this mutation; restored.
+
 ## Budget impact
 
 Reproduced by `scripts/verify_source_budget.py`, before and after this
@@ -352,14 +448,17 @@ unit's change, both figures read from the script's own printed output.
 | | modules | nonblank lines | root exports |
 | --- | --- | --- | --- |
 | Before (Units 0-7 accepted, `5dbcabca`) | 24/40 | 4307/6000 | 7/30 |
-| After (this unit) | 26/40 | 5263/6000 | 7/30 |
+| After (initial implementation) | 26/40 | 5263/6000 | 7/30 |
+| After (Principal-ruled correction: actor lease wired as a hard precondition, migration 14) | 26/40 | 5454/6000 | 7/30 |
 
 Two new modules: `src/sovereign_agent/fencing.py` (process identity, actor
 leases, execution-attempt fencing) and `src/sovereign_agent/supervisor.py`
 (the reconciliation loop and hard-kill recovery). No new root export —
 `fencing` and `supervisor` are called internally by `organization.py` and
 `cli.py`; nothing from either module is re-exported from the package root.
-Headroom remaining: 14 modules, 737 nonblank lines, 23 root exports.
+The correction added no new module (the wiring, the release helper, and
+migration 14 all landed inside the same two modules), only lines.
+Headroom remaining: 14 modules, 546 nonblank lines, 23 root exports.
 
 ## What this unit did not do
 
@@ -381,19 +480,14 @@ Headroom remaining: 14 modules, 737 nonblank lines, 23 root exports.
 - **`Actor.workspace_policy` is still a bare `str`, not a `StrEnum`** —
   unchanged from Unit 7's own carried-forward note; this unit did not
   touch that type either, since fencing does not depend on it.
-- **The actor-lease mechanism (`acquire_actor_lease`/`renew_actor_lease`)
-  is built and tested but not yet wired into `run_assignment` or the CLI's
-  `run` command as a mandatory precondition to invoking a provider** —
-  `run_assignment` acquires and checks an *execution attempt* (Property 2,
-  bound to one assignment) unconditionally, which is the mechanism the
-  proof matrix's decisive stolen-fence test exercises; the separate
-  *actor* lease (Property 1, bound to hosting an actor at all, independent
-  of any one assignment) is a complete, CAS-proven primitive that a future
-  unit can require at actor-invocation time without further schema work,
-  but this unit does not itself gate `run_assignment` on holding one. This
-  is a scope boundary, not an oversight: the SOW's central guarantee is
-  stated in terms of *execution attempts* and *leases* together, and this
-  unit closes the mailbox and execution-attempt halves completely while
-  leaving the actor-lease-as-a-hard-precondition wiring for whichever unit
-  next needs "an actor may not even be invoked without a live lease" as an
-  enforced rule rather than an available one.
+- **A resident supervisor process does not (yet) proactively renew its own
+  actor leases between ticks.** `acquire_or_renew_actor_lease` is called
+  fresh inside `run_assignment` for each assignment a process runs; a
+  long-running supervisor that holds a lease and then goes quiet for
+  longer than `ACTOR_LEASE_TTL` (5 minutes) without running another
+  assignment for that actor will find its lease has lapsed and simply
+  re-acquires on its next call — safe (no incorrect grant), but not a
+  standing background renewal loop independent of assignment activity.
+  Not required by the SOW's central guarantee, which is about commit
+  authority, not about a lease surviving idle time; named here as a real,
+  minor remaining gap rather than silently claimed complete.

@@ -6,6 +6,71 @@ Repository: [`zeroemployeeorg/sovereign-agent`](https://github.com/zeroemployeeo
 
 ## Unreleased
 
+### Supervisor, fencing, and hard-kill recovery (Unit 8)
+
+A worker that no longer holds the current lease could still commit
+completion, mutate canonical execution state, acknowledge mailbox work, or
+reclaim the active workspace -- Unit 4's mailbox proved actor-level
+idempotency, never process-level exclusivity, and named the gap rather than
+build a supervisor to close it
+([deferral ruling](docs/rulings/2026-08-26-deferral-unit4-fencing.md),
+[one-process-per-actor ruling](docs/rulings/2026-08-26-one-process-per-actor.md)).
+A hard-killed worker also left its assignment stuck `RUNNING` forever, since
+"a process cannot record its own death" (Unit 5). This unit closes both.
+
+- **Process identity and actor-hosting leases.** A fresh, random process
+  identity (never a PID -- PIDs are reused by the operating system) and an
+  exclusive, renewable lease per actor, both compare-and-set against SQLite
+  with the same discipline `relay.claim()` already used. `organization.
+  run_assignment` acquires (or renews) the actor's lease as the FIRST thing
+  it does, before the workspace_policy check, before any symlink check,
+  before the SOW or assignment state is touched -- the same validate-
+  before-anything-touched slot Unit 7 established. A competing live process
+  for the same actor is refused there, before workspace allocation, before
+  the provider is ever invoked, proven with a REAL two-process test: two
+  genuinely separate `Organization` instances, two different assignments
+  for the same actor, the second process's provider invocation spied on
+  with a counter and shown to fire zero times.
+- **Execution-attempt fencing bound to the `RUNNING` transition, and bound
+  to the actor lease.** A distinct fencing token per invocation, checked
+  atomically inside the same SQLite transaction that commits
+  `COMPLETED`/`BLOCKED`/`FAILED`, so a stale worker's subprocess -- fencing
+  is not an OS sandbox, so it can still run to completion -- cannot make its
+  result canonical. The execution attempt now records and re-verifies the
+  actor lease's own fencing token at acquisition time, connecting the two
+  CAS mechanisms rather than leaving them independent.
+- **F-U4-1 closed.** `relay.claim()`'s same-owner short-circuit used to fire
+  even when that owner's own lease had expired, so the CAS's expired-lease
+  branch was unreachable by the owner. Now it only short-circuits when
+  unexpired; an expired same-owner reclaim wins the CAS and mints a fresh
+  token. `complete()`/`dead_letter()` verify that token atomically.
+- **Hard-kill recovery, by the supervisor, never the dead process.** A new
+  reconciliation loop (`sovereign-agent supervisor --root PATH [--once]`)
+  detects a `RUNNING` assignment whose execution attempt expired with no
+  valid current worker and recovers it: a durable `FAILED` receipt naming
+  the expired attempt and `failure_category="worker_lost"` -- never a
+  guessed success, however far the orphaned subprocess actually got --
+  idempotent, and workspace reclaim applied only after the terminal write
+  is durable. No new assignment or SOW state. Proven against a REAL child
+  process and a real `SIGKILL`, never a preclassified refusal injection.
+  Clean `SIGINT` handling in the long-running loop; no hidden
+  daemonization. Distinct from `service` (future OS hosting, not
+  implemented) and `pulse` (Unit 9's proactive wake, not implemented).
+- Migration 13: `lease_tokens`, `actor_leases`, `execution_attempts`,
+  `assignments.current_execution_attempt`, `messages.fencing_token`.
+
+Tests grow from 230 to 274, including a mutation-checked proof for every
+decisive property (the fix reverted, the specific test confirmed red,
+restored byte-identical, re-confirmed green) -- see
+[docs/v1-unit8-supervisor-fencing-recovery.md](docs/v1-unit8-supervisor-fencing-recovery.md)
+for the full contract and proof matrix.
+
+**Not claimed:** credentialed Claude/Codex/Cursor provider tests remain
+deselected and unrun -- no live-provider evidence exists anywhere in this
+unit. Fencing is a ledger guarantee, not a filesystem one: a worker that has
+lost its lease can still write bytes to disk if its subprocess is still
+running; only the ledger commit is refused.
+
 ### Cumulative conformance (Unit 6.5)
 
 The simulated store now performs a **real** replenishment. Previously the demo
