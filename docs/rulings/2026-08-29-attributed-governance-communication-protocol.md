@@ -1,0 +1,122 @@
+# Ruling: attributed governance communication protocol
+
+- **id:** `ruling-2026-08-29-attributed-governance-communication-protocol`
+- **decided:** 2026-08-29
+- **authority:** principal (decision), operator (directed that it be filed)
+- **applies_to:** Sovereign Agent 1.x — all governance-bearing communication between seats, from this ruling forward
+- **status:** ACTIVE
+
+This ruling records, verbatim, the Principal's decision to adopt an attributed
+governance communication protocol, issued as a Principal `decision` and directed
+by the Operator to be filed as a tracked ruling. It is transcribed here by the
+Sparring seat under that Operator directive; transcribing a higher authority's
+decision is not authoring it, and filing it is not a Sparring verdict on it (see
+"Provenance of this file" at the end). It exists because the project repeatedly
+encountered provenance failures — stale relays, misrouted reviews, unattributed
+verdicts, and proposals presented as decisions — that a green gate cannot catch.
+
+## Decision (verbatim)
+
+The identification protocol is immediately operative for all future
+governance-bearing communication in Sovereign Agent:
+
+```text
+FROM:
+TO:
+AUTHORITY:
+MESSAGE TYPE: decision | proposal | request | evidence | verdict | status
+SUBJECT:
+BOUND TO: repository / PR / commit / review, when applicable
+SOURCE: direct observation / message / durable URL or record
+```
+
+## Interpretation
+
+* `FROM` identifies who authored the claim.
+* `TO` identifies the intended recipients.
+* `AUTHORITY` identifies the capacity in which the sender speaks.
+* `MESSAGE TYPE` prevents a proposal, relay, or observation from resembling a ruling.
+* `BOUND TO` is mandatory for exact-head reviews, acceptances, implementation claims, and audit results.
+* `SOURCE` distinguishes firsthand verification from relayed content.
+
+A message attributed to Sparring but delivered by Master must say that it is a
+relay and cite the durable source. It does not become Sparring's verdict merely
+because the prose resembles Sparring's voice.
+
+## Authority boundaries
+
+* Operator appoints seats, resolves organizational authority, and may direct or halt the overall undertaking.
+* Principal decides scope, accepts or rejects implementation, resolves design forks, and authorizes progression between units.
+* Master proposes, implements, verifies, files PRs, and executes authorized merges. Master does not issue Principal decisions or Sparring verdicts.
+* Sparring independently reviews and issues exact-head verdicts. Sparring's approval is necessary where required but is not Principal acceptance.
+* Stream seats implement bounded work and report evidence. They do not approve or merge their own work.
+
+`Decision:` without Principal or Operator authority is not a decision. `APPROVED`
+without authenticated Sparring provenance is not a review. A green gate is
+evidence, not acceptance.
+
+## Failure behavior
+
+Missing, contradictory, or ambiguous attribution causes the message to be held
+rather than executed.
+
+The receiving seat must:
+
+1. Check the filed record.
+2. Identify the actual author and authority.
+3. Resolve the bound repository, PR, SHA, review, or comment.
+4. Treat unverifiable content on its technical merits only, explicitly as its own finding — not as the alleged sender's ruling.
+
+No seat may silently infer provenance from tone, vocabulary, formatting, or
+surrounding conversation.
+
+## Historical record
+
+Existing decisions, approvals, and acceptance records remain valid. They do not
+need retroactive formatting when their provenance is already durable and
+unambiguous.
+
+## Current operative state (at the time of this decision)
+
+* Unit 9 implementation is merged at `f3db778d9391d8c1d081774e6b992a093d5a5bd5`.
+* Its post-merge audit is `PASS`, with A-U9-2 addressed in PR #36.
+* PR #36 is the reviewed status change from `PROPOSED` to `ACCEPTED` at `cbeeca6f73ef44e47a8a2b5f2545406971dc2445`.
+* Unit 9 is not closed until that reviewed status change merges and is verified on `main`.
+* Unit 10 remains unauthorized and unstarted.
+
+## How to check this ruling against the repository
+
+This is a process ruling: its subject is communication between seats, not code,
+so no automated gate can confirm a given message obeyed it. The check is
+behavioral and applies at the moment a governance-bearing message is received:
+
+```text
+# Every governance-bearing message carries the header block above.
+# For any exact-head review, acceptance, implementation claim, or audit
+# result, BOUND TO names a repository / PR / commit / review, and SOURCE
+# distinguishes direct observation from a relay.
+#
+# On missing, contradictory, or ambiguous attribution: HOLD, do not execute.
+# Then: check the filed record; identify the true author and authority;
+# resolve the bound PR/SHA/review/comment; and treat unverifiable content
+# on its technical merits only, as the receiver's own finding, never as the
+# alleged sender's ruling.
+```
+
+The rulings index (`docs/rulings/index.md`) lists this file; `scripts/verify_curriculum.py`
+enforces that the index and the directory agree, so this ruling cannot silently
+drift out of the durable record it establishes the discipline for.
+
+## Provenance of this file
+
+`FROM:` Principal (decision); Operator (directive to file).
+`AUTHORITY:` Principal decision, Operator-directed filing.
+`MESSAGE TYPE:` decision, transcribed into a durable ruling.
+`SOURCE:` the Principal's `decision` message relayed by the Operator in session.
+
+Filed by the Sparring seat under the Operator's direct directive to file it.
+Per this ruling's own authority boundaries and standing doctrine, Sparring does
+not author-and-co-sign: this transcription is **not** a Sparring verdict on
+itself. The merge-authorizing check — that the transcription is faithful to the
+Principal's decision and the filing is well-formed — belongs to the Master or
+Operator, not to a Sparring approval of its own filing.
