@@ -14,20 +14,42 @@ you to take on faith.
   outcomes, SOWs, evidence, verification, review, and no-self-approval
 - [Chapter 3: The actor is not a model](ch03_actor_is_not_a_model/README.md) —
   providers are probed CLIs; Cursor is equal to Claude and Codex
+- [Chapter 4: Work stays inside its boundary](ch04_work_stays_inside_its_boundary/README.md) —
+  a detectable workspace boundary, safe joins, and reclaim as a policy choice
+- [Chapter 5: Authority needs a fence](ch05_authority_needs_a_fence/README.md) —
+  process identity, actor leases, and execution-attempt fencing bound together
+- [Chapter 6: The organization recovers](ch06_the_organization_recovers/README.md) —
+  a real hard-killed worker, and the supervisor that recovers it without
+  guessing success
+- [Chapter 7: The organization wakes itself](ch07_the_organization_wakes_itself/README.md) —
+  genuine Pulse: governed work created without a human prompt, with durable,
+  structured evidence
 
 ## What is not here yet
 
 Pulse — the organization waking itself up — was Unit 9's own future territory
-when this section was written. Nothing in Chapters 0-3 simulates a Pulse
+when Chapters 0-3 were written. Nothing in Chapters 0-3 simulates a Pulse
 event, and their store demo is explicitly manually dispatched. A chapter that
 promised proactive behaviour before the code could do it would be the same
-kind of lie this book spends Chapter 2 teaching you to catch.
+kind of lie this book spends Chapter 2 teaching you to catch. That claim is
+still true of Chapters 0-3 today, and is mechanically enforced: this
+project's own curriculum checker refuses any of them from claiming Pulse
+fired.
 
-**Added, Unit 9:** Pulse is now real production code (`sovereign-agent pulse
---once`; see `docs/v1-unit9-pulse-proactive-work.md`), but no chapter below
-exercises it yet — that editorial work is Unit 10's, not silently folded in
-here. Chapters 0-3 remain exactly as they were: manually dispatched, and
-truthful about it.
+**Added, Unit 9:** Pulse became real production code (`sovereign-agent pulse
+--once`; see `docs/v1-unit9-pulse-proactive-work.md`).
+
+**Added, Unit 10:** Chapter 7 is where this book exercises it — the first and
+only chapter allowed to claim the organization wakes itself, and only because
+its own exercise genuinely invokes the mechanism and leaves durable,
+structured evidence behind, mechanically checked, not merely asserted in
+prose. Chapters 0-3 remain exactly as they were: manually dispatched, and
+truthful about it. Chapters 4-6 (workspace lifecycle, fencing, recovery)
+teach real, ACCEPTED Units 7 and 8 behavior that was already true before Unit
+10; they were simply not yet chapters.
+
+There is no Chapter 8 yet. Unit 11 is where the Store's own governed
+territory expands and this book's next chapters land alongside it.
 
 ## Every chapter contains
 
