@@ -6,6 +6,86 @@ Repository: [`zeroemployeeorg/sovereign-agent`](https://github.com/zeroemployeeo
 
 ## Unreleased
 
+### Curriculum completion, Chapters 0-7 (Unit 10)
+
+Completes the promised curriculum range: four new chapters, each teaching
+one already-ACCEPTED production concept from Units 7-9, instructor-note
+machinery covering the whole completed range, a chapter-scoped (not
+removed) Pulse-claim guard, and a genuine post-Unit-9 Andrea evaluation
+task. **Zero new production behavior** -- every chapter exercise imports and
+runs existing, already-ACCEPTED code; nothing was added to
+`src/sovereign_agent/` or `src/reference_organizations/`.
+
+- **Four new chapters**, each with a `solution.py` that imports and runs
+  real production code (no teaching fork) and a `README.md` with real,
+  executed command output:
+  - `ch04_work_stays_inside_its_boundary` -- `safe_join`,
+    `snapshot_boundary`/`diff_boundary`, `reclaim_workspace` and
+    `workspace_policy` branching (Unit 7).
+  - `ch05_authority_needs_a_fence` -- `acquire_actor_lease`,
+    `acquire_execution_attempt`, and the stale-worker refusal path through
+    the real `run_assignment` path with two genuinely separate
+    `Organization` instances (Unit 8).
+  - `ch06_the_organization_recovers` -- a REAL child process, REAL
+    `SIGKILL` (the same fixture and polling discipline
+    `tests/test_supervisor.py`'s own proof matrix uses), then
+    `supervisor.tick` recovery -- never a guessed success (Unit 8).
+  - `ch07_the_organization_wakes_itself` -- `run_pulse_once` end to end, no
+    manual `create_sow`/`ready_sow`/`assign` call anywhere in the
+    exercise, with the resulting `pulse.work_created` event and
+    `pulse_origins`/`pulse_wake_decisions` rows read back from the ledger
+    (Unit 9). The only chapter permitted to claim the organization woke
+    itself, and only because its own run earns that claim.
+- **Instructor-note machinery**, wholly new: `book/INSTRUCTOR.md` indexes
+  every chapter's own `INSTRUCTOR.md` (all eight, including retroactively
+  for Chapters 0-3), each carrying seven required sections -- teaching
+  intent, prerequisite knowledge, likely misconceptions, observation
+  checkpoints, discussion prompts, facilitation timing, exercise debrief
+  and assessment guidance.
+- **The Pulse guard becomes chapter-scoped, not removed.**
+  `scripts/verify_curriculum.py`'s prior guard applied identically to
+  every chapter regardless of number. Chapters 0-6 keep the exact
+  unconditional prohibition. Chapter 7 may claim Pulse fired ONLY when its
+  own already-executed exercise leaves durable, structured evidence in
+  that run's own database: a real `pulse.*` event AND a traceable
+  `pulse_origins` -> `pulse_wake_decisions` chain naming a real source
+  signal -- re-derived by the gate itself from a fresh `sqlite3`
+  connection, never trusted from the exercise's own printed summary. A
+  claim with no such chain fails identically whether Pulse was never
+  invoked or its evidence was fabricated by a direct `append_event` call.
+- **New mechanical checks**: `REQUIRED_CHAPTERS` extended to 8; every
+  chapter's `INSTRUCTOR.md` structurally checked for its seven sections;
+  chapter forward/backward links and `book/README.md`'s own index checked
+  for one coherent sequence (the prior gate only checked individual link
+  resolution); no `book/**/*.md` file may begin with a site frontmatter
+  block. Additive-only editing of Chapters 0-3 is explicitly left as a
+  review-discipline requirement, not a mechanical check -- no heuristic
+  here would actually prove the property it claims to.
+- **Andrea evaluation extended.** `docs/andrea-alpha-evaluation.md` is
+  preserved exactly as the historical Units 0-6.5 record (title, Task 7,
+  and scoring key untouched), plus one additive link to the new document.
+  `docs/andrea-chapters-0-7-evaluation.md` is new, with its own complete,
+  replacement Task 7 assessing whether Andrea can explain and
+  *independently verify* genuine proactive Pulse behaviour --
+  mechanically validated by the new
+  `scripts/evaluate_andrea_chapters_0_7.py`. Does not authorize or perform
+  the Unit 12 Andrea soak.
+
+Every new mechanical guarantee mutation-checked before this unit was
+reported complete (a fabricated Pulse event; a Pulse claim in an early
+chapter; a missing `INSTRUCTOR.md` section; a wrong-pointing forward link;
+injected frontmatter -- each reproduced, confirmed caught, confirmed
+landed via diff, restored byte-identical, reconfirmed green) -- see
+[docs/v1-unit10-curriculum-completion.md](docs/v1-unit10-curriculum-completion.md)
+for the full contract and proof matrix.
+
+**Not claimed:** Chapters 8-12, any Unit 11 Store expansion or 30-day
+pilot, any Unit 12 release work or the Andrea soak itself, credentialed
+provider evidence, a mechanical check for additive-only Chapters 0-3
+editing, any new runtime dependency, or any change to
+`src/sovereign_agent/`'s own budget (unchanged: 27/40 modules, 6139/6250
+lines, 7/30 exports).
+
 ### Pulse and proactive governed work (Unit 9)
 
 Closes the gap between the manually dispatched Unit 5 Store pipeline and
