@@ -24,7 +24,7 @@ from reference_organizations.store.demo import propose_restock_from_report, run_
 from reference_organizations.store.pulse_gate import store_wake_gate
 from sovereign_agent import supervisor as supervisor_module
 from sovereign_agent.database import Database
-from sovereign_agent.models import AssignmentState, Role
+from sovereign_agent.models import Assignment, AssignmentState, Role
 from sovereign_agent.organization import Organization
 from sovereign_agent.pulse import WakeDecision, run_pulse_once
 
@@ -744,7 +744,14 @@ def test_no_pulse_event_exists_before_pulse_runs(tmp_path: Path) -> None:
 
 def test_wake_gate_receives_a_real_signal_object_read_from_the_database(tmp_path: Path) -> None:
     """Proves the gate is called with the genuine persisted Signal, not a
-    hand-built stand-in -- a spy gate records what it was actually given."""
+    hand-built stand-in -- a spy gate records what it was actually given.
+
+    Called TWICE for one qualifying signal, both times with the same real
+    Signal: once by run_pulse_once itself (the ordinary read), and once
+    again by create_pulse_work's own `revalidate` callback, INSIDE its open
+    transaction (F-U9-1's fix -- see organization.py's create_pulse_work).
+    Both calls see the identical persisted signal id; only the call COUNT
+    changed, not what either call was given."""
     org, _outcome_id = _seeded_active_org(tmp_path)
     signal = record_sale(org.db, SKU, 2, 400)
     seen: list[str] = []
@@ -754,7 +761,7 @@ def test_wake_gate_receives_a_real_signal_object_read_from_the_database(tmp_path
         return store_wake_gate(spy_org, spy_signal)
 
     run_pulse_once(org, spy_gate)
-    assert seen == [signal.id]
+    assert seen == [signal.id, signal.id]
 
 
 # === Full teaching slice =========================================================
@@ -798,3 +805,287 @@ def test_pulse_cli_handler_reports_created_work(tmp_path: Path, capsys) -> None:
     out = capsys.readouterr().out
     assert "created" in out
     assert "1 created" in out
+
+
+# === F-U9-1: the canonical creation transaction is genuinely atomic ========
+#
+# Sparring's finding, confirmed independently by the Principal: the ORIGINAL
+# create_pulse_work was five separate commits (the wake-decision INSERT in
+# its own db.immediate(), then create_sow's, ready_sow's, and assign's own
+# transactions in sequence, then a final db.transaction() for the origin
+# row), not one atomic transaction, despite the governing SOW's explicit
+# "must become durable atomically" requirement. An ordinary exception
+# between any two of those commits left the wake decision durably stranded
+# -- decisions=1, everything else=0 -- and, because source_signal_id is
+# UNIQUE, no retry could ever re-claim that signal: it was orphaned
+# permanently. Every test below drives the REAL, now-single, db.immediate()
+# transaction in organization.py's create_pulse_work -- no test injects a
+# fault by editing SQL directly; each patches a real internal method
+# (_create_sow_on, _ready_sow_on, _assign_on) or a real module-level
+# function (append_event) to raise, the same "reproduce the real defect
+# shape" discipline this project's own falsification history uses.
+
+
+def _full_chain_counts(org: Organization) -> dict[str, int]:
+    counts = {}
+    for table in ("pulse_wake_decisions", "pulse_origins", "sows", "assignments"):
+        counts[table] = org.db.connection.execute(f"SELECT COUNT(*) AS c FROM {table}").fetchone()[
+            "c"
+        ]
+    counts["pulse_events"] = org.db.connection.execute(
+        "SELECT COUNT(*) AS c FROM events WHERE kind = 'pulse.work_created'"
+    ).fetchone()["c"]
+    return counts
+
+
+def _create_pulse_work_kwargs(org: Organization, outcome_id: str, signal) -> dict:  # type: ignore[no-untyped-def]
+    source_event_id = org.db.connection.execute(
+        "SELECT id FROM events WHERE kind = 'sale.committed'"
+    ).fetchone()["id"]
+    return dict(
+        source_signal_id=signal.id,
+        source_event_id=source_event_id,
+        subject=SKU,
+        outcome_id=outcome_id,
+        scope="pulse replenishment",
+        role=Role.OPERATOR,
+        planner_id="master-course",
+        worker_id="operator-course",
+        required_effect_kind="replenishment",
+    )
+
+
+@pytest.mark.parametrize(
+    "patch_target",
+    [
+        "sovereign_agent.organization.Organization._create_sow_on",
+        "sovereign_agent.organization.Organization._ready_sow_on",
+        "sovereign_agent.organization.Organization._assign_on",
+        "sovereign_agent.organization.append_event",
+    ],
+)
+def test_a_fault_at_every_creation_boundary_rolls_back_the_entire_chain(
+    tmp_path: Path, patch_target: str
+) -> None:
+    """A fault injected at EACH of the four remaining write boundaries
+    inside the now-single transaction (SOW creation, the READY transition,
+    assignment creation, and the pulse.work_created event -- the origin
+    insert has nothing after it to fault before) leaves NO partial chain:
+    every one of decisions/origins/sows/assignments/pulse_events is zero,
+    not just the wake decision. Before F-U9-1's fix, only the FIRST of
+    these boundaries was even reachable as a discrete commit to fault
+    between; this parametrization proves the fix holds at every boundary
+    the new single transaction actually has, not just the one the original
+    report reproduced."""
+    org, outcome_id = _seeded_active_org(tmp_path)
+    signal = record_sale(org.db, SKU, 2, 400)
+    kwargs = _create_pulse_work_kwargs(org, outcome_id, signal)
+
+    with patch(patch_target, side_effect=RuntimeError("simulated fault")):
+        with pytest.raises(RuntimeError, match="simulated fault"):
+            org.create_pulse_work(**kwargs)
+
+    counts = _full_chain_counts(org)
+    assert counts == {
+        "pulse_wake_decisions": 0,
+        "pulse_origins": 0,
+        "sows": 0,
+        "assignments": 0,
+        "pulse_events": 0,
+    }, f"a partial chain survived a fault at {patch_target}: {counts}"
+
+
+def test_the_signal_remains_eligible_after_a_full_rollback_and_a_retry_creates_exactly_one_chain(
+    tmp_path: Path,
+) -> None:
+    """The decisive recovery property F-U9-1 named as missing: after a fault
+    rolls the whole chain back, the signal is NOT permanently orphaned -- a
+    retry succeeds (not a Refusal) and creates exactly one canonical chain,
+    not a duplicate of anything the failed attempt might have left behind."""
+    org, outcome_id = _seeded_active_org(tmp_path)
+    signal = record_sale(org.db, SKU, 2, 400)
+    kwargs = _create_pulse_work_kwargs(org, outcome_id, signal)
+
+    with patch.object(Organization, "_ready_sow_on", side_effect=RuntimeError("simulated fault")):
+        with pytest.raises(RuntimeError, match="simulated fault"):
+            org.create_pulse_work(**kwargs)
+    assert _full_chain_counts(org) == {
+        "pulse_wake_decisions": 0,
+        "pulse_origins": 0,
+        "sows": 0,
+        "assignments": 0,
+        "pulse_events": 0,
+    }
+
+    sow, assignment, created = org.create_pulse_work(**kwargs)
+    assert created is True
+    counts = _full_chain_counts(org)
+    assert counts == {
+        "pulse_wake_decisions": 1,
+        "pulse_origins": 1,
+        "sows": 1,
+        "assignments": 1,
+        "pulse_events": 1,
+    }
+    origin = org.pulse_origin_for_sow(sow.id)
+    assert origin is not None
+    assert origin.assignment_id == assignment.id
+
+
+def test_run_pulse_once_recovers_a_signal_orphaned_by_a_mid_transaction_fault(
+    tmp_path: Path,
+) -> None:
+    """The same recovery property, driven through the real run_pulse_once
+    entry point rather than calling create_pulse_work directly -- a signal
+    that failed to create canonical work on one pass is still
+    _unevaluated_ (no wake decision survived the rollback) and is picked
+    up cleanly on the very next pass."""
+    org, outcome_id = _seeded_active_org(tmp_path)
+    signal = record_sale(org.db, SKU, 2, 400)
+
+    with patch.object(Organization, "_assign_on", side_effect=RuntimeError("simulated fault")):
+        with pytest.raises(RuntimeError, match="simulated fault"):
+            run_pulse_once(org, store_wake_gate)
+    assert _full_chain_counts(org) == {
+        "pulse_wake_decisions": 0,
+        "pulse_origins": 0,
+        "sows": 0,
+        "assignments": 0,
+        "pulse_events": 0,
+    }
+
+    report = run_pulse_once(org, store_wake_gate)
+    assert len(report.created) == 1
+    assert report.created[0].signal_id == signal.id
+    assert _full_chain_counts(org)["sows"] == 1
+
+
+def test_two_real_processes_still_converge_on_one_canonical_creation_under_the_atomic_design(
+    tmp_path: Path,
+) -> None:
+    """Sparring's own named dual: does making create_pulse_work atomic
+    correctly PRESERVE the concurrent-race behaviour the separate-commit
+    design was originally built around? A real two-connection
+    threading.Barrier race, same shape as the pre-fix proof
+    (test_two_real_processes_evaluating_the_same_signal_create_one_canonical_sow
+    above) -- re-run here explicitly under the new single-db.immediate()
+    design as its own named property, not merely relied upon via the
+    unchanged original test still passing."""
+    org, outcome_id = _seeded_active_org(tmp_path)
+    signal = record_sale(org.db, SKU, 2, 400)
+    kwargs = _create_pulse_work_kwargs(org, outcome_id, signal)
+    org.db.close()
+
+    barrier = threading.Barrier(2)
+    results: list[tuple[str, str, bool]] = []
+    lock = threading.Lock()
+
+    def contend() -> None:
+        contender = Organization(tmp_path)
+        contender.db.connection.execute("PRAGMA busy_timeout = 5000")
+        barrier.wait()
+        sow, assignment, created = contender.create_pulse_work(**kwargs)
+        with lock:
+            results.append((sow.id, assignment.id, created))
+        contender.db.close()
+
+    threads = [threading.Thread(target=contend) for _ in range(2)]
+    for thread in threads:
+        thread.start()
+    for thread in threads:
+        thread.join()
+
+    sow_ids = {r[0] for r in results}
+    assignment_ids = {r[1] for r in results}
+    created_flags = sorted(r[2] for r in results)
+    assert len(sow_ids) == 1, f"two different SOWs were created: {results}"
+    assert len(assignment_ids) == 1
+    assert created_flags == [False, True]
+
+    inspector = Organization(tmp_path)
+    counts = _full_chain_counts(inspector)
+    assert counts["sows"] == 1
+    assert counts["pulse_wake_decisions"] == 1
+
+
+def test_the_losing_contender_reads_the_winners_committed_identifiers_under_the_atomic_design(
+    tmp_path: Path,
+) -> None:
+    """Isolates the loser's own read path: a first, real create_pulse_work
+    call commits the full chain; a SECOND call for the same signal (the
+    ordinary replay shape, standing in for a losing concurrent contender
+    that arrives after the winner's transaction already committed) must
+    return the SAME identifiers, never mint a second SOW."""
+    org, outcome_id = _seeded_active_org(tmp_path)
+    signal = record_sale(org.db, SKU, 2, 400)
+    kwargs = _create_pulse_work_kwargs(org, outcome_id, signal)
+
+    sow1, assignment1, created1 = org.create_pulse_work(**kwargs)
+    sow2, assignment2, created2 = org.create_pulse_work(**kwargs)
+    assert created1 is True
+    assert created2 is False
+    assert sow1.id == sow2.id
+    assert assignment1.id == assignment2.id
+    assert _full_chain_counts(org)["sows"] == 1
+
+
+def test_revalidation_inside_the_transaction_prevents_stale_work(tmp_path: Path) -> None:
+    """The condition can resolve between run_pulse_once's own gate read and
+    create_pulse_work's transaction acquiring its lock. revalidate is
+    called INSIDE that lock and, when it reports the condition no longer
+    holds, create_pulse_work writes NOTHING and returns None -- proven
+    directly against the primitive, not merely inferred from the gate's own
+    ordinary re-check."""
+    org, outcome_id = _seeded_active_org(tmp_path)
+    signal = record_sale(org.db, SKU, 2, 400)
+    kwargs = _create_pulse_work_kwargs(org, outcome_id, signal)
+
+    result = org.create_pulse_work(**kwargs, revalidate=lambda: False)
+    assert result is None
+    assert _full_chain_counts(org) == {
+        "pulse_wake_decisions": 0,
+        "pulse_origins": 0,
+        "sows": 0,
+        "assignments": 0,
+        "pulse_events": 0,
+    }
+
+    # The signal is still eligible -- a subsequent call with no revalidation
+    # failure creates the canonical chain normally.
+    sow, assignment, created = org.create_pulse_work(**kwargs)
+    assert created is True
+    assert _full_chain_counts(org)["sows"] == 1
+
+
+def test_provider_invocation_never_sees_an_incomplete_pulse_origin_chain(tmp_path: Path) -> None:
+    """run_assignment (which invokes the provider) must never be called
+    until create_pulse_work's own transaction has fully committed --
+    decision, SOW, assignment, event, AND origin all durable together. Spies
+    on Organization.run_assignment and, at the moment it is first called,
+    independently re-reads the ledger through a SEPARATE connection (not
+    the same in-process object, so a would-be uncommitted write is
+    genuinely invisible if it is not yet durable) to confirm the complete
+    chain is already there."""
+    org, _outcome_id = _seeded_active_org(tmp_path)
+    record_sale(org.db, SKU, 2, 400)
+
+    observed: dict[str, object] = {}
+    real_run_assignment = Organization.run_assignment
+
+    def spying_run_assignment(self: Organization, assignment_id: str) -> Assignment:
+        checker = Organization(tmp_path)
+        observed["counts"] = _full_chain_counts(checker)
+        checker.db.close()
+        return real_run_assignment(self, assignment_id)
+
+    with patch.object(Organization, "run_assignment", spying_run_assignment):
+        report = run_pulse_once(org, store_wake_gate)
+
+    assert len(report.created) == 1
+    assert observed["counts"] == {
+        "pulse_wake_decisions": 1,
+        "pulse_origins": 1,
+        "sows": 1,
+        "assignments": 1,
+        "pulse_events": 1,
+    }
