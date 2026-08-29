@@ -925,3 +925,281 @@ def test_migration_14_rolls_back_completely_on_a_simulated_failure(tmp_path: Pat
         ).fetchone()["c"]
         == 1
     )
+
+
+# === Migration 15 (Unit 9: Pulse origin attribution) =======================
+
+
+def _build_unit8_shaped_database(path: Path) -> None:
+    """Migrations 1-14 by hand, with a real pre-Unit-9 SOW and assignment on
+    disk -- the shape a real Unit-8-era organization.db would have the
+    moment before migration 15 first runs against it."""
+    import sovereign_agent.database as database_module
+
+    connection = sqlite3.connect(path)
+    for version, script in database_module.MIGRATIONS:
+        if version > 14:
+            break
+        for statement in database_module._split_statements(script):  # noqa: SLF001
+            connection.execute(statement)
+        connection.execute(
+            "INSERT INTO schema_migrations(version, applied_at) VALUES (?, datetime('now'))",
+            (version,),
+        )
+    connection.execute("INSERT INTO actors(id, record) VALUES ('operator-course', '{}')")
+    connection.execute("INSERT INTO outcomes(id, record) VALUES ('out_legacy', '{}')")
+    connection.execute(
+        "INSERT INTO sows(id, outcome_id, record) VALUES ('sow_legacy', 'out_legacy', ?)",
+        (json.dumps({"id": "sow_legacy", "created_at": "2026-01-01T00:00:00+00:00"}),),
+    )
+    connection.execute(
+        "INSERT INTO assignments(id, sow_id, actor_id, record) "
+        "VALUES ('asg_legacy', 'sow_legacy', 'operator-course', "
+        '\'{"id": "asg_legacy", "state": "COMPLETED"}\')'
+    )
+    connection.commit()
+    connection.close()
+
+
+def test_migration_15_fresh_install_creates_the_pulse_tables(tmp_path: Path) -> None:
+    path = tmp_path / "fresh.db"
+    db = Database(path)
+    assert 15 in db.applied_versions()
+    tables = {
+        row["name"]
+        for row in db.connection.execute("SELECT name FROM sqlite_master WHERE type = 'table'")
+    }
+    assert "pulse_wake_decisions" in tables
+    assert "pulse_origins" in tables
+
+
+def test_migration_15_upgrade_from_a_populated_unit8_database_preserves_every_record(
+    tmp_path: Path,
+) -> None:
+    path = tmp_path / "unit8.db"
+    _build_unit8_shaped_database(path)
+
+    db = Database(path)
+    assert db.applied_versions() == {version for version, _ in MIGRATIONS}
+    assert (
+        db.connection.execute("SELECT COUNT(*) AS c FROM sows WHERE id = 'sow_legacy'").fetchone()[
+            "c"
+        ]
+        == 1
+    ), "the upgrade destroyed a pre-existing SOW"
+    assert (
+        db.connection.execute(
+            "SELECT COUNT(*) AS c FROM assignments WHERE id = 'asg_legacy'"
+        ).fetchone()["c"]
+        == 1
+    ), "the upgrade destroyed a pre-existing assignment"
+
+
+def test_migration_15_backfills_an_explicit_manual_origin_for_every_pre_existing_sow(
+    tmp_path: Path,
+) -> None:
+    """Preservation and explicit manual-origin backfill: a SOW that existed
+    before Pulse was ever built gets its own 'manual' row, not silence."""
+    path = tmp_path / "unit8.db"
+    _build_unit8_shaped_database(path)
+
+    db = Database(path)
+    row = db.connection.execute(
+        "SELECT origin_kind, assignment_id, created_at FROM pulse_origins "
+        "WHERE sow_id = 'sow_legacy'"
+    ).fetchone()
+    assert row is not None, "no origin row was backfilled for a pre-existing SOW"
+    assert row["origin_kind"] == "manual"
+    assert row["assignment_id"] == "asg_legacy"
+    assert row["created_at"] == "2026-01-01T00:00:00+00:00"
+
+
+def test_migration_15_backfill_leaves_assignment_id_null_when_a_sow_has_no_single_assignment(
+    tmp_path: Path,
+) -> None:
+    """A SOW with zero (or more than one) assignment cannot be honestly bound
+    to exactly one -- NULL there, never a guess, while origin_kind stays
+    explicitly 'manual' regardless."""
+    import sovereign_agent.database as database_module
+
+    path = tmp_path / "unit8.db"
+    connection = sqlite3.connect(path)
+    for version, script in database_module.MIGRATIONS:
+        if version > 14:
+            break
+        for statement in database_module._split_statements(script):  # noqa: SLF001
+            connection.execute(statement)
+        connection.execute(
+            "INSERT INTO schema_migrations(version, applied_at) VALUES (?, datetime('now'))",
+            (version,),
+        )
+    connection.execute("INSERT INTO outcomes(id, record) VALUES ('out_legacy', '{}')")
+    connection.execute(
+        "INSERT INTO sows(id, outcome_id, record) VALUES ('sow_orphan', 'out_legacy', '{}')"
+    )
+    connection.commit()
+    connection.close()
+
+    db = Database(path)
+    row = db.connection.execute(
+        "SELECT origin_kind, assignment_id FROM pulse_origins WHERE sow_id = 'sow_orphan'"
+    ).fetchone()
+    assert row is not None
+    assert row["origin_kind"] == "manual"
+    assert row["assignment_id"] is None
+
+
+def test_migration_15_rolls_back_on_malformed_unattributable_sow_data(tmp_path: Path) -> None:
+    """Fail closed, without stamping the migration, when a pre-existing SOW's
+    record cannot be honestly read -- rather than silently fabricating a
+    created_at or skipping the row."""
+    import sovereign_agent.database as database_module
+
+    path = tmp_path / "unit8.db"
+    connection = sqlite3.connect(path)
+    for version, script in database_module.MIGRATIONS:
+        if version > 14:
+            break
+        for statement in database_module._split_statements(script):  # noqa: SLF001
+            connection.execute(statement)
+        connection.execute(
+            "INSERT INTO schema_migrations(version, applied_at) VALUES (?, datetime('now'))",
+            (version,),
+        )
+    connection.execute("INSERT INTO outcomes(id, record) VALUES ('out_legacy', '{}')")
+    connection.execute(
+        "INSERT INTO sows(id, outcome_id, record) VALUES "
+        "('sow_bad', 'out_legacy', 'not valid json')"
+    )
+    connection.commit()
+    connection.close()
+
+    with pytest.raises(sqlite3.OperationalError):
+        Database(path)
+
+    inspector = sqlite3.connect(path)
+    try:
+        stamped = [
+            int(row[0]) for row in inspector.execute("SELECT version FROM schema_migrations")
+        ]
+        assert 14 in stamped
+        assert 15 not in stamped, "a failed migration was stamped as applied"
+        table_names = {
+            row[0]
+            for row in inspector.execute("SELECT name FROM sqlite_master WHERE type = 'table'")
+        }
+        assert "pulse_origins" not in table_names, (
+            "a partially-applied migration left a table behind"
+        )
+        assert (
+            inspector.execute("SELECT COUNT(*) FROM sows WHERE id = 'sow_bad'").fetchone()[0] == 1
+        ), "the migration's own rollback destroyed the pre-existing (malformed) row"
+    finally:
+        inspector.close()
+
+    # A hand-repaired row lets a fresh open succeed and stamp 15 normally.
+    repair = sqlite3.connect(path)
+    repair.execute(
+        "UPDATE sows SET record = ? WHERE id = 'sow_bad'",
+        (json.dumps({"id": "sow_bad", "created_at": "2026-01-01T00:00:00+00:00"}),),
+    )
+    repair.commit()
+    repair.close()
+    recovered = Database(path)
+    assert 15 in recovered.applied_versions()
+
+
+def test_migration_15_rolls_back_completely_on_a_simulated_sql_failure(tmp_path: Path) -> None:
+    import sovereign_agent.database as database_module
+
+    path = tmp_path / "unit8.db"
+    _build_unit8_shaped_database(path)
+
+    broken_migration_15 = database_module.MIGRATION_15 + "\nSELECT this_is_not_valid_sql_syntax;"
+    broken_migrations = tuple(
+        (15, broken_migration_15) if version == 15 else (version, script)
+        for version, script in database_module.MIGRATIONS
+    )
+    with patch.object(database_module, "MIGRATIONS", broken_migrations):
+        with pytest.raises(sqlite3.OperationalError):
+            Database(path)
+
+    inspector = sqlite3.connect(path)
+    try:
+        stamped = [
+            int(row[0]) for row in inspector.execute("SELECT version FROM schema_migrations")
+        ]
+        assert 15 not in stamped
+        table_names = {
+            row[0]
+            for row in inspector.execute("SELECT name FROM sqlite_master WHERE type = 'table'")
+        }
+        assert "pulse_wake_decisions" not in table_names
+        assert (
+            inspector.execute("SELECT COUNT(*) FROM sows WHERE id = 'sow_legacy'").fetchone()[0]
+            == 1
+        )
+    finally:
+        inspector.close()
+
+    recovered = Database(path)
+    assert 15 in recovered.applied_versions()
+
+
+def test_migration_15_foreign_key_uniqueness_and_append_only_enforcement(tmp_path: Path) -> None:
+    from reference_organizations.store import record_sale, seed
+    from reference_organizations.store.pulse_gate import store_wake_gate
+    from sovereign_agent.organization import Organization
+    from sovereign_agent.pulse import run_pulse_once
+
+    org = Organization.init(tmp_path)
+    seed(org.db)
+    outcome = org.create_outcome(
+        "t", "d", ["inventory_at_or_above_reorder_point"], "principal-human", "SKU-TEA"
+    )
+    org.activate(outcome.id, "master-course")
+    signal = record_sale(org.db, "SKU-TEA", 2, 400)
+    source_event_id = org.db.connection.execute(
+        "SELECT id FROM events WHERE kind = 'sale.committed'"
+    ).fetchone()["id"]
+    db = org.db
+
+    with pytest.raises(sqlite3.IntegrityError, match="FOREIGN KEY"):
+        db.connection.execute(
+            "INSERT INTO pulse_wake_decisions(id, source_signal_id, source_event_id, "
+            "subject, decided_at) VALUES ('pdec_x', 'sig_missing', 'evt_missing', "
+            "'SKU-TEA', datetime('now'))"
+        )
+
+    # A real, production-created decision and origin row, through the same
+    # mechanism the rest of the proof matrix uses -- gives this test a real
+    # row to enforce append-only and duplicate-prevention against.
+    report = run_pulse_once(org, store_wake_gate)
+    assert len(report.created) == 1
+
+    with pytest.raises(sqlite3.IntegrityError, match="UNIQUE"):
+        db.connection.execute(
+            "INSERT INTO pulse_wake_decisions(id, source_signal_id, source_event_id, "
+            "subject, decided_at) VALUES ('pdec_dup', ?, ?, 'SKU-TEA', datetime('now'))",
+            (signal.id, source_event_id),
+        )
+    with pytest.raises(sqlite3.IntegrityError, match="append-only"):
+        db.connection.execute(
+            "DELETE FROM pulse_wake_decisions WHERE source_signal_id = ?", (signal.id,)
+        )
+    with pytest.raises(sqlite3.IntegrityError, match="append-only"):
+        db.connection.execute("UPDATE pulse_origins SET origin_kind = 'manual'")
+
+
+def test_migration_15_is_idempotently_recognized_after_success(tmp_path: Path) -> None:
+    path = tmp_path / "fresh.db"
+    first = Database(path)
+    stamps_first = first.connection.execute(
+        "SELECT applied_at FROM schema_migrations WHERE version = 15"
+    ).fetchall()
+
+    second = Database(path)
+    stamps_second = second.connection.execute(
+        "SELECT applied_at FROM schema_migrations WHERE version = 15"
+    ).fetchall()
+    assert [tuple(row) for row in stamps_first] == [tuple(row) for row in stamps_second]
