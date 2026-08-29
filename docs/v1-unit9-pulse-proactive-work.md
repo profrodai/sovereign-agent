@@ -1,9 +1,16 @@
 # Unit 9: Pulse and proactive governed work
 
-- **status:** PROPOSED (this status flips to `ACCEPTED` only in a separate,
-  Sparring-reviewed change — not by this stream, and not by this commit)
-- **authority:** principal (SOW authorization); acceptance is granted
-  separately, after independent review
+- **status:** ACCEPTED (Principal acceptance granted at exact head
+  `34868a5644f4087da847e74120a68fab355292ec`; merged into `main` at
+  `f3db778d9391d8c1d081774e6b992a093d5a5bd5`; Sparring's post-merge
+  acceptance-record audit filed as
+  [PR #35 comment 5462366663](https://github.com/zeroemployeeorg/sovereign-agent/pull/35#issuecomment-5462366663),
+  PASS with one non-blocking documentation finding, A-U9-2, closed
+  additively in this same change; this status flip itself lands as a
+  separate, Sparring-reviewed change — review before merge, not
+  authored-and-co-signed by the same act, not backdated)
+- **authority:** principal (ratified acceptance; the governing SOW and
+  ruling this unit closes are ratified by the same authority)
 - **base:** `main = 95ceb8d66b0734a3942d71d3510660c0f4109eb5` (the exact
   commit the Unit 9 SOW was reviewed and merged at; Units 0-8 ACCEPTED)
 - **governing SOW:**

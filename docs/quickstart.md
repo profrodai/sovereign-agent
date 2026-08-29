@@ -138,3 +138,10 @@ shelf was still empty. That gap is what the book is about.
 The organization does not wake itself up. You ran a command and work happened.
 Proactive waking is called Pulse and it does not exist yet; nothing here
 simulates it.
+
+**Added, Unit 9:** Pulse is now real production code (`sovereign-agent pulse
+--once`; see `docs/v1-unit9-pulse-proactive-work.md`). This quickstart's own
+walkthrough above remains exactly as it was — manually dispatched, and
+truthful about it — because it is teaching the Unit 5 slice, not the Unit 9
+one; nothing on this page has been silently upgraded to claim proactive
+behavior it does not demonstrate.
