@@ -173,6 +173,15 @@ teach; this document is left as the historical record of what a correct
 Units 0-6.5 session looked like, not silently rewritten to score a
 curriculum state it never evaluated.
 
+**Added, Unit 10:** that future evaluation now exists —
+[`docs/andrea-chapters-0-7-evaluation.md`](andrea-chapters-0-7-evaluation.md).
+It carries its own complete, replacement Task 7 and its own complete scoring
+instructions, assessing whether Andrea can explain and verify genuine
+proactive Pulse behaviour after completing Chapter 7. This document is not
+edited beyond this note and remains the correct evaluation for a session run
+against the Units 0-6.5 curriculum state exactly as it stood when this
+document was written.
+
 ## Scoring
 
 Maximum 14 (seven tasks × 2).
