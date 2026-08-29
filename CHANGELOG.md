@@ -22,13 +22,24 @@ a wake gate.
   per-occurrence component) -- a source row Pulse origin could not safely
   reference durably. Now a plain, append-only `INSERT`, with a genuinely
   unique key per occurrence.
-- **The canonical creation transaction.** `Organization.create_pulse_work`
-  claims one wake decision per source signal at the SQLite boundary
-  (`UNIQUE(source_signal_id)`, not a preflight scan) and reuses `create_sow`,
-  `ready_sow`, and `assign` -- the same production methods manual dispatch
-  uses -- never a copied or Pulse-only fork. A concurrent loser returns the
-  same SOW and assignment identifiers, never a second, competing pair,
-  proven with a REAL two-connection `threading.Barrier` race.
+- **The canonical creation transaction, genuinely atomic.**
+  `Organization.create_pulse_work` composes the wake-decision claim
+  (`UNIQUE(source_signal_id)` at the SQLite boundary, not a preflight scan),
+  the SOW's creation and transitions, the assignment, the genuine
+  `pulse.work_created` event, and the origin row inside ONE `db.immediate()`
+  transaction -- corrected from an original five-separate-commit shape
+  (Sparring's finding F-U9-1 on PR #35, confirmed by independent Principal
+  reproduction) that could durably strand a wake decision with no recovery
+  path if an ordinary exception landed between any two commits. `create_sow`,
+  `ready_sow`, and `assign` reuse connection-taking `_on` helpers shared with
+  their own unchanged public, single-call form -- manual dispatch calls the
+  exact same production methods it always did, never a copied or Pulse-only
+  fork. In-transaction revalidation (re-asking the wake gate under the
+  write lock, not merely before it) prevents stale work from a condition
+  that resolved between the caller's read and the lock being acquired. A
+  concurrent loser still returns the same SOW and assignment identifiers,
+  never a second, competing pair, re-proven under the atomic design with a
+  REAL two-connection `threading.Barrier` race.
 - **The Pulse component and the Store's own wake gate.**
   `sovereign-agent pulse --once --root PATH` reads durable signals, asks a
   caller-supplied wake gate, and invokes the existing production
@@ -45,13 +56,25 @@ a wake gate.
   pre-existing SOW.
 - Migration 15: `pulse_wake_decisions`, `pulse_origins`, both append-only.
 
-Tests grow from 281 to 322 (33 new in `tests/test_pulse.py`, 8 new migration
-tests in `tests/test_persistence.py`), including a mutation-checked proof
-for the four properties this unit exists to protect (the fix reverted, the
-specific test confirmed red, restored byte-identical, re-confirmed green) --
-see
+Tests grow from 281 to 332 (33 new in `tests/test_pulse.py` from the
+initial implementation, 8 new migration tests in `tests/test_persistence.py`,
+10 more in `tests/test_pulse.py` from the F-U9-1 correction below),
+including a mutation-checked proof for every decisive property this unit
+exists to protect (the fix reverted, the specific test confirmed red,
+restored byte-identical, re-confirmed green) -- see
 [docs/v1-unit9-pulse-proactive-work.md](docs/v1-unit9-pulse-proactive-work.md)
 for the full contract and proof matrix.
+
+**Review correction (PR #35, F-U9-1).** Sparring found, and the Principal
+independently reproduced, that the canonical creation transaction was not
+actually atomic: a fault between any two of its five original separate
+commits durably stranded the wake decision, and `source_signal_id`'s own
+`UNIQUE` constraint then made every retry impossible -- the signal was
+orphaned permanently. Closed by composing all five writes into one
+`db.immediate()` transaction (see above); the source-line budget was raised
+from 6000 to 6250 to accommodate the honest cost of that composition
+(`scripts/verify_source_budget.py`'s own comment records the ruling; module
+and export ceilings are unchanged).
 
 **Not claimed:** credentialed Claude/Codex/Cursor provider tests remain
 deselected and unrun. No OS service, scheduling, cron, or webhooks. No

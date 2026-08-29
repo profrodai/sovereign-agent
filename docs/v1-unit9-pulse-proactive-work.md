@@ -11,6 +11,20 @@
 - **governing ruling:**
   [`docs/rulings/2026-08-29-unit9-pulse-is-separate-from-supervisor.md`](rulings/2026-08-29-unit9-pulse-is-separate-from-supervisor.md)
 - **applies_to:** Sovereign Agent 1.x, Unit 9
+- **review history:** PR #35, first head `690e8ddd`. Sparring's independent
+  review found F-U9-1: `Organization.create_pulse_work` was five separate
+  SQLite commits, not the one atomic transaction the governing SOW
+  explicitly requires — an ordinary exception between any two of them left
+  a wake decision durably stranded, with `source_signal_id`'s own `UNIQUE`
+  constraint then permanently refusing every retry. The Principal
+  independently reproduced the defect before routing it back. Corrected at
+  this head by composing the wake decision, the SOW's creation and
+  transitions, the assignment, the event, and the origin row into one
+  `db.immediate()` transaction, plus in-transaction revalidation — see
+  Property 3 below for the full account, and the mutation-checking section
+  for the falsification. The correction also raised the source-line budget
+  from 6000 to 6250 (module and export ceilings unchanged) — see Budget
+  impact below.
 
 This document follows `docs/v1-unit8-supervisor-fencing-recovery.md` and
 `docs/v1-unit7-workspace-lifecycle.md`'s own shape: a contract stated as
@@ -92,24 +106,66 @@ and the `sale.committed` event.
 
 `Organization.create_pulse_work` (`src/sovereign_agent/organization.py`) is
 the single production path from a fired wake decision to durable, governed
-work:
+work. It composes, inside **one** `db.immediate()` transaction:
 
-1. It attempts an `INSERT` into `pulse_wake_decisions`, whose
-   `UNIQUE(source_signal_id)` constraint (migration 15) **is** the "one
-   canonical wake decision per source signal" enforcement — at the SQLite
-   boundary, not a preflight `SELECT`. Two concurrent callers racing the
-   same signal both attempt this insert inside their own `db.immediate()`;
-   exactly one wins.
-2. The winner reuses `create_sow`, `ready_sow`, and `assign` — the exact
-   same production methods manual dispatch uses, never a copied or
-   Pulse-only fork.
-3. It appends a genuine `pulse.work_created` event and inserts one
-   `pulse_origins` row tying the wake decision, the event, the SOW, and the
-   assignment together.
-4. A concurrent loser, having lost the `UNIQUE` race, polls briefly
-   (bounded, local SQLite reads only) for the winner's own `pulse_origins`
-   row to land, then returns the **same** SOW and assignment identifiers —
-   never a second, competing pair.
+1. Revalidation, when the caller supplies one, run INSIDE the open
+   transaction, immediately before anything is written — the qualifying
+   condition could have changed between the caller's own read and this
+   transaction actually acquiring its write lock.
+2. An `INSERT` into `pulse_wake_decisions`, whose `UNIQUE(source_signal_id)`
+   constraint (migration 15) **is** the "one canonical wake decision per
+   source signal" enforcement — at the SQLite boundary, not a preflight
+   `SELECT`. Two concurrent callers racing the same signal both attempt this
+   insert on the same connection-level lock; `db.immediate()`'s own
+   `BEGIN IMMEDIATE` means one blocks until the other's ENTIRE transaction
+   — not just this one insert — has committed or rolled back.
+3. The SOW's creation and its `READY`/`ASSIGNED` transitions, and the
+   assignment's creation.
+4. A genuine `pulse.work_created` event.
+5. One `pulse_origins` row tying the wake decision, the event, the SOW, and
+   the assignment together.
+
+**F-U9-1, corrected.** The original implementation split this across FIVE
+separate commits: the `pulse_wake_decisions` insert in its own
+`db.immediate()`, then `create_sow`'s, `ready_sow`'s, and `assign`'s own
+individually-transactional calls in sequence, then a final `db.transaction()`
+for the origin row — despite this same section, at the time, claiming "the
+INSERT above committed synchronously as its own transaction" as though that
+were a safe, deliberate design rather than the defect it was. Sparring found,
+and the Principal independently reproduced (PR #35), that an ordinary
+exception between any two of those five commits — no crash required, any
+`Refusal` or bug anywhere in the sequence — left the wake decision durably
+stranded: `pulse_wake_decisions` had a row, `pulse_origins`/`sows`/
+`assignments` had none. Because `source_signal_id` is `UNIQUE`, no retry
+could ever re-claim that signal afterward — `_wait_for_pulse_origin` found
+no origin row to resolve to and raised `wake_decision_contended` instead of
+recovering. The signal was orphaned permanently, with no automatic or manual
+recovery short of direct database surgery. (This was never the SOW's own
+named "crash after canonical creation but before provider invocation" case —
+`pulse.py`'s `_resumable_signals` already handled that one correctly; F-U9-1
+was a narrower, unnamed window strictly inside canonical creation itself.)
+
+Fixed by extracting `_create_sow_on`/`_ready_sow_on`/`_assign_on` — the same
+writes `create_sow`/`ready_sow`/`assign` perform, taking an already-open
+connection instead of opening their own — and composing all five steps above
+on one connection, inside one `db.immediate()`. `create_sow`, `ready_sow`,
+and `assign` themselves are unchanged as public, single-call entry points:
+each is now a thin wrapper that opens its own transaction, delegates to its
+`_on` helper, commits, and projects — manual dispatch calls the exact same
+production methods it always did, and nothing here forks a Pulse-only path.
+Projection happens only after `create_pulse_work`'s transaction commits,
+never folded into it, matching every other write path in this class.
+
+A concurrent loser — genuinely arriving after the winner's full transaction
+has committed, not merely after its first statement — polls briefly
+(bounded, local SQLite reads only) for the winner's own `pulse_origins` row
+to land, then returns the **same** SOW and assignment identifiers, never a
+second, competing pair. This concurrency behavior is unchanged in substance
+from before the fix and re-verified as its own named property under the new
+atomic design (see the proof matrix below) — `db.immediate()`'s reserved
+lock, taken up front, is what always made two callers unable to interleave
+their writes for one signal; composing more work inside that same lock does
+not weaken it.
 
 `create_sow` itself was changed to insert an explicit origin row — `manual`
 by default — for **every** SOW at creation time, deferred to the Pulse
@@ -264,6 +320,18 @@ python -m pytest -q tests/test_pulse.py -k \
 # simulated SQL failure, FK/uniqueness/append-only, idempotent re-open
 python -m pytest -q tests/test_persistence.py -k "migration_15"
 
+# F-U9-1: the canonical creation transaction is genuinely atomic. A fault at
+# EVERY remaining write boundary (SOW creation, the READY transition,
+# assignment creation, the pulse.work_created event) rolls back the ENTIRE
+# chain, not just the wake decision; a signal orphaned by such a fault
+# remains eligible and a retry creates exactly one canonical chain, driven
+# both directly and through the real run_pulse_once entry point; two real
+# processes still converge on one canonical creation and the loser still
+# reads the winner's committed identifiers, both re-verified under the new
+# atomic design; in-transaction revalidation prevents stale work; and the
+# provider is never invoked against an incomplete origin chain
+python -m pytest -q tests/test_pulse.py -k   "fault_at_every or remains_eligible_after or recovers_a_signal_orphaned or converge_on_one_canonical_creation_under_the_atomic or losing_contender_reads_the_winners or revalidation_inside or provider_invocation_never_sees"
+
 # Credential absence confirmed -- must be empty, same as every prior unit
 env | grep -Ei "ANTHROPIC|CLAUDE_CODE_OAUTH|CODEX_API|CURSOR_API" || true
 
@@ -313,6 +381,23 @@ pristine state (`diff`) before restoring, and green was re-confirmed.
    qualifying, already-committed sale) went red under the same mutation.
    Restored.
 
+A fifth round followed Sparring's own independent finding on PR #35,
+F-U9-1, confirmed by the Principal's own direct reproduction before routing
+to this stream:
+
+5. **The atomic transaction, re-split into two** — `create_pulse_work`'s
+   single `db.immediate()` block was deliberately re-divided into the
+   wake-decision `INSERT`'s own separately-committing transaction followed
+   by a second transaction for the SOW/assignment/event/origin writes,
+   reproducing F-U9-1's original defect shape exactly.
+   `test_a_fault_at_every_creation_boundary_rolls_back_the_entire_chain`
+   (parametrized across all four remaining write boundaries),
+   `test_the_signal_remains_eligible_after_a_full_rollback_and_a_retry_creates_exactly_one_chain`,
+   and `test_run_pulse_once_recovers_a_signal_orphaned_by_a_mid_transaction_fault`
+   all went red — each reproducing the exact stranded shape the original
+   report named (`pulse_wake_decisions: 1`, every other table `0`).
+   Restored, confirmed byte-identical via `diff` before re-confirming green.
+
 ## Budget impact
 
 Reproduced by `scripts/verify_source_budget.py`, before and after this
@@ -321,7 +406,8 @@ unit's change, both figures read from the script's own printed output.
 | | modules | nonblank lines | root exports |
 | --- | --- | --- | --- |
 | Before (Unit 8 accepted, `95ceb8d6`) | 26/40 | 5473/6000 | 7/30 |
-| After (this unit) | 27/40 | 5991/6000 | 7/30 |
+| After (initial implementation, PR #35 first head) | 27/40 | 5991/6000 | 7/30 |
+| After (F-U9-1 correction; ceiling raised to 6250) | 27/40 | 6139/6250 | 7/30 |
 
 One new module in the budgeted package: `src/sovereign_agent/pulse.py`. No
 new root export — `pulse` is called internally by `cli.py`; nothing from it
@@ -332,9 +418,24 @@ by this budget, per the script's own scope
 own preference for a Store-specific gate living outside the budgeted
 package rather than a parallel abstraction inside it.
 
-Headroom remaining: 13 modules, 9 nonblank lines, 23 root exports. The
-9-line margin is real and was watched continuously during implementation,
-not discovered at the end — no code was compressed to fit it.
+**The ceiling itself changed.** Principal ruling on PR #35 (F-U9-1, see
+Property 3 above): the initial implementation's canonical creation
+transaction was five separate SQLite commits, not one atomic transaction,
+despite the governing SOW's explicit requirement — a defect that could
+durably strand a wake decision with no recovery path. Closing it honestly
+required composing `create_sow`/`ready_sow`/`assign`'s own writes into
+connection-taking `_on` helpers `create_pulse_work` could share inside one
+`db.immediate()` block, plus the in-transaction revalidation the same
+ruling required. That composition did not fit the original 6000-line
+ceiling without cramping the code to force it, so the Principal raised
+`scripts/verify_source_budget.py`'s own `MAX_NONBLANK_LINES` from 6000 to
+6250 — module (40) and root-export (30) ceilings are unchanged — recorded
+in that script's own comment above the constant, not only here.
+
+Headroom remaining: 13 modules, 111 nonblank lines, 23 root exports. Both
+the original 9-line margin and this correction's own margin were watched
+continuously during implementation, not discovered at the end — no code was
+compressed to fit either ceiling.
 
 ## What this unit did not do
 
