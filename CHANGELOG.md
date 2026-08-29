@@ -6,6 +6,57 @@ Repository: [`zeroemployeeorg/sovereign-agent`](https://github.com/zeroemployeeo
 
 ## Unreleased
 
+### Pulse and proactive governed work (Unit 9)
+
+Closes the gap between the manually dispatched Unit 5 Store pipeline and
+sequencing amendment 5's proactive milestone: "sale → inventory signal →
+deterministic wake gate → pulse → replenishment work created without a
+human prompt." Pulse is a **distinct mechanism from the supervisor**, per
+[the governing ruling](docs/rulings/2026-08-29-unit9-pulse-is-separate-from-supervisor.md):
+`supervisor.tick()` is unchanged, still never reads a Pulse signal or fires
+a wake gate.
+
+- **Signal stability.** A committed sale signal was previously replaced,
+  not appended, when a later sale happened to leave inventory at the same
+  level (`INSERT OR REPLACE`, keyed implicitly on a `dedupe_key` with no
+  per-occurrence component) -- a source row Pulse origin could not safely
+  reference durably. Now a plain, append-only `INSERT`, with a genuinely
+  unique key per occurrence.
+- **The canonical creation transaction.** `Organization.create_pulse_work`
+  claims one wake decision per source signal at the SQLite boundary
+  (`UNIQUE(source_signal_id)`, not a preflight scan) and reuses `create_sow`,
+  `ready_sow`, and `assign` -- the same production methods manual dispatch
+  uses -- never a copied or Pulse-only fork. A concurrent loser returns the
+  same SOW and assignment identifiers, never a second, competing pair,
+  proven with a REAL two-connection `threading.Barrier` race.
+- **The Pulse component and the Store's own wake gate.**
+  `sovereign-agent pulse --once --root PATH` reads durable signals, asks a
+  caller-supplied wake gate, and invokes the existing production
+  `run_assignment()` path for qualifying work -- never bypassing Unit 8's
+  actor-lease or execution-attempt fencing. The Store's own gate (a genuine
+  sale-origin signal, still below reorder when re-checked live, mapped to
+  exactly one active outcome) lives outside `sovereign_agent`'s own module
+  budget, in `reference_organizations/store`.
+- **Structured, durable origin.** Every SOW -- manual or Pulse-created, new
+  or migrated -- carries an explicit `pulse_origins` row (`origin_kind`,
+  `wake_decision_id`, `pulse_event_id`, `sow_id`, `assignment_id`). Absence
+  of a row is never the definition of manual: `create_sow` inserts one for
+  every SOW at creation time, and migration 15 backfills one for every
+  pre-existing SOW.
+- Migration 15: `pulse_wake_decisions`, `pulse_origins`, both append-only.
+
+Tests grow from 281 to 322 (33 new in `tests/test_pulse.py`, 8 new migration
+tests in `tests/test_persistence.py`), including a mutation-checked proof
+for the four properties this unit exists to protect (the fix reverted, the
+specific test confirmed red, restored byte-identical, re-confirmed green) --
+see
+[docs/v1-unit9-pulse-proactive-work.md](docs/v1-unit9-pulse-proactive-work.md)
+for the full contract and proof matrix.
+
+**Not claimed:** credentialed Claude/Codex/Cursor provider tests remain
+deselected and unrun. No OS service, scheduling, cron, or webhooks. No
+automatic retry policy for failed governed work.
+
 ### Supervisor, fencing, and hard-kill recovery (Unit 8)
 
 A worker that no longer holds the current lease could still commit

@@ -17,10 +17,17 @@ you to take on faith.
 
 ## What is not here yet
 
-Pulse — the organization waking itself up — is Unit 9. Nothing in these chapters
-simulates a Pulse event, and the store demo is explicitly manually dispatched. A
-chapter that promised proactive behaviour before the code could do it would be
-the same kind of lie this book spends Chapter 2 teaching you to catch.
+Pulse — the organization waking itself up — was Unit 9's own future territory
+when this section was written. Nothing in Chapters 0-3 simulates a Pulse
+event, and their store demo is explicitly manually dispatched. A chapter that
+promised proactive behaviour before the code could do it would be the same
+kind of lie this book spends Chapter 2 teaching you to catch.
+
+**Added, Unit 9:** Pulse is now real production code (`sovereign-agent pulse
+--once`; see `docs/v1-unit9-pulse-proactive-work.md`), but no chapter below
+exercises it yet — that editorial work is Unit 10's, not silently folded in
+here. Chapters 0-3 remain exactly as they were: manually dispatched, and
+truthful about it.
 
 ## Every chapter contains
 

@@ -114,10 +114,10 @@ decide on its own that the tea needs reordering. Every step you just watched was
 dispatched because the demo dispatched it.
 
 That capacity — the organization waking itself and creating work with nobody
-prompting it — is called **Pulse**, and it does not exist yet. It arrives in
-Unit 9. Nothing in this book simulates it, and no event in the ledger you just
-inspected pretends otherwise. You can check that claim the same way you checked
-the others:
+prompting it — is called **Pulse**. This exercise does not run it: the demo
+above dispatches every step by hand, and no event in the ledger you just
+inspected pretends otherwise. You can check that claim the same way you
+checked the others:
 
 ```bash
 sqlite3 /tmp/andrea-shift/.sovereign/organization.db \
@@ -125,7 +125,13 @@ sqlite3 /tmp/andrea-shift/.sovereign/organization.db \
 ```
 
 Every `kind` describes something a human or a governed actor did. There is no
-`pulse.*` anywhere, because there is no Pulse.
+`pulse.*` anywhere in THIS run, because this exercise never calls Pulse.
+
+**Added, Unit 9:** Pulse is now real, as a separate mechanism you invoke
+yourself with `sovereign-agent pulse --once --root PATH` — it is not this
+chapter's exercise, and it never runs itself. See
+`docs/v1-unit9-pulse-proactive-work.md` for the sale-to-proactive-work slice
+this chapter's own dispatched-by-hand version is contrasted against.
 
 Knowing what a system cannot yet do is part of knowing what it does.
 
