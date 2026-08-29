@@ -4,7 +4,7 @@
 sow: sovereign-agent-v1-unit10-curriculum-completion
 project: sovereign-agent
 unit: 10
-status: AUTHORIZED_ON_MERGE
+status: PROPOSED
 authority: principal
 base_commit: e6ce2bd3b3ec266a64c7705b4d55f587eee44730
 governing_documents:
@@ -23,10 +23,24 @@ Principal's rulings on the seven open questions the read-only scope descent surf
 (`.unit10/SCOPE-DESCENT.md`, untracked staging evidence, superseded by this SOW as
 the citable authority).
 
-Before implementation begins, file this SOW in the repository, route it through
-Sparring review, and merge the reviewed text into `main`. Implementation begins from
-that resulting exact merged commit — not from the drafting branch and not from
-`e6ce2bd3` if `main` has advanced.
+**Filing and reviewing this SOW does not, by itself, authorize implementation.** The
+Principal's authorization for Unit 10 was explicitly narrower than prior units:
+read-only scope descent and SOW preparation only, with implementation requiring a
+*separate* Principal decision after this SOW is merged and verified — not something
+this document, or its own merge, may grant itself.
+
+The sequence is:
+
+1. File this SOW in the repository, route it through Sparring review, and merge the
+   reviewed text into `main`. Merging establishes the reviewed implementation
+   contract; it does not start implementation.
+2. Gate merged `main` from a clean clone, confirming the merge introduced no drift
+   from the reviewed head.
+3. Master requests explicit Principal authorization, bound to the exact merged SOW
+   commit, before opening any implementation branch or spawning any stream work.
+4. Only on that separate authorization does implementation begin, from the resulting
+   exact merged commit — not from the drafting branch and not from `e6ce2bd3` if
+   `main` has advanced past this SOW's own merge.
 
 A changed SOW head invalidates an earlier co-sign. Branch reconciliation must use an
 allowed, auditable PR-based mechanism; do not substitute a local history rewrite for
@@ -263,33 +277,48 @@ confirm the mutation actually landed (diff-stat), then restore and confirm green
 
 ### 5. Andrea evaluation extension (Question 7, resolved)
 
-The post-Unit-9 evaluation task belongs to Unit 10, not left unassigned.
+The post-Unit-9 evaluation task belongs to Unit 10, not left unassigned — closing
+the gap that `docs/andrea-alpha-evaluation.md`'s own A-U9-2 note named: "A future
+evaluation covering post-Unit-9 curriculum will need its own task 7 and its own
+scoring key" (`docs/andrea-alpha-evaluation.md:169-170`).
 
-Add a new Task 7 and scoring key to `docs/andrea-alpha-evaluation.md`, assessing
-whether Andrea can explain and verify genuine proactive Pulse behavior after
-completing Chapter 7 — closing the gap that document's own A-U9-2 note named:
-"A future evaluation covering post-Unit-9 curriculum will need its own task 7 and
-its own scoring key" (`docs/andrea-alpha-evaluation.md:169-170`).
+**A new task must not be added to `docs/andrea-alpha-evaluation.md` itself.** That
+document's own title — "Andrea Alpha evaluation (Units 0–6.5)" — is a historical
+scope statement; adding a post-Unit-9 task to it while leaving that title unedited
+would make the file internally contradictory, claiming one scope while containing
+an evaluation task from a later one.
 
-This does NOT authorize the Unit 12 Andrea soak. The boundary is exact:
+Required instead:
 
-- Unit 10 authors the offline task and rubric, and mechanically validates that
-  the underlying commands/predictions in the new task actually work (matching how
-  `docs/andrea-alpha-evaluation.md`'s existing "Automated pre-check" section,
-  `scripts/evaluate_andrea_alpha.py`, already validates the machine-checkable
-  parts of the existing six tasks).
-- Unit 12 performs the timed, human, Andrea-profile soak and release evaluation
-  using this new task alongside the existing six.
-- No credentialed provider execution is introduced in Unit 10. The new task, like
-  every existing one, runs entirely offline on the `scripted` provider.
+- **`docs/andrea-alpha-evaluation.md` is preserved exactly as the historical
+  Units 0–6.5 evaluation**, including its original Task 7 and scoring key
+  (`docs/andrea-alpha-evaluation.md:152-160`), untouched. That document's own
+  title correctly scopes it, and a session run against that curriculum state
+  still correctly used the original criterion — it is not edited, not
+  superseded, not deprecated.
+- **Create `docs/andrea-chapters-0-7-evaluation.md`** for the post-Unit-9
+  evaluation. It may reference Tasks 1-6 from the historical document rather than
+  duplicating them, but must provide its own complete, replacement Task 7 and its
+  own complete scoring instructions — assessing whether Andrea can explain and
+  verify genuine proactive Pulse behavior after completing Chapter 7.
+- **Add an additive link** from the historical document's existing Unit 9 note
+  (`docs/andrea-alpha-evaluation.md:161-172`, the note added by the A-U9-2 fix) to
+  the new evaluation document — following the same additive-historical pattern
+  this project already established for exactly this file, extended one step
+  further: not just noting that a future evaluation is needed, but pointing at it
+  once it exists.
+- **Mechanically validate** the new document's Task 7 offline commands and the
+  production behavior underlying them, matching how
+  `scripts/evaluate_andrea_alpha.py` already validates the machine-checkable
+  parts of the historical document's six tasks — either by extending that script
+  to cover the new document, or by an equivalent new script; do not add an
+  untested rubric.
 
-The original Units 0-6.5-scoped task 7 and its scoring key
-(`docs/andrea-alpha-evaluation.md:152-160`) are left exactly as they are — that
-document's own title correctly scopes it to "Units 0–6.5," and a session run
-against that curriculum state still correctly used the original criterion. The
-new post-Unit-9 task is added alongside it, not a replacement, following the
-additive-historical pattern this project already established for exactly this
-document in the A-U9-2 fix.
+This does NOT authorize the Unit 12 Andrea soak. The boundary is exact: Unit 10
+authors and mechanically validates the new offline task and rubric; Unit 12
+performs the timed, human, Andrea-profile soak and release evaluation using it. No
+credentialed provider execution is introduced in Unit 10 — the new task, like
+every existing one, runs entirely offline on the `scripted` provider.
 
 ## Explicit non-scope
 
@@ -353,6 +382,10 @@ already applies. Live-provider tests remain deselected and must be reported as
 unrun.
 
 ## Review and merge ritual
+
+This ritual governs the implementation PR, which may only begin after the separate
+Principal authorization required by the "Authorization" section above — not
+immediately on this SOW's own merge.
 
 1. Stream implements on `unit-10/curriculum-completion`; it does not open or merge
    its own PR.
