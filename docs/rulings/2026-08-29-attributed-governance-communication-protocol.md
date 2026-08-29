@@ -79,12 +79,17 @@ unambiguous.
 
 ## Current operative state (reconciled at filing)
 
-This section was not part of the Principal's decision text. It was written by
-the filer to reflect the state known at the moment of filing, which had already
-moved past the state described in the Principal's original message — durable
+This section WAS part of the Principal's decision message — the Principal's
+message ended with a `Current operative state` section of five bullets. The
+filer transcribed four of those five bullets unedited. The third bullet was
+reconciled, not transcribed: the Principal's message said "PR #36 remains
+pending Sparring review"; by the time this ruling was filed, that review had
+already landed, and the filer updated the bullet to say so without flagging
+the change as an edit rather than a transcription. That one silently-edited
+bullet is the entire reason the "word for word" claim was false — durable
 source: [PR #36 review `5058066389`](https://github.com/zeroemployeeorg/sovereign-agent/pull/36#pullrequestreview-5058066389),
-`APPROVED` at exact head `cbeeca6f73ef44e47a8a2b5f2545406971dc2445`, filed before
-this ruling was.
+`APPROVED` at exact head `cbeeca6f73ef44e47a8a2b5f2545406971dc2445`, submitted
+`2026-08-29T12:25:36Z`, before this ruling was filed at `12:51:26Z`.
 
 * Unit 9 implementation is merged at `f3db778d9391d8c1d081774e6b992a093d5a5bd5`.
 * Its post-merge audit is `PASS`, with A-U9-2 addressed in PR #36.
@@ -140,14 +145,34 @@ the Principal's decision message — describing the ENTIRE filed document,
 including the "Current operative state" section, as verbatim. That was false.
 Only the protocol text itself (now "Protocol text (verbatim)" above) is
 verbatim to the Principal's decision message. The "Current operative state"
-section was never part of that message; it was written by the filer at the
-moment of filing to reflect facts that had already moved past what the
-Principal's original message said, most notably that PR #36 had already
-received Sparring's `APPROVED` review (`5058066389`) by the time this ruling
-was filed — a fact the Principal's original message could not have stated,
-since it predated that review. Caught and corrected same-day, additively:
-this section's own heading now says "reconciled at filing," not "verbatim,"
-the top summary paragraph says "faithfully transcribed... with current state
-explicitly reconciled," and the operative-state section names its durable
-source directly. The protocol text itself was never in question and remains
-unedited above.
+section WAS part of that message; what was false was "word for word," because
+the filer silently edited its `PR #36` bullet — from the Principal's own
+"remains pending Sparring review" to "is the reviewed status change from
+`PROPOSED` to `ACCEPTED`" — to reflect that Sparring's review had landed by
+filing time, without marking that bullet as reconciled rather than
+transcribed. That single edited bullet, not an invented section, is what made
+"word for word" false. Caught and corrected same-day, additively: this
+section's own heading now says "reconciled at filing," not "verbatim," the top
+summary paragraph says "faithfully transcribed... with current state
+explicitly reconciled," and the operative-state section states plainly that it
+was part of the Principal's message and names exactly which bullet was edited
+and why. The protocol text itself was never in question and remains unedited
+above.
+
+### Second correction (2026-08-29, same day): the first correction itself misstated the provenance it was correcting
+
+The paragraph above, in its first filed form, overcorrected: it claimed the
+"Current operative state" section "was never part of [the Principal's]
+message" and that the filer "wrote" it — both false against the bytes.
+Sparring's independent review of this PR (verdict `CHANGES_REQUESTED`, filed
+against head `7e1d35b3`) caught this directly, comparing the Principal's
+actual decision message against the filed ruling and the review timeline. The
+accurate account, which now stands above and in the "Current operative state"
+section itself: the section was genuinely present in the Principal's message,
+five bullets; the filer transcribed four unedited and silently edited the
+fifth (the `PR #36` bullet) to reflect a fact — Sparring's review having
+landed — that postdated the Principal's own wording. That is a more
+significant transcription deviation than inventing a section outright, not a
+smaller one, and a provenance-accuracy ruling cannot round it off in the
+filer's favor. Recorded here, additively, rather than silently rewritten,
+matching the same discipline this correction itself exists to model.
