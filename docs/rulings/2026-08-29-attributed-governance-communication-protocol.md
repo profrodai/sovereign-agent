@@ -170,7 +170,7 @@ actual decision message against the filed ruling and the review timeline. The
 accurate account, which now stands above and in the "Current operative state"
 section itself: the section was genuinely present in the Principal's message,
 five bullets; the filer transcribed four unedited and silently edited the
-fifth (the `PR #36` bullet) to reflect a fact — Sparring's review having
+third (the `PR #36` bullet) to reflect a fact — Sparring's review having
 landed — that postdated the Principal's own wording. That is a more
 significant transcription deviation than inventing a section outright, not a
 smaller one, and a provenance-accuracy ruling cannot round it off in the
