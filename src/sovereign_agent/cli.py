@@ -202,11 +202,37 @@ def _supervisor(namespace: argparse.Namespace) -> int:
     daemonization: this never forks, never detaches from its terminal, and
     never installs itself as an OS service. Distinct from the not-yet-built
     `service` (future OS-level install/status/uninstall, unimplemented) and
-    `pulse` (future proactive wake, Unit 9, unimplemented) -- this command is
-    the supervisor itself, the only one of the three this unit builds.
+    from `pulse` (Unit 9's own separate proactive-wake mechanism, implemented
+    below but never called from here -- see
+    docs/rulings/2026-08-29-unit9-pulse-is-separate-from-supervisor.md) --
+    this command is the supervisor itself, and it still never reads a Pulse
+    signal or fires a wake gate.
     """
     org = Organization(_root(namespace))
     return run_supervisor(org, once=namespace.once)
+
+
+def _pulse(namespace: argparse.Namespace) -> int:
+    """Unit 9: sale -> signal -> deterministic wake gate -> proactive work.
+
+    A distinct mechanism from `supervisor`, never called from it and never
+    calling it (see the governing ruling). `--once` is the only shape this
+    unit builds: one deterministic pass over durable signals, then exit --
+    no looping, no scheduling, no OS service.
+    """
+    from reference_organizations.store.pulse_gate import store_wake_gate
+    from sovereign_agent.pulse import run_pulse_once
+
+    org = Organization(_root(namespace))
+    report = run_pulse_once(org, store_wake_gate)
+    for item in report.items:
+        print(
+            f"{item.signal_id} {item.status}"
+            + (f" sow={item.sow_id} assignment={item.assignment_id}" if item.sow_id else "")
+            + (f" ({item.detail})" if item.detail else "")
+        )
+    print(f"pulse: {len(report.created)} created, {len(report.items)} signal(s) evaluated")
+    return 0
 
 
 def _demo(namespace: argparse.Namespace) -> int:
@@ -319,8 +345,8 @@ def build_parser() -> argparse.ArgumentParser:
         help=(
             "reconcile leases, expired claims, and hard-killed assignments "
             "(the runtime loop; not 'service' [future OS hosting, "
-            "unimplemented] or 'pulse' [future proactive wake, Unit 9, "
-            "unimplemented])"
+            "unimplemented] or 'pulse' [the separate proactive-wake command "
+            "below, never called from here])"
         ),
     )
     supervisor.add_argument(
@@ -329,6 +355,23 @@ def build_parser() -> argparse.ArgumentParser:
         help="run a single deterministic reconciliation tick and exit, instead of looping",
     )
     supervisor.set_defaults(handler=_supervisor)
+
+    pulse = subparsers.add_parser(
+        "pulse",
+        parents=[shared],
+        help=(
+            "sale -> signal -> deterministic wake gate -> proactive governed "
+            "work, created without a human prompt (distinct from 'supervisor'; "
+            "'--once' is the only shape this command has)"
+        ),
+    )
+    pulse.add_argument(
+        "--once",
+        action="store_true",
+        required=True,
+        help="run a single deterministic pulse pass and exit (the only supported mode)",
+    )
+    pulse.set_defaults(handler=_pulse)
     return parser
 
 
