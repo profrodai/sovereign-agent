@@ -33,6 +33,7 @@ from __future__ import annotations
 
 from collections.abc import Callable
 from dataclasses import dataclass, field
+from functools import partial
 
 from sovereign_agent.errors import Refusal
 from sovereign_agent.models import Assignment, AssignmentState, Role, Signal
@@ -148,6 +149,14 @@ def _source_event_id(org: Organization, signal_id: str) -> str | None:
     return str(row["id"]) if row is not None else None
 
 
+def _still_qualifies(org: Organization, gate: WakeGate, signal: Signal) -> bool:
+    """The `revalidate` callback `create_pulse_work` calls INSIDE its own
+    open transaction (F-U9-1's fix) -- re-asks the SAME gate a second time,
+    under the write lock, rather than trusting the read `run_pulse_once`
+    took before the transaction existed."""
+    return gate(org, signal) is not None
+
+
 def run_pulse_once(org: Organization, gate: WakeGate) -> PulseReport:
     """One deterministic pass. No sleeping, no looping, no retry policy."""
     items: list[PulseItem] = []
@@ -168,8 +177,16 @@ def run_pulse_once(org: Organization, gate: WakeGate) -> PulseReport:
         if decision is None:
             items.append(PulseItem(signal.id, "skipped", detail="wake gate did not fire"))
             continue
+        # F-U9-1's fix: re-ask the SAME gate again, INSIDE create_pulse_work's
+        # own open transaction, immediately before anything is written. The
+        # condition this gate checked a moment ago (read outside any lock)
+        # could have changed by the time the transaction actually acquires
+        # its write lock -- a concurrent apply_restock resolving the exact
+        # signal this pass is about to act on, for instance. Re-checking
+        # only under the lock is what makes "still qualifies" mean something
+        # at the moment it is acted on, not merely at the moment it was read.
         try:
-            sow, assignment, created = org.create_pulse_work(
+            result = org.create_pulse_work(
                 source_signal_id=signal.id,
                 source_event_id=source_event_id,
                 subject=signal.subject_ref,
@@ -179,10 +196,21 @@ def run_pulse_once(org: Organization, gate: WakeGate) -> PulseReport:
                 planner_id=decision.planner_id,
                 worker_id=decision.worker_id,
                 required_effect_kind=decision.required_effect_kind,
+                revalidate=partial(_still_qualifies, org, gate, signal),
             )
         except Refusal as error:
             items.append(PulseItem(signal.id, "refused", detail=str(error)))
             continue
+        if result is None:
+            items.append(
+                PulseItem(
+                    signal.id,
+                    "skipped",
+                    detail="wake gate no longer fired once the transaction's lock was held",
+                )
+            )
+            continue
+        sow, assignment, created = result
         items.append(_invoke_or_report(org, signal.id, sow.id, assignment, created))
     return PulseReport(tuple(items))
 
