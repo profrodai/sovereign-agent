@@ -280,6 +280,25 @@ class ActorReport(StrictModel):
     notes: str = ""
 
 
+class PulseOrigin(StrictModel):
+    """The structured, queryable answer to "manual or Pulse, and from what?"
+
+    Ruling 2026-08-29-unit9-pulse-is-separate-from-supervisor, holding 2:
+    absence of a CLI invocation, process logs, or a manual-origin row is
+    NOT proof. Every SOW -- manually planned or Pulse-created -- gets
+    exactly one of these rows, so "which kind is this" is always a column
+    read, never an inference from what is missing.
+    """
+
+    id: str
+    origin_kind: str
+    sow_id: str
+    assignment_id: str | None = None
+    wake_decision_id: str | None = None
+    pulse_event_id: str | None = None
+    created_at: datetime
+
+
 class EventRecord(StrictModel):
     seq: int | None = None
     id: str

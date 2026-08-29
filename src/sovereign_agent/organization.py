@@ -4,6 +4,8 @@ from __future__ import annotations
 
 import json
 import shutil
+import time
+from datetime import datetime
 from pathlib import Path
 from typing import Any
 
@@ -32,6 +34,7 @@ from sovereign_agent.models import (
     Message,
     Outcome,
     OutcomeState,
+    PulseOrigin,
     Receipt,
     Review,
     Role,
@@ -163,7 +166,18 @@ class Organization:
         role: Role,
         actor_id: str,
         required_effect_kind: str | None = None,
+        *,
+        _pulse_origin_pending: bool = False,
     ) -> StatementOfWork:
+        """Create a SOW. Every caller gets an explicit origin row -- `manual`
+        here, unless `_pulse_origin_pending` (set only by
+        `create_pulse_work`, never by a public caller) defers that insert to
+        the Pulse creation transaction's own `pulse` row a few statements
+        later. Ruling 2026-08-29-unit9-pulse-is-separate-from-supervisor,
+        holding 2: "no Pulse-origin row exists" must never be the
+        definition of manual -- every SOW gets a row, at creation time,
+        never inferred later from absence.
+        """
         actor = self.actor(actor_id)
         require_authority(actor.role, "plan")
         sow = StatementOfWork(
@@ -181,6 +195,12 @@ class Organization:
         with self.db.transaction():
             self.db.put("sows", sow.id, sow.model_dump(mode="json"))
             append_event(self.db, "sow.created", {"id": sow.id})
+            if not _pulse_origin_pending:
+                self.db.connection.execute(
+                    "INSERT INTO pulse_origins(id, origin_kind, sow_id, created_at) "
+                    "VALUES (?, 'manual', ?, ?)",
+                    (new_id("porg"), sow.id, sow.created_at.isoformat()),
+                )
         self._project_outcome(outcome_id)
         return sow
 
@@ -258,6 +278,163 @@ class Organization:
             append_event(self.db, "assignment.created", {"id": assignment.id, "actor_id": actor_id})
         self._project_outcome(sow.outcome_id)
         return assignment
+
+    def pulse_origin_for_sow(self, sow_id: str) -> PulseOrigin | None:
+        """The structured origin row for one SOW -- manual or Pulse, and from what."""
+        row = self.db.connection.execute(
+            "SELECT id, origin_kind, sow_id, assignment_id, wake_decision_id, pulse_event_id, "
+            "created_at FROM pulse_origins WHERE sow_id = ?",
+            (sow_id,),
+        ).fetchone()
+        if row is None:
+            return None
+        return PulseOrigin(
+            id=row["id"],
+            origin_kind=row["origin_kind"],
+            sow_id=row["sow_id"],
+            assignment_id=row["assignment_id"],
+            wake_decision_id=row["wake_decision_id"],
+            pulse_event_id=row["pulse_event_id"],
+            created_at=datetime.fromisoformat(row["created_at"]),
+        )
+
+    def _wait_for_pulse_origin(self, source_signal_id: str) -> Any:
+        """Poll briefly for the winning contender's origin row to land.
+
+        Local SQLite transactions, not network I/O: a few short retries
+        cover the ordinary case, and a genuinely stuck winner (a crash mid-
+        creation, Unit 9's own "crash window" case) is left to the next
+        pulse pass entirely, not guessed at here.
+        """
+        for _ in range(20):
+            row = self.db.connection.execute(
+                "SELECT wd.id AS decision_id, po.sow_id, po.assignment_id FROM "
+                "pulse_wake_decisions wd JOIN pulse_origins po "
+                "ON po.wake_decision_id = wd.id WHERE wd.source_signal_id = ?",
+                (source_signal_id,),
+            ).fetchone()
+            if row is not None:
+                return row
+            time.sleep(0.02)
+        return None
+
+    def create_pulse_work(
+        self,
+        *,
+        source_signal_id: str,
+        source_event_id: str,
+        subject: str,
+        outcome_id: str,
+        scope: str,
+        role: Role,
+        planner_id: str,
+        worker_id: str,
+        required_effect_kind: str | None = None,
+    ) -> tuple[StatementOfWork, Assignment, bool]:
+        """The canonical creation transaction (Unit 9, SOW section 3).
+
+        Returns (sow, assignment, created) -- `created` is False on a replay,
+        where the caller already won this exact source_signal_id earlier and
+        this call returns the SAME identifiers rather than minting new ones.
+
+        `pulse_wake_decisions.source_signal_id` is UNIQUE (migration 15) --
+        that constraint, not a preflight SELECT, IS the "one canonical wake
+        decision per source signal" guarantee: two concurrent callers racing
+        the same signal both attempt this INSERT inside their own
+        `db.immediate()`; SQLite's reserved lock serializes them, exactly one
+        wins, and the loser reads the winner's own row back rather than
+        creating a second, parallel SOW and assignment.
+
+        Everything after the winning INSERT reuses the SAME production
+        methods manual dispatch uses -- `create_sow`, `ready_sow`, `assign`
+        -- never a copied or Pulse-only fork (the governing SOW's explicit
+        instruction). Those methods are each already individually safe
+        (Unit 3's and Unit 8's own proof matrices), and by the time this
+        function calls them only the ONE winning caller for this signal is
+        still running, so no second, competing SOW/assignment pair can be
+        created for the same decision.
+        """
+        decision_id = new_id("pdec")
+        now = utc_now()
+        won = True
+        with self.db.immediate() as connection:
+            try:
+                connection.execute(
+                    "INSERT INTO pulse_wake_decisions"
+                    "(id, source_signal_id, source_event_id, subject, decided_at) "
+                    "VALUES (?, ?, ?, ?, ?)",
+                    (decision_id, source_signal_id, source_event_id, subject, now.isoformat()),
+                )
+            except Exception as error:
+                if "UNIQUE" not in str(error) and "unique" not in str(error):
+                    raise
+                won = False
+        if not won:
+            # A concurrent caller already holds the canonical decision for
+            # this signal. Its own SOW/assignment/origin write is a few
+            # sequential, purely local SQLite transactions (create_sow,
+            # ready_sow, assign, then the origin insert below) -- no
+            # external I/O -- so a short bounded wait, re-reading the join
+            # each attempt, resolves the real but narrow window between
+            # "the decision row committed" and "the origin row naming its
+            # sow/assignment committed" without ever guessing an identifier
+            # or creating a second, competing SOW.
+            existing = self._wait_for_pulse_origin(source_signal_id)
+            if existing is None:
+                raise Refusal(
+                    f"A wake decision for signal {source_signal_id!r} is being "
+                    "created by another process right now.",
+                    "Exactly one canonical decision may exist per source "
+                    "signal; this attempt lost the race and the winner's own "
+                    "work did not become durable within the wait budget.",
+                    "sovereign-agent pulse --once --root PATH",
+                    "Retry the pulse pass.",
+                    category="wake_decision_contended",
+                )
+            sow = self._sow(str(existing["sow_id"]))
+            assignment = (
+                self._assignment(str(existing["assignment_id"]))
+                if existing["assignment_id"]
+                else None
+            )
+            assert assignment is not None
+            return sow, assignment, False
+
+        # This process alone now owns decision_id -- the INSERT above
+        # committed synchronously as its own transaction (db.immediate exits
+        # its `with` block on the successful path), so a second contender
+        # racing behind this one already sees the UNIQUE row and takes the
+        # branch above instead.
+        sow = self.create_sow(
+            outcome_id,
+            scope,
+            role,
+            planner_id,
+            required_effect_kind=required_effect_kind,
+            _pulse_origin_pending=True,
+        )
+        self.ready_sow(sow.id)
+        assignment = self.assign(sow.id, worker_id, planner_id)
+
+        pulse_event = append_event(
+            self.db,
+            "pulse.work_created",
+            {
+                "wake_decision_id": decision_id,
+                "source_signal_id": source_signal_id,
+                "source_event_id": source_event_id,
+                "sow_id": sow.id,
+                "assignment_id": assignment.id,
+            },
+        )
+        origin_id = new_id("porg")
+        with self.db.transaction() as connection:
+            connection.execute(
+                "INSERT INTO pulse_origins(id, origin_kind, wake_decision_id, pulse_event_id, "
+                "sow_id, assignment_id, created_at) VALUES (?, 'pulse', ?, ?, ?, ?, ?)",
+                (origin_id, decision_id, pulse_event.id, sow.id, assignment.id, now.isoformat()),
+            )
+        return sow, assignment, True
 
     def run_assignment(self, assignment_id: str) -> Assignment:
         assignment = self._assignment(assignment_id)
