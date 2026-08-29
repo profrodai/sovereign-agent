@@ -145,3 +145,5 @@ SOVEREIGN_AGENT_LIVE_ASSIGNMENTS=1 python -m pytest -q -m live
 
 The fixture repository is disposable, and each test proves its trunk commit
 did not move.
+
+Next: [Chapter 4 — Work stays inside its boundary](../ch04_work_stays_inside_its_boundary/README.md)
