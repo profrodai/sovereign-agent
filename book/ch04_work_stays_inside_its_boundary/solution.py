@@ -44,6 +44,11 @@ def _run_one_assignment(org: Organization, scope: str) -> tuple[str, Path]:
 
 
 def explore_workspace_lifecycle(root: Path) -> dict[str, Any]:
+    # Resolved once, up front: safe_join itself resolves both root and the
+    # joined candidate before comparing them, and on macOS /tmp is a symlink
+    # into /private/tmp -- an unresolved root here would make relative_to
+    # below fail even on a call safe_join itself accepted correctly.
+    root = root.resolve()
     org = Organization.init(root)
 
     # 1. safe_join refuses traversal, accepts a legitimate nested path.

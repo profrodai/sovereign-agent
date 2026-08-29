@@ -6,8 +6,13 @@ Catches the ways a curriculum rots:
 - a chapter that lost a required section
 - a `solution.py` that no longer imports
 - a solution that copies implementation instead of importing the package
-- a chapter promising behaviour the code does not have (e.g. Pulse before Unit 9)
+- a chapter promising behaviour the code does not have (e.g. Pulse before
+  Chapter 7 genuinely produces it)
 - a referenced script or chapter that does not exist
+- a chapter missing its co-located INSTRUCTOR.md, or one missing a required
+  section
+- a chapter's forward/backward links not forming one coherent sequence
+- injected site frontmatter in any source Markdown file under book/
 
 Exits 0 when the curriculum is sound, 1 otherwise.
 """
@@ -29,7 +34,17 @@ REQUIRED_CHAPTERS = (
     "ch01_organization_remembers",
     "ch02_work_needs_governance",
     "ch03_actor_is_not_a_model",
+    "ch04_work_stays_inside_its_boundary",
+    "ch05_authority_needs_a_fence",
+    "ch06_the_organization_recovers",
+    "ch07_the_organization_wakes_itself",
 )
+
+# The last chapter number that may NOT claim Pulse fired. Chapter 7 (index 7)
+# is the one chapter allowed to, and only when its own exercise produces the
+# durable evidence -- see PULSE_EVIDENCE_CHAPTER and check_pulse_claims below.
+LAST_UNCONDITIONALLY_PULSE_FREE_CHAPTER_INDEX = 6
+PULSE_EVIDENCE_CHAPTER = "ch07_the_organization_wakes_itself"
 
 # Chapter solutions that take a root path and run the exercise end to end.
 # EVERY required chapter's exercise must EXECUTE, not merely import. ch03 was
@@ -42,6 +57,10 @@ RUNNABLE = {
     "ch01_organization_remembers": "observe_memory",
     "ch02_work_needs_governance": "explore_governance",
     "ch03_actor_is_not_a_model": "run_exercise",
+    "ch04_work_stays_inside_its_boundary": "explore_workspace_lifecycle",
+    "ch05_authority_needs_a_fence": "explore_fencing",
+    "ch06_the_organization_recovers": "recover_from_a_real_hard_kill",
+    "ch07_the_organization_wakes_itself": "the_organization_wakes_itself",
 }
 
 # Exercises whose entry point needs an argument beyond the root path.
@@ -59,11 +78,37 @@ REQUIRED_SECTIONS = (
     ("explain it back", ("## Explain it back",)),
 )
 
-# Pulse arrives in Unit 9. A chapter must not claim the organization wakes itself.
+# Every chapter's own co-located INSTRUCTOR.md must carry all seven of these,
+# matching the contract in book/INSTRUCTOR.md and book/CONTENT-SOURCE.md. A
+# structural check, the same shape as REQUIRED_SECTIONS above, applied to a
+# different file.
+REQUIRED_INSTRUCTOR_SECTIONS = (
+    ("teaching intent", ("## Teaching intent",)),
+    ("prerequisite knowledge", ("## Prerequisite knowledge",)),
+    ("likely misconceptions", ("## Likely misconceptions",)),
+    ("observation checkpoints", ("## Observation checkpoints",)),
+    ("discussion prompts", ("## Discussion prompts",)),
+    ("facilitation timing", ("## Facilitation timing",)),
+    ("exercise debrief and assessment", ("## Exercise debrief and assessment",)),
+)
+
+# Pulse arrives in Unit 9 as production code, but a chapter must not claim
+# the organization wakes itself unless it is Chapter 7 AND its own exercise
+# genuinely produced the durable evidence for that claim (see
+# check_pulse_claims). Unchanged from the pre-Unit-10 guard in shape; what
+# changed is that the guard is no longer applied identically to every
+# chapter regardless of number.
 FORBIDDEN_CLAIMS = (
     re.compile(r"\bpulse\b\s+(?:event\s+)?(?:fires|fired|wakes|woke)", re.IGNORECASE),
     re.compile(r"organization wakes itself (?:up )?(?:now|today)", re.IGNORECASE),
 )
+
+# A leading site-frontmatter block: three dashes starting the file, a second
+# bare `---` line closing it. Formalizes, mechanically, what
+# book/CONTENT-SOURCE.md already states in prose: "Any frontmatter its own
+# collection schema requires -- this directory carries none, because
+# frontmatter belongs to the site that renders it, not to the source."
+FRONTMATTER_PATTERN = re.compile(r"\A---\s*\n.*?\n---\s*\n", re.DOTALL)
 
 
 def check_chapter(name: str) -> list[str]:
@@ -81,10 +126,6 @@ def check_chapter(name: str) -> list[str]:
     for label, markers in REQUIRED_SECTIONS:
         if not any(marker in text for marker in markers):
             problems.append(f"{name}: no {label} section")
-
-    for pattern in FORBIDDEN_CLAIMS:
-        if pattern.search(text):
-            problems.append(f"{name}: claims Pulse behaviour that does not exist until Unit 9")
 
     solution = directory / "solution.py"
     if not solution.is_file():
@@ -120,13 +161,16 @@ def check_chapter(name: str) -> list[str]:
                 problems.append(f"{name}: solution.py has no {entry_point}()")
             else:
                 with tempfile.TemporaryDirectory() as scratch:
+                    root = Path(scratch) / "root"
                     try:
-                        function(Path(scratch) / "root", *RUNNABLE_ARGS.get(name, ()))
+                        function(root, *RUNNABLE_ARGS.get(name, ()))
                     except Exception as error:  # noqa: BLE001 - broken exercise, broken chapter
                         problems.append(
                             f"{name}: {entry_point}() failed to run: "
                             f"{type(error).__name__}: {error}"
                         )
+                    else:
+                        problems.extend(check_pulse_claims(name, text, root))
 
     # Every local link and referenced script must exist.
     for target in re.findall(r"\]\(([^)]+)\)", text):
@@ -137,6 +181,179 @@ def check_chapter(name: str) -> list[str]:
     for script in re.findall(r"(scripts/[\w_]+\.py)", text):
         if not (REPO_ROOT / script).is_file():
             problems.append(f"{name}: references missing script {script}")
+    return problems
+
+
+def check_pulse_claims(name: str, readme_text: str, exercise_root: Path) -> list[str]:
+    """The chapter-scoped Pulse guard (Unit 10, SOW section 3).
+
+    Chapters 0-6 keep the exact prior, unconditional prohibition: any
+    Pulse-fired-shaped claim in their prose is a failure, regardless of
+    whether the underlying code can now back it up elsewhere in the repo --
+    a chapter's own claim must be backed by ITS OWN exercise, not by the
+    existence of Pulse somewhere else in the codebase.
+
+    Chapter 7 MAY make that claim, but only when its own already-executed
+    exercise (this function runs strictly after `check_chapter` has already
+    called the chapter's RUNNABLE entry point against `exercise_root`) left
+    durable, structured evidence in that exact database: a real `pulse.*`
+    event in the append-only `events` table, AND a `pulse_origins` row whose
+    `wake_decision_id` resolves to a `pulse_wake_decisions` row -- the full
+    signal -> decision -> event -> SOW -> assignment chain this project's own
+    governing ruling requires to be a column read, never an inference. A
+    chapter that claims Pulse but whose own exercise run left no such
+    evidence fails here -- whether because the claim survived a since-removed
+    call to `run_pulse_once`, or because nothing in the exercise ever called
+    it, or because the "evidence" was fabricated by a direct `append_event`
+    call standing in for the real mechanism (fabricated evidence has no
+    traceable wake-decision chain behind it, so the join below returns no
+    rows -- the same failure mode as never having called Pulse at all).
+    """
+    problems: list[str] = []
+    makes_pulse_claim = any(pattern.search(readme_text) for pattern in FORBIDDEN_CLAIMS)
+
+    if name != PULSE_EVIDENCE_CHAPTER:
+        if makes_pulse_claim:
+            problems.append(f"{name}: claims Pulse behaviour that does not exist until Chapter 7")
+        return problems
+
+    if not makes_pulse_claim:
+        # Chapter 7 is not REQUIRED to phrase a claim in the forbidden shape
+        # -- it is merely the one chapter permitted to. No claim, no check.
+        return problems
+
+    db_path = exercise_root / ".sovereign" / "organization.db"
+    if not db_path.is_file():
+        problems.append(
+            f"{name}: claims Pulse behaviour, but its own exercise left no organization "
+            "database to check evidence against"
+        )
+        return problems
+
+    import sqlite3
+
+    connection = sqlite3.connect(str(db_path))
+    connection.row_factory = sqlite3.Row
+    try:
+        pulse_events = connection.execute(
+            "SELECT COUNT(*) AS c FROM events WHERE kind LIKE 'pulse.%'"
+        ).fetchone()["c"]
+        if pulse_events == 0:
+            problems.append(
+                f"{name}: claims Pulse behaviour, but its own exercise's database has no "
+                "durable pulse.* event -- the claim is not backed by the real mechanism"
+            )
+            return problems
+
+        # The full chain, required to be traceable end to end: a
+        # pulse_origins row whose wake_decision_id resolves to a REAL
+        # pulse_wake_decisions row naming a real source_signal_id. A
+        # fabricated event inserted directly (bypassing run_pulse_once, and
+        # therefore never inserting the matching pulse_wake_decisions /
+        # pulse_origins rows create_pulse_work's own single transaction
+        # always writes together) produces pulse.* events with no such
+        # chain -- this join returns zero rows for that case, which is
+        # exactly the failure this check exists to catch.
+        traceable = connection.execute(
+            "SELECT COUNT(*) AS c FROM pulse_origins po "
+            "JOIN pulse_wake_decisions wd ON wd.id = po.wake_decision_id "
+            "WHERE po.origin_kind = 'pulse' AND wd.source_signal_id IS NOT NULL"
+        ).fetchone()["c"]
+        if traceable == 0:
+            problems.append(
+                f"{name}: claims Pulse behaviour, and a pulse.* event exists, but no "
+                "traceable pulse_origins -> pulse_wake_decisions chain backs it -- this is "
+                "the exact shape a fabricated event (inserted directly rather than produced "
+                "by run_pulse_once) would leave behind"
+            )
+    finally:
+        connection.close()
+    return problems
+
+
+def check_instructor_notes() -> list[str]:
+    """Every chapter's own INSTRUCTOR.md exists and carries all seven
+    required sections -- structural, matching REQUIRED_SECTIONS' own shape,
+    applied to a different file. Content quality (is the misconception list
+    actually correct, is the timing realistic) is explicitly NOT something
+    this check can grade -- see book/INSTRUCTOR.md's own closing paragraph.
+    """
+    problems: list[str] = []
+    book_index = BOOK / "INSTRUCTOR.md"
+    if not book_index.is_file():
+        problems.append("book/INSTRUCTOR.md is missing")
+
+    for name in REQUIRED_CHAPTERS:
+        note = BOOK / name / "INSTRUCTOR.md"
+        if not note.is_file():
+            problems.append(f"{name}: INSTRUCTOR.md is missing")
+            continue
+        text = note.read_text(encoding="utf-8")
+        for label, markers in REQUIRED_INSTRUCTOR_SECTIONS:
+            if not any(marker in text for marker in markers):
+                problems.append(f"{name}: INSTRUCTOR.md has no {label} section")
+    return problems
+
+
+def check_chapter_sequence() -> list[str]:
+    """Previous/next chapter links and the book index form ONE coherent
+    sequence -- not merely that each individual link resolves (check_chapter
+    already verifies that), but that chapter N's forward link points at
+    chapter N+1, every chapter but the last carries one, the last carries
+    none, and book/README.md's own index lists every required chapter in
+    order.
+    """
+    problems: list[str] = []
+    index_text = (BOOK / "README.md").read_text(encoding="utf-8")
+    index_positions = [index_text.find(name) for name in REQUIRED_CHAPTERS]
+    for name, position in zip(REQUIRED_CHAPTERS, index_positions, strict=True):
+        if position == -1:
+            problems.append(f"book/README.md does not link {name}")
+    present_positions = [p for p in index_positions if p != -1]
+    if present_positions != sorted(present_positions):
+        problems.append("book/README.md does not list the required chapters in order")
+
+    for i, name in enumerate(REQUIRED_CHAPTERS):
+        readme = BOOK / name / "README.md"
+        if not readme.is_file():
+            continue
+        text = readme.read_text(encoding="utf-8")
+        forward_links = re.findall(r"Next:\s*\[[^\]]*\]\(([^)]+)\)", text)
+        is_last = i == len(REQUIRED_CHAPTERS) - 1
+        if is_last:
+            if forward_links:
+                problems.append(
+                    f"{name}: is the last chapter but still carries a 'Next:' forward link"
+                )
+            continue
+        if not forward_links:
+            problems.append(f"{name}: has no 'Next:' forward link to the following chapter")
+            continue
+        expected_next = REQUIRED_CHAPTERS[i + 1]
+        if not any(expected_next in link for link in forward_links):
+            problems.append(
+                f"{name}: forward link does not point at the next chapter "
+                f"({expected_next}); found {forward_links}"
+            )
+    return problems
+
+
+def check_no_frontmatter() -> list[str]:
+    """No source Markdown under book/ begins with a site frontmatter block.
+
+    Formalizes book/CONTENT-SOURCE.md's own prose commitment ("this
+    directory carries none, because frontmatter belongs to the site that
+    renders it, not to the source") as something this gate actually
+    verifies, rather than only states.
+    """
+    problems: list[str] = []
+    for markdown_file in sorted(BOOK.rglob("*.md")):
+        text = markdown_file.read_text(encoding="utf-8")
+        if FRONTMATTER_PATTERN.match(text):
+            problems.append(
+                f"{markdown_file.relative_to(REPO_ROOT)}: begins with a site frontmatter "
+                "block, which book/ source files must never carry"
+            )
     return problems
 
 
@@ -172,6 +389,9 @@ def check_rulings_index() -> list[str]:
 def main() -> int:
     problems: list[str] = []
     problems.extend(check_rulings_index())
+    problems.extend(check_instructor_notes())
+    problems.extend(check_chapter_sequence())
+    problems.extend(check_no_frontmatter())
 
     index = BOOK / "README.md"
     if not index.is_file():
