@@ -77,3 +77,4 @@ ready for production.
 - [v0.7 maintenance](../v0.7-maintenance.md)
 - [v1 removal manifest](../v1-removal-manifest.md)
 - [Unit 9 SOW: Pulse and proactive governed work](sovereign-agent-v1-unit9-pulse-proactive-work.md)
+- [Unit 10 SOW: curriculum completion, Chapters 0-7](sovereign-agent-v1-unit10-curriculum-completion.md)
