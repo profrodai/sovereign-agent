@@ -159,6 +159,20 @@ it. Proactive waking is Pulse, and Pulse does not exist yet (Unit 9). Score 0 if
 Andrea believes the system is already autonomous; that would mean the book
 oversold it.
 
+**Added, Unit 9:** this evaluation's own title scopes it to Units 0-6.5 — a
+session run against that curriculum state correctly used the pass criterion
+above, because Pulse genuinely did not exist yet at the time this document
+was written. Pulse is now real production code (`sovereign-agent pulse
+--once`; see `docs/v1-unit9-pulse-proactive-work.md`), but no chapter Andrea
+would have worked through under this evaluation's own Units 0-6.5 scope
+exercises it — that editorial work is Unit 10's, not silently folded in
+here. A future evaluation covering post-Unit-9 curriculum will need its own
+task 7 and its own scoring key, since "the system does not wake itself" is
+no longer true of the underlying code, only of what Chapters 0-3 currently
+teach; this document is left as the historical record of what a correct
+Units 0-6.5 session looked like, not silently rewritten to score a
+curriculum state it never evaluated.
+
 ## Scoring
 
 Maximum 14 (seven tasks × 2).
