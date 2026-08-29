@@ -1,12 +1,16 @@
 # Unit 10: curriculum completion, Chapters 0-7
 
-- **status:** PROPOSED (implementation complete on
-  `unit-10/curriculum-completion`; the flip to `ACCEPTED` lands in a
-  separate, Sparring-reviewed change after independent Master review and PR
-  merge, matching every prior unit's own ritual — not authored and
-  co-signed by the same act, not backdated)
-- **authority:** principal (implementation authorized separately from this
-  SOW's own merge — see the governing SOW's "Authorization" section)
+- **status:** ACCEPTED (Principal acceptance granted at exact head
+  `472b26bc1de525542444eaea550f5d7160dfe7b6`; merged into `main` at
+  `3c0460b4b48a9b4dd190cdf8ec60bf0aaedc244d`; Sparring's post-merge
+  acceptance-record audit filed as
+  [PR #40 comment 5465380470](https://github.com/zeroemployeeorg/sovereign-agent/pull/40#issuecomment-5465380470),
+  PASS with no findings; this status flip itself lands as a separate,
+  Sparring-reviewed change — review before merge, not authored-and-co-signed
+  by the same act, not backdated)
+- **authority:** principal (ratified acceptance; implementation was
+  authorized separately from this SOW's own merge — see the governing SOW's
+  "Authorization" section)
 - **base:** `main = 7958f74c96f1e51591e631fb62a7c5af017a794f` (Units 0-9
   ACCEPTED; the exact commit the Unit 10 SOW was reviewed and merged at)
 - **governing SOW:**
