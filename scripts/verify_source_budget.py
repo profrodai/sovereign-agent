@@ -9,7 +9,16 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parent.parent
 PACKAGE = ROOT / "src" / "sovereign_agent"
 MAX_MODULES = 40
-MAX_NONBLANK_LINES = 6_000
+# Raised from 6_000 to 6_250 by Principal ruling on PR #35 (F-U9-1): Unit 9's
+# canonical-creation transaction had to compose create_sow/ready_sow/assign's
+# own writes into one atomic db.immediate() block rather than five separate
+# commits -- the fix a stranded, unrecoverable wake decision required -- and
+# the honest cost of that composition (connection-taking _on helpers plus the
+# revalidation this same defect's fix also required) did not fit the prior
+# ceiling without cramping the code to force it. Module and export ceilings
+# are unchanged. See docs/v1-unit9-pulse-proactive-work.md's own budget
+# table for the before/after figures this ruling produced.
+MAX_NONBLANK_LINES = 6_250
 MAX_ROOT_EXPORTS = 30
 
 

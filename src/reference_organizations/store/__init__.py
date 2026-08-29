@@ -102,23 +102,44 @@ def record_sale(db: Database, sku: str, quantity: int, unit_price_cents: int) ->
                 "Restock first.",
             )
         cash_id = new_id("cash")
+        signal_id = new_id("sig")
         signal = Signal(
-            id=new_id("sig"),
+            id=signal_id,
             kind="inventory.changed",
             source="sale",
             subject_ref=sku,
             severity="warning" if on_hand <= int(row["reorder_point"]) else "info",
             observed_at=utc_now(),
             payload_digest=sku,
-            dedupe_key=f"inventory:{sku}:{on_hand}",
+            # Unit 9, signal stability: the level a signal describes, not a
+            # deduplication key over time. The OLD dedupe_key was exactly
+            # "inventory:{sku}:{on_hand}", with no per-occurrence component --
+            # two DIFFERENT sales that happened to leave the same on_hand
+            # produced the SAME key, and `INSERT OR REPLACE` (below) let the
+            # second sale silently delete the first sale's own signal row.
+            # Pulse origin references a signal by durable id; a source row
+            # that can later disappear under a later, unrelated sale is not a
+            # safe thing to reference. Suffixing the signal's own id makes
+            # every committed signal's key genuinely unique per occurrence,
+            # so the plain INSERT below can never collide.
+            dedupe_key=f"inventory:{sku}:{on_hand}:{signal_id}",
         )
         connection.execute("UPDATE inventory SET on_hand = ? WHERE sku = ?", (on_hand, sku))
         connection.execute(
             "INSERT INTO cash_entries(id, amount_cents, record) VALUES (?, ?, ?)",
             (cash_id, quantity * unit_price_cents, json.dumps({"sku": sku, "qty": quantity})),
         )
+        # Plain INSERT, not INSERT OR REPLACE: a committed sale signal is now
+        # append-only, matching the discipline every other proof-bearing
+        # table in this database already uses. `dedupe_key` remains UNIQUE
+        # (migration 1) as a genuine safety net -- it can never fire in
+        # practice now that the key carries its own per-occurrence
+        # component, but a bug that regressed it back to a colliding shape
+        # would raise sqlite3.IntegrityError here rather than silently
+        # replacing history, which is the fail-closed direction this fix
+        # exists to guarantee.
         connection.execute(
-            "INSERT OR REPLACE INTO signals(id, dedupe_key, record) VALUES (?, ?, ?)",
+            "INSERT INTO signals(id, dedupe_key, record) VALUES (?, ?, ?)",
             (signal.id, signal.dedupe_key, signal.model_dump_json()),
         )
         append_event(

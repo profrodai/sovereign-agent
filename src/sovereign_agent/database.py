@@ -323,6 +323,8 @@ APPEND_ONLY_TABLES: tuple[str, ...] = (
     "verifications",
     "reviews",
     "evidence",
+    "pulse_wake_decisions",
+    "pulse_origins",
 )
 
 
@@ -531,6 +533,107 @@ ALTER TABLE execution_attempts ADD COLUMN actor_lease_fencing_token INTEGER;
 """
 
 
+MIGRATION_15 = """
+-- Unit 9: Pulse origin attribution. Ruling 2026-08-29-unit9-pulse-is-
+-- separate-from-supervisor, holding 2: "created without a human prompt"
+-- must be provable in the ledger after the fact, never inferred from the
+-- absence of a manual-origin row or the absence of a CLI invocation.
+
+-- One row per source signal that has ever been evaluated to a canonical
+-- firing decision. UNIQUE(source_signal_id) IS the "one canonical wake
+-- decision per source signal" enforcement -- at the SQLite boundary, not a
+-- preflight SELECT: two concurrent evaluators racing the same signal both
+-- attempt this INSERT: one wins, one hits the UNIQUE constraint and reads
+-- the winner's row back.
+CREATE TABLE IF NOT EXISTS pulse_wake_decisions (
+    id TEXT PRIMARY KEY,
+    source_signal_id TEXT NOT NULL UNIQUE REFERENCES signals(id),
+    source_event_id TEXT NOT NULL,
+    subject TEXT NOT NULL,
+    decided_at TEXT NOT NULL
+);
+
+-- One row per genuine pulse.* event, and per SOW/assignment it created.
+-- sow_id and assignment_id are UNIQUE: a wake decision creates AT MOST one
+-- initial SOW and one initial assignment, ever -- replay must resolve to
+-- the same identifiers, never mint a second pair.
+CREATE TABLE IF NOT EXISTS pulse_origins (
+    id TEXT PRIMARY KEY,
+    origin_kind TEXT NOT NULL DEFAULT 'manual',
+    wake_decision_id TEXT UNIQUE REFERENCES pulse_wake_decisions(id),
+    pulse_event_id TEXT UNIQUE,
+    sow_id TEXT NOT NULL UNIQUE REFERENCES sows(id),
+    assignment_id TEXT UNIQUE REFERENCES assignments(id),
+    created_at TEXT NOT NULL,
+    CHECK (
+        (origin_kind = 'manual'
+            AND wake_decision_id IS NULL AND pulse_event_id IS NULL)
+        OR
+        (origin_kind = 'pulse'
+            AND wake_decision_id IS NOT NULL AND pulse_event_id IS NOT NULL)
+    )
+);
+CREATE INDEX IF NOT EXISTS pulse_origins_by_sow ON pulse_origins(sow_id);
+
+-- Proof-bearing: once a wake decision or an origin row exists, it is
+-- history. Appended to APPEND_ONLY_TABLES's own three guards below, matching
+-- the discipline every other proof-bearing table in this database already
+-- uses (migration 12).
+CREATE TRIGGER IF NOT EXISTS pulse_wake_decisions_no_update
+BEFORE UPDATE ON pulse_wake_decisions
+BEGIN
+    SELECT RAISE(ABORT, 'pulse_wake_decisions are append-only: update refused');
+END;
+CREATE TRIGGER IF NOT EXISTS pulse_wake_decisions_no_delete
+BEFORE DELETE ON pulse_wake_decisions
+BEGIN
+    SELECT RAISE(ABORT, 'pulse_wake_decisions are append-only: delete refused');
+END;
+CREATE TRIGGER IF NOT EXISTS pulse_wake_decisions_no_replace
+BEFORE INSERT ON pulse_wake_decisions
+WHEN EXISTS (SELECT 1 FROM pulse_wake_decisions WHERE id = NEW.id)
+BEGIN
+    SELECT RAISE(ABORT, 'pulse_wake_decisions are append-only: replace refused');
+END;
+
+CREATE TRIGGER IF NOT EXISTS pulse_origins_no_update
+BEFORE UPDATE ON pulse_origins
+BEGIN
+    SELECT RAISE(ABORT, 'pulse_origins are append-only: update refused');
+END;
+CREATE TRIGGER IF NOT EXISTS pulse_origins_no_delete
+BEFORE DELETE ON pulse_origins
+BEGIN
+    SELECT RAISE(ABORT, 'pulse_origins are append-only: delete refused');
+END;
+CREATE TRIGGER IF NOT EXISTS pulse_origins_no_replace
+BEFORE INSERT ON pulse_origins
+WHEN EXISTS (SELECT 1 FROM pulse_origins WHERE id = NEW.id)
+BEGIN
+    SELECT RAISE(ABORT, 'pulse_origins are append-only: replace refused');
+END;
+
+-- Every SOW created before this unit is explicit manual-origin history, not
+-- an absence. "No Pulse-origin row exists" must never be the definition of
+-- manual (the governing ruling's own words) -- so every pre-existing SOW
+-- gets its own explicit 'manual' row here, at migration time, rather than
+-- leaving manual-vs-unattributed as two things this schema cannot tell
+-- apart. assignment_id is backfilled when exactly one assignment exists for
+-- the SOW; a SOW with zero or more than one assignment gets NULL there
+-- (still explicitly 'manual' on origin_kind, which is the fact this
+-- migration must not lose) rather than guessing which assignment to bind.
+INSERT INTO pulse_origins(id, origin_kind, sow_id, assignment_id, created_at)
+SELECT
+    'porg_manual_' || sows.id,
+    'manual',
+    sows.id,
+    (SELECT a.id FROM assignments a WHERE a.sow_id = sows.id
+     GROUP BY a.sow_id HAVING COUNT(*) = 1),
+    COALESCE(sows.record ->> '$.created_at', datetime('now'))
+FROM sows;
+"""
+
+
 MIGRATIONS: tuple[tuple[int, str], ...] = (
     (1, MIGRATION_1),
     (2, MIGRATION_2),
@@ -546,6 +649,7 @@ MIGRATIONS: tuple[tuple[int, str], ...] = (
     (12, MIGRATION_12),
     (13, MIGRATION_13),
     (14, MIGRATION_14),
+    (15, MIGRATION_15),
 )
 
 
