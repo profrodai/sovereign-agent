@@ -76,3 +76,4 @@ ready for production.
 - [Migration v0.7 to v1](../migration-v0.7-to-v1.md)
 - [v0.7 maintenance](../v0.7-maintenance.md)
 - [v1 removal manifest](../v1-removal-manifest.md)
+- [Unit 9 SOW: Pulse and proactive governed work](sovereign-agent-v1-unit9-pulse-proactive-work.md)
