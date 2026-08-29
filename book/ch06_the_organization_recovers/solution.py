@@ -20,7 +20,6 @@ from datetime import timedelta
 from pathlib import Path
 from typing import Any
 
-from sovereign_agent import fencing
 from sovereign_agent import supervisor as supervisor_module
 from sovereign_agent.ids import utc_now
 from sovereign_agent.models import AssignmentState, Role

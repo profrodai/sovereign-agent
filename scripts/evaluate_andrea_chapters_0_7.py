@@ -49,20 +49,44 @@ def main() -> int:
         code, output = run([python, "-m", "sovereign_agent", "doctor"])
         ok = code == 0 and "Python:" in output
         results.append(
-            ("1. doctor runs on a cold start", ok, output.strip().splitlines()[0] if output.strip() else "")
+            (
+                "1. doctor runs on a cold start",
+                ok,
+                output.strip().splitlines()[0] if output.strip() else "",
+            )
         )
 
         code, output = run(
-            [python, "-m", "sovereign_agent", "demo", "store", "--mode", "simulated", "--root", str(root)]
+            [
+                python,
+                "-m",
+                "sovereign_agent",
+                "demo",
+                "store",
+                "--mode",
+                "simulated",
+                "--root",
+                str(root),
+            ]
         )
         accepted = code == 0 and "ACCEPTED" in output
         results.append(
-            ("2a. demo reaches ACCEPTED", accepted, output.strip().splitlines()[-1] if output.strip() else "")
+            (
+                "2a. demo reaches ACCEPTED",
+                accepted,
+                output.strip().splitlines()[-1] if output.strip() else "",
+            )
         )
 
-        code, output = run([python, str(REPO_ROOT / "scripts" / "verify_store_outcome.py"), str(root)])
+        code, output = run(
+            [python, str(REPO_ROOT / "scripts" / "verify_store_outcome.py"), str(root)]
+        )
         results.append(
-            ("2b. the accepted outcome is TRUE", code == 0, output.strip().splitlines()[-1] if output.strip() else "")
+            (
+                "2b. the accepted outcome is TRUE",
+                code == 0,
+                output.strip().splitlines()[-1] if output.strip() else "",
+            )
         )
 
         from sovereign_agent.organization import Organization
@@ -86,16 +110,26 @@ def main() -> int:
         found_files = list((root / ".sovereign" / "runs").glob("*/receipt.json"))
         ok = not missing and bool(found_files)
         results.append(
-            ("3. all eight artifacts exist and are locatable", ok, "all present" if ok else f"missing: {missing}")
+            (
+                "3. all eight artifacts exist and are locatable",
+                ok,
+                "all present" if ok else f"missing: {missing}",
+            )
         )
 
         org.db.connection.execute("UPDATE inventory SET reorder_point = 99 WHERE sku = 'SKU-TEA'")
         org.db.connection.commit()
         org.db.close()
-        code, output = run([python, str(REPO_ROOT / "scripts" / "verify_store_outcome.py"), str(root)])
+        code, output = run(
+            [python, str(REPO_ROOT / "scripts" / "verify_store_outcome.py"), str(root)]
+        )
         ok = code == 1
         results.append(
-            ("5. raising the reorder point makes the claim fail", ok, "verifier correctly refuses" if ok else "verifier still passed")
+            (
+                "5. raising the reorder point makes the claim fail",
+                ok,
+                "verifier correctly refuses" if ok else "verifier still passed",
+            )
         )
 
         bad = Path(tmp) / "report.json"
@@ -112,7 +146,7 @@ def main() -> int:
 
         # Task 3.5: Chapters 4-6 reachability -- each exercise runs cleanly
         # against a fresh root, exits without raising.
-        for chapter, entry in (
+        for chapter, _entry in (
             ("ch04_work_stays_inside_its_boundary", "explore_workspace_lifecycle"),
             ("ch05_authority_needs_a_fence", "explore_fencing"),
             ("ch06_the_organization_recovers", "recover_from_a_real_hard_kill"),
@@ -122,7 +156,11 @@ def main() -> int:
             code, output = run([python, str(script), "--root", str(chapter_root)])
             ok = code == 0
             results.append(
-                (f"3.5. {chapter} exercise runs cleanly", ok, "exit 0" if ok else output.strip().splitlines()[-1] if output.strip() else "")
+                (
+                    f"3.5. {chapter} exercise runs cleanly",
+                    ok,
+                    "exit 0" if ok else output.strip().splitlines()[-1] if output.strip() else "",
+                )
             )
 
         # Task 7: the decisive addition this document makes. Run Chapter 7's
@@ -134,7 +172,11 @@ def main() -> int:
         code, output = run([python, str(ch07_script), "--root", str(ch07_root)])
         ok = code == 0 and '"pulse_work_created_present": true' in output
         results.append(
-            ("7a. Chapter 7 exercise reaches genuine Pulse-created work", ok, "reached" if ok else output.strip().splitlines()[-1] if output.strip() else "")
+            (
+                "7a. Chapter 7 exercise reaches genuine Pulse-created work",
+                ok,
+                "reached" if ok else output.strip().splitlines()[-1] if output.strip() else "",
+            )
         )
 
         db_path = ch07_root / ".sovereign" / "organization.db"
@@ -161,7 +203,13 @@ def main() -> int:
             finally:
                 connection.close()
         else:
-            results.append(("7c. independently-queried pulse_origins chain is traceable", False, "no database found"))
+            results.append(
+                (
+                    "7c. independently-queried pulse_origins chain is traceable",
+                    False,
+                    "no database found",
+                )
+            )
 
         # Not machine-checkable: the historical Task 4, and this document's
         # own 7b (prediction) and 7d (boundary explanation) all require a

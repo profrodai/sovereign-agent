@@ -40,7 +40,9 @@ def explore_fencing(root: Path) -> dict[str, Any]:
 
     # release_actor_lease is a compare-and-set too: only the exact
     # (process_identity, fencing_token) pair that acquired it may release it.
-    released = fencing.release_actor_lease(org.db, "operator-course", process_a, lease_a.fencing_token)
+    released = fencing.release_actor_lease(
+        org.db, "operator-course", process_a, lease_a.fencing_token
+    )
     lease_results["process_a_released"] = str(released)
     lease_b = fencing.acquire_actor_lease(org.db, "operator-course", process_b)
     lease_results["process_b_now_acquires_cleanly"] = f"token={lease_b.fencing_token}"
@@ -53,7 +55,9 @@ def explore_fencing(root: Path) -> dict[str, Any]:
         "Chapter 5", "authority is fenced, not merely assumed", ["receipt"], "principal-human"
     )
     org.activate(outcome.id, "master-course")
-    sow = org.create_sow(outcome.id, "Write the required offline report.", Role.OPERATOR, "master-course")
+    sow = org.create_sow(
+        outcome.id, "Write the required offline report.", Role.OPERATOR, "master-course"
+    )
     org.ready_sow(sow.id)
     assignment = org.assign(sow.id, "operator-course", "master-course")
 
