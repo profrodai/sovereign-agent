@@ -6,6 +6,81 @@ Repository: [`zeroemployeeorg/sovereign-agent`](https://github.com/zeroemployeeo
 
 ## Unreleased
 
+### Store expansion, Chapters 8-12, pilot-start mechanism (Unit 11)
+
+Expands the Store's single-SKU walking skeleton into a genuine multi-SKU
+catalog, proves the existing `inventory.changed -> wake gate -> Pulse ->
+replenishment` pipeline generalizes with **zero new signal kinds, effect
+kinds, or core organizational primitives**, lands five new chapters
+teaching that expansion, and builds -- but never invokes against the real
+named pilot organization -- an atomic, idempotent pilot-start mechanism.
+This document's own status stays `PROPOSED`; the real pilot-start act and
+its governance receipt are a later, separately-authorized step outside this
+unit's implementation-acceptance scope.
+
+- **A genuine multi-SKU catalog, additive.** `seed()` is untouched (still
+  seeds exactly `SKU-TEA`; every pre-Unit-11 chapter and test depends on
+  it). A new `seed_catalog` seeds at least two independently-tracked SKUs
+  (`SKU-TEA` and `SKU-COFFEE` by default), each with its own product row,
+  inventory row, stock level, and reorder point. `record_sale`,
+  `store_wake_gate`, and `apply_restock` needed no code change -- they were
+  already SKU-parametric.
+- **The multi-SKU isolation matrix, a binding acceptance requirement.**
+  `tests/test_store_multi_sku.py` proves all six named surfaces (sales,
+  signal, wake-decision, Pulse-origin, assignment/replenishment isolation,
+  and replay/restart/concurrency) with real tests, including a REAL
+  two-connection race for two different SKUs' canonical creation,
+  extending `tests/test_pulse.py`'s own single-SKU concurrency precedent
+  rather than forking it.
+- **Five new chapters** (`ch08_the_store_becomes_a_catalog` through
+  `ch12_the_pilot_begins_with_a_receipt`), each with a `solution.py` that
+  imports and runs real production code and a `README.md` with real,
+  executed command output. Chapter 7's closing gesture now forward-links
+  to Chapter 8; Chapters 8-11 each carry their own forward link; Chapter
+  12, now the last chapter, carries none.
+- **The pilot-start mechanism**, `reference_organizations.store.pilot.
+  start_pilot`, backed by a new migration (16: `pilots`, `active_pilot`) in
+  `src/sovereign_agent/database.py`. One atomic transaction writes a
+  structured `pilots` row and an append-only `pilot.started` event, or
+  neither. Idempotent replay and fail-closed refusal are both plain
+  `INSERT`s racing a `UNIQUE`/`PRIMARY KEY` constraint at the SQLite
+  boundary, matching `create_pulse_work`'s own `pulse_wake_decisions`
+  precedent -- never a preflight `SELECT`. Proven in `tests/test_pilot.py`
+  with real two-connection concurrency for both the same-identity replay
+  case and the different-identity refusal case, plus a dedicated
+  fabrication-detection test. **Never invoked against the real named pilot
+  organization by this unit** -- Chapter 12's own exercise uses a
+  disposable, exercise-scoped identity (`book-ch12-exercise-pilot`),
+  mechanically enforced by a new `verify_curriculum.py` guard
+  (`check_pilot_disposable_identity`) that refuses if the chapter's own
+  exercise ever writes a `pilots` row without the reserved prefix.
+- **`REQUIRED_CHAPTERS` extended to 13**, following the exact pattern Unit
+  10 already established growing from 4 to 8. Every existing mechanical
+  guarantee (chapter-scoped Pulse guard, instructor-note structure,
+  chapter-sequence coherence, frontmatter absence, import-not-copy,
+  execute-not-merely-import) applies unchanged to all 13 chapters.
+
+Every new mechanical guarantee and test suite was mutation-checked before
+this unit was reported complete: the new disposable-identity guard (a
+non-reserved pilot id); the multi-SKU isolation matrix (a dropped
+`subject == sku` filter in `store_wake_gate`, causing cross-SKU
+contamination); the pilot-start idempotency discipline (`INSERT OR
+REPLACE` in place of the CAS-driven plain `INSERT`); and a fabricated
+`pilot.started` event bypassing the mechanism entirely -- each reproduced,
+confirmed landed via diff, confirmed caught, restored byte-identical,
+reconfirmed green. See
+[docs/v1-unit11-store-expansion-pilot-start.md](docs/v1-unit11-store-expansion-pilot-start.md)
+for the full contract and proof matrix.
+
+**Not claimed:** the real pilot-start act, a governance receipt, this
+document's `ACCEPTED` status or Unit 11's closure, credentialed provider
+evidence (9 tests remain deselected and unrun), the Andrea live
+evaluation, pilot completion or proof-pack acceptance, release, or any
+Unit 12 work. Budget: `src/sovereign_agent/` grew by 69 nonblank lines
+(migration 16 only) to 6208/6250 -- 42 lines of headroom remain; no
+amendment requested or needed. Runtime dependency surface unchanged
+(`pydantic` only).
+
 ### Curriculum completion, Chapters 0-7 (Unit 10)
 
 Completes the promised curriculum range: four new chapters, each teaching

@@ -24,6 +24,17 @@ you to take on faith.
 - [Chapter 7: The organization wakes itself](ch07_the_organization_wakes_itself/README.md) —
   genuine Pulse: governed work created without a human prompt, with durable,
   structured evidence
+- [Chapter 8: The Store becomes a catalog](ch08_the_store_becomes_a_catalog/README.md) —
+  the single-product fixture becomes a genuine multi-SKU catalog
+- [Chapter 9: Each product has its own threshold](ch09_each_product_has_its_own_threshold/README.md) —
+  independent stock state and reorder decisions, per SKU
+- [Chapter 10: One signal wakes one need](ch10_one_signal_wakes_one_need/README.md) —
+  the wake gate binds each signal to its own SKU's own outcome, never another's
+- [Chapter 11: Replenishment scales without losing governance](ch11_replenishment_scales_without_losing_governance/README.md) —
+  multiple governed replenishment chains, idempotency and attribution intact
+- [Chapter 12: The pilot begins with a receipt](ch12_the_pilot_begins_with_a_receipt/README.md) —
+  the pilot-start mechanism, exercised against a disposable identity, and
+  what "started" does and does not mean
 
 ## What is not here yet
 
@@ -48,8 +59,12 @@ truthful about it. Chapters 4-6 (workspace lifecycle, fencing, recovery)
 teach real, ACCEPTED Units 7 and 8 behavior that was already true before Unit
 10; they were simply not yet chapters.
 
-There is no Chapter 8 yet. Unit 11 is where the Store's own governed
-territory expands and this book's next chapters land alongside it.
+**Added, Unit 11:** Chapters 8 through 12 land alongside the Store's own
+expansion into a genuine multi-SKU catalog and the pilot-start mechanism.
+Chapter 12's own exercise runs against a disposable, exercise-scoped pilot
+identity — the real 30-day Store pilot has not started; that is a separate,
+later, separately-authorized act outside this book's own scope. See
+`docs/v1-unit11-store-expansion-pilot-start.md` for the full contract.
 
 ## Every chapter contains
 
