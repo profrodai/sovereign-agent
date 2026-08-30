@@ -1,10 +1,18 @@
 # Unit 11: Store expansion, Chapters 8-12, and the pilot-start mechanism
 
-- **status:** PROPOSED (implementation complete and self-gated on this
-  branch; stays `PROPOSED` until Sparring review, Principal acceptance, a
-  clean-`main` gate, and — separately and later — the real pilot-start act
-  and its filed governance receipt all land, per the governing SOW's
-  "Review and merge ritual" and "Final Unit 11 closure conditions")
+- **status:** ACCEPTED (implementation merged and gated on clean `main` at
+  `95f633bb2de066e072638dfb5d18f811f204701b`, this document's own reviewed
+  status flip merged separately per the governing SOW's "Review and merge
+  ritual"). Per
+  `docs/rulings/2026-08-30-unit11-local-closure-supersedes-real-deployment-gate.md`,
+  Unit 11 closes on the merged, reviewed pilot-start mechanism operating
+  against local, learner-controlled SQLite — **no real pilot-start act,
+  governance receipt, or production Sovereign Store deployment was performed
+  or is required.** The mechanism itself (atomic pilot-marker-and-event
+  transaction, CAS idempotency, fail-closed refusal, the F-U11-1
+  identity-conflict fix and its per-field mutation coverage) was built,
+  independently falsified, and accepted; it was never invoked against a real
+  target, and this document does not claim it was.
 - **authority:** principal (implementation authorization requested and
   granted separately from the governing SOW's own merge, per that SOW's
   "Authorization" section)
@@ -141,9 +149,10 @@ proves in `tests/test_pilot.py`:
 named pilot organization.** The only caller anywhere in this unit's own
 code or curriculum is Chapter 12's exercise, against its own disposable
 identity. The governance receipt described in the governing SOW's section 4
-is not built or filed by this implementation — it belongs to a later,
-separately-authorized step outside this unit's own implementation-
-acceptance scope.
+is not built or filed by this implementation, and — per
+`docs/rulings/2026-08-30-unit11-local-closure-supersedes-real-deployment-gate.md`
+— never will be: Unit 11 closes on the mechanism itself, not on a real
+invocation or its receipt.
 
 ### Property 5 — mechanical curriculum guarantees extend to all 13 chapters, unweakened
 
@@ -295,11 +304,12 @@ budget's own scope, matching the split Unit 9 established for
 - **Did not build or file a governance receipt.** The governing SOW's
   section 4 places that step entirely outside this unit's implementation-
   acceptance scope, after a later, separate Principal authorization.
-- **Did not flip this document's own status to `ACCEPTED`.** It stays
-  `PROPOSED` until Sparring review, Principal acceptance, a clean-`main`
-  gate, and — separately and later — the real pilot-start act and its
-  filed governance receipt all complete, per the governing SOW's own closing
-  sequence.
+- **Did not itself flip this document's own status to `ACCEPTED`.** That
+  flip happened in a later, separate reviewed change, per the governing
+  SOW's own "Review and merge ritual" — and, per
+  `docs/rulings/2026-08-30-unit11-local-closure-supersedes-real-deployment-gate.md`,
+  on the corrected basis that the real pilot-start act and its governance
+  receipt are never required for that flip or for Unit 11's closure.
 - **Did not run or claim credentialed provider smokes.** The 9 `live`-marked
   tests remain deselected and unrun, confirmed by direct collection.
 - **Did not begin the Andrea live evaluation, pilot completion, proof-pack
@@ -330,11 +340,13 @@ budget's own scope, matching the split Unit 9 established for
   empty, same as every prior unit.
 - No claim that the real 30-day Store pilot has started. Only Chapter 12's
   own disposable exercise identity has ever been passed to `start_pilot`.
-- No claim that a governance receipt exists — its absence at this stage is
-  the correct, expected state per the governing SOW's own corrected
-  sequence, not a gap this unit's implementation needed to close.
-- No claim that this document's status is anything other than `PROPOSED`,
-  or that Unit 11 is closed.
+- No claim that a governance receipt exists or was ever required — per
+  `docs/rulings/2026-08-30-unit11-local-closure-supersedes-real-deployment-gate.md`,
+  its absence is permanent, not a stage this unit's implementation was
+  waiting to close.
+- No claim that the real pilot-start act was ever performed, at any point,
+  including after this document's own `ACCEPTED` flip — Unit 11 closes on
+  the local, learner-controlled mechanism, never on a real invocation.
 - No claim that Chapters 13 or beyond exist, or that any Unit 12 work has
   begun.
 
