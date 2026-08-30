@@ -70,7 +70,7 @@ Close the three components the governing ruling authorized:
 3. Build the pilot-start mechanism itself — an atomic, idempotent, structured
    ledger act — without executing it against the real named pilot organization.
    Executing it is a separate, later, separately-authorized act, not part of this
-   unit's own acceptance.
+   unit's implementation acceptance, though required for final Unit 11 closure.
 
 Unit 11 does not perform the real pilot start, does not run credentialed provider
 smokes, does not conduct the Andrea live evaluation, does not claim pilot
@@ -497,9 +497,10 @@ can inspect the merged tree and confirm:
   merely omitted;
 - **no governance receipt exists yet, and this is expected, not a gap** — per §4's
   corrected sequence, the receipt is filed only after the real pilot-start act
-  executes under its own later, separate authorization; its absence at Unit 11's
-  own acceptance is the correct state, not something this unit's implementation
-  needs to produce.
+  executes under its own later, separate authorization; its absence at
+  implementation acceptance is the correct state, not something this unit's
+  implementation needs to produce. The receipt is present at final Unit 11
+  closure (see "Final Unit 11 closure conditions").
 
 Proceed first by filing and reviewing this SOW. Do not begin implementation before
 it is merged unchanged or a subsequent Principal ruling amends it.
