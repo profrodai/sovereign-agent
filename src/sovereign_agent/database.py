@@ -317,6 +317,14 @@ CREATE INDEX IF NOT EXISTS verifications_by_sow ON verifications(sow_id);
 # place while an assignment runs. Acceptance still treats it as proof, and
 # guards that instead by requiring the canonical record and the indexed columns
 # to agree (`Organization._trusted_receipt`).
+#
+# `active_pilot` is also deliberately absent from this list: it is a
+# singleton with no per-row `id` column (its PRIMARY KEY is always the
+# literal 1), so it does not fit this list's own three-trigger contract
+# (`{table}_no_replace` keys off `NEW.id`, which this table has no
+# equivalent of). It carries its own update/delete guards directly in
+# migration 16 instead -- replace-safety comes from its `pilot_id` UNIQUE
+# constraint, not from a `_no_replace` trigger.
 APPEND_ONLY_TABLES: tuple[str, ...] = (
     "events",
     "effects",
@@ -325,6 +333,7 @@ APPEND_ONLY_TABLES: tuple[str, ...] = (
     "evidence",
     "pulse_wake_decisions",
     "pulse_origins",
+    "pilots",
 )
 
 
@@ -634,6 +643,70 @@ FROM sows;
 """
 
 
+MIGRATION_16 = """
+-- Unit 11: the pilot-start mechanism (governing ruling Holding 1). A
+-- first-class, queryable record -- structured columns, not unindexed JSON --
+-- matching the discipline migration 15 already established for Pulse
+-- attribution. pilot_id is the CAS key: a plain INSERT is the idempotency
+-- check (UNIQUE, not a preflight SELECT), the same discipline
+-- create_pulse_work's own pulse_wake_decisions INSERT already uses.
+CREATE TABLE IF NOT EXISTS pilots (
+    pilot_id TEXT PRIMARY KEY,
+    started_at TEXT NOT NULL,
+    store_org_id TEXT NOT NULL,
+    pilot_profile_id TEXT NOT NULL,
+    evidence_namespace TEXT NOT NULL,
+    created_at TEXT NOT NULL
+);
+
+-- A singleton slot naming the one pilot presently active, if any.
+-- fail-closed on an INCOMPATIBLE concurrent start: the slot's own PRIMARY
+-- KEY (always 1) makes a second, DIFFERENT pilot_id's INSERT collide here
+-- exactly like pulse_wake_decisions.source_signal_id already does for
+-- signals -- refused at the SQLite boundary, not by a preflight SELECT a
+-- race could slip past. A REPLAY of the SAME pilot_id never reaches this
+-- table a second time (see start_pilot: the plain INSERT into `pilots`
+-- itself is what the replay collides against first).
+CREATE TABLE IF NOT EXISTS active_pilot (
+    slot_id INTEGER PRIMARY KEY CHECK (slot_id = 1),
+    pilot_id TEXT NOT NULL UNIQUE REFERENCES pilots(pilot_id)
+);
+
+CREATE TRIGGER IF NOT EXISTS pilots_no_update
+BEFORE UPDATE ON pilots
+BEGIN
+    SELECT RAISE(ABORT, 'pilots are append-only: update refused');
+END;
+CREATE TRIGGER IF NOT EXISTS pilots_no_delete
+BEFORE DELETE ON pilots
+BEGIN
+    SELECT RAISE(ABORT, 'pilots are append-only: delete refused');
+END;
+CREATE TRIGGER IF NOT EXISTS pilots_no_replace
+BEFORE INSERT ON pilots
+WHEN EXISTS (SELECT 1 FROM pilots WHERE pilot_id = NEW.pilot_id)
+BEGIN
+    SELECT RAISE(ABORT, 'pilots are append-only: replace refused');
+END;
+
+-- active_pilot holds exactly one row, ever, for the life of a database: the
+-- singleton PRIMARY KEY (slot_id = 1) is what a concurrent, INCOMPATIBLE
+-- start collides against. Guarded the same append-only way regardless --
+-- defense in depth, matching this project's own standing discipline that a
+-- proof-bearing row is never rewritten once written, singleton or not.
+CREATE TRIGGER IF NOT EXISTS active_pilot_no_update
+BEFORE UPDATE ON active_pilot
+BEGIN
+    SELECT RAISE(ABORT, 'active_pilot is append-only: update refused');
+END;
+CREATE TRIGGER IF NOT EXISTS active_pilot_no_delete
+BEFORE DELETE ON active_pilot
+BEGIN
+    SELECT RAISE(ABORT, 'active_pilot is append-only: delete refused');
+END;
+"""
+
+
 MIGRATIONS: tuple[tuple[int, str], ...] = (
     (1, MIGRATION_1),
     (2, MIGRATION_2),
@@ -650,6 +723,7 @@ MIGRATIONS: tuple[tuple[int, str], ...] = (
     (13, MIGRATION_13),
     (14, MIGRATION_14),
     (15, MIGRATION_15),
+    (16, MIGRATION_16),
 )
 
 

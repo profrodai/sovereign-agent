@@ -177,7 +177,8 @@ project's own curriculum checker enforces specifically for Chapter 7.
 
 `solution.py` imports the production package rather than copying it.
 
-You have now completed all seven chapters. There is no Chapter 8 yet — Unit
-11 is where the Store's own governed territory expands and this book's next
-chapters land alongside it, the same way Chapters 4 through 7 landed
-alongside Units 7 through 9.
+You have now completed all seven chapters. **Added, Unit 11:** the Store's
+own governed territory now expands — Chapters 8 through 12 land alongside
+it, the same way Chapters 4 through 7 landed alongside Units 7 through 9.
+
+Next: [Chapter 8 — The Store becomes a catalog](../ch08_the_store_becomes_a_catalog/README.md)

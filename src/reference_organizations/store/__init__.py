@@ -75,6 +75,93 @@ def seed(db: Database) -> None:
         append_event(db, "store.seeded", {"sku": product.sku})
 
 
+@dataclass(frozen=True)
+class CatalogEntry:
+    """One SKU's own opening position: independent of every other SKU in the
+    same catalog. `on_hand` and `reorder_point` are per-entry -- nothing in
+    this shape or in `seed_catalog` below lets one SKU's stock levels leak
+    into another's."""
+
+    product: Product
+    on_hand: int
+    reorder_point: int
+
+
+# The Unit 11 reference multi-SKU catalog (governing ruling Holding 2): at
+# least two distinct SKUs, each with its own independent stock level and
+# reorder point. SKU-TEA already crosses its own reorder point after a
+# 2-unit sale (Chapters 0-10's own fixture, unchanged, still available via
+# `seed` above); SKU-COFFEE deliberately starts with a DIFFERENT on_hand and
+# a DIFFERENT reorder point, so the two SKUs' thresholds cannot be confused
+# for the same number by coincidence.
+DEFAULT_CATALOG: tuple[CatalogEntry, ...] = (
+    CatalogEntry(
+        product=Product(sku="SKU-TEA", name="Assam tea", unit_cost_cents=120, price_cents=400),
+        on_hand=4,
+        reorder_point=3,
+    ),
+    CatalogEntry(
+        product=Product(
+            sku="SKU-COFFEE", name="Kenyan coffee", unit_cost_cents=210, price_cents=650
+        ),
+        on_hand=10,
+        reorder_point=6,
+    ),
+)
+
+
+def seed_catalog(
+    db: Database, entries: tuple[CatalogEntry, ...] = DEFAULT_CATALOG
+) -> tuple[Product, ...]:
+    """Seed a genuine multi-SKU catalog: at least two distinct SKUs, each
+    with its own independent stock level, reorder point, and product row.
+
+    Additive alongside `seed` above, never a replacement for it: `seed`'s
+    single-`SKU-TEA` contract is relied on by every chapter and test written
+    before Unit 11 (Chapters 0-7, and the whole pre-Unit-11 test suite), and
+    changing it out from under them is explicitly out of this unit's scope.
+    `seed_catalog` is the genuinely NEW multi-product entry point Chapters
+    8-11 and the isolation matrix use.
+
+    One opening cash balance is shared across the whole catalog (a store has
+    one till, not one per SKU) -- `cash_reconciles`-style checks already
+    read the ledger as a single running balance, so this does not weaken
+    isolation for anything the governing ruling actually requires
+    independent: stock levels, reorder points, signals, wake decisions,
+    Pulse origins, and replenishment chains are all per-SKU; cash is
+    deliberately the one shared resource, exactly as it already was for the
+    single-SKU case.
+    """
+    if len(entries) < 2:
+        raise ValueError("a catalog needs at least two distinct SKUs")
+    skus = [entry.product.sku for entry in entries]
+    if len(set(skus)) != len(skus):
+        raise ValueError(f"duplicate SKUs in catalog: {skus}")
+    with db.transaction():
+        for entry in entries:
+            db.connection.execute(
+                "INSERT OR REPLACE INTO products(sku, record) VALUES (?, ?)",
+                (entry.product.sku, json.dumps(entry.product.__dict__)),
+            )
+            db.connection.execute(
+                "INSERT OR REPLACE INTO inventory("
+                "sku, on_hand, reserved, reorder_point, record) VALUES (?, ?, ?, ?, ?)",
+                (
+                    entry.product.sku,
+                    entry.on_hand,
+                    0,
+                    entry.reorder_point,
+                    json.dumps({"sku": entry.product.sku}),
+                ),
+            )
+            append_event(db, "store.seeded", {"sku": entry.product.sku})
+        db.connection.execute(
+            "INSERT OR REPLACE INTO cash_entries(id, amount_cents, record) VALUES (?, ?, ?)",
+            ("cash-opening", 10_000, json.dumps({"reason": "opening"})),
+        )
+    return tuple(entry.product for entry in entries)
+
+
 def record_sale(db: Database, sku: str, quantity: int, unit_price_cents: int) -> Signal:
     """Mutate inventory and cash in the same transaction as the recording event.
 

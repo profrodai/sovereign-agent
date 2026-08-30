@@ -38,6 +38,14 @@ REQUIRED_CHAPTERS = (
     "ch05_authority_needs_a_fence",
     "ch06_the_organization_recovers",
     "ch07_the_organization_wakes_itself",
+    # Added Unit 11, following the exact pattern Unit 10 already established
+    # growing this tuple from 4 to 8: nothing in this module's structure
+    # assumed exactly 8 entries.
+    "ch08_the_store_becomes_a_catalog",
+    "ch09_each_product_has_its_own_threshold",
+    "ch10_one_signal_wakes_one_need",
+    "ch11_replenishment_scales_without_losing_governance",
+    "ch12_the_pilot_begins_with_a_receipt",
 )
 
 # The last chapter number that may NOT claim Pulse fired. Chapter 7 (index 7)
@@ -61,6 +69,13 @@ RUNNABLE = {
     "ch05_authority_needs_a_fence": "explore_fencing",
     "ch06_the_organization_recovers": "recover_from_a_real_hard_kill",
     "ch07_the_organization_wakes_itself": "the_organization_wakes_itself",
+    "ch08_the_store_becomes_a_catalog": "the_store_becomes_a_catalog",
+    "ch09_each_product_has_its_own_threshold": "each_product_has_its_own_threshold",
+    "ch10_one_signal_wakes_one_need": "one_signal_wakes_one_need",
+    "ch11_replenishment_scales_without_losing_governance": (
+        "replenishment_scales_without_losing_governance"
+    ),
+    "ch12_the_pilot_begins_with_a_receipt": "the_pilot_begins_with_a_receipt",
 }
 
 # Exercises whose entry point needs an argument beyond the root path.
@@ -109,6 +124,18 @@ FORBIDDEN_CLAIMS = (
 # collection schema requires -- this directory carries none, because
 # frontmatter belongs to the site that renders it, not to the source."
 FRONTMATTER_PATTERN = re.compile(r"\A---\s*\n.*?\n---\s*\n", re.DOTALL)
+
+# Added Unit 11: Chapter 12 exercises the pilot-start mechanism and MUST
+# NEVER be able to reach the real named pilot organization, by construction,
+# not merely by convention -- the governing SOW's own words. Every pilot_id
+# this chapter's own exercise writes to `pilots` must carry this reserved
+# prefix; nothing in this project's real-pilot tooling (there is none yet)
+# ever uses it. This is checked mechanically below (see
+# check_pilot_disposable_identity), the same "run it, then inspect the
+# resulting database" discipline check_pulse_claims already established for
+# Chapter 7's own Pulse-evidence guard.
+PILOT_DISPOSABLE_ID_CHAPTER = "ch12_the_pilot_begins_with_a_receipt"
+PILOT_DISPOSABLE_ID_PREFIX = "book-ch12-exercise-"
 
 
 def check_chapter(name: str) -> list[str]:
@@ -171,6 +198,7 @@ def check_chapter(name: str) -> list[str]:
                         )
                     else:
                         problems.extend(check_pulse_claims(name, text, root))
+                        problems.extend(check_pilot_disposable_identity(name, root))
 
     # Every local link and referenced script must exist.
     for target in re.findall(r"\]\(([^)]+)\)", text):
@@ -269,6 +297,65 @@ def check_pulse_claims(name: str, readme_text: str, exercise_root: Path) -> list
     finally:
         connection.close()
     return problems
+
+
+def check_pilot_disposable_identity(name: str, exercise_root: Path) -> list[str]:
+    """Chapter 12's own pilot-start exercise must be mechanically incapable
+    of reaching a real pilot identity (Unit 11, governing SOW section 3):
+    "never the same database, never the same pilot identity value, never
+    reachable by accident through a shared default."
+
+    Runs strictly after `check_chapter` has already executed this chapter's
+    own RUNNABLE entry point against `exercise_root` -- the same "run it,
+    then inspect the resulting database" shape `check_pulse_claims` already
+    established for Chapter 7. Every row this chapter's own exercise wrote
+    to `pilots` must carry the reserved `PILOT_DISPOSABLE_ID_PREFIX`. A
+    chapter that accidentally used a bare, unprefixed, or otherwise
+    non-reserved pilot_id -- the exact mistake a shared default value could
+    silently cause -- fails here even though nothing else in this module
+    would notice.
+    """
+    if name != PILOT_DISPOSABLE_ID_CHAPTER:
+        return []
+    db_path = exercise_root / ".sovereign" / "organization.db"
+    if not db_path.is_file():
+        return [
+            f"{name}: exercise left no organization database to check the pilot identity against"
+        ]
+
+    import sqlite3
+
+    connection = sqlite3.connect(str(db_path))
+    connection.row_factory = sqlite3.Row
+    try:
+        tables = {
+            row["name"]
+            for row in connection.execute(
+                "SELECT name FROM sqlite_master WHERE type = 'table' AND name = 'pilots'"
+            ).fetchall()
+        }
+        if "pilots" not in tables:
+            return [f"{name}: exercise ran but wrote no `pilots` table row at all"]
+        pilot_ids = [
+            str(row["pilot_id"]) for row in connection.execute("SELECT pilot_id FROM pilots")
+        ]
+        if not pilot_ids:
+            return [f"{name}: the pilot-start mechanism ran but created no pilot row"]
+        non_disposable = [
+            pilot_id
+            for pilot_id in pilot_ids
+            if not pilot_id.startswith(PILOT_DISPOSABLE_ID_PREFIX)
+        ]
+        if non_disposable:
+            return [
+                f"{name}: exercise created a pilot row whose identity "
+                f"{non_disposable!r} does not carry the reserved disposable prefix "
+                f"{PILOT_DISPOSABLE_ID_PREFIX!r} -- this chapter must never be able to "
+                "reach a real pilot identity"
+            ]
+    finally:
+        connection.close()
+    return []
 
 
 def check_instructor_notes() -> list[str]:
