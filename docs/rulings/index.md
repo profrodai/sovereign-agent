@@ -18,3 +18,4 @@ list, so the list cannot silently drift behind the directory.
 - [Ruling: Unit 7 is workspace lifecycle; Pulse stays out until Unit 9](2026-08-27-unit7-is-workspaces-not-pulse.md)
 - [Ruling: Unit 9 Pulse is a separate mechanism from the supervisor; attribution is structured and durable](2026-08-29-unit9-pulse-is-separate-from-supervisor.md)
 - [Ruling: attributed governance communication protocol](2026-08-29-attributed-governance-communication-protocol.md)
+- [Ruling: Unit 11 scope — pilot start marker, multi-SKU catalog, Chapters 8-12](2026-08-30-unit11-scope.md)
