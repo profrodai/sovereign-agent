@@ -42,12 +42,16 @@ The sequence is:
 
 **A second, independent authorization gate governs the real pilot-start act
 specifically** (Holding 1 of the governing ruling): even after Unit 11's
-implementation is itself accepted and verified on clean `main`, the real pilot-start
-act against the named pilot organization requires its own separate Principal
-authorization, distinct from and later than implementation authorization. **Unit 11
-acceptance does not mean the 30-day pilot has finished** — it does not even mean the
-pilot has started; only the separately-authorized real pilot-start act, and its
-durable governance receipt, mean that.
+implementation is itself merged, gated, and verified on clean `main` (the "Review
+and merge ritual" steps below, through step 10), the real pilot-start act against
+the named pilot organization requires its own separate Principal authorization,
+distinct from and later than implementation authorization. **This document's own
+status stays `PROPOSED`, and Unit 11 is not closed, until that separately-
+authorized real pilot-start act executes and its durable governance receipt is
+filed** — implementation being merged and verified on `main` is necessary but not
+sufficient for this document's `ACCEPTED` flip or for Unit 11's closure. See
+"Review and merge ritual" steps 11-14 for the exact closing sequence this
+requires.
 
 A changed SOW head invalidates an earlier co-sign. Branch reconciliation must use an
 allowed, auditable PR-based mechanism; do not substitute a local history rewrite for
@@ -191,22 +195,35 @@ close coherently.
 
 ### 4. The pilot-start mechanism (governing ruling Holding 1) — built, never executed against the real pilot organization by this unit
 
+**Correction (2026-08-30):** an earlier version of this section required the
+governance receipt to commit inside the same atomic SQLite transaction as the
+pilot-start mechanism itself, while a later paragraph described the receipt as
+matching this project's own acceptance-record convention (a filed, durable
+document, not a database row) — an internal contradiction, and a sequencing
+error the Principal caught directly: the governance receipt cannot exist in the
+same transaction as the mechanism's own internal write, because the receipt
+documents that the SEPARATELY AUTHORIZED real pilot-start act actually happened
+— an event that, by construction, occurs later than and outside of this unit's
+own implementation. Corrected below: the mechanism's own atomicity is scoped to
+exactly the SQLite record and event it produces; the governance receipt is a
+distinct, later artifact, filed only after the real act executes under its own
+separate authorization — never a component of the mechanism's internal
+transaction.
+
 Build an explicit, durable pilot-start act producing, atomically, in one
-transaction:
+transaction, exactly two things:
 
 - A first-class, queryable SQLite record — not an inference from prose or
   arbitrary JSON, matching the same discipline the Unit 9 ruling already required
-  for Pulse attribution (structured columns, not unindexed JSON).
+  for Pulse attribution (structured columns, not unindexed JSON). This record
+  carries: a stable pilot identity, a canonical UTC start time, the Store
+  organization and pilot-profile identity, and a reference to the evidence
+  namespace where Unit 12 can later assemble the redacted proof pack.
 - An append-only `pilot.started` event (or equivalently explicit event kind — name
   it once, use it consistently, matching Unit 8's own "one canonical failure-
   category term" discipline).
-- A stable pilot identity.
-- A canonical UTC start time.
-- The Store organization and pilot-profile identity.
-- A reference to the evidence namespace where Unit 12 can later assemble the
-  redacted proof pack.
 
-Required behavior, proven with real tests:
+Required behavior of this two-write transaction, proven with real tests:
 
 - **Idempotent**: replaying the same start request cannot create another pilot —
   the same CAS/UNIQUE-constraint discipline this project has used throughout
@@ -215,8 +232,8 @@ Required behavior, proven with real tests:
 - **Refuses when an incompatible pilot is already active** — a second, different
   pilot-start attempt while one is live must fail closed, not silently proceed or
   silently no-op as if it were a legitimate replay.
-- **Terminal persistence is atomic**: the SQLite record, the `pilot.started` event,
-  and the governance receipt (see below) commit together or not at all.
+- **Terminal persistence is atomic**: the SQLite record and the `pilot.started`
+  event commit together or not at all — nothing else is part of this transaction.
 - **Concurrent start attempts produce exactly one canonical pilot, proven with real,
   separate database connections** — two processes racing to start the same pilot
   identity at the same moment is a distinct property from idempotent replay and
@@ -233,10 +250,32 @@ requires the separate Principal authorization named in "Authorization" above and
 in the governing ruling's Holding 1 — that authorization, and the act it
 authorizes, are both explicitly out of this SOW's own acceptance scope.
 
-A short, append-only governance receipt (a durable record, matching the pattern
-this project's own acceptance records already use) must cite the real marker's
-identity and timestamp without pretending the pilot has finished — the receipt
-proves a start happened, never a completion.
+**The governance receipt is not built or filed by this unit's own
+implementation.** It belongs to a later step in the ruled sequence, entirely
+outside this SOW's acceptance scope:
+
+1. Unit 11's implementation is accepted and verified on clean `main` (this SOW's
+   own scope, ending here).
+2. The Principal separately authorizes Master to execute the real pilot-start act
+   against the named pilot organization.
+3. That act executes, producing the SQLite record and `pilot.started` event
+   described above, against the real pilot organization this time, not a
+   disposable exercise identity.
+4. Only after that act is durably confirmed does Master file a short, append-only
+   governance receipt — a filed, durable document, matching this project's own
+   acceptance-record convention (e.g. a PR comment or committed document, the
+   same medium every prior unit's own acceptance audit has used), citing the real
+   marker's identity and timestamp without pretending the pilot has finished. The
+   receipt is filed evidence that the act happened; it is not itself part of the
+   mechanism's own SQLite transaction and is never produced by this unit's own
+   implementation work.
+5. Only after that filed receipt exists does the reviewed `PROPOSED -> ACCEPTED`
+   flip for this document (in a later, separate reviewed change, per this
+   project's own standing convention) and Unit 11's final closure follow.
+
+This SOW's own acceptance conditions (below) end at step 1. Steps 2-5 are
+explicitly out of this unit's scope and require their own separate authorization
+and review at each step.
 
 ### 5. Mechanical curriculum guarantees and mutation checks
 
@@ -263,9 +302,13 @@ confirm green.
   implementation.** Stated in "Authorization" above.
 - **Implementation requires a separate Principal decision bound to the verified
   SOW merge commit.** Stated in "Authorization" above.
-- **Unit 11 acceptance does not mean the 30-day pilot has finished** — nor does it
-  mean the pilot has started; only the separately-authorized real pilot-start act
-  means that. Stated in "Authorization" above and in §4.
+- **This unit's implementation being merged, gated, and verified on `main` does
+  not mean the 30-day pilot has finished, and does not even mean it has started,
+  and does not by itself flip this document's status to `ACCEPTED`** — only the
+  separately-authorized real pilot-start act, followed by its filed governance
+  receipt, followed by the separate reviewed status flip, means any of that.
+  Stated in "Authorization" above, in §4, and in "Review and merge ritual" steps
+  11-14.
 - **Credentialed provider smokes, Andrea live evaluation, pilot completion,
   proof-pack acceptance, and release remain Unit 12 work.** Stated in "Mission"
   above and in "Explicit non-scope" below.
@@ -360,12 +403,36 @@ must be reported as unrun.
 9. Gate merged `main` from a clean clone.
 10. Audit `docs/v1-unit11-store-expansion-pilot-start.md` (the documentation
     deliverable this unit adds) against merged behavior.
-11. Flip its status to `ACCEPTED` only in a separate, reviewed change.
-12. **Unit 11 acceptance at this point does not authorize the real pilot-start
-    act.** That remains a separate, later, separately-authorized decision (see
-    "Authorization" above). Unit 12 remains unstarted until both this unit's
-    closure lands and any further Principal decision on the real pilot-start act
-    is made.
+
+**Correction (2026-08-30):** the original version of steps 11-12 flipped this
+document's own status to `ACCEPTED` and treated Unit 11 as closed immediately
+after step 10, with the real pilot-start act and its governance receipt
+positioned as merely unauthorized-for-now rather than as required prior steps
+in the closure sequence itself. That contradicted ruling Holding 1 ("Unit 11
+closes only after that act and its governance receipt are durably verified")
+and the corrected §4 sequence above. The steps below restore the ruled order:
+this unit's implementation is gated and audited (through step 10, above) and
+sits in that state — reviewed, merged, verified on `main`, but this document
+still `PROPOSED` — until the separately-authorized real pilot-start act and
+its filed governance receipt both exist. Only then does the status flip and
+final closure follow.
+
+11. **This unit's implementation acceptance (steps 1-10 above) is complete at
+    this point, but this document's own status stays `PROPOSED` and Unit 11 is
+    not yet closed.** Merged, verified behavior on `main` is not, by itself,
+    Unit 11's closure.
+12. The Principal separately authorizes Master to execute the real pilot-start
+    act against the named pilot organization (see "Authorization" above; not
+    authorized by this document's own merge). Master executes that act, and
+    once it is durably confirmed, files the governance receipt described in
+    §4 — a filed, durable document, not part of this unit's own implementation
+    or its SQLite transaction.
+13. Only after that filed receipt exists does this document's status flip to
+    `ACCEPTED`, in a separate, reviewed change, matching step 11's original
+    intent but now correctly sequenced after the real act rather than before
+    it.
+14. Unit 11 is closed only once that flip lands. Unit 12 remains unstarted
+    until Unit 11's closure under this sequence is complete.
 
 If `main` advances, reconcile through an auditable PR-based path and rerun gates
 and review on the resulting exact head. A prior co-sign does not survive a head
@@ -409,7 +476,12 @@ confirm:
   compressed against;
 - no live-provider evidence is claimed;
 - the real pilot-start act was NOT performed, and this is stated explicitly, not
-  merely omitted.
+  merely omitted;
+- **no governance receipt exists yet, and this is expected, not a gap** — per §4's
+  corrected sequence, the receipt is filed only after the real pilot-start act
+  executes under its own later, separate authorization; its absence at Unit 11's
+  own acceptance is the correct state, not something this unit's implementation
+  needs to produce.
 
 Proceed first by filing and reviewing this SOW. Do not begin implementation before
 it is merged unchanged or a subsequent Principal ruling amends it.
