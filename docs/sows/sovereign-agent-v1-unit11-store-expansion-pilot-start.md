@@ -248,11 +248,13 @@ against the real named pilot organization.** Chapter 12's own exercise (§3) inv
 it only against a disposable, exercise-scoped identity. The real pilot-start act
 requires the separate Principal authorization named in "Authorization" above and
 in the governing ruling's Holding 1 — that authorization, and the act it
-authorizes, are both explicitly out of this SOW's own acceptance scope.
+authorizes, are both explicitly outside the implementation PR and
+implementation-acceptance scope, but required for final Unit 11 closure.
 
 **The governance receipt is not built or filed by this unit's own
 implementation.** It belongs to a later step in the ruled sequence, entirely
-outside this SOW's acceptance scope:
+outside the implementation PR and implementation-acceptance scope, but required
+for final Unit 11 closure:
 
 1. Unit 11's implementation is accepted and verified on clean `main` (this SOW's
    own scope, ending here).
@@ -273,9 +275,10 @@ outside this SOW's acceptance scope:
    flip for this document (in a later, separate reviewed change, per this
    project's own standing convention) and Unit 11's final closure follow.
 
-This SOW's own acceptance conditions (below) end at step 1. Steps 2-5 are
-explicitly out of this unit's scope and require their own separate authorization
-and review at each step.
+This SOW's own implementation-acceptance conditions (below) end at step 1. Steps
+2-5 are outside the implementation PR and implementation-acceptance scope, but
+required for final Unit 11 closure (see "Final Unit 11 closure conditions"
+below), and require their own separate authorization and review at each step.
 
 ### 5. Mechanical curriculum guarantees and mutation checks
 
@@ -321,7 +324,13 @@ Do not:
   `src/sovereign_agent/` primitives merely to make the Store expansion appear
   larger;
 - create Chapters 13+ or any Unit 12-owned content;
-- execute the real pilot-start act against the real named pilot organization;
+- execute the real pilot-start act against the real named pilot organization as
+  part of **this unit's implementation** — that act is outside the
+  implementation PR and implementation-acceptance scope (this bullet), but it is
+  not outside the complete Unit 11 lifecycle: it is required, under its own
+  separate later Principal authorization, for final Unit 11 closure (see "Final
+  Unit 11 closure conditions"). Unlike the items below, it is Unit 11's own act,
+  just not this implementation's act;
 - perform pilot completion, elapsed-time acceptance, proof-pack assembly, or
   proof-pack acceptance;
 - conduct the Andrea live evaluation, decide its duration/sampling/participant
@@ -452,10 +461,19 @@ pilot-start act was not performed), and explicit non-claims.
 Update `CHANGELOG.md` following the established per-unit style. Update
 `book/README.md`'s chapter index to include Chapters 8-12.
 
-## Acceptance conditions
+## Implementation-acceptance conditions
 
-Unit 11 is accepted only when the Principal can inspect the merged tree and
-confirm:
+**Correction (2026-08-30):** this section was previously titled "Acceptance
+conditions" and opened "Unit 11 is accepted only when..." — but its own bullets
+require the real pilot-start act to NOT have happened and no governance receipt
+to exist yet, which describes implementation acceptance, not final Unit 11
+acceptance. Elsewhere this document correctly states Unit 11 closes only after
+both the real act and its receipt exist. Renamed and reworded below to remove
+that contradiction; see "Final Unit 11 closure conditions" below for what
+completes the unit.
+
+The Unit 11 **implementation** is technically accepted only when the Principal
+can inspect the merged tree and confirm:
 
 - the Store catalog has at least two independently-tracked SKUs, with real tests
   proving cross-SKU isolation across sales, signals, wake decisions, Pulse
@@ -485,6 +503,36 @@ confirm:
 
 Proceed first by filing and reviewing this SOW. Do not begin implementation before
 it is merged unchanged or a subsequent Principal ruling amends it.
+
+## Final Unit 11 closure conditions
+
+**Added 2026-08-30**, alongside the "Implementation-acceptance conditions"
+rename above, to state explicitly what completes Unit 11 — distinct from, and
+later than, implementation acceptance. Unit 11 is closed only when all of the
+following hold, in this order:
+
+1. Implementation acceptance (above) is satisfied, and the merged implementation
+   is gated and audited on a clean `main` clone (Review-and-merge-ritual steps
+   1-10).
+2. The Principal has separately authorized Master to execute the real
+   pilot-start act against the named pilot organization (see "Authorization"
+   above) — a distinct authorization from implementation authorization, granted
+   only after step 1.
+3. That real pilot-start act has executed and produced a verified real pilot
+   record and `pilot.started` event (§4's mechanism, invoked for real this time,
+   not Chapter 12's disposable exercise identity) — confirmed durable, not
+   merely attempted.
+4. A governance receipt documenting that act has been filed — a durable, filed
+   document (e.g. a PR comment or committed document, the same medium this
+   project's other acceptance records use), citing the real marker's identity
+   and timestamp, never a row inside §4's own SQLite transaction and never
+   produced by this unit's own implementation work.
+5. This document's own status has flipped `PROPOSED -> ACCEPTED` in a separate,
+   reviewed change (Review-and-merge-ritual step 13).
+6. `main` has been gated once more from a clean clone after that flip lands
+   (Review-and-merge-ritual step 14).
+
+Only after all six hold is Unit 11 closed and Unit 12 eligible to begin.
 
 ## Related documents
 
