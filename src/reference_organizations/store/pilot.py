@@ -118,9 +118,30 @@ def start_pilot(
             except sqlite3.IntegrityError as error:
                 if "pilots" not in str(error):
                     raise
-                # Same pilot_id already durable: a legitimate replay, not a
-                # new pilot. Nothing else in this transaction may write.
-                return _read_pilot(db, pilot_id)
+                # Same pilot_id already durable. Read the canonical row
+                # FIRST and compare the identity-defining fields before
+                # trusting this as a replay: a colliding pilot_id whose
+                # store_org_id/pilot_profile_id/evidence_namespace differ
+                # from the durable row is a DIFFERENT request that must
+                # fail closed, never silently return someone else's data.
+                existing = _read_pilot(db, pilot_id)
+                if (
+                    existing.store_org_id != store_org_id
+                    or existing.pilot_profile_id != pilot_profile_id
+                    or existing.evidence_namespace != evidence_namespace
+                ):
+                    raise Refusal(
+                        f"Pilot {pilot_id!r} already exists with different identity.",
+                        "A pilot_id collision is only a safe replay when "
+                        "store_org_id, pilot_profile_id, and evidence_namespace "
+                        "all match the durable row exactly; otherwise this is an "
+                        "incompatible start under a reused id, not a replay.",
+                        "sqlite3 .sovereign/organization.db 'select * from pilots'",
+                        "Use a fresh pilot_id, or replay with the original request's "
+                        "exact store_org_id/pilot_profile_id/evidence_namespace.",
+                        category="pilot_identity_conflict",
+                    ) from error
+                return existing
 
             try:
                 connection.execute(

@@ -92,6 +92,48 @@ def test_replaying_the_same_start_request_does_not_create_a_second_pilot(
     assert events == 1, "a replay must never append a second event"
 
 
+def test_a_colliding_pilot_id_with_different_identity_is_refused_not_replayed(
+    tmp_path: Path,
+) -> None:
+    """A `pilots.pilot_id` collision is only a safe replay when the incoming
+    request's store_org_id/pilot_profile_id/evidence_namespace all match the
+    durable row exactly. A DIFFERENT request reusing the same pilot_id must
+    fail closed, never silently return the first caller's own data."""
+    db = Database(tmp_path / "org.db")
+    first = start_pilot(
+        db,
+        pilot_id=PILOT_A,
+        store_org_id="store-test-org",
+        pilot_profile_id="profile-test",
+        evidence_namespace="ns-test-a",
+    )
+    assert first.idempotent_replay is False
+
+    with pytest.raises(Refusal) as excinfo:
+        start_pilot(
+            db,
+            pilot_id=PILOT_A,
+            store_org_id="store-other-org",
+            pilot_profile_id="profile-other",
+            evidence_namespace="ns-test-b",
+        )
+    assert excinfo.value.category == "pilot_identity_conflict"
+
+    pilots = db.connection.execute(
+        "SELECT pilot_id, store_org_id, pilot_profile_id, evidence_namespace FROM pilots"
+    ).fetchall()
+    assert len(pilots) == 1
+    assert pilots[0]["pilot_id"] == PILOT_A
+    assert pilots[0]["store_org_id"] == "store-test-org"
+    assert pilots[0]["pilot_profile_id"] == "profile-test"
+    assert pilots[0]["evidence_namespace"] == "ns-test-a"
+    events = db.connection.execute(
+        "SELECT COUNT(*) AS c FROM events WHERE kind = 'pilot.started'"
+    ).fetchone()["c"]
+    assert events == 1, "the refusal must not append a second pilot.started event"
+    assert active_pilot_id(db) == PILOT_A
+
+
 def test_replay_survives_reopening_the_database(tmp_path: Path) -> None:
     """Restart proof: idempotency is durable, not merely in-process."""
     root = tmp_path / "org.db"
@@ -311,3 +353,58 @@ def test_two_real_processes_starting_different_pilots_produce_exactly_one_winner
     ).fetchone()["c"]
     assert pilots == 1, "exactly one of the two competing pilots may become durable"
     assert events == 1
+
+
+def test_two_real_processes_racing_the_same_pilot_id_with_conflicting_identity_produce_one_winner(
+    tmp_path: Path,
+) -> None:
+    """The identity-conflict dual of the above: two REAL, separate
+    connections race `start_pilot` for the SAME pilot_id but with
+    conflicting store_org_id/pilot_profile_id/evidence_namespace. Exactly
+    one may win (create the canonical row); the other must be refused with
+    `pilot_identity_conflict`, never silently replay the winner's data."""
+    root = tmp_path / "org.db"
+    Database(root).close()
+
+    barrier = threading.Barrier(2)
+    outcomes: list[str] = []
+    lock = threading.Lock()
+
+    def contend(org_id: str) -> None:
+        db = Database(root)
+        db.connection.execute("PRAGMA busy_timeout = 5000")
+        barrier.wait()
+        try:
+            start_pilot(
+                db,
+                pilot_id=PILOT_A,
+                store_org_id=org_id,
+                pilot_profile_id=f"profile-{org_id}",
+                evidence_namespace=f"ns-{org_id}",
+            )
+            with lock:
+                outcomes.append("won")
+        except Refusal as error:
+            assert error.category == "pilot_identity_conflict"
+            with lock:
+                outcomes.append("refused")
+        db.close()
+
+    threads = [
+        threading.Thread(target=contend, args=("store-a",)),
+        threading.Thread(target=contend, args=("store-b",)),
+    ]
+    for thread in threads:
+        thread.start()
+    for thread in threads:
+        thread.join()
+
+    assert sorted(outcomes) == ["refused", "won"], f"expected one winner, one refusal: {outcomes}"
+
+    inspector = Database(root)
+    pilots = inspector.connection.execute("SELECT COUNT(*) AS c FROM pilots").fetchone()["c"]
+    events = inspector.connection.execute(
+        "SELECT COUNT(*) AS c FROM events WHERE kind = 'pilot.started'"
+    ).fetchone()["c"]
+    assert pilots == 1, "exactly one canonical pilots row must exist afterward"
+    assert events == 1, "exactly one pilot.started event must exist afterward"
