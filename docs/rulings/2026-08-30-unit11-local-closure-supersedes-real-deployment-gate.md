@@ -44,7 +44,7 @@ already solve here.
 
 1. **Unit 11 acceptance is based on the merged, reviewed pilot-start mechanism
    operating against local, disposable, learner-controlled SQLite databases.**
-   The mechanism itself — atomic two-write transaction, CAS idempotency,
+   The mechanism itself — atomic pilot-marker-and-event transaction, CAS idempotency,
    fail-closed refusal on an incompatible active pilot, the identity-conflict
    comparison (F-U11-1) and its per-field mutation coverage, all independently
    falsified by both Master and Sparring against the merged code — remains the
