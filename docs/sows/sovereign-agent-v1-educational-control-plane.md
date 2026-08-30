@@ -78,3 +78,4 @@ ready for production.
 - [v1 removal manifest](../v1-removal-manifest.md)
 - [Unit 9 SOW: Pulse and proactive governed work](sovereign-agent-v1-unit9-pulse-proactive-work.md)
 - [Unit 10 SOW: curriculum completion, Chapters 0-7](sovereign-agent-v1-unit10-curriculum-completion.md)
+- [Unit 11 SOW: Store expansion, Chapters 8-12, pilot-start mechanism](sovereign-agent-v1-unit11-store-expansion-pilot-start.md)
