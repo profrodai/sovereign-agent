@@ -134,6 +134,135 @@ def test_a_colliding_pilot_id_with_different_identity_is_refused_not_replayed(
     assert active_pilot_id(db) == PILOT_A
 
 
+def test_a_colliding_pilot_id_with_only_store_org_id_different_is_refused(
+    tmp_path: Path,
+) -> None:
+    """Per-field isolation for the identity-conflict comparison: holding
+    pilot_profile_id and evidence_namespace identical to the first call and
+    varying ONLY store_org_id must still refuse. This proves store_org_id's
+    own `!=` clause is independently load-bearing in the `or` chain -- not
+    merely along for the ride while another clause happens to catch every
+    mismatch this file exercises."""
+    db = Database(tmp_path / "org.db")
+    first = start_pilot(
+        db,
+        pilot_id=PILOT_A,
+        store_org_id="store-test-org",
+        pilot_profile_id="profile-test",
+        evidence_namespace="ns-test-a",
+    )
+    assert first.idempotent_replay is False
+
+    with pytest.raises(Refusal) as excinfo:
+        start_pilot(
+            db,
+            pilot_id=PILOT_A,
+            store_org_id="store-other-org",
+            pilot_profile_id="profile-test",
+            evidence_namespace="ns-test-a",
+        )
+    assert excinfo.value.category == "pilot_identity_conflict"
+
+    pilots = db.connection.execute(
+        "SELECT pilot_id, store_org_id, pilot_profile_id, evidence_namespace FROM pilots"
+    ).fetchall()
+    assert len(pilots) == 1
+    assert pilots[0]["pilot_id"] == PILOT_A
+    assert pilots[0]["store_org_id"] == "store-test-org"
+    assert pilots[0]["pilot_profile_id"] == "profile-test"
+    assert pilots[0]["evidence_namespace"] == "ns-test-a"
+    events = db.connection.execute(
+        "SELECT COUNT(*) AS c FROM events WHERE kind = 'pilot.started'"
+    ).fetchone()["c"]
+    assert events == 1, "the refusal must not append a second pilot.started event"
+    assert active_pilot_id(db) == PILOT_A
+
+
+def test_a_colliding_pilot_id_with_only_pilot_profile_id_different_is_refused(
+    tmp_path: Path,
+) -> None:
+    """Per-field isolation, dual of the above: holding store_org_id and
+    evidence_namespace identical to the first call and varying ONLY
+    pilot_profile_id must still refuse. Proves pilot_profile_id's own `!=`
+    clause is independently load-bearing, not redundant with store_org_id's."""
+    db = Database(tmp_path / "org.db")
+    first = start_pilot(
+        db,
+        pilot_id=PILOT_A,
+        store_org_id="store-test-org",
+        pilot_profile_id="profile-test",
+        evidence_namespace="ns-test-a",
+    )
+    assert first.idempotent_replay is False
+
+    with pytest.raises(Refusal) as excinfo:
+        start_pilot(
+            db,
+            pilot_id=PILOT_A,
+            store_org_id="store-test-org",
+            pilot_profile_id="profile-other",
+            evidence_namespace="ns-test-a",
+        )
+    assert excinfo.value.category == "pilot_identity_conflict"
+
+    pilots = db.connection.execute(
+        "SELECT pilot_id, store_org_id, pilot_profile_id, evidence_namespace FROM pilots"
+    ).fetchall()
+    assert len(pilots) == 1
+    assert pilots[0]["pilot_id"] == PILOT_A
+    assert pilots[0]["store_org_id"] == "store-test-org"
+    assert pilots[0]["pilot_profile_id"] == "profile-test"
+    assert pilots[0]["evidence_namespace"] == "ns-test-a"
+    events = db.connection.execute(
+        "SELECT COUNT(*) AS c FROM events WHERE kind = 'pilot.started'"
+    ).fetchone()["c"]
+    assert events == 1, "the refusal must not append a second pilot.started event"
+    assert active_pilot_id(db) == PILOT_A
+
+
+def test_a_colliding_pilot_id_with_only_evidence_namespace_different_is_refused(
+    tmp_path: Path,
+) -> None:
+    """Per-field isolation, third of three: holding store_org_id and
+    pilot_profile_id identical to the first call and varying ONLY
+    evidence_namespace must still refuse. Proves evidence_namespace's own
+    `!=` clause is independently load-bearing, not redundant with the other
+    two."""
+    db = Database(tmp_path / "org.db")
+    first = start_pilot(
+        db,
+        pilot_id=PILOT_A,
+        store_org_id="store-test-org",
+        pilot_profile_id="profile-test",
+        evidence_namespace="ns-test-a",
+    )
+    assert first.idempotent_replay is False
+
+    with pytest.raises(Refusal) as excinfo:
+        start_pilot(
+            db,
+            pilot_id=PILOT_A,
+            store_org_id="store-test-org",
+            pilot_profile_id="profile-test",
+            evidence_namespace="ns-test-b",
+        )
+    assert excinfo.value.category == "pilot_identity_conflict"
+
+    pilots = db.connection.execute(
+        "SELECT pilot_id, store_org_id, pilot_profile_id, evidence_namespace FROM pilots"
+    ).fetchall()
+    assert len(pilots) == 1
+    assert pilots[0]["pilot_id"] == PILOT_A
+    assert pilots[0]["store_org_id"] == "store-test-org"
+    assert pilots[0]["pilot_profile_id"] == "profile-test"
+    assert pilots[0]["evidence_namespace"] == "ns-test-a"
+    events = db.connection.execute(
+        "SELECT COUNT(*) AS c FROM events WHERE kind = 'pilot.started'"
+    ).fetchone()["c"]
+    assert events == 1, "the refusal must not append a second pilot.started event"
+    assert active_pilot_id(db) == PILOT_A
+
+
 def test_replay_survives_reopening_the_database(tmp_path: Path) -> None:
     """Restart proof: idempotency is durable, not merely in-process."""
     root = tmp_path / "org.db"
