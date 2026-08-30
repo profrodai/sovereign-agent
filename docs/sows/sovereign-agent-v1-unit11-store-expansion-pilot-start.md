@@ -4,12 +4,18 @@
 sow: sovereign-agent-v1-unit11-store-expansion-pilot-start
 project: sovereign-agent
 unit: 11
-status: PROPOSED
+status: ACCEPTED
 authority: principal
 base_commit: e9a067087b8cd09f33d046b9402f4c0976167c5e
 governing_documents:
   - docs/sows/sovereign-agent-v1-educational-control-plane.md (sequencing amendment 6)
   - docs/rulings/2026-08-30-unit11-scope.md (Unit 11 scope ruling, all six holdings binding)
+  - docs/rulings/2026-08-30-unit11-local-closure-supersedes-real-deployment-gate.md
+    (withdraws the real-deployment pilot-start gate this document's own §4 and
+    "Final Unit 11 closure conditions" originally required; Unit 11 closes on
+    the merged, reviewed implementation operating against local,
+    learner-controlled SQLite -- no real pilot-start act, governance receipt,
+    or production deployment required)
 work_branch: unit-11/store-expansion-pilot-start
 runtime: Python 3.14
 runtime_dependencies:
