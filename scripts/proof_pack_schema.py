@@ -30,6 +30,21 @@ NOT_RUN_STATUSES = frozenset({"NOT_RUN_UNAVAILABLE", "NOT_RUN_UNAUTHENTICATED"})
 REQUIRED_PROVIDERS = ("claude", "codex", "cursor")
 
 # ---------------------------------------------------------------------------
+# Andrea evaluation status: a separate closed domain from provider status.
+# Any object in the manifest carrying a recognized "status" key from EITHER
+# domain below whose value is NOT_RUN or begins with NOT_RUN_ is a lie-scan
+# context root for its own subtree -- see walk_and_validate_strings.
+# ---------------------------------------------------------------------------
+
+ANDREA_STATUSES = frozenset({"NOT_RUN", "PASS", "FAIL"})
+
+# The union every recognized-status check (context derivation) consults.
+# Rejection of an unrecognized value is still each field's OWN named check
+# (check_provider_status, check_andrea_status) -- this union only decides
+# whether a *recognized* status root propagates NOT_RUN lie-scan context.
+KNOWN_STATUS_VALUES = PROVIDER_STATUSES | ANDREA_STATUSES
+
+# ---------------------------------------------------------------------------
 # The evidence directory every evidence path must resolve inside.
 # ---------------------------------------------------------------------------
 
