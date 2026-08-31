@@ -11,27 +11,39 @@ export NEBIUS_KEY="..."
 sovereign-agent doctor
 ```
 
-## Another OpenAI-compatible provider
+## The `ollama` provider — local Ollama or any OpenAI-compatible endpoint
+
+The `ollama` provider talks to any server that speaks the OpenAI
+`/v1/chat/completions` shape: a local Ollama by default, or vLLM, LM Studio, or
+OpenAI itself. It reads exactly three variables:
+
+| Variable | Default | Meaning |
+| --- | --- | --- |
+| `SOVEREIGN_AGENT_LLM_BASE_URL` | `http://localhost:11434/v1` | API root; must expose `/chat/completions`. |
+| `SOVEREIGN_AGENT_LLM_MODEL` | `qwen3` | Model name (`SOVEREIGN_AGENT_LLM_EXECUTOR_MODEL` is accepted as an alias). |
+| `SOVEREIGN_AGENT_LLM_API_KEY` | *(empty)* | Bearer token; blank for local Ollama, set for hosted endpoints. |
+
+Local Ollama (no key needed):
 
 ```bash
-export OPENAI_API_KEY="..."
-export SOVEREIGN_AGENT_LLM_BASE_URL="https://api.openai.com/v1/"
-export SOVEREIGN_AGENT_LLM_API_KEY_ENV="OPENAI_API_KEY"
-export SOVEREIGN_AGENT_LLM_PLANNER_MODEL="gpt-4o"
-export SOVEREIGN_AGENT_LLM_EXECUTOR_MODEL="gpt-4o-mini"
+ollama pull qwen3
+export SOVEREIGN_AGENT_LLM_MODEL="qwen3"
+sovereign-agent doctor   # lists: ollama  available  qwen3 @ http://localhost:11434/v1
 ```
 
-## Local Ollama
-
-Pull the configured models first, then:
+A hosted OpenAI-compatible endpoint:
 
 ```bash
-export OLLAMA_API_KEY="ollama"
-export SOVEREIGN_AGENT_LLM_BASE_URL="http://localhost:11434/v1/"
-export SOVEREIGN_AGENT_LLM_API_KEY_ENV="OLLAMA_API_KEY"
-export SOVEREIGN_AGENT_LLM_PLANNER_MODEL="qwen2.5:32b"
-export SOVEREIGN_AGENT_LLM_EXECUTOR_MODEL="qwen2.5:14b"
+export SOVEREIGN_AGENT_LLM_BASE_URL="https://api.openai.com/v1"
+export SOVEREIGN_AGENT_LLM_MODEL="gpt-4o-mini"
+export SOVEREIGN_AGENT_LLM_API_KEY="sk-..."
 ```
+
+Bind an actor to it by setting that actor's `provider = "ollama"` in
+`sovereign.toml`, or at runtime with a ruling actor via
+`rebind_actor(actor_id, "ollama", ruler_id)`. The model only *proposes* an
+`ActorReport`; the organization re-validates every proposal against the ledger
+before anything commits.
 
 ## Store sessions elsewhere
 

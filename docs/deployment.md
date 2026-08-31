@@ -78,10 +78,9 @@ NEBIUS_KEY=<your key>                  # or whichever provider you configured
 For any non-default:
 
 ```bash
-SOVEREIGN_AGENT_LLM_BASE_URL=https://api.tokenfactory.nebius.com/v1/
-SOVEREIGN_AGENT_LLM_API_KEY_ENV=NEBIUS_KEY
-SOVEREIGN_AGENT_LLM_PLANNER_MODEL=Qwen/Qwen3-Next-80B-A3B-Thinking
-SOVEREIGN_AGENT_LLM_EXECUTOR_MODEL=Qwen/Qwen3-32B
+SOVEREIGN_AGENT_LLM_BASE_URL=https://api.openai.com/v1
+SOVEREIGN_AGENT_LLM_MODEL=gpt-4o-mini
+SOVEREIGN_AGENT_LLM_API_KEY=sk-...
 SOVEREIGN_AGENT_MAX_CONCURRENT=5
 SOVEREIGN_AGENT_POLL_INTERVAL_S=1.0
 ```

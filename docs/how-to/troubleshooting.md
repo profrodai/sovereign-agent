@@ -7,13 +7,16 @@ that interpreter explicitly.
 
 ## Doctor reports a missing key
 
-Use `sovereign-agent doctor --skip-llm` for offline verification. For a live
-check, set the variable named by `SOVEREIGN_AGENT_LLM_API_KEY_ENV`.
+Use `sovereign-agent doctor` for offline verification (it never calls the
+network). For a live check, set `SOVEREIGN_AGENT_LLM_API_KEY` if your endpoint
+needs one; a local Ollama needs no key.
 
 ## A model or endpoint is rejected
 
-Confirm the endpoint is OpenAI-compatible, includes the expected `/v1/` path,
-and exposes both configured model names. Run `doctor` for a small live probe.
+Confirm the endpoint is OpenAI-compatible, includes the expected `/v1` path, and
+serves the model named by `SOVEREIGN_AGENT_LLM_MODEL`. An unreachable endpoint
+does not crash a run: the `ollama` provider records an honest `failed`
+ActorReport, which you can read in the run's `report.json`.
 
 ## No session appears
 

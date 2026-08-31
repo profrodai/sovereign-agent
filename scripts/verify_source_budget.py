@@ -18,7 +18,14 @@ MAX_MODULES = 40
 # ceiling without cramping the code to force it. Module and export ceilings
 # are unchanged. See docs/v1-unit9-pulse-proactive-work.md's own budget
 # table for the before/after figures this ruling produced.
-MAX_NONBLANK_LINES = 6_250
+#
+# Raised from 6_250 to 6_400 for the first-class OpenAI-compatible (ollama)
+# provider (~154 nonblank lines) that closes the documented-but-inert
+# SOVEREIGN_AGENT_LLM_* gap (org issue #210). A new provider cannot fit the
+# prior ~40-line headroom; this bump is PROPOSED in the provider PR and stands
+# only once Master/Principal sanction it on merge, exactly as the 6_000->6_250
+# raise was ruled.
+MAX_NONBLANK_LINES = 6_400
 MAX_ROOT_EXPORTS = 30
 
 
