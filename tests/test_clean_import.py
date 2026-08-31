@@ -23,4 +23,4 @@ print(json.dumps({'before': before, 'after': after, 'version': sovereign_agent._
         text=True,
     )
     observed = json.loads(result.stdout)
-    assert observed == {"before": [], "after": [], "version": "1.0.0.dev1"}
+    assert observed == {"before": [], "after": [], "version": "1.0.0"}
