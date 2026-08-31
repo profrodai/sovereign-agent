@@ -60,9 +60,22 @@ terminal acts, each distinct from and later than implementation authorization:**
   explicit Principal authorization distinct from release-candidate publication.
   **Merging this unit's implementation does not authorize either release tag.**
 
-Unit 12's own closure (Holding 5, step 10) follows a separate, reviewed
-`PROPOSED -> ACCEPTED` change and a clean-`main` gate, matching every prior
-unit's own closing convention — not implied by implementation merge alone.
+**Correction (2026-08-31):** the original version of this paragraph described
+Unit 12's own closure as following implementation merge with the final
+release treated as a possibly-later, independently-orderable act. That
+inverted the governing ruling's own Holding 5 sequence, where step 10
+("close Unit 12") comes strictly after steps 5-9 (final release
+authorization, tagging, PyPI publication, external verification, and
+installation-documentation correction) — one ordered sequence, not two
+separately-sequenceable branches. "Separately authorized" means the final
+release needs its own distinct Principal act (step 5); it does not mean that
+act, once granted and executed, may happen after Unit 12's own closure.
+Corrected: Unit 12's own closure (Holding 5, step 10) follows the completed,
+externally-verified final release and its documentation correction (Holding
+5, steps 5-9) — a separate, reviewed `PROPOSED -> ACCEPTED` change and a
+clean-`main` gate come only after that, matching every prior unit's own
+closing convention. See "Review and merge ritual" and "Final Unit 12 closure
+conditions" below for the corrected exact ordering.
 
 A changed SOW head invalidates an earlier co-sign. Branch reconciliation must
 use an allowed, auditable PR-based mechanism; do not substitute a local history
@@ -70,7 +83,7 @@ rewrite for the denied `git rebase`, `git merge`, or force-push mechanisms.
 
 ## Mission
 
-Close the six components the governing ruling authorized:
+Close the seven components the governing ruling authorized:
 
 1. Build the redacted proof-pack manifest and its verifier (Holding 2).
 2. Extend the Andrea evaluation to the full Chapters 0-12 curriculum with three
@@ -80,7 +93,9 @@ Close the six components the governing ruling authorized:
 4. Wire the conditional, truthful provider-status reporting the proof pack
    requires (Holding 6).
 5. Correct the stale unqualified "soak" phrasing Holding 7 names, additively.
-6. Leave the project ready for the Principal to separately authorize the
+6. Correct the top-level design memo's own `done_when` requirement,
+   additively, with Holding 1's replacement text (Holding 1).
+7. Leave the project ready for the Principal to separately authorize the
    `1.0.0rc1` release-candidate sequence (Holding 5) — this unit builds the
    mechanism and produces the evidence; it does not itself publish anything.
 
@@ -137,9 +152,25 @@ named reason for each:
 - any evidence path that escapes the evidence directory (`..`, absolute paths
   outside `docs/evidence/unit12/`, symlink traversal — matching this project's
   own established `.sovereign-out`/`.sovereign` path-escape discipline);
-- content that matches a secret-shaped pattern (API keys, bearer tokens,
-  anything matching this project's own credential-shaped heuristics already
-  used elsewhere in `verify_runtime_dependencies.py`'s environment checks);
+- content that matches a secret-shaped pattern. **Correction (2026-08-31):**
+  the original version of this bullet cited `verify_runtime_dependencies.py`
+  as already containing credential-shaped environment heuristics; independently
+  re-checked, that script contains no such thing — it only validates that
+  `pydantic` is the project's sole direct runtime dependency by reading
+  `pyproject.toml`. No existing script in this repository performs
+  secret-shaped-content detection; this SOW specifies the contract directly
+  instead of citing a nonexistent precedent. The verifier must reject content
+  matching common credential shapes: strings beginning with known provider
+  prefixes this project's own provider adapters already check for by name —
+  confirmed by direct read of each adapter's own `authentication_environment`
+  tuple: `ANTHROPIC_API_KEY`, `ANTHROPIC_AUTH_TOKEN`, `CLAUDE_CODE_OAUTH_TOKEN`
+  (`src/sovereign_agent/providers/claude.py:24-27`), `CODEX_API_KEY`
+  (`src/sovereign_agent/providers/codex.py:26`), `CURSOR_API_KEY`
+  (`src/sovereign_agent/providers/cursor.py:24`) — long high-entropy tokens (a
+  conservative heuristic: 20+ contiguous alphanumeric/`-`/`_` characters with
+  no whitespace), and any literal environment-variable dump shape (`KEY=value`
+  pairs pasted verbatim rather than summarized). This is new detection logic
+  this unit builds, not a reuse of anything that already exists;
 - any status field, anywhere in the manifest, whose value is `NOT_RUN_*` but
   whose accompanying prose or a sibling field claims success — the exact
   "NOT_RUN means PASS" lie Holding 2 names explicitly.
@@ -280,6 +311,39 @@ record, or `docs/v0.6-soak.md`. The new `docs/andrea-chapters-0-12-evaluation.md
 document itself must use only "Andrea live evaluation" throughout, never
 unqualified "soak."
 
+### 6. Correct the top-level design memo's own `done_when` requirement, additively (governing ruling Holding 1)
+
+**Added 2026-08-31**, closing a gap the Principal identified: the original
+version of this SOW cited the governing ruling's Holding 1 replacement text
+but never required implementing it against the top-level design memo it
+actually governs. Implementation could satisfy every other requirement in
+this SOW while leaving `docs/sows/sovereign-agent-v1-educational-control-plane.md`'s
+own binding `done_when` clause still reading the superseded line — a real gap,
+not a cosmetic one, since that document's `done_when` field is this project's
+own binding completion criterion for the whole 1.x line, not merely
+descriptive prose.
+
+Add, additively, to `docs/sows/sovereign-agent-v1-educational-control-plane.md`:
+a dated correction note (matching the pattern this session's own Unit 11
+rulings and SOW corrections already established — name the superseded line,
+do not delete it, state the replacement, cite the ruling) identifying that the
+`done_when` clause's line
+"30-day Sovereign Store pilot -> redacted proof pack accepted" and sequencing
+amendment 6's clause "then starts the 30-day pilot. Unit 12 finishes the
+pilot..." are both superseded by
+`docs/rulings/2026-08-30-unit11-local-closure-supersedes-real-deployment-gate.md`
+(already true and already ruled, but never yet annotated directly on the
+document those clauses live in) and by
+`docs/rulings/2026-08-31-unit12-scope.md`'s own Holding 1, whose replacement
+text is:
+
+> local, learner-controlled Sovereign Store release evaluation -> redacted Unit 12 proof pack accepted
+
+The original `done_when` line and amendment 6's own original wording remain
+intact, unedited — this is an additive correction note, not a rewrite,
+matching every other correction this project's history has made to a
+superseded-but-preserved passage.
+
 ## Explicit statements this SOW must make, and does — restated here per this
 ## project's own standing instruction, not left implicit
 
@@ -416,17 +480,35 @@ proof-pack manifest records.
     (governing ruling Holding 5, steps 2-3), under its own separate
     authorization, and the redacted proof pack is filed and reviewed
     (Holding 5, step 4).
-14. Only after that filed, reviewed proof pack exists does the reviewed
+
+**Correction (2026-08-31):** the original version of this section, and the
+"Final Unit 12 closure conditions" section below, treated the final `v1.0.0`
+PyPI release as an act that "may follow" Unit 12's own closure — inverting
+the governing ruling's own explicit, single, numbered ten-step Holding 5
+sequence, where step 10 ("Close Unit 12 only after...") comes strictly after
+steps 5-9 (final release authorization, tagging, publication, PyPI
+verification, and installation-documentation correction). "Separately
+authorized" (true — the final release needs its own distinct Principal act,
+step 5, distinct from release-candidate authorization) does not mean "may
+happen after closure" (false — the ruling's own step numbering is one
+sequence, not two independently orderable branches). Corrected below to
+match the ruling's own order exactly.
+
+14. The Principal separately authorizes the final release (Holding 5, step 5,
+    distinct from and later than the release-candidate authorization in step
+    13 above). Master sets the final version and tags the authorized exact
+    commit `v1.0.0` (Holding 5, step 6); the existing trusted-publisher
+    workflow publishes to PyPI (Holding 5, step 7).
+15. Master verifies the published PyPI artifact from outside the
+    repository — JSON metadata, wheel and sdist installation, Python floor,
+    dependency metadata, CLI, README, repository provenance, and artifact
+    digests (Holding 5, step 8) — and corrects installation documentation to
+    describe the actually published 1.x line (Holding 5, step 9).
+16. Only after that verified, corrected publication exists does the reviewed
     `PROPOSED -> ACCEPTED` flip for this document (in a later, separate
     reviewed change, per this project's own standing convention) follow.
-15. Unit 12 is closed only once that flip lands and `main` is gated once more
-    from a clean clone (governing ruling Holding 5, steps 9-10).
-16. The final `v1.0.0` PyPI release (Holding 5, steps 5-8) requires its own
-    separate Principal authorization, distinct from and possibly later than
-    Unit 12's own closure — this SOW does not require the final release to
-    have occurred before Unit 12 can close, since Holding 5 treats
-    release-candidate evidence and final-release authorization as separable
-    acts.
+17. Unit 12 is closed only once that flip lands and `main` is gated once more
+    from a clean clone (governing ruling Holding 5, step 10).
 
 If `main` advances, reconcile through an auditable PR-based path and rerun
 gates and review on the resulting exact head. A prior co-sign does not survive
@@ -446,6 +528,9 @@ run, no `LIVE_PASS` provider evidence was obtained, and no release tag was
 published), and explicit non-claims.
 
 Add `docs/andrea-chapters-0-12-evaluation.md` (§2 above).
+
+Add the additive correction note to
+`docs/sows/sovereign-agent-v1-educational-control-plane.md` (§6 above).
 
 Update `CHANGELOG.md` following the established per-unit style. Update
 `book/README.md`'s chapter index if it references curriculum completion state
@@ -475,6 +560,11 @@ can inspect the merged tree and confirm:
   `NOT_RUN_*` state for all three providers;
 - the stale "Unit 12 Andrea soak" phrasing is corrected additively, and the
   new Andrea document uses only "Andrea live evaluation";
+- the top-level design memo
+  (`docs/sows/sovereign-agent-v1-educational-control-plane.md`) carries an
+  additive correction note identifying its `done_when` clause and sequencing
+  amendment 6's own text as superseded by the governing ruling's Holding 1
+  replacement, with the original text preserved unedited;
 - every new mechanical guarantee is demonstrably load-bearing
   (mutation-checked, not merely present);
 - the `src/sovereign_agent/` budget is respected — expected unchanged at
@@ -496,6 +586,16 @@ before it is merged unchanged or a subsequent Principal ruling amends it.
 
 ## Final Unit 12 closure conditions
 
+**Correction (2026-08-31):** this section previously listed six conditions and
+treated the final `v1.0.0` PyPI release as an act that "may follow" closure —
+inverting the governing ruling's own single, explicitly numbered Holding 5
+sequence, where step 10 ("Close Unit 12 only after...") comes strictly after
+steps 5-9 (final release authorization, tagging, publication, PyPI
+verification, installation-documentation correction). Corrected to nine
+conditions below, matching the ruling's own order exactly — separate
+authorization for the final release (a real, distinct Principal act) does not
+mean the release may happen after closure; it means closure waits for it.
+
 Unit 12 is closed only when all of the following hold, in this order:
 
 1. Implementation acceptance (above) is satisfied, and the merged
@@ -510,16 +610,22 @@ Unit 12 is closed only when all of the following hold, in this order:
    this unit's own gate and the Andrea evaluation can produce, reviewed by
    Sparring, and accepted by the Principal as a release candidate (Holding 5,
    step 4; governing ruling Holding 2).
-5. This document's own status has flipped `PROPOSED -> ACCEPTED` in a
+5. The Principal has separately authorized the final release — a distinct
+   act from release-candidate authorization in step 3 (Holding 5, step 5).
+6. The final version has been set, the authorized exact commit tagged
+   `v1.0.0`, and the existing trusted-publisher workflow has published it to
+   PyPI (Holding 5, steps 6-7).
+7. The published PyPI artifact has been verified from outside the
+   repository — JSON metadata, wheel and sdist installation, Python floor,
+   dependency metadata, CLI, README, repository provenance, artifact digests
+   — and installation documentation corrected to describe the actually
+   published 1.x line (Holding 5, steps 8-9).
+8. This document's own status has flipped `PROPOSED -> ACCEPTED` in a
    separate, reviewed change.
-6. `main` has been gated once more from a clean clone after that flip lands.
+9. `main` has been gated once more from a clean clone after that flip lands
+   (Holding 5, step 10).
 
-Only after all six hold is Unit 12 closed. **The final `v1.0.0` PyPI release
-itself is a separate act (Holding 5, steps 5-8) that may follow Unit 12's own
-closure under its own distinct Principal authorization — this SOW does not
-require the final PyPI release to have occurred as a precondition of Unit 12's
-own closure**, since the governing ruling treats release-candidate acceptance
-and final-release authorization as separable.
+Only after all nine hold is Unit 12 closed.
 
 ## Related documents
 
