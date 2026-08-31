@@ -6,6 +6,21 @@ Repository: [`zeroemployeeorg/sovereign-agent`](https://github.com/zeroemployeeo
 
 ## Unreleased
 
+## [1.0.0] — 2026-08-31
+
+First stable release. The package is an executable textbook: Chapters 0-12
+build a Zero-Employee Organization end to end — outcomes, statements of work,
+assignments, atomic commit, independent verification, and principal
+acceptance, with refusal as a first-class result. Intelligence is a bounded
+actor, never the authority: a provider proposes, and every proposal is
+re-validated against the governed ledger before it can commit. The
+`reference_organizations.store` organization is fully worked, including live
+provider tool-calling against a typed capability. Python 3.14; depends only on
+`pydantic>=2`. The Unit 12 release-evaluation machinery below (redacted proof
+pack, extended Andrea evaluation, and the installed-wheel release-candidate
+gate) ships in this release; the previously-deferred publication is this
+release itself.
+
 ### Release evaluation, redacted proof pack, Andrea protocol extension (Unit 12)
 
 Builds the redacted proof-pack manifest and its field-schema-aware verifier,
