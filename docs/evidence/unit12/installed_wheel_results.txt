@@ -1,0 +1,56 @@
+=== sovereign-agent --help (installed wheel, outside source tree) ===
+usage: sovereign-agent [-h] [--root ROOT] [--version]
+                       {doctor,init,actor,outcome,plan,run,status,inspect,inbox,ruling,verify,accept,demo,supervisor,pulse} ...
+
+Learn how outcomes become governed, evidence-backed work.
+
+positional arguments:
+  {doctor,init,actor,outcome,plan,run,status,inspect,inbox,ruling,verify,accept,demo,supervisor,pulse}
+    doctor              check the offline learning environment
+    init                create sovereign.toml and the local ledger
+    actor               inspect actors
+    outcome             define outcomes
+    plan                activate an outcome and add a SOW
+    run                 assign and invoke one actor
+    status              explain outcome and SOW state
+    inspect             show inventory, cash, events and outcomes
+    inbox               list an actor's durable mailbox
+    ruling              record a decision
+    verify              run deterministic verification
+    accept              accept an outcome under authority
+    demo                run a scripted teaching scenario
+    supervisor          reconcile leases, expired claims, and hard-killed
+                        assignments (the runtime loop; not 'service' [future
+                        OS hosting, unimplemented] or 'pulse' [the separate
+                        proactive-wake command below, never called from here])
+    pulse               sale -> signal -> deterministic wake gate -> proactive
+                        governed work, created without a human prompt
+                        (distinct from 'supervisor'; '--once' is the only
+                        shape this command has)
+
+options:
+  -h, --help            show this help message and exit
+  --root ROOT           organization directory
+  --version             show program's version number and exit
+
+=== sovereign-agent doctor (installed wheel) ===
+Sovereign Agent doctor
+  Python:   3.14.3 OK
+  Pydantic: 2.13.5 OK
+  Network:  not required
+  Tokens:   not required
+  Providers:
+    scripted available (streaming, workspace-write)
+    claude   available 2.1.231 (Claude Code) (streaming, resume, workspace-write)
+    codex    available codex-cli 0.151.0 (streaming, resume, workspace-write, sandbox)
+    cursor   available 2026.08.04-aaa8809 (streaming, resume, workspace-selection, workspace-write)
+Ready for the offline curriculum. Live providers are optional.
+
+=== sovereign-agent demo store --mode simulated (installed wheel, root outside source tree) ===
+out_20260831T133006Z_88cfe2ab ACCEPTED Keep the tea jar stocked
+  sow_20260831T133006Z_bfa52533 ACCEPTED Manually dispatched replenishment after signal sig_20260831T133006Z_5766290b
+outcome ACCEPTED
+
+=== package resolution proof: resolves outside the source tree, inside venv site-packages ===
+sovereign_agent: /private/tmp/claude-501/-Users-rodbot-code-zeroemployeeorg-sovereign-agent/a4200a1a-8271-4787-88cc-32b4ce571fad/scratchpad/unit12-venv/lib/python3.14/site-packages/sovereign_agent/__init__.py
+reference_organizations: /private/tmp/claude-501/-Users-rodbot-code-zeroemployeeorg-sovereign-agent/a4200a1a-8271-4787-88cc-32b4ce571fad/scratchpad/unit12-venv/lib/python3.14/site-packages/reference_organizations/__init__.py

@@ -1,0 +1,11 @@
+tests/test_providers_live.py::test_installed_cli_probe_does_not_submit_work[claude]
+tests/test_providers_live.py::test_installed_cli_probe_does_not_submit_work[codex]
+tests/test_providers_live.py::test_installed_cli_probe_does_not_submit_work[cursor]
+tests/test_providers_live.py::test_live_assignment_reaches_review_without_moving_trunk[read-only-claude]
+tests/test_providers_live.py::test_live_assignment_reaches_review_without_moving_trunk[read-only-codex]
+tests/test_providers_live.py::test_live_assignment_reaches_review_without_moving_trunk[read-only-cursor]
+tests/test_providers_live.py::test_live_assignment_reaches_review_without_moving_trunk[workspace-write-claude]
+tests/test_providers_live.py::test_live_assignment_reaches_review_without_moving_trunk[workspace-write-codex]
+tests/test_providers_live.py::test_live_assignment_reaches_review_without_moving_trunk[workspace-write-cursor]
+
+9 tests collected in 0.00s
