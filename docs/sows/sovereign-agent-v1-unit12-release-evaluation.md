@@ -152,25 +152,54 @@ named reason for each:
 - any evidence path that escapes the evidence directory (`..`, absolute paths
   outside `docs/evidence/unit12/`, symlink traversal — matching this project's
   own established `.sovereign-out`/`.sovereign` path-escape discipline);
-- content that matches a secret-shaped pattern. **Correction (2026-08-31):**
-  the original version of this bullet cited `verify_runtime_dependencies.py`
-  as already containing credential-shaped environment heuristics; independently
-  re-checked, that script contains no such thing — it only validates that
-  `pydantic` is the project's sole direct runtime dependency by reading
-  `pyproject.toml`. No existing script in this repository performs
-  secret-shaped-content detection; this SOW specifies the contract directly
-  instead of citing a nonexistent precedent. The verifier must reject content
-  matching common credential shapes: strings beginning with known provider
-  prefixes this project's own provider adapters already check for by name —
-  confirmed by direct read of each adapter's own `authentication_environment`
-  tuple: `ANTHROPIC_API_KEY`, `ANTHROPIC_AUTH_TOKEN`, `CLAUDE_CODE_OAUTH_TOKEN`
-  (`src/sovereign_agent/providers/claude.py:24-27`), `CODEX_API_KEY`
-  (`src/sovereign_agent/providers/codex.py:26`), `CURSOR_API_KEY`
-  (`src/sovereign_agent/providers/cursor.py:24`) — long high-entropy tokens (a
-  conservative heuristic: 20+ contiguous alphanumeric/`-`/`_` characters with
-  no whitespace), and any literal environment-variable dump shape (`KEY=value`
-  pairs pasted verbatim rather than summarized). This is new detection logic
-  this unit builds, not a reuse of anything that already exists;
+- content that matches a secret-shaped pattern, **field-schema-aware, not a
+  blind content scan.** **Correction (2026-08-31), superseding the prior
+  correction on this same bullet:** the original version cited
+  `verify_runtime_dependencies.py` as already containing credential-shaped
+  environment heuristics; independently re-checked, that script contains no
+  such thing. The FIRST replacement contract (a blind "20+ contiguous
+  alphanumeric characters" entropy rule applied to all content) was itself
+  wrong, caught by the Principal and independently reproduced by Master
+  before applying this fix: a git commit SHA is exactly 40 hex characters
+  (`git rev-parse HEAD | wc -c` → 41 including the newline) and a SHA-256
+  digest is exactly 64 hex characters — both required manifest fields under
+  this same §1 ("exact source and release-candidate commits"; "artifact
+  digests" and evidence-file "SHA-256 digests") — and both would trip a
+  blind entropy rule, making the verifier reject every valid proof pack. The
+  cited provider environment-variable names (`ANTHROPIC_API_KEY`, etc.) are
+  variable **names**, not value-shape patterns, and do not by themselves
+  define what a credential *value* looks like — a second, independent error
+  in the same prior fix, also caught here rather than left uncorrected.
+
+  The verifier must instead validate **against the manifest's own known
+  field schema**, never scan arbitrary string content blindly:
+  - Fields with a fixed, known shape (commit SHAs: exactly 40 lowercase hex
+    characters; SHA-256 digests: exactly 64 lowercase hex characters;
+    semantic versions: `MAJOR.MINOR.PATCH` with an optional pre-release
+    suffix; file paths: validated against the path-escape rule above, not
+    against a secret pattern) are validated against that specific shape and
+    **never** rejected as secret-shaped merely for being long.
+  - Fields that are genuinely free text (redaction notes, explicit
+    non-claims, evidence descriptions, any prose field) are scanned for two
+    narrow, precisely specified patterns: (a) a known credential
+    environment-variable name immediately followed by `=` and a non-empty,
+    non-placeholder value — e.g. `ANTHROPIC_API_KEY=<real-looking value>` —
+    using the exact variable names each provider adapter's own
+    `authentication_environment` tuple already defines (confirmed by direct
+    read: `ANTHROPIC_API_KEY`, `ANTHROPIC_AUTH_TOKEN`,
+    `CLAUDE_CODE_OAUTH_TOKEN` in `src/sovereign_agent/providers/claude.py:24-27`;
+    `CODEX_API_KEY` in `src/sovereign_agent/providers/codex.py:26`;
+    `CURSOR_API_KEY` in `src/sovereign_agent/providers/cursor.py:24`) — a
+    variable **name alone**, or a variable name in redaction metadata
+    explicitly describing that it was redacted (e.g. "ANTHROPIC_API_KEY was
+    present and has been redacted"), is never itself a rejection; only an
+    actual assignment-shaped pairing with a value is; (b) a literal
+    `Bearer <token>` HTTP authorization-header shape. No entropy heuristic
+    of any kind applies to free-text fields either, per the Principal's own
+    instruction not to reintroduce a broad heuristic without mechanically
+    precise exclusions — none is precise enough here to justify one. This is
+    new detection logic this unit builds, not a reuse of anything that
+    already exists;
 - any status field, anywhere in the manifest, whose value is `NOT_RUN_*` but
   whose accompanying prose or a sibling field claims success — the exact
   "NOT_RUN means PASS" lie Holding 2 names explicitly.
@@ -454,6 +483,17 @@ proof-pack manifest records.
      `docs/evidence/unit12/` — the verifier must catch this;
    - a proof-pack manifest whose digest does not match its evidence file —
      the verifier must catch this;
+   - **(added 2026-08-31, per the Principal's required correction) a valid
+     manifest containing real commit SHAs and real artifact SHA-256
+     digests — the verifier must PASS this, not reject it as secret-shaped**;
+     this is the falsification proving the field-schema-aware fix genuinely
+     works, not merely that it was written with the right intent;
+   - **(added 2026-08-31) the same valid manifest with one field's value
+     replaced by an unredacted secret-shaped value (e.g. a credential
+     environment-variable assignment or a `Bearer <token>` string inserted
+     into a free-text field) — the verifier must catch this with a named
+     reason**, proving the detection side of the same fix also genuinely
+     works, not just that it no longer over-rejects;
    - the installed-wheel exercise path silently falling back to the
      source-tree package instead of the installed one — the release-candidate
      gate must catch this (matching the same "prove the isolation, don't
