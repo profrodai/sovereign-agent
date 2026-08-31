@@ -1,0 +1,17 @@
+Unit 12 deterministic gate summary, all commands run against source_commit.
+
+uv lock --check: resolves cleanly (20 packages).
+make verify: passes (lint, format, mypy strict, full non-live test suite,
+runtime-dependency check, source budget, CLI smoke, doctor, demo store).
+python -m pytest -q: 358 passed, 9 deselected (the live-marked provider
+smokes; see live_provider_tests_collected_unrun.txt).
+python scripts/verify_curriculum.py: run twice consecutively; see
+verify_curriculum_run1.txt and verify_curriculum_run2.txt (byte-identical:
+"curriculum sound: 13 chapters, 13 exercises executed, all links resolve").
+python scripts/verify_source_budget.py: see verify_source_budget.txt
+(modules=27/40 nonblank_lines=6208/6250 root_exports=7/30 -- unchanged from
+this SOW's own base commit; this unit's own required implementation needed
+zero src/sovereign_agent/ changes).
+python scripts/verify_runtime_dependencies.py: see
+verify_runtime_dependencies.txt (pydantic only).
+git diff --check: no whitespace errors.

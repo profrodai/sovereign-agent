@@ -6,6 +6,72 @@ Repository: [`zeroemployeeorg/sovereign-agent`](https://github.com/zeroemployeeo
 
 ## Unreleased
 
+### Release evaluation, redacted proof pack, Andrea protocol extension (Unit 12)
+
+Builds the redacted proof-pack manifest and its field-schema-aware verifier,
+extends the Andrea evaluation to the full 13-chapter curriculum with three
+new scored tasks, builds a distinct release-candidate gate covering the
+installed-wheel path, wires conditional truthful provider-status reporting,
+and additively corrects two stale passages. This document's own status
+stays `PROPOSED`; the Andrea live evaluation, the release-candidate
+publication, and the final release are later, separately-authorized steps
+outside this unit's implementation-acceptance scope.
+
+- **The redacted proof-pack manifest and verifier.**
+  `docs/evidence/unit12/proof-pack.json` (schema in
+  `scripts/proof_pack_schema.py`) records source/release-candidate commits,
+  versions, artifact digests, deterministic gate and installed-wheel
+  results, local disposable pilot-mechanism evidence, the Andrea
+  live-evaluation result, one status row per provider (exactly one of
+  `LIVE_PASS`, `NOT_RUN_UNAVAILABLE`, `NOT_RUN_UNAUTHENTICATED`, `FAIL`),
+  redactions, non-claims, and evidence digests. `scripts/verify_proof_pack.py`
+  rejects missing fields, unknown statuses, digest mismatches, path escapes,
+  and secret-shaped content -- **field-schema-aware**: known-shape fields
+  (commit SHAs, SHA-256 digests, semver, paths) validate against their own
+  shape and are never rejected for being long; free-text fields are scanned
+  for exactly two narrow patterns (a credential env-var `NAME=value`
+  assignment, or a literal `Bearer <token>` shape), no entropy heuristic.
+  This unit's own gate produced a real, genuinely partial manifest: real
+  evidence for everything this unit's own implementation can produce,
+  honest `NOT_RUN` for the Andrea live evaluation and all three providers.
+- **The Andrea evaluation, extended to Chapters 0-12.**
+  `docs/andrea-chapters-0-12-evaluation.md` retains Tasks 1-7 verbatim
+  (maximum 14) and adds Task 8 (multi-SKU isolation), Task 9 (pilot-start
+  structured evidence, replay, refusal), Task 10 (local mechanism vs. a
+  real deployment; identifying ZEO Go as the production path). New maximum
+  20; pass at >=17/20 with no zero on Tasks 2, 7, 8, 9, or 10.
+  `scripts/evaluate_andrea_chapters_0_12.py` covers Tasks 8-9's own
+  machine-checkable reachability/evidence portions, declining to score
+  Task 10.
+- **A distinct release-candidate gate.** `scripts/verify_release_candidate.py`
+  runs all 13 exercises twice from fresh roots, builds and installs the
+  wheel into a clean Python 3.14 venv outside the source tree and runs
+  every exercise against it (proving isolation directly by asking the
+  venv's own interpreter where the package resolves from, not assuming
+  it), validates the new Andrea rubric's machine-checkable portions,
+  confirms the proof pack verifies, confirms no unbacked `LIVE_PASS`
+  claim, and confirms no committed evidence claims the real pilot-start act
+  occurred. `scripts/verify_curriculum.py`'s own scope is unchanged.
+- **Truthful provider-status reporting.** Reuses the existing
+  non-submitting capability probe and `tests/test_providers_live.py` (9
+  tests, still deselected by default). This environment holds all three
+  provider executables but no credentials, so the manifest honestly records
+  `NOT_RUN_UNAUTHENTICATED` for Claude, Codex, and Cursor.
+- **Two additive terminology/documentation corrections.**
+  `docs/andrea-chapters-0-7-evaluation.md`'s stale "Unit 12 Andrea soak"
+  phrasing is preserved unedited with a dated correction note naming
+  "Andrea live evaluation" as current terminology.
+  `docs/sows/sovereign-agent-v1-educational-control-plane.md` carries a
+  dated correction note identifying its `done_when` clause and sequencing
+  amendment 6 as superseded by
+  `docs/rulings/2026-08-31-unit12-scope.md`'s Holding 1 replacement text
+  ("local, learner-controlled Sovereign Store release evaluation ->
+  redacted Unit 12 proof pack accepted"); both original passages remain
+  intact.
+- **Zero `src/sovereign_agent/` changes.** Budget unchanged at
+  `27/40 modules, 6208/6250 nonblank lines, 7/30 root exports`. Every
+  deliverable lives in `scripts/`, `docs/`, and `docs/evidence/unit12/`.
+
 ### Store expansion, Chapters 8-12, pilot-start mechanism (Unit 11)
 
 Expands the Store's single-SKU walking skeleton into a genuine multi-SKU

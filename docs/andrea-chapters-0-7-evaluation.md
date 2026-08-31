@@ -170,6 +170,17 @@ human, live session is Unit 12's own territory. No credentialed provider
 execution is introduced here: Task 7, like every task in the historical
 document, runs entirely offline on the `scripted` provider.
 
+**Terminology correction (2026-08-31):** the phrase "Unit 12 Andrea soak"
+directly above is superseded, stale wording — retained here unedited, per
+this project's own established discipline of naming a superseded passage
+rather than silently rewriting it. Current terminology, per
+`docs/rulings/2026-08-31-unit12-scope.md` (Holding 7), is **"Andrea live
+evaluation"**: the timed, human, live session
+`docs/andrea-chapters-0-12-evaluation.md` defines. "Unit 12 Andrea soak" and
+"Andrea-profile soak" no longer describe that session; "v0.6 infrastructure
+soak" remains the only current use of unqualified "soak," and refers to the
+unrelated historical 72-hour exercise, not to anything Andrea-related.
+
 ## Automated pre-check
 
 Before spending a human session, confirm the machine-checkable parts:

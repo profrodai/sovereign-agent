@@ -1,0 +1,11 @@
+Sovereign Agent doctor
+  Python:   3.14.3 OK
+  Pydantic: 2.13.4 OK
+  Network:  not required
+  Tokens:   not required
+  Providers:
+    scripted available (streaming, workspace-write)
+    claude   available 2.1.231 (Claude Code) (streaming, resume, workspace-write)
+    codex    available codex-cli 0.151.0 (streaming, resume, workspace-write, sandbox)
+    cursor   available 2026.08.04-aaa8809 (streaming, resume, workspace-selection, workspace-write)
+Ready for the offline curriculum. Live providers are optional.

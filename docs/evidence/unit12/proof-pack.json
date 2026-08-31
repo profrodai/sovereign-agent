@@ -1,0 +1,120 @@
+{
+  "source_commit": "a17a01a6926168234ebf9622076ac2cf258da5ed",
+  "release_candidate_commit": null,
+  "python_version": "3.14.3",
+  "package_version": "1.0.0.dev1",
+  "artifact_digests": {
+    "wheel_filename": "sovereign_agent-1.0.0.dev1-py3-none-any.whl",
+    "wheel_sha256": "f53a4558a475d8cf3c379ff2bd2dc5cfa2362aa496b2d05594ce2e9bbade332d",
+    "note": "Wheel built and installed into a clean Python 3.14 venv outside the source tree for this unit's own release-candidate gate run; not committed to this repository (build artifacts are gitignored). The digest above is the exact wheel this unit's own gate exercised."
+  },
+  "deterministic_gate_results": {
+    "uv_lock_check": "clean, 20 packages resolved",
+    "make_verify": "pass (lint, format, mypy strict, 358 passed / 9 deselected, runtime-dependency check, source budget, CLI smoke, doctor, demo store)",
+    "verify_curriculum_twice": "pass, byte-identical both runs: 13 chapters, 13 exercises executed, all links resolve",
+    "verify_source_budget": "modules=27/40 nonblank_lines=6208/6250 root_exports=7/30",
+    "verify_runtime_dependencies": "pydantic",
+    "git_diff_check": "no whitespace errors",
+    "evidence_path": "deterministic_gate_summary.txt"
+  },
+  "installed_wheel_results": {
+    "help_exit_zero": true,
+    "doctor_exit_zero": true,
+    "demo_store_reached_accepted": true,
+    "package_resolved_outside_source_tree": true,
+    "evidence_path": "installed_wheel_results.txt"
+  },
+  "local_pilot_mechanism_evidence": {
+    "claim": "Chapter 12's own exercise, run against a disposable, exercise-scoped pilot identity (book-ch12-exercise-pilot). Proves a durable pilots row, an idempotent replay of the same identity, and exactly one pilot.started event despite the replay. This is local, learner-controlled Sovereign Store release evaluation -- not a real 30-day deployment pilot. No real pilot organization, real store_org_id, or real pilot_profile_id was ever used.",
+    "disposable_identity_prefix": "book-ch12-exercise-",
+    "idempotent_replay_confirmed": true,
+    "evidence_path": "local_pilot_mechanism_evidence.json"
+  },
+  "andrea_live_evaluation": {
+    "status": "NOT_RUN",
+    "reason": "The Andrea live evaluation is a separate, later, separately-authorized real human session using the protocol docs/andrea-chapters-0-12-evaluation.md defines. This unit builds and runs the machine-checkable pre-check only (scripts/evaluate_andrea_chapters_0_7.py, scripts/evaluate_andrea_chapters_0_12.py), both passing at this commit; neither substitutes for the real human session.",
+    "pre_check_passed": true
+  },
+  "provider_status": {
+    "claude": {
+      "status": "NOT_RUN_UNAUTHENTICATED",
+      "executable_available": true,
+      "reason": "claude executable is present and its non-submitting capability probe succeeds, but no credential (ANTHROPIC_API_KEY, ANTHROPIC_AUTH_TOKEN, or CLAUDE_CODE_OAUTH_TOKEN) is present in this environment."
+    },
+    "codex": {
+      "status": "NOT_RUN_UNAUTHENTICATED",
+      "executable_available": true,
+      "reason": "codex executable is present and its non-submitting capability probe succeeds, but no credential (CODEX_API_KEY) is present in this environment."
+    },
+    "cursor": {
+      "status": "NOT_RUN_UNAUTHENTICATED",
+      "executable_available": true,
+      "reason": "cursor executable is present and its non-submitting capability probe succeeds, but no credential (CURSOR_API_KEY) is present in this environment."
+    },
+    "evidence_path": "provider_doctor_probe.txt"
+  },
+  "redactions_performed": [
+    "No credentials, prompts, provider transcripts, personal identifiers, or unredacted environment dumps were ever captured in any evidence file -- there was nothing present to redact, confirmed by direct grep of every evidence file before it was committed."
+  ],
+  "non_claims": [
+    "No real 30-day Sovereign Store deployment pilot occurred or is claimed. Only the disposable, exercise-scoped identity book-ch12-exercise-pilot was ever passed to start_pilot.",
+    "No governance receipt exists or was required.",
+    "The Andrea live evaluation has NOT run. Only its machine-checkable pre-check has run.",
+    "No LIVE_PASS provider evidence exists. All three providers show NOT_RUN_UNAUTHENTICATED: their executables are present but no credential is available in this environment.",
+    "No 1.0.0rc1 release candidate has been produced or published to TestPyPI. release_candidate_commit is null.",
+    "No v1.0.0 tag or PyPI publication has occurred.",
+    "This manifest is genuinely partial, not complete -- completing it is later, separately-authorized work."
+  ],
+  "evidence_files": [
+    {
+      "path": "deterministic_gate_summary.txt",
+      "sha256": "e8edc8a8608d08f898fd718170217cb4f936986ef147d6d42911f9b4ae5f6fe1",
+      "description": "Prose summary tying the deterministic gate evidence files together"
+    },
+    {
+      "path": "installed_wheel_results.txt",
+      "sha256": "ea38cc19aa3f770c71baa6e7703fb46735c64bcddfd6cd15f8dc5ca9dbafff31",
+      "description": "CLI commands run from the installed wheel outside the source tree, plus package-resolution proof"
+    },
+    {
+      "path": "live_provider_tests_collected_unrun.txt",
+      "sha256": "ed85889b4a283dae8b37a6c56eb4dc155f8a39247088152c75bd2a94afe42f2d",
+      "description": "pytest --collect-only -m live output: 9 tests collected, deselected, unrun"
+    },
+    {
+      "path": "local_pilot_mechanism_evidence.json",
+      "sha256": "b1272f94e8c43419aba5d1494bfa980e48f7abaefc7c984cd0912c37452d5069",
+      "description": "Chapter 12 exercise output against a disposable, exercise-scoped pilot identity"
+    },
+    {
+      "path": "provider_doctor_probe.txt",
+      "sha256": "1c6715e4c7c054dac1e65c3d3081699e19cc3d651c729d6d3de7e244e5d4d36d",
+      "description": "sovereign-agent doctor output; no credentials present, no secrets recorded"
+    },
+    {
+      "path": "pytest_results.txt",
+      "sha256": "9f262e78b0fbfaceefa6219ca3b00c03e7df85620b70ada08273607e35a80ae7",
+      "description": "Full non-live test suite result (358 passed, 9 deselected)"
+    },
+    {
+      "path": "verify_curriculum_run1.txt",
+      "sha256": "a8cadb1c60f5f9d15e20850acf7a5543961a690c1a8008142cf5453104807a6a",
+      "description": "First of two consecutive verify_curriculum.py runs"
+    },
+    {
+      "path": "verify_curriculum_run2.txt",
+      "sha256": "a8cadb1c60f5f9d15e20850acf7a5543961a690c1a8008142cf5453104807a6a",
+      "description": "Second consecutive verify_curriculum.py run, confirming determinism"
+    },
+    {
+      "path": "verify_runtime_dependencies.txt",
+      "sha256": "726a3fe67d05fd8639b5de673d905f76304436498683fa44e528565d86d7c533",
+      "description": "scripts/verify_runtime_dependencies.py output (pydantic only)"
+    },
+    {
+      "path": "verify_source_budget.txt",
+      "sha256": "65daa717150051929274f6d72e759e9f09974f597176eff9a1c8d8d337c4d4df",
+      "description": "scripts/verify_source_budget.py output at implementation head"
+    }
+  ]
+}

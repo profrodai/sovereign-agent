@@ -26,6 +26,28 @@ implementation history and authorization agree. The full design memo lives with
 the originating stream; holdings that change the package boundary are in
 [ruling 2026-08-25 educational reset](../rulings/2026-08-25-educational-reset.md).
 
+**Correction (2026-08-31), additive — original text below unedited:** the
+`done_when` clause's line above,
+"30-day Sovereign Store pilot -> redacted proof pack accepted", and
+sequencing amendment 6 below's own clause "then starts the 30-day pilot.
+Unit 12 finishes the pilot..." are both **superseded**, per
+`docs/rulings/2026-08-30-unit11-local-closure-supersedes-real-deployment-gate.md`
+(Unit 11 closes on the local, learner-controlled pilot-start mechanism; no
+real 30-day deployment pilot is assumed or required) and per
+`docs/rulings/2026-08-31-unit12-scope.md`'s own Holding 1, whose exact
+replacement text for the superseded `done_when` line is:
+
+> local, learner-controlled Sovereign Store release evaluation -> redacted Unit 12 proof pack accepted
+
+This replaces only the meaning of "30-day Sovereign Store pilot -> redacted
+proof pack accepted" in the `done_when` clause above and of "then starts the
+30-day pilot. Unit 12 finishes the pilot..." in sequencing amendment 6
+below; the original clauses remain unedited at their own citations, exactly
+as this project's own established discipline requires for every prior
+superseded-but-preserved passage. No real 30-day deployment pilot, real
+pilot-start act, or governance receipt is claimed by, or required for, this
+project's own completion.
+
 ## Decision in one sentence
 
 Rebuild sovereign-agent as the most didactic possible Python library for

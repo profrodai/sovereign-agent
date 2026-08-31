@@ -1,0 +1,34 @@
+{
+  "disposable_identity": {
+    "exercise_pilot_id": "book-ch12-exercise-pilot",
+    "structurally_distinct_prefix": true
+  },
+  "first_start": {
+    "idempotent_replay": false,
+    "pilot_id": "book-ch12-exercise-pilot"
+  },
+  "replay": {
+    "idempotent_replay": true,
+    "same_started_at_as_first": true
+  },
+  "durable_record": {
+    "pilot_row_exists": true,
+    "store_org_id": "book-ch12-exercise-store-org",
+    "pilot_profile_id": "book-ch12-exercise-profile",
+    "evidence_namespace": "book-ch12-exercise-evidence-ns"
+  },
+  "durable_event": {
+    "pilot_started_event_count": 1,
+    "exactly_one_despite_the_replay_above": true
+  },
+  "no_duplicate_pilot_row": {
+    "pilots_row_count": 1
+  },
+  "active_pilot": {
+    "pilot_id": "book-ch12-exercise-pilot"
+  },
+  "started_is_not_finished": {
+    "claim": "This pilot record proves the pilot STARTED. Nothing in this database, this function, or this project claims it has FINISHED -- there is no completion mechanism yet. That is Unit 12's own future territory, not this chapter's.",
+    "no_completion_table_exists": true
+  }
+}
