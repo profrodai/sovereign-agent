@@ -79,3 +79,4 @@ ready for production.
 - [Unit 9 SOW: Pulse and proactive governed work](sovereign-agent-v1-unit9-pulse-proactive-work.md)
 - [Unit 10 SOW: curriculum completion, Chapters 0-7](sovereign-agent-v1-unit10-curriculum-completion.md)
 - [Unit 11 SOW: Store expansion, Chapters 8-12, pilot-start mechanism](sovereign-agent-v1-unit11-store-expansion-pilot-start.md)
+- [Unit 12 SOW: release evaluation, proof pack, Andrea protocol, 1.0.0 release](sovereign-agent-v1-unit12-release-evaluation.md)
