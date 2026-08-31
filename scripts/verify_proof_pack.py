@@ -9,6 +9,8 @@ specific named reason:
 - missing required fields (governing ruling Holding 2);
 - an unknown provider status value (only LIVE_PASS, NOT_RUN_UNAVAILABLE,
   NOT_RUN_UNAUTHENTICATED, FAIL are allowed);
+- an unknown Andrea evaluation status value (only NOT_RUN, PASS, FAIL are
+  allowed);
 - a SHA-256 digest that does not match the file it claims to describe;
 - any evidence path that escapes `docs/evidence/unit12/` (`..`, absolute
   paths, symlink traversal);
@@ -18,8 +20,12 @@ specific named reason:
   being long. Free-text fields are scanned for exactly two narrow patterns:
   a credential env-var NAME=value assignment, or a literal "Bearer <token>"
   shape. No entropy heuristic anywhere;
-- a NOT_RUN_* status whose accompanying prose claims success (the
-  "NOT_RUN means PASS" lie Holding 2 names explicitly).
+- a NOT_RUN or NOT_RUN_* status whose accompanying prose claims success (the
+  "NOT_RUN means PASS" lie Holding 2 names explicitly). Lie-scan context is
+  derived structurally during the manifest walk from each object's OWN
+  recognized status field -- provider_status.<provider> and
+  andrea_live_evaluation alike, and any future status-bearing object for
+  free -- never from a caller-injected, field-specific flag.
 
 Exits 0 when the manifest is well-formed and internally truthful. This
 verifier does NOT claim the manifest is COMPLETE -- a genuinely partial
@@ -39,11 +45,12 @@ REPO_ROOT = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(REPO_ROOT / "scripts"))
 
 from proof_pack_schema import (  # noqa: E402
+    ANDREA_STATUSES,
     BEARER_TOKEN_RE,
     CREDENTIAL_ASSIGNMENT_RE,
     EVIDENCE_DIR_NAME,
     KNOWN_SHAPE_FIELDS,
-    NOT_RUN_STATUSES,
+    KNOWN_STATUS_VALUES,
     PATH_FIELD_NAMES,
     PROVIDER_STATUSES,
     REQUIRED_PROVIDERS,
@@ -131,6 +138,22 @@ def check_not_run_means_pass_lie(dotted_path: str, value: str, failures: list[st
             return
 
 
+def _is_not_run_status(value: Any) -> bool:
+    """True for a RECOGNIZED status value that is NOT_RUN or NOT_RUN_*.
+
+    Consults the closed union of both status domains (provider and Andrea)
+    so this one check works for either kind of object. An unrecognized
+    status value is not this function's concern -- rejecting it with a
+    named reason is check_provider_status / check_andrea_status's job; this
+    function only ever widens lie-scan context, never narrows a rejection.
+    """
+    return (
+        isinstance(value, str)
+        and value in KNOWN_STATUS_VALUES
+        and (value == "NOT_RUN" or value.startswith("NOT_RUN_"))
+    )
+
+
 def walk_and_validate_strings(
     node: Any, dotted_path: str, failures: list[str], *, not_run_context: bool = False
 ) -> None:
@@ -142,13 +165,24 @@ def walk_and_validate_strings(
     - A field whose name marks it as a path is checked against the
       path-escape rule only.
     - Everything else is free text: scanned for the two narrow secret
-      patterns, and if `not_run_context` is set (we are inside a NOT_RUN_*
-      provider row), also scanned for a false success claim.
+      patterns, and if `not_run_context` is set, also scanned for a false
+      success claim.
+
+    `not_run_context` is DERIVED here, not injected by the caller: any dict
+    node carrying its own recognized `status` key whose value is NOT_RUN or
+    NOT_RUN_* becomes a lie-scan context root for its own subtree -- prose
+    and nested sibling fields alike -- regardless of which top-level field
+    the object lives under (provider_status.<provider> or
+    andrea_live_evaluation today; any future status-bearing object for
+    free). A dict without its own status key inherits the context its
+    parent was walked with, so nested siblings of a NOT_RUN root stay
+    covered without needing a status key of their own.
     """
     if isinstance(node, dict):
+        context = not_run_context or _is_not_run_status(node.get("status"))
         for key, child in node.items():
             child_path = f"{dotted_path}.{key}" if dotted_path else key
-            walk_and_validate_strings(child, child_path, failures, not_run_context=not_run_context)
+            walk_and_validate_strings(child, child_path, failures, not_run_context=context)
         return
     if isinstance(node, list):
         for index, item in enumerate(node):
@@ -222,14 +256,31 @@ def check_provider_status(manifest: dict[str, Any], failures: list[str]) -> None
                         f"provider_status.{provider}: status is LIVE_PASS but evidence_path "
                         f"{evidence_path!r} does not exist -- an unbacked LIVE_PASS claim",
                     )
-        # NOT_RUN_* success-claim check happens via the free-text walk with
-        # not_run_context=True for this row's own subtree.
-        if status in NOT_RUN_STATUSES:
-            walk_and_validate_strings(
-                row, f"provider_status.{provider}", failures, not_run_context=True
-            )
-        else:
-            walk_and_validate_strings(row, f"provider_status.{provider}", failures)
+        # NOT_RUN_* success-claim, shape and secret-pattern checks all happen
+        # via the single whole-manifest walk in check_top_level_shapes, which
+        # derives lie-scan context from this row's own status field itself --
+        # no second walk of this row is needed here.
+
+
+def check_andrea_status(manifest: dict[str, Any], failures: list[str]) -> None:
+    """Reject an Andrea evaluation status outside the closed domain.
+
+    Mirrors check_provider_status's own-field validation, but for the single
+    andrea_live_evaluation object rather than a dict keyed by provider name.
+    The NOT_RUN-means-PASS lie check for this field's prose happens via the
+    same whole-manifest walk check_provider_status now also relies on.
+    """
+    andrea = manifest.get("andrea_live_evaluation")
+    if not isinstance(andrea, dict):
+        fail(failures, "andrea_live_evaluation: must be an object")
+        return
+    status = andrea.get("status")
+    if status not in ANDREA_STATUSES:
+        fail(
+            failures,
+            f"andrea_live_evaluation.status: unknown value {status!r} "
+            f"(must be one of {sorted(ANDREA_STATUSES)})",
+        )
 
 
 def check_digests(manifest: dict[str, Any], failures: list[str]) -> None:
@@ -278,6 +329,7 @@ def verify(manifest: dict[str, Any]) -> list[str]:
     failures: list[str] = []
     check_required_fields(manifest, failures)
     check_provider_status(manifest, failures)
+    check_andrea_status(manifest, failures)
     check_digests(manifest, failures)
     check_top_level_shapes(manifest, failures)
     return failures
