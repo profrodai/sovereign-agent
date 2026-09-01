@@ -1,0 +1,6 @@
+{
+  "borrowed_proof_rejected": true,
+  "noncausal_proof_rejected": true,
+  "stale_proof_rejected": true,
+  "valid_proof_accepted": true
+}

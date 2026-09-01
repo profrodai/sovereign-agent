@@ -1,0 +1,17 @@
+{
+  "schema_version": 1,
+  "chapter": "ch11_replenishment_scales_without_losing_governance",
+  "title": "Replenishment scales without losing governance",
+  "production_sources": [
+    "src/reference_organizations/store/__init__.py:apply_restock",
+    "src/sovereign_agent/database.py:Database.transaction",
+    "src/sovereign_agent/organization.py:Organization.accept"
+  ],
+  "production_tests": [
+    "tests/test_causal_binding.py::test_condition_true_contribution_true_accepts",
+    "tests/test_store_multi_sku.py::test_replenishment_effect_for_one_sku_never_touches_another_skus_inventory",
+    "tests/test_store_multi_sku.py::test_two_real_connections_racing_two_different_skus_create_two_canonical_sows"
+  ],
+  "entrypoint": "exercise",
+  "expected": "expected.json"
+}

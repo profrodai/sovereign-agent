@@ -1,0 +1,18 @@
+{
+  "schema_version": 1,
+  "chapter": "ch08_the_store_becomes_a_catalog",
+  "title": "Migrate a populated catalog without losing rows",
+  "production_sources": [
+    "src/sovereign_agent/database.py:Database.migrate",
+    "src/sovereign_agent/database.py:MIGRATIONS",
+    "src/reference_organizations/store/__init__.py:seed_catalog"
+  ],
+  "production_tests": [
+    "tests/test_persistence.py::test_upgrade_from_prior_schema_preserves_data",
+    "tests/test_persistence.py::test_a_failed_migration_rolls_back_schema_and_stamp",
+    "tests/test_persistence.py::test_migrations_are_forward_only_and_ordered",
+    "tests/test_store_multi_sku.py::test_a_sale_of_one_sku_does_not_change_another_skus_inventory"
+  ],
+  "entrypoint": "exercise",
+  "expected": "expected.json"
+}

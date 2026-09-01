@@ -1,0 +1,28 @@
+{
+  "fault": "injected_after_pilot",
+  "no_orphan_after_fault": true,
+  "pilot": {
+    "active": "pilot-lucy-01",
+    "pilots": [
+      "pilot-lucy-01"
+    ],
+    "started_events": 1
+  },
+  "proof_pack": {
+    "attacks": {
+      "digest_mismatch": [
+        "digest_mismatch"
+      ],
+      "not_run_lie": [
+        "not_run_success_claim"
+      ],
+      "path_escape": [
+        "path_escape"
+      ]
+    },
+    "authenticated": false,
+    "internally_consistent": true,
+    "valid_failures": []
+  },
+  "replay": "replay"
+}

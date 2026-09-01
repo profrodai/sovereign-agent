@@ -1,0 +1,10 @@
+{
+  "cas_winners_before_expiry": 1,
+  "current_completion_accepted": true,
+  "expired_takeover_won": true,
+  "final_state": "DONE",
+  "naive_winners": 2,
+  "stale_completion_accepted": false,
+  "token_increased": true,
+  "unexpired_retry_same_token": true
+}

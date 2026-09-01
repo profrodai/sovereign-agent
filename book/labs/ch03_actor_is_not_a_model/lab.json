@@ -1,0 +1,18 @@
+{
+  "schema_version": 1,
+  "chapter": "ch03_actor_is_not_a_model",
+  "title": "Change the provider, not the actor",
+  "production_sources": [
+    "src/sovereign_agent/models.py:Actor",
+    "src/sovereign_agent/organization.py:Organization.rebind_actor",
+    "src/sovereign_agent/policy.py:ROLE_AUTHORITY",
+    "src/sovereign_agent/providers/base.py:require_proven"
+  ],
+  "production_tests": [
+    "tests/test_actors_and_mailbox.py::test_rebinding_the_provider_preserves_identity_and_authority",
+    "tests/test_actors_and_mailbox.py::test_an_actor_cannot_expand_its_own_authority",
+    "tests/test_providers.py::test_unproven_streaming_is_refused"
+  ],
+  "entrypoint": "exercise",
+  "expected": "expected.json"
+}

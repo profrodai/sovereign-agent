@@ -1,0 +1,18 @@
+{
+  "schema_version": 1,
+  "chapter": "ch01_organization_remembers",
+  "title": "Keep authority in the ledger",
+  "production_sources": [
+    "src/sovereign_agent/database.py:Database.transaction",
+    "src/sovereign_agent/governance.py:render_outcome",
+    "src/sovereign_agent/governance.py:project_outcome",
+    "src/sovereign_agent/files.py:atomic_write"
+  ],
+  "production_tests": [
+    "tests/test_persistence.py::test_rollback_after_inventory_write_leaves_nothing_behind",
+    "tests/test_persistence.py::test_events_reject_update_and_delete",
+    "tests/test_verifier_scripts.py::test_projection_verification_is_pure"
+  ],
+  "entrypoint": "exercise",
+  "expected": "expected.json"
+}

@@ -1,0 +1,18 @@
+{
+  "schema_version": 1,
+  "chapter": "ch00_first_shift",
+  "title": "Trace a governed result",
+  "production_sources": [
+    "src/sovereign_agent/organization.py:Organization.run_assignment",
+    "src/sovereign_agent/organization.py:Organization.verify_outcome",
+    "src/sovereign_agent/organization.py:Organization.review",
+    "src/sovereign_agent/organization.py:Organization.accept"
+  ],
+  "production_tests": [
+    "tests/test_acceptance_falsification.py::test_absent_provider_report_is_refused",
+    "tests/test_acceptance_falsification.py::test_refuses_when_no_review_record_exists",
+    "tests/test_acceptance_falsification.py::test_operator_cannot_accept_its_own_work"
+  ],
+  "entrypoint": "exercise",
+  "expected": "expected.json"
+}

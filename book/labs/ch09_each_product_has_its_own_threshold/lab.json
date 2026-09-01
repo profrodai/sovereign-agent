@@ -1,0 +1,18 @@
+{
+  "schema_version": 1,
+  "chapter": "ch09_each_product_has_its_own_threshold",
+  "title": "Commit inventory, cash, and event as one sale",
+  "production_sources": [
+    "src/reference_organizations/store/__init__.py:record_sale",
+    "src/sovereign_agent/checks.py:inventory_at_or_above_reorder_point",
+    "src/sovereign_agent/database.py:Database.immediate"
+  ],
+  "production_tests": [
+    "tests/test_store_multi_sku.py::test_a_sale_of_one_sku_does_not_change_another_skus_inventory",
+    "tests/test_concurrency.py::test_concurrent_sales_cannot_oversell",
+    "tests/test_acceptance_falsification.py::test_reserved_stock_is_not_available_stock",
+    "tests/test_persistence.py::test_inventory_never_goes_negative"
+  ],
+  "entrypoint": "exercise",
+  "expected": "expected.json"
+}
