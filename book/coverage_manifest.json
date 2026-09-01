@@ -1,0 +1,376 @@
+{
+  "_comment": "Curriculum coverage manifest: concept -> chapter anchor -> production symbols -> production tests -> exercise. Read by scripts/verify_book_depth.py, which mechanically checks every reference. depth 'full' chapters are also held to the structural depth gates; 'pending' chapters are exempt until their rebuild batch lands (era-aware grading, not a free pass).",
+  "chapters": {
+    "ch00_first_shift": {
+      "depth": "pending",
+      "concepts": []
+    },
+    "ch01_organization_remembers": {
+      "depth": "full",
+      "concepts": [
+        {
+          "concept": "append-only-enforced-in-the-database",
+          "anchor": "Build it yourself: memory that cannot half-happen",
+          "symbols": [
+            {
+              "file": "src/sovereign_agent/database.py",
+              "name": "events_no_update"
+            }
+          ],
+          "tests": [
+            {
+              "file": "tests/test_persistence.py",
+              "name": "append_only"
+            }
+          ],
+          "exercise": "book/ch01_organization_remembers/solution.py"
+        },
+        {
+          "concept": "transactional-migrations-forward-only",
+          "anchor": "Growing the schema without losing the shop",
+          "symbols": [
+            {
+              "file": "src/sovereign_agent/database.py",
+              "name": "MIGRATIONS"
+            },
+            {
+              "file": "src/sovereign_agent/database.py",
+              "name": "def migrate"
+            }
+          ],
+          "tests": [
+            {
+              "file": "tests/test_persistence.py",
+              "name": "migration"
+            }
+          ],
+          "exercise": "book/ch01_organization_remembers/solution.py"
+        },
+        {
+          "concept": "pure-projection-verification-vs-explicit-reconcile",
+          "anchor": "Projections: files the ledger can regenerate",
+          "symbols": [
+            {
+              "file": "src/sovereign_agent/governance.py",
+              "name": "def render_outcome"
+            },
+            {
+              "file": "scripts/verify_projections.py",
+              "name": "def check"
+            }
+          ],
+          "tests": [
+            {
+              "file": "tests/test_verifier_scripts.py",
+              "name": "projection"
+            }
+          ],
+          "exercise": "book/ch01_organization_remembers/solution.py"
+        },
+        {
+          "concept": "atomic-write-old-or-new-never-torn",
+          "anchor": "Writing a file without tearing it",
+          "symbols": [
+            {
+              "file": "src/sovereign_agent/files.py",
+              "name": "def atomic_write"
+            }
+          ],
+          "tests": [],
+          "exercise": "book/ch01_organization_remembers/solution.py"
+        }
+      ],
+      "limits_anchor": "What this does not guarantee",
+      "break_evidence": [
+        "left behind:",
+        "still broken:",
+        "OK\nOK"
+      ]
+    },
+    "ch02_work_needs_governance": {
+      "depth": "full",
+      "concepts": [
+        {
+          "concept": "acceptance-as-composed-proof-obligation",
+          "anchor": "Build it yourself: acceptance in seven layers",
+          "symbols": [
+            {
+              "file": "src/sovereign_agent/organization.py",
+              "name": "def accept"
+            },
+            {
+              "file": "src/sovereign_agent/policy.py",
+              "name": "def forbid_self_approval"
+            }
+          ],
+          "tests": [
+            {
+              "file": "tests/test_acceptance_falsification.py",
+              "name": "def test_"
+            }
+          ],
+          "exercise": "book/ch02_work_needs_governance/solution.py"
+        },
+        {
+          "concept": "checks-reexecuted-at-acceptance-time",
+          "anchor": "Layer 2: re-read the world, right now",
+          "symbols": [
+            {
+              "file": "src/sovereign_agent/checks.py",
+              "name": "def run_check"
+            }
+          ],
+          "tests": [
+            {
+              "file": "tests/test_acceptance_falsification.py",
+              "name": "stale"
+            }
+          ],
+          "exercise": "book/ch02_work_needs_governance/solution.py"
+        },
+        {
+          "concept": "digest-covers-exactly-what-the-check-observes",
+          "anchor": "Layer 7: the world must not have moved",
+          "symbols": [
+            {
+              "file": "src/sovereign_agent/checks.py",
+              "name": "state_digest"
+            }
+          ],
+          "tests": [
+            {
+              "file": "tests/test_acceptance_falsification.py",
+              "name": "digest"
+            }
+          ],
+          "exercise": "book/ch02_work_needs_governance/solution.py"
+        },
+        {
+          "concept": "refusal-recovers-through-new-work",
+          "anchor": "Exercise 7: being refused is not the end",
+          "symbols": [
+            {
+              "file": "src/sovereign_agent/organization.py",
+              "name": "CHANGES_REQUESTED"
+            }
+          ],
+          "tests": [
+            {
+              "file": "tests/test_recovery.py",
+              "name": "def test_"
+            }
+          ],
+          "exercise": "book/ch02_work_needs_governance/solution.py"
+        }
+      ],
+      "limits_anchor": "can rewrite the organization's memory",
+      "break_evidence": [
+        "receipts on file: 0",
+        "evidence reassigned: 1",
+        "holds for OTHER reasons"
+      ]
+    },
+    "ch03_actor_is_not_a_model": {
+      "depth": "full",
+      "concepts": [
+        {
+          "concept": "authority-from-role-policy-not-model",
+          "anchor": "Authority is granted by role, not by the model",
+          "symbols": [
+            {
+              "file": "src/sovereign_agent/policy.py",
+              "name": "ROLE_AUTHORITY"
+            },
+            {
+              "file": "src/sovereign_agent/policy.py",
+              "name": "def require_authority"
+            }
+          ],
+          "tests": [
+            {
+              "file": "tests/test_actors_and_mailbox.py",
+              "name": "def test_"
+            }
+          ],
+          "exercise": "book/ch03_actor_is_not_a_model/solution.py"
+        },
+        {
+          "concept": "rebind-dual-store-seam",
+          "anchor": "The rebind is two writes, and the seam between them",
+          "symbols": [
+            {
+              "file": "src/sovereign_agent/organization.py",
+              "name": "def rebind_actor"
+            }
+          ],
+          "tests": [
+            {
+              "file": "tests/test_actors_and_mailbox.py",
+              "name": "rebind"
+            }
+          ],
+          "exercise": "book/ch03_actor_is_not_a_model/solution.py"
+        },
+        {
+          "concept": "provider-neutral-envelope-host-validates-proposal",
+          "anchor": "The envelope: what the provider is actually told",
+          "symbols": [
+            {
+              "file": "src/sovereign_agent/execution.py",
+              "name": "def build_assignment_envelope"
+            },
+            {
+              "file": "src/sovereign_agent/execution.py",
+              "name": "def write_failed_receipt"
+            }
+          ],
+          "tests": [
+            {
+              "file": "tests/test_providers.py",
+              "name": "def test_"
+            }
+          ],
+          "exercise": "book/ch03_actor_is_not_a_model/solution.py"
+        },
+        {
+          "concept": "capability-probe-from-live-help",
+          "anchor": "An adapter is a hostile-boundary parser",
+          "symbols": [
+            {
+              "file": "src/sovereign_agent/providers/claude.py",
+              "name": "def probe"
+            }
+          ],
+          "tests": [
+            {
+              "file": "tests/test_providers.py",
+              "name": "exact_probe"
+            }
+          ],
+          "exercise": "book/ch03_actor_is_not_a_model/solution.py"
+        }
+      ],
+      "limits_anchor": "know about and detect",
+      "break_evidence": [
+        "ledger's last rebind: scripted",
+        "silence is not success",
+        "cannot prove capability"
+      ]
+    },
+    "ch04_work_stays_inside_its_boundary": {
+      "depth": "full",
+      "concepts": [
+        {
+          "concept": "safe-join-refuses-by-shape",
+          "anchor": "The join that refuses by shape",
+          "symbols": [
+            {
+              "file": "src/sovereign_agent/workspace.py",
+              "name": "def safe_join"
+            }
+          ],
+          "tests": [
+            {
+              "file": "tests/test_workspace_lifecycle.py",
+              "name": "traversal"
+            }
+          ],
+          "exercise": "book/ch04_work_stays_inside_its_boundary/solution.py"
+        },
+        {
+          "concept": "boundary-detected-not-prevented",
+          "anchor": "The comparison after the run \u2014 and what it cannot see",
+          "symbols": [
+            {
+              "file": "src/sovereign_agent/workspace.py",
+              "name": "def snapshot_boundary"
+            },
+            {
+              "file": "src/sovereign_agent/workspace.py",
+              "name": "def diff_boundary"
+            }
+          ],
+          "tests": [
+            {
+              "file": "tests/test_workspace_lifecycle.py",
+              "name": "outside"
+            }
+          ],
+          "exercise": "book/ch04_work_stays_inside_its_boundary/solution.py"
+        },
+        {
+          "concept": "receipt-canonical-json-sha256-sidecar",
+          "anchor": "The receipt, sealed",
+          "symbols": [
+            {
+              "file": "src/sovereign_agent/execution.py",
+              "name": "def write_receipt"
+            }
+          ],
+          "tests": [
+            {
+              "file": "tests/test_workspace_lifecycle.py",
+              "name": "receipt"
+            }
+          ],
+          "exercise": "book/ch04_work_stays_inside_its_boundary/solution.py"
+        },
+        {
+          "concept": "argv-shell-false-injection-inert",
+          "anchor": "Why `shell=False` is not a style preference",
+          "symbols": [
+            {
+              "file": "src/sovereign_agent/execution.py",
+              "name": "def run_spec"
+            }
+          ],
+          "tests": [
+            {
+              "file": "tests/test_providers.py",
+              "name": "argv"
+            }
+          ],
+          "exercise": "book/ch04_work_stays_inside_its_boundary/solution.py"
+        }
+      ],
+      "limits_anchor": "INVISIBLE to the snapshot",
+      "break_evidence": [
+        "inside according to the string check: True",
+        "deliverable(s) already exist",
+        "INJECTED"
+      ]
+    },
+    "ch05_authority_needs_a_fence": {
+      "depth": "pending",
+      "concepts": []
+    },
+    "ch06_the_organization_recovers": {
+      "depth": "pending",
+      "concepts": []
+    },
+    "ch07_the_organization_wakes_itself": {
+      "depth": "pending",
+      "concepts": []
+    },
+    "ch08_the_store_becomes_a_catalog": {
+      "depth": "pending",
+      "concepts": []
+    },
+    "ch09_each_product_has_its_own_threshold": {
+      "depth": "pending",
+      "concepts": []
+    },
+    "ch10_one_signal_wakes_one_need": {
+      "depth": "pending",
+      "concepts": []
+    },
+    "ch11_replenishment_scales_without_losing_governance": {
+      "depth": "pending",
+      "concepts": []
+    },
+    "ch12_the_pilot_begins_with_a_receipt": {
+      "depth": "pending",
+      "concepts": []
+    }
+  }
+}
