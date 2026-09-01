@@ -6,6 +6,49 @@ Repository: [`zeroemployeeorg/sovereign-agent`](https://github.com/zeroemployeeo
 
 ## Unreleased
 
+## [1.1.1] — 2026-09-01
+
+The curriculum release. The installed package's runtime behavior is
+**identical to 1.1.0** — no source changes beyond the version string itself.
+What this release versions is everything around the code: the book was
+rewritten to executable depth, companion labs were added for every chapter,
+and the repository gained the verification instruments that keep both honest.
+Install it the same way (`pip install sovereign-agent`); read it by cloning
+the repository, where the book and labs live.
+
+- **The book, rewritten to build-break-repair depth.** All thirteen chapters
+  (ch00–ch12) now construct each mechanism inline in small, cumulative,
+  annotated increments; deliberately break a naive version and show the
+  failure verbatim; then repair it into the shape the production package
+  uses. Every python fence in every chapter is executed by CI and its
+  printed output is byte-matched — 92 executed blocks, 82 verified output
+  pairs. Each chapter maps its claims to exact production symbols and test
+  node ids, shows the real refusal and recovery transcripts, and states
+  plainly what it does *not* prove — ending with Chapter 12's boundary:
+  internal consistency is not authenticity.
+- **Thirteen runnable companion labs** (`book/labs/`). One per chapter: an
+  intentionally incomplete starter, behavioral checks that grade observable
+  invariants (not code shape), adversarial mutations, a verified reference
+  solution, and machine-readable production source/test references. The lab
+  gate executes every reference solution twice from fresh roots and compares
+  observations against checked-in expected results.
+- **Verification instruments, mutation-tested.** Three disjoint book gates
+  now run in CI and `make verify`: `verify_book_snippets.py` (executes every
+  chapter's python fences, byte-matches outputs, hardened against silent
+  early-stop false-greens), `verify_book_depth.py` (coverage manifest:
+  AST-verified symbol references, precise test node ids, per-chapter limits
+  and break-evidence anchors, an explicit known-gap register, and identity
+  binding of each chapter to its companion lab), and `verify_book_labs.py`
+  (the lab gate above). The three instruments are pinned to one shared
+  chapter denominator by test, and the false-green paths found during
+  adversarial review are each held closed by a regression suite.
+- **Fleet gate workflow.** The repository adopted the fleet-standard `zeo`
+  check (governance lint fast lane on PRs, full-gate certify lane on main
+  and nightly), alongside branch protection requiring an independent
+  reviewing seat.
+- **Chapter 0 index correction.** The top-level book index now names the
+  protagonist consistently with the chapter it links to.
+
 ## [1.1.0] — 2026-09-01
 
 Adds a first-class **OpenAI-compatible provider** and makes the local-model
