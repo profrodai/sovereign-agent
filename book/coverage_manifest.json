@@ -852,8 +852,99 @@
       ]
     },
     "ch12_the_pilot_begins_with_a_receipt": {
-      "depth": "pending",
-      "concepts": []
+      "depth": "full",
+      "concepts": [
+        {
+          "concept": "pilot-start-replays-only-on-exact-identity",
+          "anchor": "Replay on exact identity; refuse everything else",
+          "symbols": [
+            {
+              "file": "src/reference_organizations/store/pilot.py",
+              "name": "start_pilot"
+            },
+            {
+              "file": "src/reference_organizations/store/pilot.py",
+              "name": "PilotRecord"
+            }
+          ],
+          "tests": [
+            "tests/test_pilot.py::test_replaying_the_same_start_request_does_not_create_a_second_pilot",
+            "tests/test_pilot.py::test_a_colliding_pilot_id_with_different_identity_is_refused_not_replayed"
+          ],
+          "exercise": "book/ch12_the_pilot_begins_with_a_receipt/solution.py",
+          "source_text": [
+            {
+              "file": "src/reference_organizations/store/pilot.py",
+              "text": "incompatible start under a reused id, not a replay"
+            }
+          ]
+        },
+        {
+          "concept": "singleton-slot-refusal-strands-nothing",
+          "anchor": "a refused start strands nothing",
+          "symbols": [
+            {
+              "file": "src/reference_organizations/store/pilot.py",
+              "name": "start_pilot"
+            },
+            {
+              "file": "src/reference_organizations/store/pilot.py",
+              "name": "active_pilot_id"
+            }
+          ],
+          "tests": [
+            "tests/test_pilot.py::test_a_second_different_pilot_is_refused_while_one_is_active",
+            "tests/test_pilot.py::test_a_refused_start_leaves_no_orphaned_pilot_row"
+          ],
+          "exercise": "book/ch12_the_pilot_begins_with_a_receipt/solution.py"
+        },
+        {
+          "concept": "proof-pack-catches-tamper-and-dishonest-not-run",
+          "anchor": "The lies it catches",
+          "symbols": [
+            {
+              "file": "scripts/verify_proof_pack.py",
+              "name": "check_digests"
+            },
+            {
+              "file": "scripts/verify_proof_pack.py",
+              "name": "check_not_run_means_pass_lie"
+            }
+          ],
+          "tests": [
+            "tests/test_proof_pack.py::test_digest_mismatch_still_rejected",
+            "tests/test_proof_pack.py::test_andrea_not_run_with_success_prose_is_rejected"
+          ],
+          "exercise": "book/ch12_the_pilot_begins_with_a_receipt/solution.py"
+        },
+        {
+          "concept": "internal-consistency-is-not-authenticity",
+          "anchor": "The lie it structurally cannot catch",
+          "symbols": [
+            {
+              "file": "scripts/verify_proof_pack.py",
+              "name": "verify"
+            }
+          ],
+          "tests": [
+            "tests/test_proof_pack.py::test_the_real_committed_manifest_passes",
+            "tests/test_proof_pack.py::test_verify_function_import_matches_cli_behavior"
+          ],
+          "exercise": "book/ch12_the_pilot_begins_with_a_receipt/solution.py",
+          "source_text": [
+            {
+              "file": "scripts/verify_proof_pack.py",
+              "text": "does NOT claim the manifest is COMPLETE"
+            }
+          ]
+        }
+      ],
+      "limits_anchor": "internal consistency is not authenticity",
+      "break_evidence": [
+        "who pilot-1 actually belongs to: ('lucys-shop', 'standard')",
+        "refused: pilot-1 already exists with DIFFERENT identity (lucys-shop/standard)",
+        "['dishonest NOT_RUN: live-provider.txt claims success in prose']"
+      ]
     }
   }
 }

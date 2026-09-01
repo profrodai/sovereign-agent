@@ -41,6 +41,244 @@ is a separate, later, separately-authorized act, entirely outside this book.
 | **Fail-closed refusal** | A DIFFERENT pilot identity, while one is already active, is refused outright — never silently ignored, never silently allowed to proceed. |
 | **Started vs. finished** | This mechanism proves a pilot BEGAN. Nothing in this project claims, or could currently check, that a pilot has ENDED — there is no completion mechanism yet. |
 
+## Build the pilot start yourself, then hand Mo's diner Lucy's data
+
+A pilot start looks like an INSERT. It is a **contract**: the same request
+replayed must return the canonical original, a *colliding id with a
+different request behind it* must be refused, only one pilot may be active,
+and a failed start must strand nothing. Build the version that skips the
+second clause and watch what it hands out:
+
+```python
+import sqlite3
+
+db = sqlite3.connect(":memory:")
+db.executescript("""
+    CREATE TABLE pilots (pilot_id TEXT PRIMARY KEY, store_org TEXT, profile TEXT);
+    CREATE TABLE active_pilot (slot_id INTEGER PRIMARY KEY CHECK (slot_id = 1),
+                               pilot_id TEXT);
+""")
+
+
+def start_naive(db, pilot_id, store_org, profile):
+    existing = db.execute(
+        "SELECT store_org, profile FROM pilots WHERE pilot_id = ?", (pilot_id,)
+    ).fetchone()
+    if existing is not None:
+        return f"replay: pilot {pilot_id} already started"
+    db.execute("INSERT INTO pilots VALUES (?, ?, ?)", (pilot_id, store_org, profile))
+    db.commit()
+    return f"started pilot {pilot_id} for {store_org}"
+
+
+print(start_naive(db, "pilot-1", "lucys-shop", "standard"))
+print(start_naive(db, "pilot-1", "mos-diner", "premium"))  # a DIFFERENT request, same id
+row = db.execute("SELECT store_org, profile FROM pilots WHERE pilot_id = 'pilot-1'").fetchone()
+print("who pilot-1 actually belongs to:", row)
+```
+
+```text
+started pilot pilot-1 for lucys-shop
+replay: pilot pilot-1 already started
+who pilot-1 actually belongs to: ('lucys-shop', 'standard')
+```
+
+Mo's diner asked to start *its* premium pilot, was told "already started,"
+and will now read Lucy's standard pilot as if it were its own. The naive
+version treated **id collision** as **identity match** — but an id is a
+name, and a replay is only a replay when *the whole request* matches.
+Same-id-different-request is not a retry; it is a different customer
+holding the same ticket number.
+
+### Replay on exact identity; refuse everything else
+
+```python
+def start_pilot(db, pilot_id, store_org, profile):
+    db.execute("BEGIN IMMEDIATE")
+    try:
+        db.execute("INSERT INTO pilots VALUES (?, ?, ?)", (pilot_id, store_org, profile))
+    except sqlite3.IntegrityError:
+        db.execute("ROLLBACK")
+        existing_store, existing_profile = db.execute(
+            "SELECT store_org, profile FROM pilots WHERE pilot_id = ?", (pilot_id,)
+        ).fetchone()
+        if (existing_store, existing_profile) != (store_org, profile):
+            return (
+                f"refused: {pilot_id} already exists with DIFFERENT identity"
+                f" ({existing_store}/{existing_profile})"
+            )
+        return f"replay: {pilot_id} is canonical, identity matches exactly"
+    try:
+        db.execute("INSERT INTO active_pilot VALUES (1, ?)", (pilot_id,))
+    except sqlite3.IntegrityError:
+        db.execute("ROLLBACK")
+        active = db.execute("SELECT pilot_id FROM active_pilot").fetchone()[0]
+        return f"refused: {active} is already the active pilot (one at a time)"
+    db.execute("COMMIT")
+    return f"started {pilot_id}, now active"
+
+
+db.execute("DELETE FROM pilots")
+db.commit()
+print(start_pilot(db, "pilot-1", "lucys-shop", "standard"))
+print(start_pilot(db, "pilot-1", "lucys-shop", "standard"))  # the exact same request again
+print(start_pilot(db, "pilot-1", "mos-diner", "premium"))  # the collision
+print(start_pilot(db, "pilot-2", "mos-diner", "premium"))  # a second active pilot
+```
+
+```text
+started pilot-1, now active
+replay: pilot-1 is canonical, identity matches exactly
+refused: pilot-1 already exists with DIFFERENT identity (lucys-shop/standard)
+refused: pilot-1 is already the active pilot (one at a time)
+```
+
+Four calls, four different verdicts, each earned by a different clause. The
+collision path reads the **canonical durable row first** and compares every
+identity-defining field before trusting anything as a replay — production's
+`start_pilot` does exactly this, with its refusal explaining that a reused
+id with different fields "is an incompatible start under a reused id, not a
+replay." The singleton `active_pilot` slot (`CHECK (slot_id = 1)`) is
+Chapter 8's structural-assumption trick used *on purpose*: here, one-at-a-
+time is the requirement, so the schema enforces it.
+
+And the fourth call hides the fourth clause. `pilot-2`'s start had already
+written its `pilots` row when the slot refused it — where did that row go?
+
+```python
+count = db.execute("SELECT COUNT(*) FROM pilots WHERE pilot_id = 'pilot-2'").fetchone()[0]
+print("orphaned pilot-2 rows after the refusal:", count)
+```
+
+```text
+orphaned pilot-2 rows after the refusal: 0
+```
+
+The `ROLLBACK` in the slot-refusal path took the pilot row with it — one
+transaction, so a refused start strands nothing. A pilot that exists but
+was never allowed to activate would be exactly the half-woken orphan
+Chapter 7's creation transaction refused to leave behind.
+
+## Build the proof pack yourself, then forge one
+
+The pilot ran; the release ships; and what travels with it is a **proof
+pack**: artifacts plus a manifest binding each to a digest and an honest
+status. Build a small one, honestly — including the honest `NOT_RUN` for
+what this environment genuinely cannot run:
+
+```python
+import hashlib
+import json
+import pathlib
+import tempfile
+
+pack = pathlib.Path(tempfile.mkdtemp())
+(pack / "gates.txt").write_text("pytest: 413 passed\nruff: clean\n")
+(pack / "live-provider.txt").write_text("NOT RUN: no credentials in this environment\n")
+
+
+def digest(path):
+    return hashlib.sha256(path.read_bytes()).hexdigest()
+
+
+manifest = {
+    "artifacts": [
+        {"path": "gates.txt", "sha256": digest(pack / "gates.txt"), "status": "PASS"},
+        {
+            "path": "live-provider.txt",
+            "sha256": digest(pack / "live-provider.txt"),
+            "status": "NOT_RUN",
+            "note": "no credentials in this environment",
+        },
+    ]
+}
+(pack / "manifest.json").write_text(json.dumps(manifest, indent=2))
+
+
+def verify_pack(pack):
+    problems = []
+    manifest = json.loads((pack / "manifest.json").read_text())
+    for artifact in manifest["artifacts"]:
+        path = pack / artifact["path"]
+        if not path.is_file():
+            problems.append(f"missing artifact: {artifact['path']}")
+            continue
+        if digest(path) != artifact["sha256"]:
+            problems.append(f"digest mismatch: {artifact['path']}")
+        note = artifact.get("note", "").lower()
+        if artifact["status"].startswith("NOT_RUN") and ("pass" in note or "success" in note):
+            problems.append(f"dishonest NOT_RUN: {artifact['path']} claims success in prose")
+    return problems or ["pack internally consistent"]
+
+
+print(verify_pack(pack))
+```
+
+```text
+['pack internally consistent']
+```
+
+### The lies it catches
+
+```python
+(pack / "gates.txt").write_text("pytest: 999999 passed, definitely\n")  # a quiet edit
+print(verify_pack(pack))
+
+(pack / "gates.txt").write_text("pytest: 413 passed\nruff: clean\n")  # restore the bytes
+manifest["artifacts"][1]["note"] = "not run but it definitely would pass"
+(pack / "manifest.json").write_text(json.dumps(manifest))
+print(verify_pack(pack))
+```
+
+```text
+['digest mismatch: gates.txt']
+['dishonest NOT_RUN: live-provider.txt claims success in prose']
+```
+
+The first lie is tampering: bytes changed after the manifest bound them.
+The second is subtler and important enough that the production verifier
+names it explicitly: **"NOT_RUN means PASS" prose** — an honest status
+wearing dishonest commentary. `NOT_RUN` with a reason is one of the most
+truthful things a release can say; `NOT_RUN` with "it would definitely
+pass" is a claim of success with the evidence requirement quietly deleted.
+The production `verify_proof_pack.py` checks the same families and more:
+allowed status vocabularies, path containment, secret-shaped content, and
+this exact lie-scan.
+
+### The lie it structurally cannot catch
+
+Now forge properly. Change the artifact **and** its manifest digest,
+together, and keep every status-note pair honest-looking:
+
+```python
+(pack / "gates.txt").write_text("pytest: 999999 passed, definitely\n")
+manifest["artifacts"][0]["sha256"] = digest(pack / "gates.txt")  # forge BOTH sides together
+manifest["artifacts"][1]["note"] = "no credentials in this environment"
+(pack / "manifest.json").write_text(json.dumps(manifest))
+print(verify_pack(pack))
+```
+
+```text
+['pack internally consistent']
+```
+
+A fully fabricated pack, and the verifier — *correctly executing every one
+of its checks* — calls it consistent. This is not a bug to fix with a
+fourth check inside the pack: any check that lives in the pack can be
+forged along with the pack, agreeing with itself perfectly. It is the
+boundary this whole book has been drawing since Chapter 2's Exercise 6:
+**internal consistency is not authenticity.** The digests prove the
+manifest and the bytes agree; they cannot prove *who* made them agree, or
+that the gates ever ran. What closes that gap lives *outside* the pack, or
+it does not close: a signing key the packer never holds, or a third party
+independently re-running the gates and comparing. The production verifier
+says this about itself, in its own docstring: it exits 0 when the manifest
+is "well-formed and internally truthful," and it "does NOT claim the
+manifest is COMPLETE" — a named refusal to overclaim, and the most
+load-bearing sentence in it. A release process that understands exactly which door is
+open is safer than one that believes every door is shut. That is where
+this book ends, because it is where honest engineering begins.
+
 ## The exercise
 
 ```bash
@@ -142,6 +380,19 @@ one slice of that proof matrix, running.
    concurrency — properties this chapter's own single-process exercise does
    not exercise. Why does this chapter still count as proof that the
    mechanism WORKS, even though it does not run those tests itself?
+5. The naive `start_naive` answered Mo's diner with "replay: pilot pilot-1
+   already started." Name the exact comparison the honest `start_pilot`
+   performs before it is allowed to say the word "replay," and say why
+   comparing the id alone can never be enough.
+6. After `start_pilot(db, "pilot-2", ...)` was refused by the singleton
+   `active_pilot` slot, the orphan check found zero `pilot-2` rows — yet
+   the function HAD already inserted one. Trace where that row went, and
+   name the chapter-7 failure mode that would exist if it hadn't.
+7. The forge-both-sides mutation rewrote `gates.txt` AND its manifest
+   digest together, and `verify_pack` reported the pack internally
+   consistent. Why can no additional check ADDED INSIDE THE PACK ever
+   close this hole, and what are the two things named in this chapter
+   that live outside the pack and could?
 
 ## Where to look next
 
