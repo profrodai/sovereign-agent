@@ -503,8 +503,87 @@
       ]
     },
     "ch07_the_organization_wakes_itself": {
-      "depth": "pending",
-      "concepts": []
+      "depth": "full",
+      "concepts": [
+        {
+          "concept": "gate-decides-what-tick-decides-how",
+          "anchor": "The gate decides WHAT \u2014 and nothing else",
+          "symbols": [
+            {
+              "file": "src/sovereign_agent/pulse.py",
+              "name": "WakeGate"
+            }
+          ],
+          "tests": [
+            {
+              "file": "tests/test_pulse.py",
+              "name": "def test_"
+            }
+          ],
+          "exercise": "book/ch07_the_organization_wakes_itself/solution.py"
+        },
+        {
+          "concept": "unique-claim-one-canonical-work-per-signal",
+          "anchor": "The tick that claims the decision, atomically",
+          "symbols": [
+            {
+              "file": "src/sovereign_agent/pulse.py",
+              "name": "def run_pulse_once"
+            },
+            {
+              "file": "src/sovereign_agent/organization.py",
+              "name": "def create_pulse_work"
+            }
+          ],
+          "tests": [
+            {
+              "file": "tests/test_pulse.py",
+              "name": "def test_"
+            }
+          ],
+          "exercise": "book/ch07_the_organization_wakes_itself/solution.py"
+        },
+        {
+          "concept": "creation-rolls-back-whole-at-any-fault",
+          "anchor": "The fault that leaves nothing behind",
+          "symbols": [
+            {
+              "file": "src/sovereign_agent/pulse.py",
+              "name": "def run_pulse_once"
+            }
+          ],
+          "tests": [
+            {
+              "file": "tests/test_pulse.py",
+              "name": "def test_"
+            }
+          ],
+          "exercise": "book/ch07_the_organization_wakes_itself/solution.py"
+        },
+        {
+          "concept": "revalidate-signal-at-transaction-time",
+          "anchor": "The world moved; the signal did not",
+          "symbols": [
+            {
+              "file": "src/sovereign_agent/pulse.py",
+              "name": "_still_qualifies"
+            }
+          ],
+          "tests": [
+            {
+              "file": "tests/test_pulse.py",
+              "name": "def test_"
+            }
+          ],
+          "exercise": "book/ch07_the_organization_wakes_itself/solution.py"
+        }
+      ],
+      "limits_anchor": "It does **not**",
+      "break_evidence": [
+        "SOWs on the ledger: 2",
+        "already decided: canonical work is sow-sig-1",
+        "signal no longer qualifies"
+      ]
     },
     "ch08_the_store_becomes_a_catalog": {
       "depth": "pending",
