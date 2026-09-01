@@ -1,0 +1,13 @@
+{
+  "failure_category": "worker_lost",
+  "fence_released": true,
+  "injected_recovery_won": false,
+  "naive_output_guess": "COMPLETED",
+  "receipt_count": 1,
+  "receipt_status": "failed",
+  "rollback_fence": "attempt-7",
+  "rollback_receipts": 0,
+  "rollback_state": "RUNNING",
+  "supervisor_winners": 1,
+  "terminal_state": "FAILED"
+}

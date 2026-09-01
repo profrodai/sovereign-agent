@@ -1,0 +1,19 @@
+{
+  "schema_version": 1,
+  "chapter": "ch04_work_stays_inside_its_boundary",
+  "title": "Hostile paths, durable receipts, and an honestly scoped boundary",
+  "production_sources": [
+    "src/sovereign_agent/workspace.py:safe_join",
+    "src/sovereign_agent/workspace.py:snapshot_boundary",
+    "src/sovereign_agent/workspace.py:diff_boundary",
+    "src/sovereign_agent/execution.py:write_receipt"
+  ],
+  "production_tests": [
+    "tests/test_workspace_lifecycle.py::test_traversal_deliverable_is_refused",
+    "tests/test_workspace_lifecycle.py::test_symlinked_child_inside_a_real_output_directory_cannot_be_written_through",
+    "tests/test_workspace_lifecycle.py::test_detects_write_outside_workspace",
+    "tests/test_workspace_lifecycle.py::test_boundary_report_does_not_see_a_real_database_write"
+  ],
+  "entrypoint": "exercise",
+  "expected": "expected.json"
+}

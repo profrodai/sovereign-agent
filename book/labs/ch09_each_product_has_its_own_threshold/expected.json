@@ -1,0 +1,53 @@
+{
+  "committed_sale": {
+    "event_payload": {
+      "amount_cents": 850,
+      "qty": 2,
+      "sale_id": "sale-one",
+      "sku": "SKU-GELATO"
+    },
+    "receipt": {"amount_cents": 850, "quantity": 2, "sale_id": "sale-one"},
+    "state": {
+      "available": 1,
+      "cash_rows": 1,
+      "cash_total": 850,
+      "event_rows": 1,
+      "on_hand": 3,
+      "reserved": 2
+    }
+  },
+  "contention": {
+    "state": {
+      "available": 1,
+      "cash_rows": 1,
+      "cash_total": 850,
+      "event_rows": 1,
+      "on_hand": 1,
+      "reserved": 0
+    },
+    "statuses": ["committed", "refused"]
+  },
+  "fault_injection": {
+    "result": "injected failure after cash",
+    "state": {
+      "available": 1,
+      "cash_rows": 1,
+      "cash_total": 850,
+      "event_rows": 1,
+      "on_hand": 3,
+      "reserved": 2
+    },
+    "state_unchanged": true
+  },
+  "reservation": {
+    "result": "requested 4, available 3",
+    "state": {
+      "available": 3,
+      "cash_rows": 0,
+      "cash_total": 0,
+      "event_rows": 0,
+      "on_hand": 5,
+      "reserved": 2
+    }
+  }
+}

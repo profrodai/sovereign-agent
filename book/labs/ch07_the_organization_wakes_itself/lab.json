@@ -1,0 +1,18 @@
+{
+  "schema_version": 1,
+  "chapter": "ch07_the_organization_wakes_itself",
+  "title": "One signal, one canonical manual Pulse tick",
+  "production_sources": [
+    "src/sovereign_agent/pulse.py:run_pulse_once",
+    "src/sovereign_agent/organization.py:Organization.create_pulse_work",
+    "src/reference_organizations/store/pulse_gate.py:store_wake_gate"
+  ],
+  "production_tests": [
+    "tests/test_pulse.py::test_a_formerly_qualifying_signal_does_not_fire_after_the_condition_resolves",
+    "tests/test_pulse.py::test_attribution_walks_source_event_to_signal_to_decision_to_pulse_event_to_sow_to_assignment",
+    "tests/test_pulse.py::test_create_pulse_work_called_twice_for_the_same_signal_returns_the_same_identifiers",
+    "tests/test_pulse.py::test_two_real_processes_evaluating_the_same_signal_create_one_canonical_sow"
+  ],
+  "entrypoint": "exercise",
+  "expected": "expected.json"
+}

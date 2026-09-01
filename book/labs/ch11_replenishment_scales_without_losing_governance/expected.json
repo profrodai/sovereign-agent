@@ -1,0 +1,12 @@
+{
+  "fault": "injected_after_inventory",
+  "lesson": "idempotency_does_not_grant_authority",
+  "replay": "replay",
+  "rollback_preserved_state": true,
+  "state": {
+    "cash_cents": 8200,
+    "effect_count": 1,
+    "tea_on_hand": 10
+  },
+  "unauthorized": "unauthorized"
+}

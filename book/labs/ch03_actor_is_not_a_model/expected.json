@@ -1,0 +1,6 @@
+{
+  "actor_identity_survived_rebind": true,
+  "authority_came_from_role_table": true,
+  "proven_capability_allowed": true,
+  "unproven_capability_refused": true
+}

@@ -1,0 +1,18 @@
+{
+  "schema_version": 1,
+  "chapter": "ch02_work_needs_governance",
+  "title": "Try to forge acceptance",
+  "production_sources": [
+    "src/sovereign_agent/organization.py:Organization.verify_sow",
+    "src/sovereign_agent/organization.py:Organization.review",
+    "src/sovereign_agent/organization.py:Organization.accept",
+    "src/sovereign_agent/evidence.py:digest_payload"
+  ],
+  "production_tests": [
+    "tests/test_acceptance_falsification.py::test_refuses_stale_evidence_even_when_checks_still_pass",
+    "tests/test_causal_binding.py::test_one_sow_cannot_borrow_another_sows_proof",
+    "tests/test_causal_binding.py::test_condition_true_but_no_effects_exist_at_all_is_refused"
+  ],
+  "entrypoint": "exercise",
+  "expected": "expected.json"
+}

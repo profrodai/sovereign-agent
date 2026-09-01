@@ -1,0 +1,18 @@
+{
+  "schema_version": 1,
+  "chapter": "ch05_authority_needs_a_fence",
+  "title": "Mailbox compare-and-set, leases, and fencing tokens",
+  "production_sources": [
+    "src/sovereign_agent/relay.py:claim",
+    "src/sovereign_agent/relay.py:_mint_claim_token",
+    "src/sovereign_agent/relay.py:complete"
+  ],
+  "production_tests": [
+    "tests/test_actors_and_mailbox.py::test_claim_lease_is_exclusive",
+    "tests/test_fencing.py::test_same_owner_unexpired_claim_is_idempotent_same_token",
+    "tests/test_fencing.py::test_same_owner_expired_claim_mints_a_fresh_token_fu4_1",
+    "tests/test_fencing.py::test_complete_with_a_stale_token_is_refused"
+  ],
+  "entrypoint": "exercise",
+  "expected": "expected.json"
+}

@@ -1,0 +1,5 @@
+{
+  "drift_was_observed_before_repair": true,
+  "projection_matches_ledger_after_reconcile": true,
+  "rollback_orphans": 0
+}
