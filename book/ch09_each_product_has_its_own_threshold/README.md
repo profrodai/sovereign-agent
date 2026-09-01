@@ -74,12 +74,15 @@ The two facts this run proves:
 1. **`coffee_on_hand_unaffected: true`.** Selling tea changed exactly one
    row in `inventory` — coffee's own `on_hand` is untouched, read back after
    the tea sale, not merely assumed.
-2. **`signal_severity` differs by SKU, correctly.** The tea sale's signal is
-   `warning` (2 remaining is at-or-below its own reorder point of 3). The
-   coffee sale's signal is `info` (9 remaining is still above its own
-   reorder point of 6) — the identical 1-unit-sold shape that would have
-   been a `warning` for tea is correctly `info` for coffee, because each
-   evaluation reads THAT SKU's own threshold.
+2. **`signal_severity` is judged per SKU, against that SKU's own line.** The tea
+   sale leaves 2 on hand, at-or-below tea's reorder point of 3, so its signal is
+   `warning`. The coffee sale leaves 9, still above coffee's reorder point of 6,
+   so its signal is `info`. These are two different-sized sales — that is the
+   point: severity is not a property of how much sold, but of where each SKU
+   landed relative to *its own* threshold. (Try editing the exercise to sell the
+   *same* quantity from both — selling 2 of each still warns tea and leaves coffee
+   at `info`, because 8 is above coffee's line of 6. The split follows the
+   thresholds, not the quantities.)
 
 Confirm it yourself:
 

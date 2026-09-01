@@ -225,10 +225,9 @@ database handle is not the code. Proving authenticity needs something the
 database does not hold — a signature key kept outside it — which is a different
 subject and out of scope here.
 
-So the honest statement, which
-[the ruling](../../docs/rulings/2026-08-26-sqlite-writers-are-inside-the-boundary.md)
-records: **anyone who can write arbitrary rows can rewrite the organization's
-memory.** Everything in this chapter protects the ledger from mistakes and
+So here is the honest statement this design commits to: **anyone who can write
+arbitrary rows can rewrite the organization's memory.** Everything in this chapter
+protects the ledger from mistakes and
 ordinary tools. Knowing exactly which door is open is worth more than believing
 they are all shut.
 

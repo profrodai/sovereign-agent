@@ -10,12 +10,17 @@ directory for it to work in; what you didn't see is that, for most providers,
 nothing at the operating-system level *stops* the provider from writing outside
 that directory. That sounds alarming until you internalize the move this chapter
 makes: instead of promising a containment the providers cannot deliver, the
-organization makes the boundary **detectable**. It photographs everything outside
-the workspace before the provider runs and again after, and compares. If a byte
-moved where it shouldn't have, the ledger says so — permanently.
+organization makes the boundary **detectable** — within a stated scope. Before
+and after the provider runs, it takes a digest of the tracked files inside the
+organization root, *excluding the workspace itself and the SQLite ledger*, and
+compares. A change in that scope is recorded on the ledger, permanently.
 
-An honest "we can tell" beats a dishonest "we prevented it." This chapter is
-about building the honest version.
+Be precise about what that does and does not cover: it detects tracked changes in
+`organization_root_excluding_workspace_and_ledger`. It does **not** watch the
+whole filesystem — a provider that writes to `/tmp` or the home directory is
+outside what this check can see. An honest "we can tell, within this scope" beats
+a dishonest "we prevented it." This chapter builds the honest version and marks
+its edges.
 
 ## Learning objective
 

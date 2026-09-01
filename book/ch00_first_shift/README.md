@@ -126,10 +126,12 @@ entire subject of this book.
 
 ## Why this is not a toy
 
-An earlier version of this exact demo once printed `ACCEPTED` while the shelf sat
-below its reorder point. Every governance record existed — outcome, statement of
-work, assignment, review, acceptance — and the shelf was still empty. The
-paperwork was perfect and the claim was false.
+It is easy — the default, really — to build a system that prints `ACCEPTED`
+while the shelf sits below its reorder point. Every governance record can exist —
+outcome, statement of work, assignment, review, acceptance — and the shelf can
+still be empty. The paperwork is perfect and the claim is false. That is the
+normal outcome when "accepted" is a status someone sets rather than a fact
+someone proved.
 
 That is the failure this book is built to prevent. An organization that cannot
 tell you the difference between "we did the work" and "we filed the forms" will

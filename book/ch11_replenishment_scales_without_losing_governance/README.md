@@ -13,6 +13,15 @@ signal all the way to acceptance — and checks that every property still holds 
 two SKUs in play. Nothing new is introduced. That is the point: scaling should
 add products, not exceptions.
 
+One honest caveat about *how* it checks. This chapter's own exercise runs the two
+chains **sequentially**, one after the other — enough to prove the ledger keeps
+each SKU's effects, idempotency, and acceptance separate. The sharper property —
+that two chains running *genuinely at the same time*, on two database connections,
+still produce exactly one canonical effect each — is proven by a dedicated
+two-connection concurrency test named in the verification command below, not by
+this sequential run. The referenced test is where the race actually happens; the
+prose here does not pretend the sequential exercise demonstrates simultaneity.
+
 ## Learning objective
 
 Run TWO full governed replenishment chains to completion — Pulse-created

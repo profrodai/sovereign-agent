@@ -1,15 +1,20 @@
 # Chapter 7 — The organization wakes itself
 
-Every chapter so far began the same way: *you* typed a command. The sale, the
-signal, the restock — nothing moved until a human poked it. Lucy noticed this
-too. She doesn't want to *remember* to check the freezer; she wants the shop to
-notice its own low stock and start the reorder while she's busy scooping.
+Every chapter so far began the same way: a human *dispatched* the work — wrote the
+statement of work, made the assignment. Lucy wants something narrower but
+important: when a sale drops the freezer below its line, she wants the reorder
+*work itself* to be created from that signal, without her writing the dispatch by
+hand each time.
 
-That is a genuinely different and more dangerous capability, and most systems
-fake it — they run a loop, do something, and print "autonomous!" This chapter
-builds the real version and then does the thing this whole book insists on:
-proves it. When Lucy's organization creates work with nobody prompting it, it
-leaves a durable, traceable record that it did — a record you can walk backward
+Be precise about the claim, because most systems overstate exactly this. This
+chapter builds three separable things and is careful not to confuse them: (1) a
+**signal-driven decision** — a durable low-stock fact turned into a wake
+decision; (2) **one Pulse tick** — a single call that derives governed work from
+that decision; and (3) an **external scheduler or daemon** that would run ticks
+unattended on a timer. This chapter builds and proves (1) and (2). It does **not**
+build (3): *you* invoke the tick. "The organization wakes itself" means it creates
+its own work from its own signals — not that it runs forever on its own. And when
+it does create work, it leaves a durable, traceable record you can walk backward
 from the finished work all the way to the sale that woke it. No record, no claim.
 
 ## Learning objective

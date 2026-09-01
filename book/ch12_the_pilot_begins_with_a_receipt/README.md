@@ -21,12 +21,16 @@ exercise identity, and read back the durable record and event it produces —
 then understand precisely why that record proves the pilot **started** and
 proves nothing at all about whether it has **finished**.
 
-**This chapter never touches the real named pilot organization.** The
-identity this exercise uses, `book-ch12-exercise-pilot`, is structurally
-distinct from any real pilot identity: it is a fixture value, reserved for
-this exercise, that appears nowhere in this project's own real-pilot
-tooling — because no real-pilot tooling exists yet. The real pilot start is
-a separate, later, separately-authorized act, entirely outside this book.
+**A precise word on safety, because this is a book about not overstating things.**
+The identity this exercise uses, `book-ch12-exercise-pilot`, carries a reserved
+`book-ch12-exercise-` prefix, so it **cannot be confused with the real named
+pilot** — the ids are distinguishable by inspection. What the exercise does *not*
+do is constrain where it writes: `solution.py` opens whatever `--root` you give
+it. The documented command below uses a throwaway `/tmp` path, and you should keep
+it that way — point it at a real organization's database and it would write this
+exercise pilot there. The safety here is "the id is unmistakable and the default
+path is disposable," not "it is impossible by construction." The real pilot start
+is a separate, later, separately-authorized act, entirely outside this book.
 
 ## Vocabulary this chapter adds
 
@@ -43,9 +47,9 @@ a separate, later, separately-authorized act, entirely outside this book.
 python book/ch12_the_pilot_begins_with_a_receipt/solution.py --root /tmp/lucy-ch12
 ```
 
-Read the file first, and read `EXERCISE_PILOT_ID`'s own comment before
-running anything: the whole point of this chapter is that its own exercise
-can never reach a real pilot, by construction, not merely by convention.
+Read the file first, and read `EXERCISE_PILOT_ID`'s own comment before running
+anything: the exercise id is unmistakable and the documented path is disposable —
+keep the `/tmp` root so this writes only to a throwaway database.
 
 ## Expected observations
 
@@ -87,9 +91,16 @@ Four facts this run proves:
    pilot's own identity.
 3. **`pilots_row_count: 1`.** Not a count this exercise computed in Python
    — read directly from the `pilots` table after both calls.
-4. **`no_completion_table_exists: true`.** This is the honesty check this
-   chapter's own title promises: nothing in this database claims the pilot
-   is finished, because nothing CAN — that mechanism does not exist yet.
+4. **`no_completion_table_exists: true`.** Read this claim exactly as narrow as
+   it is: *no table whose name matches the completion pattern exists* in this
+   database. That is a weak check on purpose, and worth being honest about — a
+   completion mechanism hiding in a status column, an event kind, or a
+   differently-named table would slip right past a table-name search. What this
+   chapter can say truthfully is that it starts a pilot and makes no claim about
+   finishing one, because it implements no completion step. Proving the *absence*
+   of a capability rigorously would need an explicit supported-capabilities
+   contract, not a name match — a good example of not letting a detector claim
+   more than it measures.
 
 Confirm it yourself:
 
