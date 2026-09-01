@@ -1,165 +1,201 @@
-# Chapter 0 — Andrea's first shift
+# Chapter 0 — Lucy's First Shift
+
+Meet Lucy. She runs a small ice cream shop, and over the course of this book she
+is going to hand more and more of its dull, repetitive work to a governed AI
+organization you will build from nothing. Before you build it, though, you should
+see the finished shape *once* — the way you glance at a completed jigsaw on the
+box before you tip the pieces out.
+
+So this chapter is a guided tour. You will run a small, self-contained shop that
+ships with the framework, watch it carry one piece of work from start to finish,
+and — this is the part that matters — **check whether it told you the truth.**
+
+> It is fine if this chapter feels like magic. Chapters 1 to 3 take the magic
+> apart, one decision at a time. What matters here is that you see the whole
+> shape once, and that you leave believing one specific thing: that the word
+> `ACCEPTED` in this system is a *claim the code proved*, not a status string
+> someone felt like printing.
 
 ## Learning objective
 
 Run a Zero-Employee Organization through one complete piece of work, and learn
-that `ACCEPTED` is a **claim the system proved**, not a status string someone
-felt like printing.
-
-It is fine if this chapter feels like magic. Chapters 1 to 3 take the magic
-apart. What matters here is that you see the whole shape once.
+to tell the difference between **a fact about the process** ("the paperwork says
+done") and **a fact about the world** ("the shelf is actually full"). By the end
+you will have made the system say `ACCEPTED`, then broken the underlying data by
+hand and watched an independent check *catch the lie*.
 
 ## The exercise
 
+The shop that ships with the framework is a tiny store. Run its full loop once,
+with no API keys, no network, and no model — it uses a deterministic `scripted`
+stand-in so the result is identical on every machine:
+
 ```bash
 sovereign-agent doctor
-sovereign-agent demo store --mode simulated --root /tmp/andrea-shift
+sovereign-agent demo store --mode simulated --root /tmp/first-shift
 ```
 
-No API keys. No network. No provider subscription. `doctor` will tell you which
-provider CLIs you happen to have installed, and the demo does not need any of
-them: it uses the `scripted` provider, which is a deterministic fixture.
+`doctor` tells you which provider CLIs you happen to have installed; the demo
+needs none of them. (From Chapter 3 onward you will run the shop with a real
+local model instead of the stand-in — but not yet. One shape at a time.)
 
-## What the organization did
+## What the organization just did
+
+Read this as a story; every arrow is one governed step:
 
 ```text
-a customer buys 2 boxes of tea
-  → inventory drops to 2, below the reorder point of 3
+a customer buys 2 units
+  → inventory drops below the reorder point
   → the organization records a durable signal: "stock is low"
-  → the Principal's outcome says: keep the tea jar stocked
-  → a Master writes a SOW and assigns it to an Operator actor
-  → the Operator's provider PROPOSES restocking 6 boxes
-  → deterministic Python VALIDATES the proposal and commits the purchase
+  → the Principal's outcome says: keep the shelf stocked
+  → a Master writes a statement of work and assigns it to an Operator actor
+  → the Operator's provider PROPOSES a restock quantity
+  → deterministic Python VALIDATES that proposal and commits the purchase
   → inventory, cash, and the event all commit together, or not at all
   → a Verifier runs the acceptance checks and records evidence
-  → Sparring reviews the work (a different actor than the one who did it)
+  → Sparring reviews the work — a different actor than the one who did it
   → the Principal accepts
 ```
 
+Notice how many *different* roles touched that work, and that the one who *did*
+it is not the one who *approved* it. That separation is not decoration; it is the
+spine of the whole book, and Chapter 3 is devoted to why it must hold even when
+the "worker" is a language model.
+
 ## Expected observations
 
-You should see:
+You should see, at the end:
 
 ```text
-out_...  ACCEPTED  Keep the tea jar stocked
+out_...  ACCEPTED  Keep the shelf stocked
   sow_...  ACCEPTED  Manually dispatched replenishment after signal sig_...
 outcome ACCEPTED
 ```
 
-Now confirm the organization is telling the truth.
+Now do the thing most systems never let you do: **confirm the organization is
+telling the truth.** The database is plain SQLite — open it and look:
 
 ```bash
-sqlite3 /tmp/andrea-shift/.sovereign/organization.db \
-  "SELECT sku, on_hand, reorder_point FROM inventory;"
+sqlite3 /tmp/first-shift/.sovereign/organization.db \
+  "SELECT on_hand, reorder_point FROM inventory;"
 ```
 
-Expected: `SKU-TEA|8|3`. On-hand is **at or above** the reorder point. The tea
-jar is genuinely full.
+On-hand is **at or above** the reorder point — the shelf is genuinely stocked.
 
 ```bash
-sqlite3 /tmp/andrea-shift/.sovereign/organization.db \
+sqlite3 /tmp/first-shift/.sovereign/organization.db \
   "SELECT id, amount_cents FROM cash_entries;"
 ```
 
-Expected: three rows — an opening balance of `10000`, a sale of `+800`, and a
-purchase of `-720`. Money left the organization to buy the stock. Six boxes at
-120 cents each is exactly 720.
+Three rows: an opening balance, a sale, and a purchase. Real money left the
+organization to buy the stock, and the arithmetic reconciles.
 
 ```bash
-sqlite3 /tmp/andrea-shift/.sovereign/organization.db \
+sqlite3 /tmp/first-shift/.sovereign/organization.db \
   "SELECT kind FROM events ORDER BY seq;"
 ```
 
-Expected: a `replenishment.committed` event sitting between
-`assignment.finished` and `sow.reviewed`.
+A `replenishment.committed` event sits between `assignment.finished` and
+`sow.reviewed` — the durable trace of what happened, in order.
 
-## Learner verification command
+## The whole point: break it, and watch the lie get caught
 
-One command that checks all of it at once:
-
-```bash
-python scripts/verify_store_outcome.py /tmp/andrea-shift
-```
-
-It exits 0 only if the accepted outcome is actually true. Try breaking it:
+Here is the exercise that earns this chapter its place. One command checks that
+the accepted outcome is *actually true*:
 
 ```bash
-sqlite3 /tmp/andrea-shift/.sovereign/organization.db \
-  "UPDATE inventory SET on_hand = 0 WHERE sku = 'SKU-TEA';"
-python scripts/verify_store_outcome.py /tmp/andrea-shift
+python scripts/verify_store_outcome.py /tmp/first-shift
 ```
 
-Now it fails, and says why. The status field still reads `ACCEPTED`, because
-that is a historical record of a decision — but the verifier checks the *world*,
-and the world no longer matches. That gap is the whole subject of this book.
+It exits `0` only if reality matches the claim. Now sabotage reality by hand and
+run it again:
+
+```bash
+sqlite3 /tmp/first-shift/.sovereign/organization.db \
+  "UPDATE inventory SET on_hand = 0 WHERE on_hand > 0;"
+python scripts/verify_store_outcome.py /tmp/first-shift
+```
+
+It **fails**, with exit code `1`, and tells you why. The status field still reads
+`ACCEPTED`, because that is a historical record of a decision that really was
+made — but the verifier does not read the status field. It reads *the world*, and
+the world no longer matches the claim.
+
+That gap — between "we filed the forms" and "the work is actually done" — is the
+entire subject of this book.
 
 ## Why this is not a toy
 
-An earlier version of this exact demo printed `ACCEPTED` while the tea jar sat
-at 2 boxes against a reorder point of 3. Every governance record existed —
-outcome, SOW, assignment, review, acceptance — and the shelf was still empty.
-The paperwork was perfect and the claim was false.
+An earlier version of this exact demo once printed `ACCEPTED` while the shelf sat
+below its reorder point. Every governance record existed — outcome, statement of
+work, assignment, review, acceptance — and the shelf was still empty. The
+paperwork was perfect and the claim was false.
 
-That is the failure this book is about. An organization that cannot tell you
-the difference between "we did the work" and "we filed the forms" will
-confidently tell you the forms are the work.
+That is the failure this book is built to prevent. An organization that cannot
+tell you the difference between "we did the work" and "we filed the forms" will
+confidently tell you the forms *are* the work. A governed organization refuses to
+conflate them, and it lets you check.
 
 ## Why nothing happened until you typed
 
 Worth noticing before you move on: **you** started this. The sale, the signal,
 the statement of work, the restock — none of it began until you ran a command.
 
-The organization has no heartbeat yet. It cannot notice that stock fell, or
-decide on its own that the tea needs reordering. Every step you just watched was
-dispatched because the demo dispatched it.
-
-That capacity — the organization waking itself and creating work with nobody
-prompting it — is called **Pulse**. This exercise does not run it: the demo
-above dispatches every step by hand, and no event in the ledger you just
-inspected pretends otherwise. You can check that claim the same way you
-checked the others:
+The organization has no heartbeat yet. It cannot notice on its own that stock
+fell and decide to reorder. Every step you just watched was dispatched because
+the demo dispatched it, by hand. You can confirm that claim the same way you
+checked the others — by reading the ledger:
 
 ```bash
-sqlite3 /tmp/andrea-shift/.sovereign/organization.db \
+sqlite3 /tmp/first-shift/.sovereign/organization.db \
   "SELECT DISTINCT kind FROM events ORDER BY kind;"
 ```
 
-Every `kind` describes something a human or a governed actor did. There is no
-`pulse.*` anywhere in THIS run, because this exercise never calls Pulse.
+Every `kind` describes something a human or a governed actor did on purpose. The
+capacity for an organization to wake *itself* and create work with nobody
+prompting it is a real and separate mechanism you will meet much later in the
+book; this first shift deliberately does not use it, and — importantly — nothing
+in the ledger you just read pretends otherwise. Knowing what a system cannot yet
+do is part of knowing what it does.
 
-**Added, Unit 9:** Pulse is now real, as a separate mechanism you invoke
-yourself with `sovereign-agent pulse --once --root PATH` — it is not this
-chapter's exercise, and it never runs itself. See
-`docs/v1-unit9-pulse-proactive-work.md` for the sale-to-proactive-work slice
-this chapter's own dispatched-by-hand version is contrasted against.
+## Learner verification command
 
-Knowing what a system cannot yet do is part of knowing what it does.
+The single command that checks all of it at once:
+
+```bash
+python scripts/verify_store_outcome.py /tmp/first-shift
+```
+
+Exit `0` means the accepted outcome is genuinely true; exit `1` means it is not,
+and the message says which check failed. (If you ran the sabotage step above,
+re-run the demo into a fresh `--root` to get a clean `0` again.)
 
 ## Explain it back
 
 Answer these in your own words before moving on. If you cannot, re-read the
-observations above — the answers are all visible in the database.
+observations — every answer is visible in the database.
 
 1. The demo printed `ACCEPTED`. What would you check, and in what order, to
    decide for yourself whether that word is earned?
-2. The provider asked for 6 boxes. Where did the *price* of those boxes come
-   from — the provider, or somewhere else? Why does that distinction matter?
-3. `sparring-course` reviewed the work and `principal-human` accepted it. Why
-   not let `operator-course`, who did the work, do either of those?
-4. Which of these is a fact about the world, and which is a fact about the
-   process: "inventory is at 8" versus "the SOW is in state ACCEPTED"?
+2. The provider asked for a certain restock quantity. Where did the *price* of
+   those units come from — the provider, or somewhere else? Why does that
+   distinction matter?
+3. A Sparring actor reviewed the work and the Principal accepted it. Why not let
+   the Operator who *did* the work do either of those?
+4. Which of these is a fact about the world, and which about the process:
+   "on-hand is 8" versus "the statement of work is in state ACCEPTED"?
 5. Nothing happened until you typed a command. What would have to exist for the
-   organization to start this work on its own, and why is it honest that the
-   ledger contains no `pulse.*` event today?
+   organization to start this work on its own, and why is it honest that today's
+   ledger contains no sign of it?
 
 ## Where to look next
 
 - `governance/outcomes/*/outcome.json` — the outcome, projected for reading
-- `governance/outcomes/*/README.md` — the same thing, generated for humans
 - `.sovereign/organization.db` — the authority for everything operational
 - `.sovereign/runs/*/.sovereign-out/report.json` — what the provider proposed
 - `.sovereign/runs/*/receipt.json` — what the organization recorded about the run
 
-`solution.py` imports the production demo rather than copying it.
+`solution.py` imports the production demo rather than copying it, so the shape
+you toured here is the same code the rest of the book builds toward.
 
 Next: [Chapter 1 — The organization remembers](../ch01_organization_remembers/README.md)
