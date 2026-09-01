@@ -2,8 +2,59 @@
   "_comment": "Curriculum coverage manifest v2: concept -> chapter anchor -> exact AST symbols -> precise test node ids -> exercise, plus source_text for prose-level evidence and known_gap for machine-readable honesty. Read by scripts/verify_book_depth.py, hardened per the Principal's B3/B4 findings: canonical chapter set enforced, contained paths only, AST-exact names, no fragments.",
   "chapters": {
     "ch00_first_shift": {
-      "depth": "pending",
-      "concepts": []
+      "depth": "tour",
+      "concepts": [
+        {
+          "concept": "accepted-is-a-claim-the-code-proved",
+          "anchor": "The whole point: break it, and watch the lie get caught",
+          "symbols": [
+            {
+              "file": "scripts/verify_store_outcome.py",
+              "name": "verify"
+            }
+          ],
+          "tests": [
+            "tests/test_acceptance_falsification.py::test_refuses_when_inventory_is_below_reorder_point",
+            "tests/test_acceptance_falsification.py::test_refuses_stale_evidence_even_when_checks_still_pass"
+          ],
+          "exercise": "book/ch00_first_shift/solution.py"
+        },
+        {
+          "concept": "doer-is-never-the-approver",
+          "anchor": "What the organization just did",
+          "symbols": [
+            {
+              "file": "scripts/verify_store_outcome.py",
+              "name": "verify"
+            }
+          ],
+          "tests": [
+            "tests/test_acceptance_falsification.py::test_operator_cannot_accept_its_own_work",
+            "tests/test_acceptance_falsification.py::test_performer_is_derived_from_the_ledger_not_supplied"
+          ],
+          "exercise": "book/ch00_first_shift/solution.py"
+        },
+        {
+          "concept": "no-heartbeat-yet-honest-absence",
+          "anchor": "Why nothing happened until you typed",
+          "symbols": [
+            {
+              "file": "src/sovereign_agent/cli.py",
+              "name": "_demo"
+            }
+          ],
+          "tests": [
+            "tests/test_demo_cli.py::test_demo_store_simulated"
+          ],
+          "exercise": "book/ch00_first_shift/solution.py"
+        }
+      ],
+      "limits_anchor": "The organization has no heartbeat yet",
+      "break_evidence": [
+        "UPDATE inventory SET on_hand = 0 WHERE on_hand > 0;",
+        "available=0 (on_hand=0 - reserved=0) vs reorder_point=3",
+        "3 problem(s): this outcome is NOT truthfully accepted."
+      ]
     },
     "ch01_organization_remembers": {
       "depth": "full",

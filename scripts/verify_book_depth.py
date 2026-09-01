@@ -34,8 +34,11 @@ The contract:
   it is counted and reported in the summary, so a chapter carrying one can
   never be mistaken for fully test-backed.
 
-Chapters marked "pending" are exempt from the depth gates but NOT from the
-leak scan. Exits 0 when sound, 1 otherwise, printing every problem found.
+Chapters marked "tour" are finished guided-tour chapters (bash transcripts,
+no inline python): exempt from the python-construction gate ONLY — concepts,
+limits, recall, break evidence, and the leak scan all still apply. Chapters
+marked "pending" are unfinished: exempt from the depth gates but NOT from
+the leak scan. Exits 0 when sound, 1 otherwise, printing every problem found.
 """
 
 from __future__ import annotations
@@ -69,7 +72,7 @@ CANONICAL_CHAPTERS = frozenset(
     }
 )
 
-ALLOWED_DEPTHS = frozenset({"full", "pending"})
+ALLOWED_DEPTHS = frozenset({"full", "tour", "pending"})
 MIN_SOURCE_TEXT_LENGTH = 12
 
 # Internal coordination artifacts that must never reach a reader. Domain words
@@ -238,27 +241,39 @@ def fences(text: str) -> list[tuple[str, str]]:
     ]
 
 
-def check_depth_gates(chapter: str, entry: dict[str, Any], readme_text: str) -> list[str]:
+def check_depth_gates(
+    chapter: str, entry: dict[str, Any], readme_text: str, depth: str
+) -> list[str]:
+    """Gates for finished chapters.
+
+    Depth 'full' requires inline python construction with paired expected-output
+    fences. Depth 'tour' is a finished guided-tour chapter (bash transcripts, no
+    inline python) — it is exempt from the python-construction gate ONLY; every
+    other finished-chapter gate (concepts, limits, recall, break evidence, leak
+    scan) applies identically. 'tour' is not a loophole for an unfinished
+    chapter: it must still declare and pass real coverage.
+    """
     problems: list[str] = []
-    blocks = fences(readme_text)
-    python_blocks = [i for i, (lang, _) in enumerate(blocks) if lang == "python"]
-    if not python_blocks:
-        problems.append(f"{chapter}: depth 'full' but no inline python construction")
-    paired = any(i + 1 < len(blocks) and blocks[i + 1][0] == "text" for i in python_blocks)
-    if python_blocks and not paired:
-        problems.append(f"{chapter}: no expected-output text fence follows any python fence")
+    if depth == "full":
+        blocks = fences(readme_text)
+        python_blocks = [i for i, (lang, _) in enumerate(blocks) if lang == "python"]
+        if not python_blocks:
+            problems.append(f"{chapter}: depth 'full' but no inline python construction")
+        paired = any(i + 1 < len(blocks) and blocks[i + 1][0] == "text" for i in python_blocks)
+        if python_blocks and not paired:
+            problems.append(f"{chapter}: no expected-output text fence follows any python fence")
     if not entry.get("concepts"):
-        problems.append(f"{chapter}: depth 'full' but empty concept coverage")
+        problems.append(f"{chapter}: depth {depth!r} but empty concept coverage")
     limits = str(entry.get("limits_anchor", ""))
     if not limits:
-        problems.append(f"{chapter}: depth 'full' but no limits_anchor declared")
+        problems.append(f"{chapter}: depth {depth!r} but no limits_anchor declared")
     elif limits not in readme_text:
         problems.append(f"{chapter}: limits anchor {limits!r} not found in README")
     if "Explain it back" not in readme_text:
         problems.append(f"{chapter}: no active-recall section ('Explain it back')")
     evidence_list = entry.get("break_evidence", [])
     if not evidence_list:
-        problems.append(f"{chapter}: depth 'full' but no break_evidence declared")
+        problems.append(f"{chapter}: depth {depth!r} but no break_evidence declared")
     for evidence in evidence_list:
         if str(evidence) not in readme_text:
             problems.append(f"{chapter}: break-experiment evidence {str(evidence)!r} not present")
@@ -294,6 +309,7 @@ def main() -> int:
         problems.append(f"manifest declares unknown chapter {slug}")
 
     full = 0
+    tours = 0
     gaps = 0
     for chapter in sorted(declared & CANONICAL_CHAPTERS):
         entry = chapters[chapter]
@@ -313,7 +329,10 @@ def main() -> int:
             gaps += gap_count
         if depth == "full":
             full += 1
-            problems.extend(check_depth_gates(chapter, entry, text))
+            problems.extend(check_depth_gates(chapter, entry, text, depth))
+        elif depth == "tour":
+            tours += 1
+            problems.extend(check_depth_gates(chapter, entry, text, depth))
 
     if problems:
         print(f"book depth NOT sound: {len(problems)} problem(s)")
@@ -321,9 +340,10 @@ def main() -> int:
             print(f"  - {problem}")
         return 1
 
-    pending = len(CANONICAL_CHAPTERS) - full
+    pending = len(CANONICAL_CHAPTERS) - full - tours
     print(
-        f"book depth sound: {full} chapter(s) at full depth verified, {pending} pending "
+        f"book depth sound: {full} chapter(s) at full depth verified, "
+        f"{tours} tour chapter(s) verified, {pending} pending "
         f"(exempt from depth gates, leak-scanned), {gaps} explicit known gap(s) on record"
     )
     print(f"BOOK-DEPTH-COMPLETE chapters={len(CANONICAL_CHAPTERS)}")

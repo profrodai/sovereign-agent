@@ -211,6 +211,53 @@ def test_known_gaps_are_counted_in_the_summary(capsys) -> None:
     assert "explicit known gap(s) on record" in output
 
 
+def test_a_tour_chapter_with_no_break_evidence_is_refused(tmp_path, capsys) -> None:
+    """'tour' is a finished chapter, not a loophole: break evidence is required."""
+    manifest = real_manifest()
+    manifest["chapters"]["ch00_first_shift"]["break_evidence"] = []
+    code, output = run_with_manifest(tmp_path, manifest, capsys)
+    assert code == 1
+    assert "depth 'tour' but no break_evidence declared" in output
+
+
+def test_a_tour_chapter_with_empty_concepts_is_refused(tmp_path, capsys) -> None:
+    manifest = real_manifest()
+    manifest["chapters"]["ch00_first_shift"]["concepts"] = []
+    code, output = run_with_manifest(tmp_path, manifest, capsys)
+    assert code == 1
+    assert "depth 'tour' but empty concept coverage" in output
+
+
+def test_a_tour_chapter_with_no_limits_anchor_is_refused(tmp_path, capsys) -> None:
+    manifest = real_manifest()
+    del manifest["chapters"]["ch00_first_shift"]["limits_anchor"]
+    code, output = run_with_manifest(tmp_path, manifest, capsys)
+    assert code == 1
+    assert "depth 'tour' but no limits_anchor declared" in output
+
+
+def test_tour_does_not_require_inline_python(tmp_path, capsys) -> None:
+    """ch00 has zero python fences and depth 'tour' — that must pass, while the
+    same chapter at depth 'full' must be refused for the missing construction."""
+    manifest = real_manifest()
+    assert manifest["chapters"]["ch00_first_shift"]["depth"] == "tour"
+    code, _ = run_with_manifest(tmp_path, manifest, capsys)
+    assert code == 0
+    manifest["chapters"]["ch00_first_shift"]["depth"] = "full"
+    code, output = run_with_manifest(tmp_path, manifest, capsys)
+    assert code == 1
+    assert "depth 'full' but no inline python construction" in output
+
+
+def test_a_full_book_reports_zero_pending(capsys) -> None:
+    """With every chapter at a finished depth, the summary must say 0 pending."""
+    module = _load_depth_module()
+    code = module.main()
+    output = capsys.readouterr().out
+    assert code == 0
+    assert "0 pending" in output
+
+
 def test_canonical_chapter_sets_agree_across_verifiers() -> None:
     """The three book instruments must never disagree on the denominator."""
     depth = _load_depth_module()
