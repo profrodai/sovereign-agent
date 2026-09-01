@@ -11,7 +11,7 @@ you an intentionally incomplete starter, behavioral checks, adversarial
 mutations, and a verified reference solution. The checks grade observable
 invariants rather than requiring your code to look like the reference.
 
-- [Chapter 0: Andrea's first shift](ch00_first_shift/README.md) — run one
+- [Chapter 0: Lucy's first shift](ch00_first_shift/README.md) — run one
   complete piece of work and learn that `ACCEPTED` is a proved claim
 - [Chapter 1: The organization remembers](ch01_organization_remembers/README.md) —
   SQLite, transactions, append-only events, and what is canonical versus derived
