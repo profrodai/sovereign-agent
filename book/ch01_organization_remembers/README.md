@@ -1,5 +1,22 @@
 # Chapter 1 — The organization remembers
 
+Lucy's shop lost an order once. Not a big one — a single case of cones — but the
+supplier's system had recorded the sale, charged her, and then, somewhere between
+a crashed browser tab and a reload, forgotten it existed. The money was gone and
+the cones never came, and there was no record to point at. "We ordered them" was
+a hope, not a fact.
+
+A Zero-Employee Organization cannot afford that. If it is going to act on Lucy's
+behalf — move money, commit to suppliers, promise a full freezer — then its
+memory has to be the kind you can hold it to. So before we teach the organization
+to *decide* anything, we have to answer a plainer question: **where does the
+truth live, and what survives when the power goes out mid-sentence?**
+
+This chapter is hands-on the whole way through. You will open the organization's
+memory, try to corrupt it three different ways, watch a half-finished purchase
+roll itself back, and learn to name — for any piece of data in the system — which
+file or table is the authority for it.
+
 ## Learning objective
 
 Understand where a Zero-Employee Organization keeps its memory, why some of that
@@ -11,9 +28,9 @@ By the end you should be able to say, for any piece of data in this system,
 
 ## Why memory is the first hard problem
 
-An organization that forgets cannot be held to anything. If the tea order can
-vanish because a process died halfway through, then "we ordered the tea" is a
-hope, not a fact.
+An organization that forgets cannot be held to anything. If an order can vanish
+because a process died halfway through — exactly what happened to Lucy's cones —
+then "we ordered it" is a hope, not a fact.
 
 So the first question is not "how does the AI decide" — it is "where does the
 truth live, and what happens when the power goes out mid-sentence".
@@ -21,8 +38,8 @@ truth live, and what happens when the power goes out mid-sentence".
 ## Exercise 1: look at the operational state
 
 ```bash
-sovereign-agent demo store --mode simulated --root /tmp/andrea-memory
-sqlite3 /tmp/andrea-memory/.sovereign/organization.db ".tables"
+sovereign-agent demo store --mode simulated --root /tmp/lucy-memory
+sqlite3 /tmp/lucy-memory/.sovereign/organization.db ".tables"
 ```
 
 Expected: sixteen tables listed. The ones to care about now:
@@ -36,7 +53,7 @@ Expected: sixteen tables listed. The ones to care about now:
 | `schema_migrations` | which schema versions have been applied |
 
 ```bash
-sqlite3 -header -column /tmp/andrea-memory/.sovereign/organization.db \
+sqlite3 -header -column /tmp/lucy-memory/.sovereign/organization.db \
   "SELECT * FROM inventory; SELECT id, amount_cents FROM cash_entries;"
 ```
 
@@ -49,7 +66,7 @@ purchase. Nothing overwrites a balance, so nothing can quietly lose money.
 The event log is the organization's memory of what it did. Try to rewrite it.
 
 ```bash
-sqlite3 /tmp/andrea-memory/.sovereign/organization.db \
+sqlite3 /tmp/lucy-memory/.sovereign/organization.db \
   "UPDATE events SET kind='NOTHING_HAPPENED' WHERE kind='sale.committed';"
 ```
 
@@ -62,7 +79,7 @@ Error: stepping, events are append-only: update refused (19)
 Now try deleting:
 
 ```bash
-sqlite3 /tmp/andrea-memory/.sovereign/organization.db \
+sqlite3 /tmp/lucy-memory/.sovereign/organization.db \
   "DELETE FROM events WHERE kind='replenishment.committed';"
 ```
 
@@ -70,7 +87,7 @@ Also refused. Now try the sneaky third variant — overwriting a row instead of
 editing it:
 
 ```bash
-sqlite3 /tmp/andrea-memory/.sovereign/organization.db \
+sqlite3 /tmp/lucy-memory/.sovereign/organization.db \
   "INSERT OR REPLACE INTO events(id,kind,payload,created_at)
    SELECT id,'NOTHING_HAPPENED',payload,created_at FROM events LIMIT 1;"
 ```
@@ -82,17 +99,17 @@ That distinction matters: a rule enforced in application code protects you from
 bugs, but a rule enforced in the database protects you from *everything else
 that can reach the database* — including you, at 2am, with a REPL open.
 
-That third case is worth dwelling on, because getting it right took two
-attempts. The first version of this guard relied on a SQLite setting called
-`recursive_triggers`, which the application switched on when it opened the
-database. It worked perfectly — from the application. From the `sqlite3` command
-above, the one this chapter just told you to use, the overwrite **succeeded
-silently** and the row count did not change. The lesson claimed the database
-enforced the rule while the guarantee actually lived in Python.
+That third case is worth dwelling on, because it is where a subtle mistake
+hides. A tempting way to block the overwrite is a SQLite setting like
+`recursive_triggers`, switched on when the application opens the database. It
+works — *from the application*. But from the `sqlite3` command line above, the
+one this chapter just told you to use, the overwrite would succeed silently and
+the row count would not change. A guarantee that lives in only one client is not
+a guarantee; it is a coincidence waiting to be discovered at 2am.
 
-The fix is the guard you just triggered: a `BEFORE INSERT` trigger that refuses
-an id which already exists. It needs no setting, so it holds from any client.
-Enforcement now matches the claim — which is the entire subject of Chapter 2.
+The guard you just triggered instead is a `BEFORE INSERT` trigger that refuses an
+id which already exists. It needs no setting, so it holds from *any* client.
+Enforcement matches the claim — which is the entire subject of Chapter 2.
 
 ## Exercise 3: watch a transaction roll back
 
@@ -114,7 +131,7 @@ seed(org.db)
 
 # An effect needs a real completed assignment behind it. Chapter 2 explains why.
 outcome = org.create_outcome(
-    "Keep the tea jar stocked", "stocked",
+    "Keep the shelf stocked", "stocked",
     ["inventory_at_or_above_reorder_point"], "principal-human", "SKU-TEA")
 org.activate(outcome.id, "master-course")
 sow = org.create_sow(outcome.id, "replenish", Role.OPERATOR, "master-course")
@@ -147,9 +164,9 @@ three changes happen, or none do.
 ## Exercise 4: find the boundary between governance and operations
 
 ```bash
-sovereign-agent demo store --mode simulated --root /tmp/andrea-boundary
-cat /tmp/andrea-boundary/sovereign.toml
-ls /tmp/andrea-boundary/governance/outcomes/*/
+sovereign-agent demo store --mode simulated --root /tmp/lucy-boundary
+cat /tmp/lucy-boundary/sovereign.toml
+ls /tmp/lucy-boundary/governance/outcomes/*/
 ```
 
 Two kinds of file, and they behave differently:
@@ -165,9 +182,9 @@ Try it:
 ```bash
 python -c "
 import shutil, sys; sys.path.insert(0,'src')
-shutil.rmtree('/tmp/andrea-boundary/governance')
+shutil.rmtree('/tmp/lucy-boundary/governance')
 from sovereign_agent.organization import Organization
-o = Organization('/tmp/andrea-boundary')
+o = Organization('/tmp/lucy-boundary')
 print(o.status_text(o.db.connection.execute('select id from outcomes').fetchone()['id']))
 "
 ```
