@@ -590,8 +590,83 @@
       "concepts": []
     },
     "ch09_each_product_has_its_own_threshold": {
-      "depth": "pending",
-      "concepts": []
+      "depth": "full",
+      "concepts": [
+        {
+          "concept": "sale-five-writes-one-transaction",
+          "anchor": "One exact sale, traced through every write",
+          "symbols": [
+            {
+              "file": "src/reference_organizations/store/__init__.py",
+              "name": "def record_sale"
+            }
+          ],
+          "tests": [
+            {
+              "file": "tests/test_persistence.py",
+              "name": "cash_reconciled"
+            }
+          ],
+          "exercise": "book/ch09_each_product_has_its_own_threshold/solution.py"
+        },
+        {
+          "concept": "read-inside-transaction-prevents-oversell",
+          "anchor": "Break it: the sale that checks first and writes later",
+          "symbols": [
+            {
+              "file": "src/reference_organizations/store/__init__.py",
+              "name": "happens INSIDE the immediate transaction"
+            }
+          ],
+          "tests": [
+            {
+              "file": "tests/test_persistence.py",
+              "name": "never_goes_negative"
+            }
+          ],
+          "exercise": "book/ch09_each_product_has_its_own_threshold/solution.py"
+        },
+        {
+          "concept": "reservation-aware-availability",
+          "anchor": "Available is not on-hand",
+          "symbols": [
+            {
+              "file": "src/sovereign_agent/checks.py",
+              "name": "reserv"
+            }
+          ],
+          "tests": [
+            {
+              "file": "tests/test_store_multi_sku.py",
+              "name": "def test_"
+            }
+          ],
+          "exercise": "book/ch09_each_product_has_its_own_threshold/solution.py"
+        },
+        {
+          "concept": "dedupe-key-per-occurrence-append-only-signals",
+          "anchor": "loud\ninstead of silent",
+          "symbols": [
+            {
+              "file": "src/reference_organizations/store/__init__.py",
+              "name": "dedupe_key"
+            }
+          ],
+          "tests": [
+            {
+              "file": "tests/test_persistence.py",
+              "name": "signal_is_recorded"
+            }
+          ],
+          "exercise": "book/ch09_each_product_has_its_own_threshold/solution.py"
+        }
+      ],
+      "limits_anchor": "one connection",
+      "break_evidence": [
+        "on hand now: -2",
+        "refused: only 1 available (6 on hand, 5 reserved)",
+        "on_hand=5 cash_rows=4 events=4"
+      ]
     },
     "ch10_one_signal_wakes_one_need": {
       "depth": "pending",
