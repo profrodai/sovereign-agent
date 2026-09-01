@@ -341,8 +341,87 @@
       ]
     },
     "ch05_authority_needs_a_fence": {
-      "depth": "pending",
-      "concepts": []
+      "depth": "full",
+      "concepts": [
+        {
+          "concept": "cas-claim-one-statement-decides",
+          "anchor": "The claim that decides and writes in one statement",
+          "symbols": [
+            {
+              "file": "src/sovereign_agent/relay.py",
+              "name": "def claim"
+            }
+          ],
+          "tests": [
+            {
+              "file": "tests/test_actors_and_mailbox.py",
+              "name": "def test_"
+            }
+          ],
+          "exercise": "book/ch05_authority_needs_a_fence/solution.py"
+        },
+        {
+          "concept": "same-statement-token-check-never-rederived",
+          "anchor": "Completing under the token, not the name",
+          "symbols": [
+            {
+              "file": "src/sovereign_agent/relay.py",
+              "name": "def complete"
+            }
+          ],
+          "tests": [
+            {
+              "file": "tests/test_fencing.py",
+              "name": "def test_"
+            }
+          ],
+          "exercise": "book/ch05_authority_needs_a_fence/solution.py"
+        },
+        {
+          "concept": "same-owner-idempotent-vs-expired-fresh-token",
+          "anchor": "Leases: ownership that expires, and the token that guards the handover",
+          "symbols": [
+            {
+              "file": "src/sovereign_agent/relay.py",
+              "name": "_mint_claim_token"
+            },
+            {
+              "file": "src/sovereign_agent/fencing.py",
+              "name": "def new_process_identity"
+            }
+          ],
+          "tests": [
+            {
+              "file": "tests/test_fencing.py",
+              "name": "acquire_actor_lease"
+            }
+          ],
+          "exercise": "book/ch05_authority_needs_a_fence/solution.py"
+        },
+        {
+          "concept": "retry-budget-dead-letter-terminal",
+          "anchor": "Retries are budgeted, and the budget ends somewhere honest",
+          "symbols": [
+            {
+              "file": "src/sovereign_agent/relay.py",
+              "name": "def dead_letter"
+            }
+          ],
+          "tests": [
+            {
+              "file": "tests/test_actors_and_mailbox.py",
+              "name": "def test_"
+            }
+          ],
+          "exercise": "book/ch05_authority_needs_a_fence/solution.py"
+        }
+      ],
+      "limits_anchor": "Two honest limits of this toy",
+      "break_evidence": [
+        "owner on disk: worker-b",
+        "refused, unexpired lease held by worker-b",
+        "refused, stale or wrong token"
+      ]
     },
     "ch06_the_organization_recovers": {
       "depth": "pending",
