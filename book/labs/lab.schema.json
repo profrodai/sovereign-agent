@@ -1,0 +1,53 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://zeroemployee.org/sovereign-agent/book-lab.schema.json",
+  "title": "Sovereign Agent companion lab",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "chapter",
+    "title",
+    "production_sources",
+    "production_tests",
+    "entrypoint",
+    "expected"
+  ],
+  "properties": {
+    "schema_version": {
+      "const": 1
+    },
+    "chapter": {
+      "type": "string",
+      "pattern": "^ch(0[0-9]|1[0-2])_[a-z0-9_]+$"
+    },
+    "title": {
+      "type": "string",
+      "minLength": 1
+    },
+    "production_sources": {
+      "type": "array",
+      "minItems": 1,
+      "uniqueItems": true,
+      "items": {
+        "type": "string",
+        "pattern": "^src/(?!.*(?:^|/)\\.\\.(?:/|$))[^:]+\\.py:[A-Za-z_][A-Za-z0-9_]*(?:\\.[A-Za-z_][A-Za-z0-9_]*)*$"
+      }
+    },
+    "production_tests": {
+      "type": "array",
+      "minItems": 1,
+      "uniqueItems": true,
+      "items": {
+        "type": "string",
+        "pattern": "^tests/[^:]+\\.py::[A-Za-z_][A-Za-z0-9_]*(?:::[A-Za-z_][A-Za-z0-9_]*)?$"
+      }
+    },
+    "entrypoint": {
+      "const": "exercise"
+    },
+    "expected": {
+      "const": "expected.json"
+    }
+  }
+}

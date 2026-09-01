@@ -1,0 +1,18 @@
+{
+  "schema_version": 1,
+  "chapter": "ch06_the_organization_recovers",
+  "title": "Crash recovery without guessed success",
+  "production_sources": [
+    "src/sovereign_agent/supervisor.py:recover_abandoned_assignments",
+    "src/sovereign_agent/fencing.py:release_execution_attempt",
+    "src/sovereign_agent/supervisor.py:tick"
+  ],
+  "production_tests": [
+    "tests/test_supervisor.py::test_supervisor_recovers_a_real_sigkilled_assignment",
+    "tests/test_supervisor.py::test_never_guesses_success_recovery_receipt_is_always_failed",
+    "tests/test_supervisor.py::test_recovery_is_idempotent_a_second_tick_recovers_nothing_more",
+    "tests/test_supervisor.py::test_workspace_reclaim_applies_only_after_the_terminal_write_is_durable"
+  ],
+  "entrypoint": "exercise",
+  "expected": "expected.json"
+}

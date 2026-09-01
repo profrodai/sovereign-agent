@@ -1,0 +1,19 @@
+{
+  "schema_version": 1,
+  "chapter": "ch12_the_pilot_begins_with_a_receipt",
+  "title": "The pilot begins with a receipt",
+  "production_sources": [
+    "src/reference_organizations/store/pilot.py:start_pilot",
+    "src/reference_organizations/store/pilot.py:active_pilot_id",
+    "src/sovereign_agent/evidence.py:record_check"
+  ],
+  "production_tests": [
+    "tests/test_pilot.py::test_replaying_the_same_start_request_does_not_create_a_second_pilot",
+    "tests/test_pilot.py::test_a_refused_start_leaves_no_orphaned_pilot_row",
+    "tests/test_proof_pack.py::test_andrea_not_run_with_success_prose_is_rejected",
+    "tests/test_proof_pack.py::test_digest_mismatch_still_rejected",
+    "tests/test_proof_pack.py::test_path_escape_still_rejected"
+  ],
+  "entrypoint": "exercise",
+  "expected": "expected.json"
+}

@@ -1,0 +1,17 @@
+{
+  "schema_version": 1,
+  "chapter": "ch10_one_signal_wakes_one_need",
+  "title": "One signal wakes one need: prove causation, not coincidence",
+  "production_sources": [
+    "src/sovereign_agent/organization.py:Organization.accept",
+    "src/sovereign_agent/organization.py:Organization.verify_sow",
+    "src/reference_organizations/store/__init__.py:apply_restock"
+  ],
+  "production_tests": [
+    "tests/test_causal_binding.py::test_condition_true_but_another_execution_contributed_is_refused",
+    "tests/test_causal_binding.py::test_one_sow_cannot_borrow_another_sows_proof",
+    "tests/test_causal_binding.py::test_corroboration_detects_inconsistency_but_does_not_authenticate"
+  ],
+  "entrypoint": "exercise",
+  "expected": "expected.json"
+}

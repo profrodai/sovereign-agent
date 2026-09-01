@@ -1,0 +1,15 @@
+{
+  "boundary_changed": [
+    "policy.txt"
+  ],
+  "boundary_scope": "organization_root_excluding_workspace_and_ledger",
+  "ledger_change_visible": false,
+  "naive_accepts_traversal": true,
+  "nested_output": "output/report.json",
+  "receipt_digest_matches": true,
+  "repaired_refusals": [
+    "absolute",
+    "symlink",
+    "traversal"
+  ]
+}

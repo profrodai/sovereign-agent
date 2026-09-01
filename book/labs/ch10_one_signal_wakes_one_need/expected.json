@@ -1,0 +1,16 @@
+{
+  "attacks": {
+    "sibling_proof": "sibling_proof",
+    "world_only": "missing_causal_effect",
+    "wrong_execution": "wrong_execution",
+    "wrong_subject": "wrong_subject"
+  },
+  "principle": "corroboration_is_not_causal_binding",
+  "proof_edges": [
+    "outcome->sow",
+    "sow->execution",
+    "execution->effect",
+    "effect->subject"
+  ],
+  "repaired": "ACCEPTED"
+}

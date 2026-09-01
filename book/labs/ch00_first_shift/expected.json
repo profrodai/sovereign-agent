@@ -1,0 +1,6 @@
+{
+  "accepted_only_with_full_trace": true,
+  "independent_actors": 3,
+  "ordered_stages": 5,
+  "provider_report_is_not_proof": true
+}

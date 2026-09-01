@@ -1,0 +1,36 @@
+{
+  "duplicate_migration": {
+    "legacy_rows_preserved": 3,
+    "result": "duplicate_sku_refused",
+    "tables_after_rollback": ["catalog_v1"]
+  },
+  "successful_migration": {
+    "constraints": {
+      "negative_stock": "refused",
+      "orphan_inventory": "refused",
+      "reserved_above_stock": "refused"
+    },
+    "products": [
+      {
+        "name": "Kenyan coffee",
+        "on_hand": 10,
+        "price_cents": 650,
+        "reorder_point": 6,
+        "reserved": 0,
+        "sku": "SKU-COFFEE"
+      },
+      {
+        "name": "Assam tea",
+        "on_hand": 4,
+        "price_cents": 400,
+        "reorder_point": 3,
+        "reserved": 0,
+        "sku": "SKU-TEA"
+      }
+    ],
+    "rows_after": 2,
+    "rows_before": 2,
+    "tables": ["inventory", "products", "schema_migrations"],
+    "tea_after_refusals": {"on_hand": 4, "reserved": 0}
+  }
+}

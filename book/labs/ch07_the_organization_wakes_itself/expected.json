@@ -1,0 +1,21 @@
+{
+  "mechanism": "manual_tick",
+  "race": {
+    "counts": {"decisions": 1, "origins": 1, "work": 1},
+    "created_flags": [false, true],
+    "returned_work_ids": ["work-signal-low"]
+  },
+  "source_chain": {
+    "decision_id": "decision-signal-low",
+    "pulse_kind": "pulse.work_created",
+    "signal_id": "signal-low",
+    "source_kind": "sale.committed",
+    "work_id": "work-signal-low"
+  },
+  "stale_observation": {
+    "counts": {"decisions": 0, "work": 0},
+    "created_after_restock": false,
+    "was_low_before_restock": true,
+    "work_id": null
+  }
+}
