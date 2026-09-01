@@ -1,5 +1,22 @@
 # Chapter 4 — Work stays inside its boundary
 
+When Lucy hires a contractor to fix the freezer, she doesn't follow them around
+the shop. But she does notice if the till is short afterward. She can't *prevent*
+a stranger from wandering into the back office — but she can *tell* whether they
+did.
+
+A provider is that contractor. In Chapter 3 you saw that `--workspace` selects a
+directory for it to work in; what you didn't see is that, for most providers,
+nothing at the operating-system level *stops* the provider from writing outside
+that directory. That sounds alarming until you internalize the move this chapter
+makes: instead of promising a containment the providers cannot deliver, the
+organization makes the boundary **detectable**. It photographs everything outside
+the workspace before the provider runs and again after, and compares. If a byte
+moved where it shouldn't have, the ledger says so — permanently.
+
+An honest "we can tell" beats a dishonest "we prevented it." This chapter is
+about building the honest version.
+
 ## Learning objective
 
 Understand what "the provider only writes to its workspace" actually means in
@@ -8,9 +25,8 @@ checkable before a write is ever attempted (`safe_join`), checkable after a
 provider has run (`snapshot_boundary`/`diff_boundary`), and a disposal policy
 (`reclaim_workspace`) that decides what survives once the work is done.
 
-Chapter 3 mentioned this in passing: "`--workspace` selects a directory; it is
-not a sandbox... Stronger workspace lifecycle policies arrive in Unit 7." This
-chapter is that arrival.
+Chapter 3 flagged that `--workspace` selects a directory, not a sandbox. This
+chapter builds the machinery that makes that flag honest rather than alarming.
 
 ## Vocabulary this chapter adds
 
@@ -25,7 +41,7 @@ chapter is that arrival.
 ## The exercise
 
 ```bash
-python book/ch04_work_stays_inside_its_boundary/solution.py --root /tmp/andrea-ch04
+python book/ch04_work_stays_inside_its_boundary/solution.py --root /tmp/lucy-ch04
 ```
 
 Reads real output straight from the production `workspace` module: it runs one
@@ -140,8 +156,8 @@ misreported as one.
 
 - `src/sovereign_agent/workspace.py` — `safe_join`, `snapshot_boundary`,
   `diff_boundary`, `reclaim_workspace`
-- `docs/v1-unit7-workspace-lifecycle.md` — the full contract, including six
-  rounds of review findings this exercise's own machinery survived
+- `src/sovereign_agent/workspace.py` — read the boundary check and the reclaim
+  policy end to end; they are short, and the exercise above calls exactly them
 - `.sovereign/runs/<workspace_id>/` — inspect one directly after running the
   exercise above
 
