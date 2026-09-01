@@ -669,8 +669,84 @@
       ]
     },
     "ch10_one_signal_wakes_one_need": {
-      "depth": "pending",
-      "concepts": []
+      "depth": "full",
+      "concepts": [
+        {
+          "concept": "authentication-corroboration-causal-binding-distinct",
+          "anchor": "Three different questions that all sound like",
+          "symbols": [
+            {
+              "file": "src/sovereign_agent/organization.py",
+              "name": "CONTRIBUTED"
+            }
+          ],
+          "tests": [
+            {
+              "file": "tests/test_causal_binding.py",
+              "name": "def test_"
+            }
+          ],
+          "exercise": "book/ch10_one_signal_wakes_one_need/solution.py"
+        },
+        {
+          "concept": "world-right-is-not-work-done",
+          "anchor": "Generation 1: the check that sees a full freezer",
+          "symbols": [
+            {
+              "file": "src/sovereign_agent/organization.py",
+              "name": "required_effect_kind"
+            }
+          ],
+          "tests": [
+            {
+              "file": "tests/test_causal_binding.py",
+              "name": "def test_"
+            }
+          ],
+          "exercise": "book/ch10_one_signal_wakes_one_need/solution.py"
+        },
+        {
+          "concept": "execution-derived-from-sow-never-supplied",
+          "anchor": "Generation 3: the right effect",
+          "symbols": [
+            {
+              "file": "src/sovereign_agent/organization.py",
+              "name": "completed_assignment_for_sow"
+            }
+          ],
+          "tests": [
+            {
+              "file": "tests/test_causal_binding.py",
+              "name": "def test_"
+            }
+          ],
+          "exercise": "book/ch10_one_signal_wakes_one_need/solution.py"
+        },
+        {
+          "concept": "subject-read-from-outcome-not-supplied",
+          "anchor": "Generation 5: the caller supplies one fact only",
+          "symbols": [
+            {
+              "file": "src/sovereign_agent/organization.py",
+              "name": "Subject is read from the outcome"
+            }
+          ],
+          "tests": [
+            {
+              "file": "tests/test_acceptance_falsification.py",
+              "name": "def test_"
+            }
+          ],
+          "exercise": "book/ch10_one_signal_wakes_one_need/solution.py"
+        }
+      ],
+      "limits_anchor": "forge every row in",
+      "break_evidence": [
+        "effects recorded by run-t: 0",
+        "run-t did something",
+        "ACCEPTED: run-x caused a replenishment on SKU-TEA",
+        "replenishment on SKU-COFFEE"
+      ]
     },
     "ch11_replenishment_scales_without_losing_governance": {
       "depth": "pending",
