@@ -258,8 +258,40 @@ def test_a_full_book_reports_zero_pending(capsys) -> None:
     assert "0 pending" in output
 
 
+def test_a_missing_lab_binding_is_refused(tmp_path, capsys) -> None:
+    """Every finished chapter must declare its companion lab."""
+    manifest = real_manifest()
+    chapter = first_full_chapter(manifest)
+    del manifest["chapters"][chapter]["lab"]
+    code, output = run_with_manifest(tmp_path, manifest, capsys)
+    assert code == 1
+    assert "declares no companion lab" in output
+
+
+def test_a_lab_outside_book_labs_is_refused(tmp_path, capsys) -> None:
+    manifest = real_manifest()
+    chapter = first_full_chapter(manifest)
+    manifest["chapters"][chapter]["lab"] = "book/" + chapter
+    code, output = run_with_manifest(tmp_path, manifest, capsys)
+    assert code == 1
+    assert "is not a directory under book/labs/" in output
+
+
+def test_a_lab_identity_mismatch_is_refused(tmp_path, capsys) -> None:
+    """Pointing a chapter at a DIFFERENT chapter's real lab must be refused —
+    presence of a valid lab is not identity with THIS chapter's lab."""
+    manifest = real_manifest()
+    manifest["chapters"]["ch01_organization_remembers"]["lab"] = (
+        "book/labs/ch02_work_needs_governance"
+    )
+    code, output = run_with_manifest(tmp_path, manifest, capsys)
+    assert code == 1
+    assert "identity mismatch" in output
+
+
 def test_canonical_chapter_sets_agree_across_verifiers() -> None:
-    """The three book instruments must never disagree on the denominator."""
+    """The book instruments must never disagree on the denominator — depth,
+    curriculum, AND the companion-labs gate."""
     depth = _load_depth_module()
     curriculum_spec = importlib.util.spec_from_file_location(
         "verify_curriculum", REPO_ROOT / "scripts" / "verify_curriculum.py"
@@ -267,7 +299,14 @@ def test_canonical_chapter_sets_agree_across_verifiers() -> None:
     assert curriculum_spec is not None and curriculum_spec.loader is not None
     curriculum = importlib.util.module_from_spec(curriculum_spec)
     curriculum_spec.loader.exec_module(curriculum)
+    labs_spec = importlib.util.spec_from_file_location(
+        "verify_book_labs", REPO_ROOT / "scripts" / "verify_book_labs.py"
+    )
+    assert labs_spec is not None and labs_spec.loader is not None
+    labs = importlib.util.module_from_spec(labs_spec)
+    labs_spec.loader.exec_module(labs)
     assert set(depth.CANONICAL_CHAPTERS) == set(curriculum.REQUIRED_CHAPTERS)
+    assert set(depth.CANONICAL_CHAPTERS) == set(labs.CHAPTERS)
 
 
 if __name__ == "__main__":
