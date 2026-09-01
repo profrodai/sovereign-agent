@@ -1,5 +1,21 @@
 # Chapter 5 — Authority needs a fence
 
+Two of Lucy's staff each believe they are closing tonight. One of them is wrong —
+maybe they swapped shifts and forgot, maybe one went home and came back. It does
+not matter *why*. What matters is that only one person can count the till, lock
+the freezer, and set the alarm, and the shop must never let *both* do it, because
+two people each doing "the closing" is how money goes missing and doors get left
+open.
+
+Software has exactly this problem, and it is sneakier there. A worker process
+crashes and gets restarted; for a moment, *two* processes both believe they are
+the same actor, `operator-course`, finishing the same job. If both are allowed to
+write "done," the ledger ends up with two conflicting truths. This chapter builds
+the fence that makes that impossible — not by trusting workers to behave, but with
+a numbered claim (think of it as a numbered key) that only one process can hold at
+a time, where every handover mints a *higher* number so a stale worker's old key
+simply stops turning.
+
 ## Learning objective
 
 Understand the difference between an **actor** (a durable, governed identity)
@@ -26,7 +42,7 @@ active workspace.**
 ## The exercise
 
 ```bash
-python book/ch05_authority_needs_a_fence/solution.py --root /tmp/andrea-ch05
+python book/ch05_authority_needs_a_fence/solution.py --root /tmp/lucy-ch05
 ```
 
 Exercises `fencing.acquire_actor_lease` and `fencing.acquire_execution_attempt`
@@ -71,10 +87,10 @@ Read this in order:
    for one that no longer matches any real row) is refused — the check is
    never merely "trust the caller's earlier acquisition."
 3. **The decisive property: two DIFFERENT assignments for the SAME actor,
-   two SEPARATE processes.** This is the exact gap Unit 4's mailbox left
-   open — it proved two distinct *actors* contending for one message
-   produces one winner, but said nothing about two *processes* both
-   claiming to be the same actor. `second_process_same_actor_different_
+   two SEPARATE processes.** This is the gap an ordinary message queue leaves
+   open: it can prove two distinct *actors* contending for one message produce
+   one winner, but says nothing about two *processes* both claiming to be the
+   same actor. `second_process_same_actor_different_
    assignment` shows the refusal happening through the ordinary
    `run_assignment` call, before the provider is ever invoked —
    `assignment_never_reached_running` confirms the second assignment stayed
@@ -122,13 +138,10 @@ cannot bypass either.
 
 ## Where to look next
 
-- `src/sovereign_agent/fencing.py` — process identity, actor leases,
-  execution-attempt fencing
-- `docs/v1-unit8-supervisor-fencing-recovery.md` — the full contract,
-  including the two rounds of review correction this mechanism survived
-  (F-R2-1: a leak on every refusal path, not only success)
-- `docs/rulings/2026-08-26-one-process-per-actor.md` — the gap this
-  chapter's mechanism closes
+- `src/sovereign_agent/fencing.py` — process identity, actor leases, and the
+  execution-attempt compare-and-set. Note that the lease is released on every
+  refusal path, not only on success — a leak there would strand an actor after
+  any failure.
 
 `solution.py` imports the production package rather than copying it.
 
