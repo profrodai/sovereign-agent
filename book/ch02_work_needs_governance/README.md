@@ -41,6 +41,89 @@ to decide what, and what has to be true before a decision sticks.
 | **Acceptance** | The Principal declaring the outcome true — if it survives proof. |
 | **Ruling** | A recorded decision that changes the rules. |
 
+## Build it yourself: why `ACCEPTED` has to re-read the world
+
+The whole chapter turns on one function — `accept` — so build the wrong version
+first, watch it lie, then fix it. Paste this into a Python shell.
+
+Here is the world (what is actually true) and an outcome that declares the check
+that must hold for it to be true:
+
+```python
+world = {"on_hand": 2, "reorder_point": 3}  # the freezer is below its line
+outcome = {
+    "title": "Keep the freezer stocked",
+    "state": "VERIFYING",
+    "checks": ["on_hand_at_or_above_reorder_point"],
+}
+
+
+def check_on_hand(world):
+    return world["on_hand"] >= world["reorder_point"]
+```
+
+The tempting `accept` just sets the status field. It is one line, and it is a lie
+detector with the detector removed:
+
+```python
+def accept_naive(outcome):
+    outcome["state"] = "ACCEPTED"  # flip the field; check nothing
+    return outcome["state"]
+
+
+print(
+    accept_naive(outcome),
+    "-- but the freezer is at",
+    world["on_hand"],
+    "below",
+    world["reorder_point"],
+)
+```
+
+```text
+ACCEPTED -- but the freezer is at 2 below 3
+```
+
+The paperwork says done; the freezer is empty. That gap is the entire subject of
+this book. The fix is to make `accept` **re-run the declared checks against the
+world at the moment of acceptance** — not trust that they passed earlier, not
+trust a status field, read reality:
+
+```python
+outcome["state"] = "VERIFYING"  # reset from the bad accept above
+
+
+def accept(outcome, world):
+    for name in outcome["checks"]:
+        if name == "on_hand_at_or_above_reorder_point" and not check_on_hand(world):
+            raise PermissionError(
+                f"refused: {name} failed (on_hand={world['on_hand']} < reorder={world['reorder_point']})"
+            )
+    outcome["state"] = "ACCEPTED"
+    return outcome["state"]
+
+
+try:
+    accept(outcome, world)
+except PermissionError as error:
+    print(error)
+
+world["on_hand"] = 8  # actually restock, so reality now matches the claim
+print(accept(outcome, world))
+```
+
+```text
+refused: on_hand_at_or_above_reorder_point failed (on_hand=2 < reorder=3)
+ACCEPTED
+```
+
+Acceptance refused the outcome while the world contradicted it, and granted it
+only once the world actually matched. The production organization does exactly
+this, with more checks and durable evidence — and, crucially, it derives *who
+performed the work* from the ledger and refuses acceptance from that actor, so no
+one accepts their own work. The exercises below confirm each of those refusals in
+the real system.
+
 ## Exercise 1: follow one outcome through the whole chain
 
 ```bash
