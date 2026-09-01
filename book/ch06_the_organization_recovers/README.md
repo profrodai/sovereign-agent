@@ -1,9 +1,24 @@
 # Chapter 6 — The organization recovers
 
+Imagine the worker who was closing Lucy's shop collapses mid-count and is rushed
+out the door. The till is half-counted, the freezer maybe locked, maybe not.
+Nobody can ask *them* what got done — they're gone. So someone else has to walk
+in, notice the shift never properly ended, and write down the only honest thing
+that can be written: *we don't know it was finished, so it wasn't.* Not "probably
+fine." Not "looked done to me." Unknown is not success.
+
+That is recovery, and it is subtler than it sounds, because the tempting move —
+"the worker got most of the way, let's call it done" — is exactly the lie a
+governed organization must never tell. In Chapter 5 you built the fence that
+decides who holds authority *right now*. This chapter is about what happens when
+the process holding it simply stops existing, and why a *different* process must
+be the one to record its death — because a process, like that collapsed worker,
+cannot certify its own.
+
 ## Learning objective
 
-Understand why "a process cannot record its own death" (Unit 5's own rule)
-forces a *second* process to own recovery, and see the supervisor do exactly
+Understand why "a process cannot record its own death" forces a *second*
+process to own recovery, and see the supervisor do exactly
 that: recover a genuinely, violently killed worker's assignment — never
 guessing that it might have succeeded.
 
@@ -35,7 +50,7 @@ disappears.
 ## The exercise
 
 ```bash
-python book/ch06_the_organization_recovers/solution.py --root /tmp/andrea-ch06
+python book/ch06_the_organization_recovers/solution.py --root /tmp/lucy-ch06
 ```
 
 Takes a few seconds — it genuinely waits for a real subprocess to reach
@@ -82,8 +97,8 @@ Four things worth reading closely:
 4. **The recovered receipt is always `failed`, never a guess.** However far
    the killed subprocess might actually have gotten — it might have been
    about to write a valid `report.json` — the organization has no way to know
-   that, and Unit 5's own rule ("nothing is ever a guessed success") extends
-   here without exception.
+   that, and the rule you met in Chapter 5 — nothing is ever a guessed success —
+   extends here without exception.
 
 ## Why this is not a cancellation
 
@@ -127,8 +142,8 @@ only after the recovery transaction is durable.
 - `src/sovereign_agent/supervisor.py` — `tick`, `recover_abandoned_assignments`
 - `tests/fixtures/hard_kill_worker.py` — the real child process this
   exercise's own `solution.py` reuses
-- `docs/v1-unit8-supervisor-fencing-recovery.md` — the full contract,
-  Property 4 in particular
+- `tests/test_supervisor.py` — the hard-kill proof matrix, if you want to see
+  every recovery property exercised at once
 
 `solution.py` imports the production package rather than copying it.
 

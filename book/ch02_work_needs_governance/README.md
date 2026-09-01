@@ -1,5 +1,22 @@
 # Chapter 2 — Work needs governance
 
+In Chapter 0 the shop said `ACCEPTED` and you learned to distrust the word until
+you had checked the world yourself. This chapter is about why you *shouldn't have
+to* — about the machinery that makes `ACCEPTED` mean something even when nobody is
+watching over its shoulder.
+
+Here is the uncomfortable truth that machinery exists to handle: the thing doing
+the work will, sooner or later, have a reason to say it went fine when it didn't.
+Not out of malice — a model that ran out of turns, a script that half-finished, a
+tired human clicking through. If "done" is just a field someone sets, then "done"
+is worth exactly nothing. So Lucy's organization never lets the worker mark its
+own homework. Work travels through a chain of distinct hands, and at the end
+someone re-checks reality before the word `ACCEPTED` is allowed to attach to it.
+
+You will follow one outcome through that entire chain, then spend most of the
+chapter trying to smuggle a lie past it — and watching it get caught, nine
+different ways.
+
 ## Learning objective
 
 Understand how a piece of work travels from "somebody wants this" to "this is
@@ -13,7 +30,7 @@ to decide what, and what has to be true before a decision sticks.
 
 | Word | What it is |
 | --- | --- |
-| **Outcome** | The state of the world someone wants. "The tea jar stays stocked." |
+| **Outcome** | The state of the world someone wants. "Lucy's freezer stays stocked." |
 | **Acceptance check** | A deterministic question that decides whether the outcome is true. |
 | **SOW** | A statement of work: scope, non-goals, deliverables, done-when. |
 | **Assignment** | One actor bound to one SOW, with a workspace. |
@@ -27,8 +44,8 @@ to decide what, and what has to be true before a decision sticks.
 ## Exercise 1: follow one outcome through the whole chain
 
 ```bash
-sovereign-agent demo store --mode simulated --root /tmp/andrea-gov
-DB=/tmp/andrea-gov/.sovereign/organization.db
+sovereign-agent demo store --mode simulated --root /tmp/lucy-gov
+DB=/tmp/lucy-gov/.sovereign/organization.db
 
 sqlite3 -header -column "$DB" \
   "SELECT json_extract(record,'$.title') AS title,
@@ -87,10 +104,11 @@ Expected: a refusal naming `inventory_at_or_above_reorder_point`. Acceptance
 **re-runs the checks against the world at the moment of acceptance**. It does
 not trust that they passed earlier.
 
-That last sentence is the entire lesson of this chapter, and it was learned the
-hard way: an earlier version of this system accepted an outcome by checking that
-someone had handed it a non-empty list of evidence IDs. The IDs were never
-looked up. You could accept with `["evd_i_just_made_this_up"]`.
+That last sentence is the entire lesson of this chapter. The tempting shortcut
+is to accept an outcome by checking that someone handed it a non-empty list of
+evidence IDs — without ever looking the IDs up. Do that and you can accept with
+`["evd_i_just_made_this_up"]`. Acceptance that trusts a list of names instead of
+re-reading the world is theatre.
 
 ## Exercise 3: try the other ways of lying
 
@@ -163,10 +181,11 @@ cash_reconciles: PASS - 1 purchase entr(y/ies) reconcile
 replenishment_event_exists: PASS - 1 replenishment event(s) for SKU-TEA
 ```
 
-Each check reports the facts it observed. `verify_outcome` used to change a
-status field and run no checks at all — a verification step that verified
-nothing. Now it executes every declared check, and an unknown or crashing check
-**fails closed** rather than being skipped.
+Each check reports the facts it observed. The failure mode to guard against is
+a verification step that only flips a status field and runs no checks at all — a
+verification that verifies nothing. Here `verify_outcome` executes every declared
+check, and an unknown or crashing check **fails closed** rather than being
+skipped.
 
 ## Exercise 6: the proof itself cannot be rewritten
 
@@ -175,18 +194,19 @@ now covers every table acceptance reads as proof — `effects`, `verifications`,
 `reviews`, `evidence`:
 
 ```bash
-sqlite3 /tmp/andrea-gov/.sovereign/organization.db \
+sqlite3 /tmp/lucy-gov/.sovereign/organization.db \
   "UPDATE evidence SET success = 1;"
 ```
 
 Expected: `Error: stepping, evidence are append-only: update refused`.
 
-This was not always true, and the story is worth knowing. Append-only was added
-to `events` because acceptance rested on events. Then acceptance came to rest on
-evidence, reviews, verifications and effects — and the guards stayed where they
-were. For a while the tables carrying the proof were the ones with no
-protection, while the table they replaced was still immune. A reviewer put it
-exactly: *the guarantee stayed put while the load moved.*
+There is a general trap worth naming here. Append-only protection tends to get
+added to whichever table the proof *used* to live in. As a system grows, the
+proof migrates — from `events` to `evidence`, `reviews`, `verifications`,
+`effects` — and if the guards do not migrate with it, the tables carrying the
+real load end up unprotected while an old, now-irrelevant table stays immune.
+Put sharply: *the guarantee stays put while the load moves.* Protect where the
+proof lives now, not where it used to.
 
 One thing append-only cannot do is stop a forged **append**: inserting is
 precisely what it permits. An effect is therefore cross-checked against the
@@ -205,10 +225,9 @@ database handle is not the code. Proving authenticity needs something the
 database does not hold — a signature key kept outside it — which is a different
 subject and out of scope here.
 
-So the honest statement, which
-[the ruling](../../docs/rulings/2026-08-26-sqlite-writers-are-inside-the-boundary.md)
-records: **anyone who can write arbitrary rows can rewrite the organization's
-memory.** Everything in this chapter protects the ledger from mistakes and
+So here is the honest statement this design commits to: **anyone who can write
+arbitrary rows can rewrite the organization's memory.** Everything in this chapter
+protects the ledger from mistakes and
 ordinary tools. Knowing exactly which door is open is worth more than believing
 they are all shut.
 
@@ -244,11 +263,11 @@ two reviews, including the `changes_requested` one. The organization remembers
 being wrong. That is the difference between a system that learns and a system
 that launders its history.
 
-This path did not exist while this chapter was first written. `changes_requested`
-was terminal: the only way forward from a refusal was to delete the organization
-and start over. A book that teaches "refusal is the system working" while
-shipping a refusal you cannot recover from is teaching the opposite of what it
-says.
+This matters more than it looks. If `changes_requested` were terminal — if the
+only way forward from a refusal were to delete the organization and start over —
+then "refusal is the system working" would be a slogan the system contradicts in
+practice. A refusal you cannot recover from teaches the opposite of what it says.
+Recovery is what makes refusal a step in the work rather than the end of it.
 
 ## Learner verification command
 

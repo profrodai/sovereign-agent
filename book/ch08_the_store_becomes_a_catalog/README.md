@@ -1,5 +1,19 @@
 # Chapter 8 — The Store becomes a catalog
 
+Up to now Lucy's shop has sold exactly one thing. That was a convenient lie — it
+let us build memory, judgement, boundaries, fencing, recovery, and a heartbeat
+without the distraction of a second product. But a real ice cream shop has
+vanilla *and* chocolate, and the moment there are two, a new question appears that
+never existed with one: **when something happens to one product, does it stay
+contained to that product?** A run on vanilla must not quietly change the
+chocolate count. A low-stock signal for one flavor must not reorder the other.
+
+This chapter is the smallest possible version of that step — turning the single
+product into a genuine *catalog* of independent SKUs — because independence is
+easiest to get right at the very beginning, at the schema, before any sale or
+signal can blur the lines. (The shipped catalog uses two example SKUs to make the
+mechanics concrete; they behave exactly as Lucy's vanilla and chocolate would.)
+
 ## Learning objective
 
 See the Store's single-product fixture become a genuine catalog: two
@@ -25,7 +39,7 @@ real store with more than one product on the shelf actually needs.
 ## The exercise
 
 ```bash
-python book/ch08_the_store_becomes_a_catalog/solution.py --root /tmp/andrea-ch08
+python book/ch08_the_store_becomes_a_catalog/solution.py --root /tmp/lucy-ch08
 ```
 
 Read the file first. `seed_catalog` is called once, with the default
@@ -92,7 +106,7 @@ Three facts this run proves, not merely states:
 Confirm it yourself, independent of this exercise's own summary:
 
 ```bash
-sqlite3 /tmp/andrea-ch08/.sovereign/organization.db <<'SQL'
+sqlite3 /tmp/lucy-ch08/.sovereign/organization.db <<'SQL'
 SELECT sku, on_hand, reorder_point FROM inventory ORDER BY sku;
 SQL
 ```
@@ -109,7 +123,7 @@ python scripts/verify_curriculum.py
 
 Expected: all pass. The pytest selection proves a sale of one SKU cannot
 touch another SKU's own row — this chapter only seeds the catalog, but the
-isolation the rest of this unit relies on starts here, at the schema.
+isolation the next chapters rely on starts here, at the schema.
 
 ## Explain it back
 
@@ -128,9 +142,8 @@ isolation the rest of this unit relies on starts here, at the schema.
 
 - `src/reference_organizations/store/__init__.py` — `seed_catalog`,
   `CatalogEntry`, `DEFAULT_CATALOG`
-- `tests/test_store_multi_sku.py` — the full multi-SKU isolation proof
-  matrix this unit's own acceptance requires
-- `docs/v1-unit11-store-expansion-pilot-start.md` — the full contract
+- `tests/test_store_multi_sku.py` — the full multi-SKU isolation proof matrix:
+  every way one SKU's row could leak into another's, and the proof it cannot
 
 `solution.py` imports the production package rather than copying it.
 

@@ -1,5 +1,19 @@
 # Chapter 10 — One signal wakes one need
 
+It's a busy Saturday. Lucy's vanilla drops below its line at 2:00 and her
+chocolate drops below its line at 2:05. Two alarms, close together. The one thing
+that must never happen is a crossed wire: the vanilla alarm starting a chocolate
+reorder, or both alarms collapsing into a single order that restocks one flavor
+twice and the other not at all. Each signal has to wake *its own* need, and only
+its own.
+
+This sounds trivial — of course a vanilla alarm is about vanilla — but "which
+signal is about which product" is precisely the kind of thing that goes wrong
+when work is created from events rather than from a human pointing at a form. In
+Chapter 7 you watched one signal correctly wake one need. This chapter makes sure
+that stays true when two needs are in flight at once, by pinning the decision to a
+fact carried *on the signal itself*, not to timing or arrival order.
+
 ## Learning objective
 
 Watch the Store's own wake gate (`store_wake_gate`, the exact mechanism
@@ -21,7 +35,7 @@ belongs to which outcome.
 ## The exercise
 
 ```bash
-python book/ch10_one_signal_wakes_one_need/solution.py --root /tmp/andrea-ch10
+python book/ch10_one_signal_wakes_one_need/solution.py --root /tmp/lucy-ch10
 ```
 
 Read the file first. Two outcomes are created, one per SKU. Two sales
@@ -67,7 +81,7 @@ Three facts this run proves:
 Confirm it yourself:
 
 ```bash
-sqlite3 /tmp/andrea-ch10/.sovereign/organization.db <<'SQL'
+sqlite3 /tmp/lucy-ch10/.sovereign/organization.db <<'SQL'
 SELECT wd.source_signal_id, wd.subject, po.sow_id
 FROM pulse_wake_decisions wd JOIN pulse_origins po ON po.wake_decision_id = wd.id
 ORDER BY wd.decided_at;
@@ -100,10 +114,10 @@ Expected: all pass.
 
 ## Where to look next
 
-- `src/reference_organizations/store/pulse_gate.py` — `store_wake_gate`,
-  unchanged since Unit 9, now proven across two SKUs
+- `src/reference_organizations/store/pulse_gate.py` — `store_wake_gate`, the
+  same gate from Chapter 7, now proven across two SKUs at once
 - `tests/test_store_multi_sku.py` — the wake-decision-isolation and
-  Pulse-origin-isolation tests this chapter's own proof extends
+  Pulse-origin-isolation tests this chapter's proof extends
 
 `solution.py` imports the production package rather than copying it.
 

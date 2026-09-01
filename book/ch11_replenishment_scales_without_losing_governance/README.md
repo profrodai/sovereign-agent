@@ -1,5 +1,27 @@
 # Chapter 11 — Replenishment scales without losing governance
 
+Here is the failure mode that ends most "it works!" demos: the guarantee that
+held beautifully for one order quietly breaks the first time two orders run at
+once. Two restocks in flight, and an effect meant for vanilla lands on chocolate;
+or a retried order double-charges because "we already did this" was checked in
+Python a heartbeat too late. A guarantee that only holds when the shop is quiet is
+worse than no guarantee at all, because you will have learned to trust it.
+
+So this chapter does the unglamorous, essential thing: it runs *two* complete
+governed replenishment chains — every step you have built, from the self-woken
+signal all the way to acceptance — and checks that every property still holds with
+two SKUs in play. Nothing new is introduced. That is the point: scaling should
+add products, not exceptions.
+
+One honest caveat about *how* it checks. This chapter's own exercise runs the two
+chains **sequentially**, one after the other — enough to prove the ledger keeps
+each SKU's effects, idempotency, and acceptance separate. The sharper property —
+that two chains running *genuinely at the same time*, on two database connections,
+still produce exactly one canonical effect each — is proven by a dedicated
+two-connection concurrency test named in the verification command below, not by
+this sequential run. The referenced test is where the race actually happens; the
+prose here does not pretend the sequential exercise demonstrates simultaneity.
+
 ## Learning objective
 
 Run TWO full governed replenishment chains to completion — Pulse-created
@@ -18,7 +40,7 @@ wake gate, Pulse) and proves they compose correctly at more than one SKU.
 ## The exercise
 
 ```bash
-python book/ch11_replenishment_scales_without_losing_governance/solution.py --root /tmp/andrea-ch11
+python book/ch11_replenishment_scales_without_losing_governance/solution.py --root /tmp/lucy-ch11
 ```
 
 Read the file first. Both SKUs' signals fire, both get their own canonical
@@ -59,7 +81,7 @@ Three facts this run proves:
 1. **`second_call_idempotent_replay: true`, for BOTH SKUs.** Calling
    `apply_restock` a second time with the SAME assignment id never moves
    inventory or cash twice — `effects`' own `UNIQUE(assignment_id, kind,
-   subject)` constraint (unchanged since before this unit) refuses the
+   subject)` constraint (the same constraint from the single-SKU case) refuses the
    second write and returns the first call's own recorded payload instead.
    This is not new behavior; this chapter proves it still holds with two
    assignments in play, not one.
@@ -75,7 +97,7 @@ Three facts this run proves:
 Confirm it yourself:
 
 ```bash
-sqlite3 /tmp/andrea-ch11/.sovereign/organization.db <<'SQL'
+sqlite3 /tmp/lucy-ch11/.sovereign/organization.db <<'SQL'
 SELECT assignment_id, subject, kind FROM effects ORDER BY created_at;
 SELECT id, state FROM outcomes ORDER BY id;
 SQL
@@ -118,8 +140,8 @@ exercise cannot demonstrate by itself.
 - `tests/test_store_multi_sku.py` — the full isolation matrix, including
   the real two-connection concurrency proof this chapter's own exercise
   cannot show by itself
-- `docs/v1-unit9-pulse-proactive-work.md` — the canonical-creation
-  transaction this chapter's own Pulse pass relies on, unchanged
+- `tests/test_store_multi_sku.py::...racing_two_different_skus...` — the
+  canonical-creation transaction under genuine concurrent pressure
 
 `solution.py` imports the production package rather than copying it.
 
