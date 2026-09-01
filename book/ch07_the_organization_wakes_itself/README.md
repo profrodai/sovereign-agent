@@ -265,7 +265,7 @@ process nobody could reason about when it failed halfway through either job.
 ## The exercise
 
 ```bash
-python book/ch07_the_organization_wakes_itself/solution.py --root /tmp/lucy-ch07
+uv run python book/ch07_the_organization_wakes_itself/solution.py --root /tmp/lucy-ch07
 ```
 
 Read the file before you run it. Notice what is missing: no `create_sow`, no
@@ -372,9 +372,9 @@ by the mechanism, not merely phrased carefully.
 ## Learner verification command
 
 ```bash
-python -m pytest tests/test_pulse.py -k \
+uv run python -m pytest tests/test_pulse.py -k \
   "full_teaching_slice or attribution or does_not_bypass"
-python scripts/verify_curriculum.py
+uv run python scripts/verify_curriculum.py
 ```
 
 Expected: all pass. The pytest selection proves the full sale-to-accepted

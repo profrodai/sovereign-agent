@@ -264,7 +264,7 @@ disappears.
 ## The exercise
 
 ```bash
-python book/ch06_the_organization_recovers/solution.py --root /tmp/lucy-ch06
+uv run python book/ch06_the_organization_recovers/solution.py --root /tmp/lucy-ch06
 ```
 
 Takes a few seconds — it genuinely waits for a real subprocess to reach
@@ -325,7 +325,7 @@ governed act (`assign` → `run_assignment` again), never automatic.
 ## Learner verification command
 
 ```bash
-python -m pytest tests/test_supervisor.py -k \
+uv run python -m pytest tests/test_supervisor.py -k \
   "sigkilled or recovers_a_real or idempotent or never_guesses_success or workspace_reclaim"
 ```
 

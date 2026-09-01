@@ -270,7 +270,7 @@ the way ledgers do: forward.
 ## The exercise
 
 ```bash
-python book/ch08_the_store_becomes_a_catalog/solution.py --root /tmp/lucy-ch08
+uv run python book/ch08_the_store_becomes_a_catalog/solution.py --root /tmp/lucy-ch08
 ```
 
 Read the file first. `seed_catalog` is called once, with the default
@@ -348,8 +348,8 @@ Expected: two rows, `SKU-COFFEE` and `SKU-TEA`, with different
 ## Learner verification command
 
 ```bash
-python -m pytest tests/test_store_multi_sku.py -k "sales_isolation or a_sale_of_one_sku"
-python scripts/verify_curriculum.py
+uv run python -m pytest tests/test_store_multi_sku.py -k "sales_isolation or a_sale_of_one_sku"
+uv run python scripts/verify_curriculum.py
 ```
 
 Expected: all pass. The pytest selection proves a sale of one SKU cannot

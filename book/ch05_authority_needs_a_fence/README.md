@@ -367,7 +367,7 @@ the *organization*, not of one table.
 ## The exercise
 
 ```bash
-python book/ch05_authority_needs_a_fence/solution.py --root /tmp/lucy-ch05
+uv run python book/ch05_authority_needs_a_fence/solution.py --root /tmp/lucy-ch05
 ```
 
 Exercises `fencing.acquire_actor_lease` and `fencing.acquire_execution_attempt`
@@ -438,7 +438,7 @@ token means the write is refused, not silently accepted.
 ## Learner verification command
 
 ```bash
-python -m pytest tests/test_fencing.py -k \
+uv run python -m pytest tests/test_fencing.py -k \
   "acquire_actor_lease_succeeds_with_no_prior_lease or acquire_execution_attempt_succeeds_for_a_fresh_assignment or acquire_execution_attempt_refuses_without_a_live_actor_lease or actor_lease_blocks_a_second_assignment_for_the_same_actor_before_invocation or the_ordinary_run_assignment_path_cannot_bypass_the_actor_lease"
 ```
 

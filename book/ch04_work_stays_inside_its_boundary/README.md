@@ -296,7 +296,7 @@ claim; with it, it is a measurement.
 ## The exercise
 
 ```bash
-python book/ch04_work_stays_inside_its_boundary/solution.py --root /tmp/lucy-ch04
+uv run python book/ch04_work_stays_inside_its_boundary/solution.py --root /tmp/lucy-ch04
 ```
 
 Reads real output straight from the production `workspace` module: it runs one
@@ -402,7 +402,7 @@ stayed inside it."
 ## Learner verification command
 
 ```bash
-python -m pytest tests/test_workspace_lifecycle.py -k \
+uv run python -m pytest tests/test_workspace_lifecycle.py -k \
   "reclaimed_after_terminal_state or persistent_policy or temporary_directory_policy or detects_write_outside or do_not_trip_the_boundary or traversal or absolute_deliverable or legitimate_nested"
 ```
 

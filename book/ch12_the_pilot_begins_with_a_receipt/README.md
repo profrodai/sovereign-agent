@@ -282,7 +282,7 @@ this book ends, because it is where honest engineering begins.
 ## The exercise
 
 ```bash
-python book/ch12_the_pilot_begins_with_a_receipt/solution.py --root /tmp/lucy-ch12
+uv run python book/ch12_the_pilot_begins_with_a_receipt/solution.py --root /tmp/lucy-ch12
 ```
 
 Read the file first, and read `EXERCISE_PILOT_ID`'s own comment before running
@@ -356,8 +356,8 @@ count.
 ## Learner verification command
 
 ```bash
-python -m pytest tests/test_pilot.py
-python scripts/verify_curriculum.py
+uv run python -m pytest tests/test_pilot.py
+uv run python scripts/verify_curriculum.py
 ```
 
 Expected: all pass. `tests/test_pilot.py` is where this mechanism's

@@ -31,8 +31,8 @@ with no API keys, no network, and no model — it uses a deterministic `scripted
 stand-in so the result is identical on every machine:
 
 ```bash
-sovereign-agent doctor
-sovereign-agent demo store --mode simulated --root /tmp/first-shift
+uv run sovereign-agent doctor
+uv run sovereign-agent demo store --mode simulated --root /tmp/first-shift
 ```
 
 `doctor` tells you which provider CLIs you happen to have installed; the demo
@@ -105,7 +105,7 @@ Here is the exercise that earns this chapter its place. One command checks that
 the accepted outcome is *actually true*:
 
 ```bash
-python scripts/verify_store_outcome.py /tmp/first-shift
+uv run python scripts/verify_store_outcome.py /tmp/first-shift
 ```
 
 It exits `0` only if reality matches the claim. Now sabotage reality by hand and
@@ -114,7 +114,7 @@ run it again:
 ```bash
 sqlite3 /tmp/first-shift/.sovereign/organization.db \
   "UPDATE inventory SET on_hand = 0 WHERE on_hand > 0;"
-python scripts/verify_store_outcome.py /tmp/first-shift
+uv run python scripts/verify_store_outcome.py /tmp/first-shift
 ```
 
 It **fails**, with exit code `1`, and tells you why — this transcript is from a
@@ -177,7 +177,7 @@ do is part of knowing what it does.
 The single command that checks all of it at once:
 
 ```bash
-python scripts/verify_store_outcome.py /tmp/first-shift
+uv run python scripts/verify_store_outcome.py /tmp/first-shift
 ```
 
 Exit `0` means the accepted outcome is genuinely true; exit `1` means it is not,
