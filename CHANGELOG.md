@@ -6,6 +6,30 @@ Repository: [`zeroemployeeorg/sovereign-agent`](https://github.com/zeroemployeeo
 
 ## Unreleased
 
+## [1.1.0] — 2026-09-01
+
+Adds a first-class **OpenAI-compatible provider** and makes the local-model
+configuration documentation true.
+
+- **New `ollama` provider.** A first-class provider that talks to any OpenAI
+  `/v1/chat/completions` endpoint — a local Ollama by default, or vLLM, LM
+  Studio, or OpenAI. Unlike the CLI-agent providers it speaks HTTP, but obeys
+  the same contract: the model only *proposes* an `ActorReport`, which the
+  organization re-validates against the ledger before anything commits. An
+  unreachable or malformed endpoint yields an honest `failed` report, never a
+  fabricated success. Bind an actor to it with `provider = "ollama"`.
+- **Real, documented configuration.** The provider reads exactly
+  `SOVEREIGN_AGENT_LLM_BASE_URL` (default `http://localhost:11434/v1`),
+  `SOVEREIGN_AGENT_LLM_MODEL` (default `qwen3`, with
+  `SOVEREIGN_AGENT_LLM_EXECUTOR_MODEL` accepted as an alias), and
+  `SOVEREIGN_AGENT_LLM_API_KEY` (optional; blank for local Ollama). These
+  variables were previously documented but implemented by no source file; the
+  documentation in `configuration.md`, `deployment.md`, `troubleshooting.md`,
+  and `.env.example` now matches the code, and the stale v0.x
+  `_PLANNER_MODEL` / `_API_KEY_ENV` variables are gone.
+- **Source-line budget raised 6,250 → 6,400** to fit the new provider
+  (~154 lines), sanctioned on the same precedent as the 6,000 → 6,250 raise.
+
 ## [1.0.0] — 2026-08-31
 
 First stable release. The package is an executable textbook: Chapters 0-12
