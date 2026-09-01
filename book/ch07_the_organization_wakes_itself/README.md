@@ -1,5 +1,17 @@
 # Chapter 7 — The organization wakes itself
 
+Every chapter so far began the same way: *you* typed a command. The sale, the
+signal, the restock — nothing moved until a human poked it. Lucy noticed this
+too. She doesn't want to *remember* to check the freezer; she wants the shop to
+notice its own low stock and start the reorder while she's busy scooping.
+
+That is a genuinely different and more dangerous capability, and most systems
+fake it — they run a loop, do something, and print "autonomous!" This chapter
+builds the real version and then does the thing this whole book insists on:
+proves it. When Lucy's organization creates work with nobody prompting it, it
+leaves a durable, traceable record that it did — a record you can walk backward
+from the finished work all the way to the sale that woke it. No record, no claim.
+
 ## Learning objective
 
 Watch the organization create governed work **without a human prompt**, and
@@ -8,11 +20,10 @@ learn what makes that claim honest rather than theater: a durable
 real mechanism, both checkable after the fact — never a status string, never
 an inference from "nobody typed a command."
 
-Chapter 0 ended by telling you the truth: "you started this... the
-organization has no heartbeat yet." That was accurate when it was written.
-This chapter is where that stops being true — and it is truthful about the
-difference, because the ledger this exercise produces proves it rather than
-merely claiming it.
+Chapter 0 ended by telling you the truth: you started everything; the
+organization had no heartbeat yet. This chapter is where that stops being true —
+and it earns the change honestly, because the ledger this exercise produces
+proves the organization woke itself rather than merely claiming it did.
 
 ## Vocabulary this chapter adds
 
@@ -26,7 +37,7 @@ merely claiming it.
 ## The exercise
 
 ```bash
-python book/ch07_the_organization_wakes_itself/solution.py --root /tmp/andrea-ch07
+python book/ch07_the_organization_wakes_itself/solution.py --root /tmp/lucy-ch07
 ```
 
 Read the file before you run it. Notice what is missing: no `create_sow`, no
@@ -81,10 +92,10 @@ This is the whole chapter, in four facts:
    in prose, read back from the ledger after the fact, the same way Chapter
    0 taught you to check every other claim in this book.
 2. **`origin_kind: "pulse"`.** Not inferred from the absence of a manual
-   dispatch call — a column, read directly.
-   `docs/rulings/2026-08-29-unit9-pulse-is-separate-from-supervisor.md`
-   states the holding this row exists to prove: "absence of a CLI
-   invocation, process logs, or a manual-origin row is NOT proof."
+   dispatch call — a column, read directly. This is a deliberate design
+   principle: the absence of a CLI invocation, of process logs, or of a
+   manual-origin row is *not* proof that work was self-generated. Only a
+   positive, recorded origin is.
 3. **`wake_decision_traces_back_to_this_signal: true`.** The full chain —
    signal → wake decision → Pulse event → SOW → assignment — is walkable,
    not merely claimed. The wake decision's own `source_signal_id` matches
@@ -97,7 +108,7 @@ This is the whole chapter, in four facts:
 Confirm it yourself, independent of this exercise's own summary:
 
 ```bash
-sqlite3 /tmp/andrea-ch07/.sovereign/organization.db <<'SQL'
+sqlite3 /tmp/lucy-ch07/.sovereign/organization.db <<'SQL'
 SELECT po.origin_kind, po.sow_id, po.assignment_id,
        wd.source_signal_id, wd.source_event_id
 FROM pulse_origins po
@@ -114,12 +125,11 @@ source event.
 Chapters 0 through 3 say the organization has no heartbeat, and mean it — no
 chapter before this one ever calls `run_pulse_once`, and this project's own
 curriculum checker refuses any of them from claiming otherwise, mechanically,
-every time it runs. That is not this chapter overwriting an old truth; it is
-this book being honest about when a truth changed. Chapter 0 itself was
-updated, additively, the moment Pulse became real: "Pulse is now real, as a
-separate mechanism you invoke yourself... it is not this chapter's exercise,
-and it never runs itself." That sentence is still true. This is the chapter
-where you invoke it.
+every time it runs. That is not this chapter overwriting an old truth; it is this book being honest
+about *when* a capability arrives. Chapter 0 was careful to say the organization
+cannot yet wake itself, and to show you a ledger with no `pulse.*` event in it.
+Pulse is a separate mechanism you invoke yourself — it never runs on its own —
+and this is the chapter where you invoke it for the first time.
 
 The same curriculum checker that refuses an early chapter's Pulse claim
 holds THIS chapter to a stricter standard than "the words are true": it
@@ -141,7 +151,7 @@ python scripts/verify_curriculum.py
 
 Expected: all pass. The pytest selection proves the full sale-to-accepted
 slice through the real mechanism, the source-event-to-SOW attribution chain,
-and that Pulse-created work is not exempt from Unit 8's fencing.
+and that Pulse-created work is not exempt from Chapter 5's fencing.
 `verify_curriculum.py` proves this chapter's own claim is backed by durable
 evidence, not merely present in the prose — the mechanical guard this
 project's own curriculum checker enforces specifically for Chapter 7.
@@ -169,16 +179,15 @@ project's own curriculum checker enforces specifically for Chapter 7.
 - `src/sovereign_agent/pulse.py` — `run_pulse_once`, the whole mechanism
 - `src/reference_organizations/store/pulse_gate.py` — the Store's own wake
   gate, deliberately outside `sovereign_agent`'s own module budget
-- `docs/v1-unit9-pulse-proactive-work.md` — the full contract and proof
-  matrix, including the F-U9-1 correction that made the canonical creation
-  transaction genuinely atomic
-- `docs/rulings/2026-08-29-unit9-pulse-is-separate-from-supervisor.md` — why
-  Pulse is not a fourth step of the supervisor's own tick
+- `tests/test_pulse.py` — the full proof matrix, including that the canonical
+  creation transaction (signal → wake decision → SOW → assignment) is genuinely
+  atomic, so a crash mid-creation cannot strand a half-woken piece of work
 
 `solution.py` imports the production package rather than copying it.
 
-You have now completed all seven chapters. **Added, Unit 11:** the Store's
-own governed territory now expands — Chapters 8 through 12 land alongside
-it, the same way Chapters 4 through 7 landed alongside Units 7 through 9.
+You have now built the whole spine of a governed organization: memory,
+judgement, bounded work, fenced authority, recovery, and a heartbeat. Chapters 8
+through 12 turn from the machinery to the shop itself — Lucy's catalog grows, and
+you watch every guarantee you built hold up as it scales.
 
 Next: [Chapter 8 — The Store becomes a catalog](../ch08_the_store_becomes_a_catalog/README.md)
