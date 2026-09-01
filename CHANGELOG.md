@@ -13,8 +13,9 @@ The curriculum release. The installed package's runtime behavior is
 What this release versions is everything around the code: the book was
 rewritten to executable depth, companion labs were added for every chapter,
 and the repository gained the verification instruments that keep both honest.
-Install it the same way (`pip install sovereign-agent`); read it by cloning
-the repository, where the book and labs live.
+Run it with uv (`uvx sovereign-agent@latest doctor`); read it by cloning
+the repository, where the book and labs live (`uv sync && uv run
+sovereign-agent doctor`).
 
 - **The book, rewritten to build-break-repair depth.** All thirteen chapters
   (ch00–ch12) now construct each mechanism inline in small, cumulative,
@@ -46,6 +47,13 @@ the repository, where the book and labs live.
   check (governance lint fast lane on PRs, full-gate certify lane on main
   and nightly), alongside branch protection requiring an independent
   reviewing seat.
+- **uv-first instructions everywhere current.** README, quickstart, and all
+  thirteen chapters' runnable commands now use `uv` (`uvx
+  sovereign-agent@latest` for zero-install runs, `uv sync` + `uv run` for
+  the cloned repository) — every documented flow verified live against
+  real PyPI and a fresh clone before being written. The quickstart's stale
+  "PyPI still serves 0.x" warning, false since 1.0.0 published, is
+  corrected. Legacy v0.x documents are deliberately unchanged.
 - **Chapter 0 index correction.** The top-level book index now names the
   protagonist consistently with the chapter it links to.
 
