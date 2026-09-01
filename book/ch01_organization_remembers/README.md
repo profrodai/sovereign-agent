@@ -35,6 +35,137 @@ then "we ordered it" is a hope, not a fact.
 So the first question is not "how does the AI decide" — it is "where does the
 truth live, and what happens when the power goes out mid-sentence".
 
+## Build it yourself: memory that cannot half-happen
+
+Before you inspect the production database, build the core of it from scratch, so
+that when you see the real thing you recognize every piece. Everything below runs
+in a throwaway in-memory SQLite database — paste it into a Python shell.
+
+Start with the smallest schema that can hold a shop's operational truth: what is
+on the shelf, every movement of money, and a log of what happened.
+
+```python
+import sqlite3
+
+db = sqlite3.connect(":memory:")
+db.executescript("""
+    CREATE TABLE inventory (
+        sku TEXT PRIMARY KEY,
+        on_hand INTEGER NOT NULL,
+        reorder_point INTEGER NOT NULL
+    );
+    CREATE TABLE cash_entries (id INTEGER PRIMARY KEY, amount_cents INTEGER NOT NULL);
+    CREATE TABLE events (seq INTEGER PRIMARY KEY, kind TEXT NOT NULL);
+""")
+db.execute("INSERT INTO inventory VALUES ('SKU-VANILLA', 4, 3)")
+db.execute("INSERT INTO cash_entries(amount_cents) VALUES (10000)")  # opening balance
+db.commit()
+```
+
+Notice the shape of `cash_entries`: it is a **ledger of signed movements**, not a
+single balance field. The balance is `SUM(amount_cents)`. Nothing ever overwrites
+a number, so no bug can silently lose money — the worst a mistake can do is add a
+wrong row, which you can see and correct, never erase a right one.
+
+Now the append-only guarantee for the event log, enforced by the *database*, not
+by Python remembering to be careful:
+
+```python
+db.executescript("""
+    CREATE TRIGGER events_no_update BEFORE UPDATE ON events
+    BEGIN SELECT RAISE(ABORT, 'events are append-only: update refused'); END;
+    CREATE TRIGGER events_no_delete BEFORE DELETE ON events
+    BEGIN SELECT RAISE(ABORT, 'events are append-only: delete refused'); END;
+""")
+db.execute("INSERT INTO events(kind) VALUES ('sale.committed')")
+db.commit()
+
+try:
+    db.execute("UPDATE events SET kind = 'NOTHING_HAPPENED'")
+except sqlite3.IntegrityError as error:
+    print("refused:", error)
+```
+
+```text
+refused: events are append-only: update refused
+```
+
+A rule in application code protects you from your own bugs. A rule in the database
+protects you from *everything that can reach the database* — including you, at 2am,
+with a shell open. That is why the guard lives here.
+
+### The three-write transaction, and what a rollback buys you
+
+A restock has to change three things together: inventory goes up, cash goes down,
+and an event records it. If only some of those land, the organization is lying to
+itself — a full shelf with no money spent, or money spent with no stock. The tool
+that makes "all or nothing" real is a transaction.
+
+```python
+def restock(db, sku, units, unit_cost):
+    with db:  # commits at the end, or rolls the whole block back on any exception
+        db.execute("UPDATE inventory SET on_hand = on_hand + ? WHERE sku = ?", (units, sku))
+        db.execute("INSERT INTO cash_entries(amount_cents) VALUES (?)", (-units * unit_cost,))
+        db.execute("INSERT INTO events(kind) VALUES ('replenishment.committed')")
+
+
+def state(db):
+    on_hand = db.execute("SELECT on_hand FROM inventory WHERE sku = 'SKU-VANILLA'").fetchone()[0]
+    balance = db.execute("SELECT SUM(amount_cents) FROM cash_entries").fetchone()[0]
+    return f"on_hand={on_hand} balance={balance}"
+
+
+print("before:", state(db))
+restock(db, "SKU-VANILLA", 6, 250)
+print("after: ", state(db))
+```
+
+```text
+before: on_hand=4 balance=10000
+after:  on_hand=10 balance=8500
+```
+
+Now break it. Inject a failure *after* inventory and cash have already been
+written but *before* the event — the exact "power cut mid-sentence" case — and
+watch all three writes disappear together:
+
+```python
+def restock_but_crash(db, sku, units, unit_cost):
+    with db:
+        db.execute("UPDATE inventory SET on_hand = on_hand + ? WHERE sku = ?", (units, sku))
+        db.execute("INSERT INTO cash_entries(amount_cents) VALUES (?)", (-units * unit_cost,))
+        raise RuntimeError("power cut before the event was written")
+
+
+print("before:", state(db))
+try:
+    restock_but_crash(db, "SKU-VANILLA", 6, 250)
+except RuntimeError as error:
+    print("failed:", error)
+print("after: ", state(db))
+```
+
+```text
+before: on_hand=10 balance=8500
+failed: power cut before the event was written
+after:  on_hand=10 balance=8500
+```
+
+`before` and `after` are identical. The inventory write had already happened, and
+the rollback took it back. Either all three changes commit or none do — there is
+no in-between state for the shop to be caught in.
+
+### One honest limit: SQLite durability, not magic
+
+The transaction guarantees *atomicity* — all-or-nothing — and, on commit,
+*durability* to the extent SQLite provides it (WAL mode, an `fsync` at commit). Be
+precise about what that does and does not promise: it protects the **database**.
+It cannot make a write to the database and a write to a separate file happen in
+one transaction — those are two systems, and a crash between them can leave them
+disagreeing. The production organization keeps its canonical truth in SQLite for
+exactly this reason, and treats files it writes outside the database as
+projections that can always be regenerated. Chapter 2 makes that boundary sharp.
+
 ## Exercise 1: look at the operational state
 
 ```bash
