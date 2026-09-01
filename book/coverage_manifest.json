@@ -532,8 +532,85 @@
       ]
     },
     "ch08_the_store_becomes_a_catalog": {
-      "depth": "pending",
-      "concepts": []
+      "depth": "full",
+      "concepts": [
+        {
+          "concept": "identity-name-quantity-are-separate-concerns",
+          "anchor": "The migration, on live data, in one transaction",
+          "symbols": [
+            {
+              "file": "src/reference_organizations/store/__init__.py",
+              "name": "CatalogEntry"
+            }
+          ],
+          "tests": [
+            "tests/test_store_multi_sku.py::test_a_sale_of_one_sku_does_not_change_another_skus_inventory"
+          ],
+          "exercise": "book/ch08_the_store_becomes_a_catalog/solution.py"
+        },
+        {
+          "concept": "seed-is-validated-transactional-act",
+          "anchor": "Seeding a catalog is a validated act, not a loop of inserts",
+          "symbols": [
+            {
+              "file": "src/reference_organizations/store/__init__.py",
+              "name": "seed_catalog"
+            }
+          ],
+          "tests": [
+            "tests/test_store_multi_sku.py::test_signals_for_different_skus_never_share_a_dedupe_key"
+          ],
+          "exercise": "book/ch08_the_store_becomes_a_catalog/solution.py",
+          "source_text": [
+            {
+              "file": "src/reference_organizations/store/__init__.py",
+              "text": "a catalog needs at least two distinct SKUs"
+            },
+            {
+              "file": "src/reference_organizations/store/__init__.py",
+              "text": "duplicate SKUs in catalog"
+            }
+          ]
+        },
+        {
+          "concept": "populated-migration-rolls-back-whole",
+          "anchor": "The fault, again, because populated data raises the stakes",
+          "symbols": [
+            {
+              "file": "src/sovereign_agent/database.py",
+              "name": "migrate"
+            }
+          ],
+          "tests": [
+            "tests/test_persistence.py::test_migration_13_upgrade_from_a_populated_unit7_database_preserves_every_record"
+          ],
+          "exercise": "book/ch08_the_store_becomes_a_catalog/solution.py"
+        },
+        {
+          "concept": "additive-seed-contract-never-reverted",
+          "anchor": "The payoff of identity: the name is free to change",
+          "symbols": [
+            {
+              "file": "src/reference_organizations/store/__init__.py",
+              "name": "seed"
+            },
+            {
+              "file": "src/reference_organizations/store/__init__.py",
+              "name": "seed_catalog"
+            }
+          ],
+          "tests": [
+            "tests/test_store_multi_sku.py::test_reopening_the_database_preserves_both_skus_canonical_work"
+          ],
+          "exercise": "book/ch08_the_store_becomes_a_catalog/solution.py"
+        }
+      ],
+      "limits_anchor": "one deliberate shared resource",
+      "break_evidence": [
+        "refused: duplicate SKUs in catalog: ['SKU-TEA', 'SKU-TEA']",
+        "refused: negative opening stock is unrecorded debt, not inventory",
+        "the shop row, untouched: (1, 'Assam tea', 4, 3)"
+      ]
     },
     "ch09_each_product_has_its_own_threshold": {
       "depth": "full",
