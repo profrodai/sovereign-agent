@@ -37,10 +37,28 @@ Scope, deliberately narrow:
   (several ch01/ch02 blocks do exactly this, on purpose, to demonstrate a
   refusal) is not a failure -- only an exception that escapes the `exec` call
   is.
+- `SystemExit` (e.g. a snippet calling `sys.exit(...)`) is treated exactly
+  like any other escaping exception: a hard failure for that one block, and
+  the loop moves on to the next block/chapter. `SystemExit` inherits from
+  `BaseException`, not `Exception`, precisely so `sys.exit()` is NOT
+  accidentally swallowed by ordinary code -- but a checker that lets a single
+  chapter's snippet silently terminate the entire verification run (with exit
+  code 0, no report, and every later chapter unchecked) is a worse failure
+  mode than the one that design guards against. `KeyboardInterrupt` is the one
+  `BaseException` this script does NOT treat as a snippet failure: a real
+  Ctrl-C from whoever is running this tool is re-raised immediately and
+  interrupts the tool, exactly as it would for any other Python program.
+- Each python block runs under a wall-clock timeout (BLOCK_TIMEOUT_SECONDS).
+  A snippet that hangs (an infinite loop, a blocking read with no data) is
+  recorded as a problem for that block, the same way a raised exception is,
+  and the run continues to the next block/chapter rather than hanging the
+  whole verifier forever.
 
-Exits 0 when every chapter's python blocks all ran clean and every
-python-then-text pair matched exactly. Exits 1 otherwise, printing every
-failure found across every chapter -- not just the first.
+Exits 0 only when every chapter's python blocks all ran clean, every
+python-then-text pair matched exactly, AND every chapter that exists under
+book/ch* was actually attempted (see the completion-count assertion in
+main()). Exits 1 otherwise, printing every failure found across every
+chapter -- not just the first.
 """
 
 from __future__ import annotations
@@ -48,19 +66,102 @@ from __future__ import annotations
 import contextlib
 import io
 import re
+import signal
 import sys
 from dataclasses import dataclass
 from pathlib import Path
+from types import FrameType
 
 REPO_ROOT = Path(__file__).resolve().parent.parent
 BOOK = REPO_ROOT / "book"
 sys.path.insert(0, str(REPO_ROOT / "src"))
+
+# Wall-clock ceiling for a single python fenced block. These are teaching
+# snippets -- sqlite writes, small loops, string formatting -- not long
+# computations; anything still running after this long is treated as hung.
+BLOCK_TIMEOUT_SECONDS = 20
+
+# The canonical count of chapters this repo currently ships. main() asserts
+# it actually attempted exactly this many chapters before declaring success,
+# so a future escape that exits the per-chapter loop early (some BaseException
+# this script does not yet know to triage, a bug in the loop itself) fails
+# loudly instead of reporting a partial run as if it were complete. Update
+# this alongside REQUIRED_CHAPTERS in verify_curriculum.py when a chapter is
+# added.
+EXPECTED_CHAPTER_COUNT = 13
+
+
+class SnippetTimeoutError(Exception):
+    """Raised inside a python block's own execution when it runs past
+    BLOCK_TIMEOUT_SECONDS. Deliberately a plain Exception (not BaseException):
+    this is this script's own manufactured signal, not a real interruption,
+    so it should be exactly as catchable/loggable as any other snippet
+    failure -- there is nothing here a caller would need to specifically
+    avoid catching, unlike KeyboardInterrupt.
+    """
+
+
+@contextlib.contextmanager
+def _block_timeout(seconds: int):  # type: ignore[no-untyped-def]
+    """Bound a single `exec()` call to `seconds` of wall-clock time.
+
+    Uses SIGALRM rather than a thread or a subprocess:
+
+    - A thread cannot be forcibly killed in Python. A hung snippet's thread
+      would leak for the rest of the process's life, and -- worse -- it could
+      keep mutating the shared per-chapter `namespace` dict concurrently with
+      whatever runs after the timeout fires, which is exactly the kind of
+      silent corruption this hardening pass exists to remove.
+    - A subprocess (or `multiprocessing`) can be forcibly killed cleanly, but
+      this script's whole design is a SHARED, cumulative namespace across a
+      chapter's blocks (ch01 opens a `:memory:` sqlite connection in one
+      block and reuses it three blocks later) -- and that namespace holds
+      objects (open sqlite connections, etc.) that do not survive a pickle
+      across a process boundary. Moving to a subprocess per block would mean
+      re-architecting the thing this checker exists to verify, not just
+      adding a timeout to it.
+    - `signal.alarm` needs no new process/thread model, runs entirely within
+      the existing single-process, single-threaded `exec()` call, and raises
+      a normal, catchable Python exception at the interrupted instruction --
+      which slots directly into the same "problem for this block, continue to
+      the next" handling already used for every other snippet failure.
+
+    Trade-off, stated plainly: `signal.alarm` is POSIX-only (no Windows) and
+    only fires on the main thread. This script runs as a CI/maintainer gate
+    on Linux (see .github/workflows/ci.yml: ubuntu-latest) invoked from the
+    main thread, so that trade-off costs nothing in this tool's actual
+    environment. If this script is ever run on Windows or off the main
+    thread, this guard degrades to a no-op timeout (the alarm is simply not
+    scheduled) rather than raising an unrelated platform error -- a hung
+    snippet there would hang the run, same as before this hardening pass, but
+    every other platform this tool is actually used on is protected.
+    """
+    has_alarm = hasattr(signal, "SIGALRM") and hasattr(signal, "alarm")
+    if not has_alarm:
+        yield
+        return
+
+    def _on_alarm(signum: int, frame: FrameType | None) -> None:
+        raise SnippetTimeoutError(f"execution exceeded {seconds}s")
+
+    previous_handler = signal.signal(signal.SIGALRM, _on_alarm)
+    signal.alarm(seconds)
+    try:
+        yield
+    finally:
+        signal.alarm(0)
+        signal.signal(signal.SIGALRM, previous_handler)
+
 
 # Matches a fenced code block's opening line, capturing the language tag (may
 # be empty) and, separately, tracks the block's start/end line numbers and
 # body. Only the three-backtick style is used anywhere in book/.
 FENCE_OPEN = re.compile(r"^```([\w-]*)\s*$")
 FENCE_CLOSE = re.compile(r"^```\s*$")
+
+
+class UnterminatedFenceError(Exception):
+    """A ``` fence was opened but never closed before end-of-file."""
 
 
 @dataclass
@@ -70,15 +171,18 @@ class FencedBlock:
     start_line: int  # 1-based line number of the OPENING ``` fence
 
 
-def parse_fenced_blocks(text: str) -> list[FencedBlock]:
+def parse_fenced_blocks(text: str, *, chapter: str = "<unknown>") -> list[FencedBlock]:
     """Every fenced code block in a Markdown file, in document order.
 
     Deliberately simple line-scanning rather than a full Markdown parser:
     book/ READMEs use plain ``` fences with no nesting, and every existing
     chapter (see ch01-ch03) fits this. A block whose opening fence is never
-    closed is silently ended at end-of-file rather than raising -- malformed
-    fencing is a content bug for a human editor to notice by reading the
-    chapter, not something this script exists to diagnose.
+    closed raises UnterminatedFenceError naming the chapter and the opening
+    fence's line number, rather than silently ending the block (and every
+    fence after it) at end-of-file -- a malformed fence used to mean every
+    block past that point in the file went unparsed and unchecked with no
+    error and no warning, which is the same "false green from silently
+    stopping early" failure family as an escaping SystemExit.
     """
     blocks: list[FencedBlock] = []
     lines = text.splitlines()
@@ -95,7 +199,12 @@ def parse_fenced_blocks(text: str) -> list[FencedBlock]:
         while i < len(lines) and not FENCE_CLOSE.match(lines[i]):
             body_lines.append(lines[i])
             i += 1
-        # i now points at the closing fence (or len(lines) if unterminated)
+        if i >= len(lines):
+            raise UnterminatedFenceError(
+                f"{chapter}: fence opened at line {start_line} is never closed "
+                f"(reached end of file while still inside it)"
+            )
+        # i now points at the closing fence.
         blocks.append(FencedBlock(lang=lang, body="\n".join(body_lines), start_line=start_line))
         i += 1
     return blocks
@@ -117,7 +226,7 @@ def check_chapter(readme: Path) -> tuple[int, int, list[str]]:
     """
     chapter = readme.parent.name
     text = readme.read_text(encoding="utf-8")
-    blocks = parse_fenced_blocks(text)
+    blocks = parse_fenced_blocks(text, chapter=chapter)
 
     problems: list[str] = []
     namespace: dict[str, object] = {}
@@ -131,8 +240,30 @@ def check_chapter(readme: Path) -> tuple[int, int, list[str]]:
 
         captured = io.StringIO()
         try:
-            with contextlib.redirect_stdout(captured):
+            with _block_timeout(BLOCK_TIMEOUT_SECONDS), contextlib.redirect_stdout(captured):
                 exec(compile(block.body, f"{chapter}:L{block.start_line}", "exec"), namespace)
+        except KeyboardInterrupt:
+            # A real Ctrl-C from whoever is running this tool. Re-raise
+            # IMMEDIATELY, before appending to problems, before touching the
+            # loop, before anything else -- this must interrupt the tool the
+            # same way it would interrupt any other Python program, not be
+            # recorded as a snippet failure and quietly continue.
+            raise
+        except SnippetTimeoutError as error:
+            problems.append(
+                f"{chapter}: python block at line {block.start_line} did not finish within "
+                f"{BLOCK_TIMEOUT_SECONDS}s ({error}) -- treated as hung and skipped"
+            )
+            continue
+        except SystemExit as error:
+            problems.append(
+                f"{chapter}: python block at line {block.start_line} called "
+                f"sys.exit({error.code!r}) instead of completing"
+            )
+            # Same reasoning as the Exception branch below: a following text
+            # block would be compared against a run that never finished, so
+            # skip the pair check and move on to the next python block.
+            continue
         except Exception as error:  # noqa: BLE001 - any escape is the failure this catches
             problems.append(
                 f"{chapter}: python block at line {block.start_line} raised "
@@ -143,6 +274,18 @@ def check_chapter(readme: Path) -> tuple[int, int, list[str]]:
             # and move on to the next python block in the same chapter. The
             # namespace already holds whatever the block managed to define
             # before raising, matching real REPL behaviour.
+            continue
+        except BaseException as error:  # noqa: BLE001 - catches GeneratorExit and anything
+            # else that is a BaseException but neither KeyboardInterrupt (re-raised above,
+            # unconditionally, before this) nor SystemExit (its own clause above, for a
+            # clearer message) nor an ordinary Exception (the clause above this one). This
+            # is deliberately last and deliberately broad: the entire point of this
+            # hardening pass is that NO escape from a snippet's exec() -- of any kind --
+            # is allowed to propagate out of check_chapter() and silently end the run.
+            problems.append(
+                f"{chapter}: python block at line {block.start_line} raised "
+                f"{type(error).__name__}: {error} (a BaseException, not caught by Exception)"
+            )
             continue
 
         # A python-then-text pair exists only when the VERY NEXT fenced
@@ -179,9 +322,21 @@ def main() -> int:
     report_rows: list[str] = []
     total_python = 0
     total_pairs = 0
+    chapters_attempted = 0
     for chapter_dir in chapters:
         readme = chapter_dir / "README.md"
-        python_count, pairs_checked, problems = check_chapter(readme)
+        try:
+            python_count, pairs_checked, problems = check_chapter(readme)
+        except UnterminatedFenceError as error:
+            # The chapter WAS attempted -- parsing started and failed loudly,
+            # which is exactly the point: this is a reported problem for this
+            # chapter, not a silent truncation, and the loop still moves on
+            # to check every remaining chapter.
+            chapters_attempted += 1
+            all_problems.append(str(error))
+            report_rows.append(f"  {chapter_dir.name}: FAIL -- {error}")
+            continue
+        chapters_attempted += 1
         all_problems.extend(problems)
         total_python += python_count
         total_pairs += pairs_checked
@@ -199,12 +354,37 @@ def main() -> int:
     for row in report_rows:
         print(row)
 
+    # Defense in depth: even after the BaseException triage above, assert the
+    # loop actually reached every chapter it should have, rather than trusting
+    # that no future escape can ever exit it early. An early, unreported exit
+    # from this loop is precisely how the original SystemExit defect looked
+    # green (exit 0, no output) -- this makes a partial run impossible to
+    # mistake for a complete one, even from a cause this script does not yet
+    # know to name.
+    if chapters_attempted != len(chapters):
+        print(
+            f"\nBOOK SNIPPETS: INCOMPLETE RUN -- attempted {chapters_attempted} of "
+            f"{len(chapters)} discovered chapter(s). A verification run that does not "
+            f"finish must never be reported as passing."
+        )
+        return 1
+    if chapters_attempted != EXPECTED_CHAPTER_COUNT:
+        print(
+            f"\nBOOK SNIPPETS: attempted {chapters_attempted} chapter(s), but "
+            f"EXPECTED_CHAPTER_COUNT in this script is {EXPECTED_CHAPTER_COUNT}. Update "
+            f"EXPECTED_CHAPTER_COUNT in scripts/verify_book_snippets.py to match the "
+            f"book's real chapter count (this guards against BOOK.glob('ch*') silently "
+            f"discovering fewer chapters than the book actually has, e.g. a chapter "
+            f"directory renamed or misplaced outside book/)."
+        )
+        return 1
+
     if all_problems:
         print(f"\n{len(all_problems)} book snippet problem(s).")
         return 1
 
     print(
-        f"\nbook snippets sound: {len(chapters)} chapters, {total_python} python block(s) "
+        f"\nbook snippets sound: {chapters_attempted} chapters, {total_python} python block(s) "
         f"executed, {total_pairs} text-pair(s) checked, all matched"
     )
     return 0
