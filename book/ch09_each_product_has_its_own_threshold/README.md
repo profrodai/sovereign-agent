@@ -1,5 +1,19 @@
 # Chapter 9 — Each product has its own threshold
 
+Lucy sells a *lot* of vanilla and only a little of her weird lavender-honey
+flavor. If both had the same "reorder when you hit 3 tubs" rule, one of two bad
+things would happen: either she'd run out of vanilla constantly (3 is far too low
+for something that flies out the door), or she'd drown in lavender-honey (3 is far
+too high for something nobody buys). Different products need different thresholds.
+That is obvious in a shop and surprisingly easy to get wrong in code, where it is
+tempting to reach for one tidy constant.
+
+Chapter 8 seeded a catalog where each SKU *had* its own reorder point, sitting in
+its own row. This chapter proves that number actually *does its job* once real
+sales start moving — that selling one product past its own line never trips
+another's, and that the very same sale can be an alarm for one product and a
+shrug for another.
+
 ## Learning objective
 
 Prove, with real sales, that "independent reorder point" from Chapter 8
@@ -18,7 +32,7 @@ exact same-shaped sale already flagged tea.
 ## The exercise
 
 ```bash
-python book/ch09_each_product_has_its_own_threshold/solution.py --root /tmp/andrea-ch09
+python book/ch09_each_product_has_its_own_threshold/solution.py --root /tmp/lucy-ch09
 ```
 
 Read the file first. Two sales happen: 2 units of tea (4 on hand, reorder at
@@ -70,7 +84,7 @@ The two facts this run proves:
 Confirm it yourself:
 
 ```bash
-sqlite3 /tmp/andrea-ch09/.sovereign/organization.db <<'SQL'
+sqlite3 /tmp/lucy-ch09/.sovereign/organization.db <<'SQL'
 SELECT sku, on_hand, reorder_point, on_hand <= reorder_point AS below FROM inventory ORDER BY sku;
 SQL
 ```
@@ -103,8 +117,7 @@ Expected: all pass.
 - `src/reference_organizations/store/__init__.py` — `record_sale`,
   `below_reorder`
 - `tests/test_store_multi_sku.py` — the signal-isolation and
-  wake-decision-isolation tests this chapter's own proof extends into
-  Chapter 10
+  wake-decision-isolation tests this chapter's proof extends into Chapter 10
 
 `solution.py` imports the production package rather than copying it.
 
