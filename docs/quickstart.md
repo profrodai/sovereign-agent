@@ -3,43 +3,35 @@
 Ten minutes and no API keys. You will run a small organization through
 one complete piece of work and then check whether it told you the truth.
 
-You need Python **3.14 or newer**, `git`, and a terminal. Nothing else — no
-API key, no network after installation, and no database tools.
+You need [`uv`](https://docs.astral.sh/uv/), `git`, and a terminal. Nothing
+else — uv supplies Python 3.14 itself, and after installation there is no
+API key, no network, and no database tools.
 
 ## 1. Install
 
-!!! warning "Install from the repository, not from PyPI"
+Clone the repository (the book, labs, and audit scripts live there — the
+same walkthrough below uses them) and let uv build the environment:
 
-    PyPI still serves the **0.x** framework, which is a different product with a
-    different API and a lower Python floor. Publishing 1.x is deferred to
-    Unit 12. Until then, `pip install sovereign-agent` would give you the old
-    package while this page teaches the new one.
+```bash
+git clone https://github.com/zeroemployeeorg/sovereign-agent.git
+cd sovereign-agent
+uv sync
+```
 
-=== "macOS and Linux"
+The same three commands work on macOS, Linux, and Windows.
 
-    ```bash
-    git clone https://github.com/zeroemployeeorg/sovereign-agent.git
-    cd sovereign-agent
-    python3.14 -m venv .venv
-    source .venv/bin/activate
-    pip install -e .
-    ```
+!!! note "Just the CLI?"
 
-=== "Windows"
-
-    ```powershell
-    git clone https://github.com/zeroemployeeorg/sovereign-agent.git
-    cd sovereign-agent
-    py -3.14 -m venv .venv
-    .\.venv\Scripts\Activate.ps1
-    pip install -e .
-    ```
+    If you only want the installed organization without the repository,
+    `uvx sovereign-agent@latest doctor` runs the current PyPI release
+    directly. This page assumes the clone, because the audit scripts in
+    step 4 ship in the repository, not the wheel.
 
 Check the install:
 
 ```bash
-sovereign-agent --version
-sovereign-agent doctor
+uv run sovereign-agent --version
+uv run sovereign-agent doctor
 ```
 
 `doctor` reports your Python and Pydantic versions and lists which provider CLIs
@@ -49,7 +41,7 @@ you happen to have. **You do not need any of them.** The quickstart runs on the
 ## 2. Run one shift
 
 ```bash
-sovereign-agent demo store --mode simulated --root /tmp/andrea-shift
+uv run sovereign-agent demo store --mode simulated --root /tmp/andrea-shift
 ```
 
 !!! note "Windows"
@@ -74,7 +66,7 @@ actor, and accepted it.
 This is the part that matters. `ACCEPTED` is a claim; here is how you audit it.
 
 ```bash
-sovereign-agent inspect --root /tmp/andrea-shift
+uv run sovereign-agent inspect --root /tmp/andrea-shift
 ```
 
 Expected, in three parts:
@@ -107,8 +99,8 @@ Read it as three separate claims:
 Change the world behind the organization's back:
 
 ```bash
-python scripts/empty_the_shelf.py /tmp/andrea-shift
-sovereign-agent inspect --root /tmp/andrea-shift
+uv run python scripts/empty_the_shelf.py /tmp/andrea-shift
+uv run sovereign-agent inspect --root /tmp/andrea-shift
 ```
 
 Inventory now reads `LOW`, and the outcome still reads `ACCEPTED` — because that
@@ -118,7 +110,7 @@ If you want the machine-checked version of that judgement, the repository ships
 the release gate that catches exactly this:
 
 ```bash
-python scripts/verify_store_outcome.py /tmp/andrea-shift
+uv run python scripts/verify_store_outcome.py /tmp/andrea-shift
 ```
 
 It exits non-zero and names every claim that no longer holds.

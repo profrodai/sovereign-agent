@@ -549,7 +549,7 @@ attack the *real* system rather than re-running the toy.
 ## Exercise 1: follow one outcome through the whole chain
 
 ```bash
-sovereign-agent demo store --mode simulated --root /tmp/lucy-gov
+uv run sovereign-agent demo store --mode simulated --root /tmp/lucy-gov
 DB=/tmp/lucy-gov/.sovereign/organization.db
 
 sqlite3 -header -column "$DB" \
@@ -620,7 +620,7 @@ re-reading the world is theatre.
 Each of these is refused for a different reason. Run the suite that proves it:
 
 ```bash
-python -m pytest tests/test_acceptance_falsification.py -v
+uv run python -m pytest tests/test_acceptance_falsification.py -v
 ```
 
 Read the test names. They are the list of lies this system knows how to catch:
@@ -742,7 +742,7 @@ Chapter 2 has spent five exercises showing the organization refusing things. A
 fair question: what happens to work that gets refused? Is it dead?
 
 ```bash
-python -m pytest tests/test_recovery.py -v
+uv run python -m pytest tests/test_recovery.py -v
 ```
 
 Read the test names. The cycle they prove is:
@@ -777,7 +777,7 @@ Recovery is what makes refusal a step in the work rather than the end of it.
 ## Learner verification command
 
 ```bash
-python -m pytest tests/test_acceptance_falsification.py tests/test_actors_and_mailbox.py \
+uv run python -m pytest tests/test_acceptance_falsification.py tests/test_actors_and_mailbox.py \
   tests/test_recovery.py -q
 ```
 

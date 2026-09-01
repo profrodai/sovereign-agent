@@ -6,20 +6,39 @@ Sovereign Agent 1.x is a small Python reference implementation for learning how
 an outcome becomes governed work performed by accountable actors. Production
 organizations graduate to [Zero Employee](https://github.com/zeroemployeeorg).
 
-The 1.x API intentionally replaces the v0.7 fleet framework. To keep using that
-framework:
+## Install and run with uv
+
+[`uv`](https://docs.astral.sh/uv/) is the supported way to install and run
+sovereign-agent. Try it without installing anything permanent:
 
 ```bash
-pip install "sovereign-agent<1"
+uvx sovereign-agent@latest doctor
+uvx sovereign-agent@latest demo store --mode simulated --root /tmp/first-shift
 ```
+
+(`@latest` makes uv refresh its cached tool environment, so you always get
+the current release.)
+
+Or install the CLI onto your PATH:
+
+```bash
+uv tool install sovereign-agent
+sovereign-agent doctor
+```
+
+(Plain `pip install sovereign-agent` still works in any Python 3.14
+environment if you prefer it.)
+
+The 1.x API intentionally replaces the v0.7 fleet framework. To keep using that
+framework: `uvx "sovereign-agent<1"`.
 
 ## Educational development install
 
-Python 3.14 is required.
+Python 3.14 is required; `uv` provides it automatically.
 
 ```bash
-python -m pip install -e .
-sovereign-agent doctor
+uv sync
+uv run sovereign-agent doctor
 ```
 
 Expected result:
@@ -40,7 +59,7 @@ Ready for the offline curriculum. Live providers are optional.
 Chapter 0 is runnable as a **manually dispatched** store shift (no Pulse):
 
 ```bash
-sovereign-agent demo store --mode simulated
+uv run sovereign-agent demo store --mode simulated
 ```
 
 See [`book/ch00_first_shift`](book/ch00_first_shift/README.md) and

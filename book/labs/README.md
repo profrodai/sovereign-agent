@@ -19,7 +19,7 @@ chapter. Every directory contains:
 Run the complete companion-lab gate from the repository root:
 
 ```console
-python scripts/verify_book_labs.py
+uv run python scripts/verify_book_labs.py
 ```
 
 The gate intentionally runs the reference solution twice, each time with a

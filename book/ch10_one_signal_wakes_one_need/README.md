@@ -287,7 +287,7 @@ will price it.
 ## The exercise
 
 ```bash
-python book/ch10_one_signal_wakes_one_need/solution.py --root /tmp/lucy-ch10
+uv run python book/ch10_one_signal_wakes_one_need/solution.py --root /tmp/lucy-ch10
 ```
 
 Read the file first. Two outcomes are created, one per SKU. Two sales
@@ -346,8 +346,8 @@ each naming a different `sow_id`.
 ## Learner verification command
 
 ```bash
-python -m pytest tests/test_store_multi_sku.py -k "wake_decision or pulse_origins_trace"
-python scripts/verify_curriculum.py
+uv run python -m pytest tests/test_store_multi_sku.py -k "wake_decision or pulse_origins_trace"
+uv run python scripts/verify_curriculum.py
 ```
 
 Expected: all pass.

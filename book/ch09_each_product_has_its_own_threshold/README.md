@@ -264,7 +264,7 @@ all-or-nothing commit.
 ## The exercise
 
 ```bash
-python book/ch09_each_product_has_its_own_threshold/solution.py --root /tmp/lucy-ch09
+uv run python book/ch09_each_product_has_its_own_threshold/solution.py --root /tmp/lucy-ch09
 ```
 
 Read the file first. Two sales happen: 2 units of tea (4 on hand, reorder at
@@ -329,8 +329,8 @@ Expected: `SKU-TEA` shows `below = 1`; `SKU-COFFEE` shows `below = 0`.
 ## Learner verification command
 
 ```bash
-python -m pytest tests/test_store_multi_sku.py -k "threshold or wake_gate_never_fires"
-python scripts/verify_curriculum.py
+uv run python -m pytest tests/test_store_multi_sku.py -k "threshold or wake_gate_never_fires"
+uv run python scripts/verify_curriculum.py
 ```
 
 Expected: all pass.

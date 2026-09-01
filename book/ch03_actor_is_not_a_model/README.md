@@ -471,7 +471,7 @@ Confirm all of this in the *real* organization, where `Actor`, `ROLE_AUTHORITY`,
 and `rebind_actor` are the production versions of what you just built:
 
 ```bash
-python book/ch03_actor_is_not_a_model/solution.py --root /tmp/lucy-ch03 --provider ollama
+uv run python book/ch03_actor_is_not_a_model/solution.py --root /tmp/lucy-ch03 --provider ollama
 ```
 
 `solution.py` runs one assignment, rebinds `operator-course`'s provider, runs
@@ -549,7 +549,7 @@ of a run. That is the correct outcome: an unprovable capability fails closed.
 ## Learner verification command
 
 ```bash
-python -m pytest tests/test_actors_and_mailbox.py tests/test_providers.py -q
+uv run python -m pytest tests/test_actors_and_mailbox.py tests/test_providers.py -q
 ```
 
 Expected: all pass. These prove actor identity survives a provider rebind, that

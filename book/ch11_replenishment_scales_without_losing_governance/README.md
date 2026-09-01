@@ -258,7 +258,7 @@ timing*.
 ## The exercise
 
 ```bash
-python book/ch11_replenishment_scales_without_losing_governance/solution.py --root /tmp/lucy-ch11
+uv run python book/ch11_replenishment_scales_without_losing_governance/solution.py --root /tmp/lucy-ch11
 ```
 
 Read the file first. Both SKUs' signals fire, both get their own canonical
@@ -327,9 +327,9 @@ Expected: two `effects` rows, one per SKU; two `outcomes` rows, both
 ## Learner verification command
 
 ```bash
-python -m pytest tests/test_store_multi_sku.py -k "assignment_isolation or replenishment_effect or multiple_qualifying"
-python -m pytest tests/test_store_multi_sku.py -k "two_real_connections"
-python scripts/verify_curriculum.py
+uv run python -m pytest tests/test_store_multi_sku.py -k "assignment_isolation or replenishment_effect or multiple_qualifying"
+uv run python -m pytest tests/test_store_multi_sku.py -k "two_real_connections"
+uv run python scripts/verify_curriculum.py
 ```
 
 Expected: all pass. The second command is the REAL two-connection

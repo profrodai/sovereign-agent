@@ -638,7 +638,7 @@ ledger. Durability lives in SQLite; the filesystem only ever holds copies.
 ## Exercise 1: look at the operational state
 
 ```bash
-sovereign-agent demo store --mode simulated --root /tmp/lucy-memory
+uv run sovereign-agent demo store --mode simulated --root /tmp/lucy-memory
 sqlite3 /tmp/lucy-memory/.sovereign/organization.db ".tables"
 ```
 
@@ -772,7 +772,7 @@ three changes happen, or none do.
 ## Exercise 4: find the boundary between governance and operations
 
 ```bash
-sovereign-agent demo store --mode simulated --root /tmp/lucy-boundary
+uv run sovereign-agent demo store --mode simulated --root /tmp/lucy-boundary
 cat /tmp/lucy-boundary/sovereign.toml
 ls /tmp/lucy-boundary/governance/outcomes/*/
 ```
@@ -810,7 +810,7 @@ Read the section titled "The limit you must not lie about".
 ## Learner verification command
 
 ```bash
-python -m pytest tests/test_persistence.py -q
+uv run python -m pytest tests/test_persistence.py -q
 ```
 
 Expected: all tests pass. They prove rollback, append-only enforcement,
