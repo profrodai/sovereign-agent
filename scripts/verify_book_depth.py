@@ -32,7 +32,11 @@ The contract:
 - a full-depth concept needs at least one symbol AND (at least one test OR
   an explicit `known_gap` string). A known gap is machine-readable honesty:
   it is counted and reported in the summary, so a chapter carrying one can
-  never be mistaken for fully test-backed.
+  never be mistaken for fully test-backed;
+- every finished chapter (full or tour) declares its companion lab, and the
+  binding is checked as IDENTITY (directory under book/labs/, lab.json
+  naming this exact chapter) -- lab BEHAVIOR is the disjoint
+  scripts/verify_book_labs.py gate's job, deliberately not duplicated here.
 
 Chapters marked "tour" are finished guided-tour chapters (bash transcripts,
 no inline python): exempt from the python-construction gate ONLY — concepts,
@@ -277,6 +281,41 @@ def check_depth_gates(
     for evidence in evidence_list:
         if str(evidence) not in readme_text:
             problems.append(f"{chapter}: break-experiment evidence {str(evidence)!r} not present")
+    problems.extend(check_lab_binding(chapter, entry))
+    return problems
+
+
+def check_lab_binding(chapter: str, entry: dict[str, Any]) -> list[str]:
+    """Bind the chapter to its companion lab as declared evidence.
+
+    This is an IDENTITY binding, not a behavioral claim: it checks the declared
+    lab directory exists under book/labs/, carries a lab.json, and that
+    lab.json's own "chapter" field names this chapter. Whether the lab actually
+    RUNS and its checks hold is the disjoint scripts/verify_book_labs.py gate's
+    job — this check deliberately does not duplicate it, and passing here says
+    nothing about lab behavior.
+    """
+    problems: list[str] = []
+    lab_raw = str(entry.get("lab", ""))
+    if not lab_raw:
+        problems.append(f"{chapter}: finished chapter declares no companion lab")
+        return problems
+    lab_dir = contained_path(lab_raw, REPO_ROOT / "book" / "labs")
+    if lab_dir is None or not lab_dir.is_dir():
+        problems.append(f"{chapter}: lab {lab_raw!r} is not a directory under book/labs/")
+        return problems
+    lab_json = lab_dir / "lab.json"
+    if not lab_json.is_file():
+        problems.append(f"{chapter}: lab {lab_raw!r} has no lab.json")
+        return problems
+    try:
+        declared = json.loads(lab_json.read_text(encoding="utf-8"))
+    except (json.JSONDecodeError, UnicodeDecodeError) as error:
+        problems.append(f"{chapter}: lab.json unreadable ({error})")
+        return problems
+    lab_chapter = str(declared.get("chapter", ""))
+    if lab_chapter != chapter:
+        problems.append(f"{chapter}: lab.json declares chapter {lab_chapter!r} — identity mismatch")
     return problems
 
 

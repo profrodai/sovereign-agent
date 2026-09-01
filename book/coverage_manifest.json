@@ -54,7 +54,8 @@
         "UPDATE inventory SET on_hand = 0 WHERE on_hand > 0;",
         "available=0 (on_hand=0 - reserved=0) vs reorder_point=3",
         "3 problem(s): this outcome is NOT truthfully accepted."
-      ]
+      ],
+      "lab": "book/labs/ch00_first_shift"
     },
     "ch01_organization_remembers": {
       "depth": "full",
@@ -137,7 +138,8 @@
         "left behind:",
         "still broken:",
         "OK\nOK"
-      ]
+      ],
+      "lab": "book/labs/ch01_organization_remembers"
     },
     "ch02_work_needs_governance": {
       "depth": "full",
@@ -214,7 +216,8 @@
         "receipts on file: 0",
         "evidence reassigned: 1",
         "holds for OTHER reasons"
-      ]
+      ],
+      "lab": "book/labs/ch02_work_needs_governance"
     },
     "ch03_actor_is_not_a_model": {
       "depth": "full",
@@ -291,7 +294,8 @@
         "ledger's last rebind: scripted",
         "silence is not success",
         "cannot prove capability"
-      ]
+      ],
+      "lab": "book/labs/ch03_actor_is_not_a_model"
     },
     "ch04_work_stays_inside_its_boundary": {
       "depth": "full",
@@ -367,7 +371,8 @@
         "inside according to the string check: True",
         "deliverable(s) already exist",
         "INJECTED"
-      ]
+      ],
+      "lab": "book/labs/ch04_work_stays_inside_its_boundary"
     },
     "ch05_authority_needs_a_fence": {
       "depth": "full",
@@ -438,7 +443,8 @@
         "owner on disk: worker-b",
         "refused, unexpired lease held by worker-b",
         "refused, stale or wrong token"
-      ]
+      ],
+      "lab": "book/labs/ch05_authority_needs_a_fence"
     },
     "ch06_the_organization_recovers": {
       "depth": "full",
@@ -505,7 +511,8 @@
         "worker left a completed report -- marked COMPLETED",
         "nothing to recover",
         "kept: ['report.json']"
-      ]
+      ],
+      "lab": "book/labs/ch06_the_organization_recovers"
     },
     "ch07_the_organization_wakes_itself": {
       "depth": "full",
@@ -580,7 +587,8 @@
         "SOWs on the ledger: 2",
         "already decided: canonical work is sow-sig-1",
         "signal no longer qualifies"
-      ]
+      ],
+      "lab": "book/labs/ch07_the_organization_wakes_itself"
     },
     "ch08_the_store_becomes_a_catalog": {
       "depth": "full",
@@ -661,7 +669,8 @@
         "refused: duplicate SKUs in catalog: ['SKU-TEA', 'SKU-TEA']",
         "refused: negative opening stock is unrecorded debt, not inventory",
         "the shop row, untouched: (1, 'Assam tea', 4, 3)"
-      ]
+      ],
+      "lab": "book/labs/ch08_the_store_becomes_a_catalog"
     },
     "ch09_each_product_has_its_own_threshold": {
       "depth": "full",
@@ -741,7 +750,8 @@
         "on hand now: -2",
         "refused: only 1 available (6 on hand, 5 reserved)",
         "on_hand=5 cash_rows=4 events=4"
-      ]
+      ],
+      "lab": "book/labs/ch09_each_product_has_its_own_threshold"
     },
     "ch10_one_signal_wakes_one_need": {
       "depth": "full",
@@ -821,7 +831,8 @@
         "run-t did something",
         "ACCEPTED: run-x caused a replenishment on SKU-TEA",
         "replenishment on SKU-COFFEE"
-      ]
+      ],
+      "lab": "book/labs/ch10_one_signal_wakes_one_need"
     },
     "ch11_replenishment_scales_without_losing_governance": {
       "depth": "full",
@@ -900,7 +911,8 @@
         "on_hand=14 purchase_entries=2",
         "idempotent replay: 6 SKU-TEA for 1500c",
         "refused: asg-invented is not an authorized assignment"
-      ]
+      ],
+      "lab": "book/labs/ch11_replenishment_scales_without_losing_governance"
     },
     "ch12_the_pilot_begins_with_a_receipt": {
       "depth": "full",
@@ -995,7 +1007,8 @@
         "who pilot-1 actually belongs to: ('lucys-shop', 'standard')",
         "refused: pilot-1 already exists with DIFFERENT identity (lucys-shop/standard)",
         "['dishonest NOT_RUN: live-provider.txt claims success in prose']"
-      ]
+      ],
+      "lab": "book/labs/ch12_the_pilot_begins_with_a_receipt"
     }
   }
 }
