@@ -39,6 +39,229 @@ proves the organization woke itself rather than merely claiming it did.
 | **Wake decision** | The durable, `UNIQUE(source_signal_id)` claim that one signal fired — the SQLite-boundary enforcement of "exactly one canonical decision per signal," not a preflight check a race can slip past. |
 | **Pulse origin** | The structured, queryable answer to "manual or Pulse, and from what?" — every SOW, manual or Pulse-created, has exactly one row. Absence of a row is never the definition of manual. |
 
+## Build the tick yourself, then double-order the cones
+
+Before running the real mechanism, build a pulse tick small enough to watch
+it make the one mistake every naive version makes.
+
+The scene: a sale dropped vanilla to 2 against a reorder point of 3, and the
+sale committed a durable **signal** — a fact, not a task:
+
+```python
+import sqlite3
+
+db = sqlite3.connect(":memory:")
+db.executescript("""
+    CREATE TABLE inventory (sku TEXT PRIMARY KEY, on_hand INT NOT NULL, reorder INT NOT NULL);
+    CREATE TABLE signals (id TEXT PRIMARY KEY, sku TEXT, kind TEXT);
+    CREATE TABLE wake_decisions (id INTEGER PRIMARY KEY, source_signal_id TEXT UNIQUE,
+                                 sow_id TEXT);
+    CREATE TABLE sows (id TEXT PRIMARY KEY, title TEXT, state TEXT);
+""")
+db.execute("INSERT INTO inventory VALUES ('SKU-VANILLA', 2, 3)")
+db.execute("INSERT INTO signals VALUES ('sig-1', 'SKU-VANILLA', 'low_stock')")
+db.commit()
+```
+
+Note the `UNIQUE` on `wake_decisions.source_signal_id`. It looks like a
+detail. It is the entire chapter.
+
+### The gate decides WHAT — and nothing else
+
+```python
+def wake_gate(db, signal_sku):
+    on_hand, reorder = db.execute(
+        "SELECT on_hand, reorder FROM inventory WHERE sku = ?", (signal_sku,)
+    ).fetchone()
+    if on_hand < reorder:
+        return f"Replenish {signal_sku} to {reorder}"
+    return None
+
+
+print(wake_gate(db, "SKU-VANILLA"))
+```
+
+```text
+Replenish SKU-VANILLA to 3
+```
+
+The gate is a pure read: world in, decision out, no writes. That split is
+deliberate and mirrored in production — the gate decides *what* should
+happen (domain logic about SKUs and reorder points, owned by the Store, not
+by the Pulse mechanism), while the tick alone decides *how* work gets
+created. Keep the gate pure and every hard question in this chapter lands in
+one place.
+
+### The tick that creates work every time you ask
+
+```python
+def tick_naive(db, signal_id):
+    sku = db.execute("SELECT sku FROM signals WHERE id = ?", (signal_id,)).fetchone()[0]
+    scope = wake_gate(db, sku)
+    if scope is None:
+        return "signal does not qualify"
+    count = db.execute("SELECT COUNT(*) FROM sows").fetchone()[0]
+    sow_id = f"sow-for-{signal_id}-{count}"
+    db.execute("INSERT INTO sows VALUES (?, ?, 'READY')", (sow_id, scope))
+    db.commit()
+    return f"created {sow_id}"
+
+
+print(tick_naive(db, "sig-1"))
+print(tick_naive(db, "sig-1"))  # a retry, a second runner, a crash-and-rerun...
+print("SOWs on the ledger:", db.execute("SELECT COUNT(*) FROM sows").fetchone()[0])
+```
+
+```text
+created sow-for-sig-1-0
+created sow-for-sig-1-1
+SOWs on the ledger: 2
+```
+
+One sale, one signal, **two** replenishment jobs — and nothing about the
+second call was unreasonable. Ticks get retried; supervisors get restarted;
+a crash right after a tick makes rerunning it the obviously safe move. Every
+one of those ordinary events is now a duplicate freezer order. The naive
+tick's flaw is structural: nothing durable records that *this signal was
+already decided*, so every evaluation decides it again.
+
+### The tick that claims the decision, atomically
+
+The repair binds three things into **one transaction**: re-checking the
+world, claiming the decision, and creating the work. The claim is the
+`UNIQUE(source_signal_id)` insert — enforced by the database at the moment
+of writing, not by a Python check a race can slip past — and a loser does
+not fail: it returns the **winner's canonical identifiers**.
+
+```python
+db.execute("DELETE FROM sows")
+db.commit()
+
+
+def tick(db, signal_id):
+    sku = db.execute("SELECT sku FROM signals WHERE id = ?", (signal_id,)).fetchone()[0]
+    try:
+        db.execute("BEGIN IMMEDIATE")
+        scope = wake_gate(db, sku)  # REVALIDATED inside the transaction
+        if scope is None:
+            db.execute("ROLLBACK")
+            return "signal no longer qualifies"
+        cursor = db.execute(
+            "INSERT INTO wake_decisions(source_signal_id, sow_id) VALUES (?, ?)",
+            (signal_id, f"sow-{signal_id}"),
+        )
+        db.execute("INSERT INTO sows VALUES (?, ?, 'READY')", (f"sow-{signal_id}", scope))
+        db.execute("COMMIT")
+        return f"created sow-{signal_id} (decision {cursor.lastrowid})"
+    except sqlite3.IntegrityError:
+        db.execute("ROLLBACK")
+        winner = db.execute(
+            "SELECT sow_id FROM wake_decisions WHERE source_signal_id = ?", (signal_id,)
+        ).fetchone()[0]
+        return f"already decided: canonical work is {winner}"
+
+
+print(tick(db, "sig-1"))
+print(tick(db, "sig-1"))
+print("SOWs on the ledger:", db.execute("SELECT COUNT(*) FROM sows").fetchone()[0])
+```
+
+```text
+created sow-sig-1 (decision 1)
+already decided: canonical work is sow-sig-1
+SOWs on the ledger: 1
+```
+
+Run it a hundred more times: one SOW, forever. And look at what the loser
+got back — not an error, but the canonical answer. A contender that loses
+the race learns *which* work is the real one, which is exactly what a
+restarted runner needs in order to carry on. This is also the crash-window
+resume in miniature: a tick that finds the decision already committed but
+the work not yet run doesn't create anything — it picks up the canonical
+identifiers and resumes from there, which is precisely `run_pulse_once`'s
+step one in production.
+
+### The fault that leaves nothing behind
+
+The claim and the work must commit **together**, or a crash between them
+strands a decided-but-workless signal forever:
+
+```python
+db.execute("INSERT INTO signals VALUES ('sig-2', 'SKU-VANILLA', 'low_stock')")
+db.commit()
+
+
+def tick_with_fault(db, signal_id):
+    sku = db.execute("SELECT sku FROM signals WHERE id = ?", (signal_id,)).fetchone()[0]
+    try:
+        db.execute("BEGIN IMMEDIATE")
+        wake_gate(db, sku)
+        db.execute(
+            "INSERT INTO wake_decisions(source_signal_id, sow_id) VALUES (?, ?)",
+            (signal_id, f"sow-{signal_id}"),
+        )
+        raise RuntimeError("power cut before the SOW was written")
+    except RuntimeError as error:
+        db.execute("ROLLBACK")
+        return f"fault: {error}"
+
+
+print(tick_with_fault(db, "sig-2"))
+count = db.execute(
+    "SELECT COUNT(*) FROM wake_decisions WHERE source_signal_id = 'sig-2'"
+).fetchone()[0]
+print("half-made decisions left behind:", count)
+print(tick(db, "sig-2"))  # the next tick simply tries again, cleanly
+```
+
+```text
+fault: power cut before the SOW was written
+half-made decisions left behind: 0
+created sow-sig-2 (decision 2)
+```
+
+Chapter 1's migration lesson, at the work-creation layer: a failure at *any*
+boundary rolls the whole creation back, so recovery is never a repair — it
+is just the next tick doing its ordinary job.
+
+### The world moved; the signal did not
+
+A signal records that something *was* true. Between the sale and the tick, a
+manual restock can land — and the tick must ask the world again, inside its
+own transaction, rather than trust the signal's snapshot:
+
+```python
+db.execute("INSERT INTO signals VALUES ('sig-3', 'SKU-VANILLA', 'low_stock')")
+db.execute("UPDATE inventory SET on_hand = 9")  # a manual restock landed first
+db.commit()
+print(tick(db, "sig-3"))
+print("SOWs on the ledger:", db.execute("SELECT COUNT(*) FROM sows").fetchone()[0])
+```
+
+```text
+signal no longer qualifies
+SOWs on the ledger: 2
+```
+
+This is Chapter 2's deepest rule — *re-read the world at the moment of the
+act* — applied at the moment work is **born** instead of the moment it is
+accepted. The signal was honest when written; the gate is honest now; no
+work is created for a freezer that is already full.
+
+The production mechanism, `run_pulse_once` in `src/sovereign_agent/pulse.py`,
+is everything you just built plus the integration your toy elides: it resumes
+already-fired signals whose canonical assignment never ran (the crash
+window), asks the caller-supplied gate exactly as yours did, creates the
+canonical SOW *and* assignment *and* origin rows through
+`Organization.create_pulse_work` in one transaction, and then runs the
+assignment through the very same fenced `run_assignment` path as Chapter 5 —
+no Pulse-only bypass. One boundary is load-bearing enough to be a ruling:
+the supervisor from Chapter 6 **never calls this**, and this module never
+calls the supervisor — the two compose only through a foreground caller
+running each as its own separate operation. Recovery reconciles work that
+exists; Pulse creates work that should; a mechanism that did both would be a
+process nobody could reason about when it failed halfway through either job.
+
 ## The exercise
 
 ```bash
@@ -178,6 +401,15 @@ project's own curriculum checker enforces specifically for Chapter 7.
 5. What specifically would make this chapter's own Pulse claim FALSE — name
    at least two different ways the underlying ledger could fail to back up
    the prose above, and explain how you would notice.
+6. `tick_naive` was defeated by perfectly reasonable behavior — retries and
+   restarts, not attacks. Why is "just don't call it twice" not an
+   acceptable fix, and what does the UNIQUE claim change structurally?
+7. The losing contender returns the winner's canonical identifiers instead
+   of an error. Name the caller that specifically needs that behavior, and
+   what it would wrongly do if it got an exception instead.
+8. `sig-3` was honest when recorded, yet created no work. Reconcile "signals
+   are durable append-only facts" with "this signal produced nothing" —
+   which of the two would it be dishonest to change?
 
 ## Where to look next
 

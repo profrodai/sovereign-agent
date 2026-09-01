@@ -36,8 +36,9 @@ sovereign-agent demo store --mode simulated --root /tmp/first-shift
 ```
 
 `doctor` tells you which provider CLIs you happen to have installed; the demo
-needs none of them. (From Chapter 3 onward you will run the shop with a real
-local model instead of the stand-in — but not yet. One shape at a time.)
+needs none of them. (In Chapter 3 you will swap a real local model in for the
+stand-in — as a governed act, optional, with the stand-in always available as a
+fallback — but not yet. One shape at a time.)
 
 ## What the organization just did
 
@@ -47,7 +48,7 @@ Read this as a story; every arrow is one governed step:
 a customer buys 2 units
   → inventory drops below the reorder point
   → the organization records a durable signal: "stock is low"
-  → the Principal's outcome says: keep the shelf stocked
+  → the Principal's outcome says: keep the tea jar stocked
   → a Master writes a statement of work and assigns it to an Operator actor
   → the Operator's provider PROPOSES a restock quantity
   → deterministic Python VALIDATES that proposal and commits the purchase
@@ -67,7 +68,7 @@ the "worker" is a language model.
 You should see, at the end:
 
 ```text
-out_...  ACCEPTED  Keep the shelf stocked
+out_...  ACCEPTED  Keep the tea jar stocked
   sow_...  ACCEPTED  Manually dispatched replenishment after signal sig_...
 outcome ACCEPTED
 ```
@@ -116,7 +117,18 @@ sqlite3 /tmp/first-shift/.sovereign/organization.db \
 python scripts/verify_store_outcome.py /tmp/first-shift
 ```
 
-It **fails**, with exit code `1`, and tells you why. The status field still reads
+It **fails**, with exit code `1`, and tells you why — this transcript is from a
+real run of exactly the commands above:
+
+```text
+FAIL: check 'inventory_at_or_above_reorder_point' does not hold now: available=0 (on_hand=0 - reserved=0) vs reorder_point=3
+FAIL: inventory 0 is below reorder point 3
+FAIL: evidence for 'inventory_at_or_above_reorder_point' is stale relative to current state
+
+3 problem(s): this outcome is NOT truthfully accepted.
+```
+
+The status field still reads
 `ACCEPTED`, because that is a historical record of a decision that really was
 made — but the verifier does not read the status field. It reads *the world*, and
 the world no longer matches the claim.
@@ -189,6 +201,40 @@ observations — every answer is visible in the database.
 5. Nothing happened until you typed a command. What would have to exist for the
    organization to start this work on its own, and why is it honest that today's
    ledger contains no sign of it?
+
+## The road from here — what you will actually build
+
+Every chapter after this one follows the same honest rhythm: you **build** the
+mechanism yourself in small runnable pieces, you **break** a naive version of it
+and watch the failure with your own eyes, and you **repair** it into the shape
+production uses — then the chapter names, precisely, what it has *not* proven.
+Every code block in this book executes, and every printed output you will read
+was produced by that code, byte for byte. The tour you just took visits each of
+these once:
+
+| Chapter | You build | You break |
+| --- | --- | --- |
+| 1 — The organization remembers | The ledger: schema, append-only triggers, migrations that commit whole | A migration that half-applies and leaves wreckage a `with db:` block cannot roll back |
+| 2 — Work needs governance | Acceptance as composed, checked obligations | The status-flip: a system that "accepts" work by setting a field to `ACCEPTED` |
+| 3 — An actor is not a model | Actors whose authority comes from role, not provider; a governed model swap | A sharp new model trying to approve its own work — and being refused |
+| 4 — Work stays inside its boundary | The workspace boundary | Path escapes that try to write outside it |
+| 5 — Authority needs a fence | Fencing tokens, compare-and-swap, leases | The stale actor that still *thinks* it holds authority |
+| 6 — The organization recovers | Supervised recovery from lost workers | A "kind" recoverer that quietly lies about what it restored |
+| 7 — The organization wakes itself | The pulse: the heartbeat this first shift honestly lacked | A tick that orders twice for one signal |
+| 8 — The store becomes a catalog | A migration on *populated* data, and validated seeding | A mid-migration fault — and the old data untouched afterward |
+| 9 — Each product has its own threshold | A sale as five writes in one transaction | The oversell: on-hand driven below zero by a stale read |
+| 10 — One signal wakes one need | Causal binding: *this* run caused *that* effect | A checker satisfied that "run-t did something" when run-t did nothing |
+| 11 — Replenishment scales | Idempotent restock claims | The double-order, reproduced to the digit |
+| 12 — The pilot begins with a receipt | The pilot-start contract and the release proof pack | A forged pack the verifier *correctly* calls internally consistent |
+
+That last row is the destination, so hear it now, once: chapter by chapter you
+will make the organization better at proving things — and the book ends by
+showing you the proof that *cannot* be strengthened from the inside. A proof
+pack whose every byte agrees with itself can still be a fabrication; internal
+consistency is not authenticity. The verifier you ran today already lives on the
+right side of that line — it reads the world, not the paperwork — and the whole
+book is the discipline of keeping every claim on that side, and saying so
+plainly whenever one is not.
 
 ## Where to look next
 

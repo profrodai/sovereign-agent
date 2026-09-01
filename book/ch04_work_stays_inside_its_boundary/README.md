@@ -43,6 +43,256 @@ chapter builds the machinery that makes that flag honest rather than alarming.
 | **Workspace policy** | `temporary_directory` (scratch space reclaimed after the assignment finishes) or `persistent` (nothing reclaimed, the whole run stays inspectable). |
 | **Reclaim** | Removing an assignment's disposable scratch space — never the receipt or its declared output. |
 
+## Build the boundary yourself, then attack it
+
+Before touching the production module, build each piece and break it. The
+attacks below are not hypothetical — every one of them has a named test in
+`tests/test_workspace_lifecycle.py`, because every one of them is a way a real
+provider run can go wrong.
+
+### The join that lies
+
+The obvious way to resolve "the provider wants to write `X`" is to join `X`
+onto the workspace root and check the result *looks* inside:
+
+```python
+import pathlib
+import tempfile
+
+root = pathlib.Path(tempfile.mkdtemp()) / "workspace"
+root.mkdir()
+(root.parent / "secrets.txt").write_text("the supplier price list")
+
+
+def naive_join(root, relative):
+    return root / relative
+
+
+for attempt in ["notes/report.md", "../secrets.txt", "/etc/passwd"]:
+    candidate = naive_join(root, attempt)
+    inside = str(candidate).startswith(str(root))
+    print(f"{attempt!r:18} -> inside according to the string check: {inside}")
+```
+
+```text
+'notes/report.md'  -> inside according to the string check: True
+'../secrets.txt'   -> inside according to the string check: True
+'/etc/passwd'      -> inside according to the string check: False
+```
+
+The middle line is the lie: `workspace/../secrets.txt` *starts with* the
+workspace prefix as a string, and names a file outside it. And the third line
+hides a second trap — `root / "/etc/passwd"` did not join anything;
+`pathlib` treats an absolute right-hand side as a full **replacement** of the
+left. The string check happened to catch it here, but the join itself
+silently became an absolute escape.
+
+### The join that refuses by shape
+
+```python
+def safe_join(root, relative):
+    relative = str(relative)
+    if not relative.strip():
+        raise PermissionError("refused: empty path")
+    if pathlib.PurePosixPath(relative).is_absolute():
+        raise PermissionError(f"refused: absolute path {relative!r}")
+    candidate = (root / relative).resolve()
+    if not candidate.is_relative_to(root.resolve()):
+        raise PermissionError(f"refused: {relative!r} escapes the workspace")
+    return candidate
+
+
+for attempt in ["notes/report.md", "../secrets.txt", "/etc/passwd", "a/../../secrets.txt"]:
+    try:
+        safe_join(root, attempt)
+        print(f"{attempt!r:22} -> allowed")
+    except PermissionError as error:
+        print(f"{attempt!r:22} -> {error}")
+```
+
+```text
+'notes/report.md'      -> allowed
+'../secrets.txt'       -> refused: '../secrets.txt' escapes the workspace
+'/etc/passwd'          -> refused: absolute path '/etc/passwd'
+'a/../../secrets.txt'  -> refused: 'a/../../secrets.txt' escapes the workspace
+```
+
+Two decisions carry the weight. The check runs on the **resolved filesystem
+path**, not the string — `.resolve()` collapses every `..` before the
+comparison. And an absolute path is refused **outright**, even one that would
+happen to resolve inside the root: the contract is "name something inside the
+workspace, relatively," and accepting an absolute path only when the caller's
+filesystem happens to put it somewhere agreeable makes the refusal depend on
+luck instead of shape. Production `safe_join` in
+`sovereign_agent/workspace.py` documents exactly this reasoning.
+
+### The symlink that points out, and the root that is a symlink
+
+String-free resolution earns its keep when links enter the picture. Plant a
+symlink *inside* the workspace that points outside it:
+
+```python
+(root / "cellar").mkdir()
+(root / "cellar" / "door").symlink_to(root.parent)  # a symlink pointing OUT of the workspace
+
+try:
+    safe_join(root, "cellar/door/secrets.txt")
+except PermissionError as error:
+    print(error)
+
+link_root = root.parent / "link-to-workspace"
+link_root.symlink_to(root)  # the workspace reached via a symlinked root
+print("same file either way:", safe_join(link_root, "notes/x") == safe_join(root, "notes/x"))
+```
+
+```text
+refused: 'cellar/door/secrets.txt' escapes the workspace
+same file either way: True
+```
+
+`cellar/door/secrets.txt` contains no `..` and no absolute prefix — as a
+*string* it is impeccable. Resolution follows the link, lands outside the
+resolved root, and the refusal fires. The reverse case matters equally: when
+the *root itself* is reached through a symlink, resolving both sides means a
+legitimate path is not spuriously refused. Refuse by where bytes would
+actually land, not by how the name is spelled.
+
+### The deliverable that existed before the run
+
+A subtler attack: the provider (or anything else) plants the expected
+deliverable *before* the invocation, hoping presence gets mistaken for work.
+The counter is a snapshot taken before the run:
+
+```python
+def snapshot(root):
+    return {str(p.relative_to(root)) for p in sorted(root.rglob("*")) if p.is_file()}
+
+
+(root / "notes").mkdir()
+(root / "report.md").write_text("I did the restock, trust me")  # planted BEFORE the run
+
+expected_outputs = {"report.md"}
+preplanted = expected_outputs & snapshot(root)
+if preplanted:
+    print(f"refused before invocation: deliverable(s) already exist: {sorted(preplanted)}")
+```
+
+```text
+refused before invocation: deliverable(s) already exist: ['report.md']
+```
+
+This is Chapter 6's crash-recovery rule arriving early: **a file's presence
+is never proof that work happened.** A deliverable that predates the run
+proves nothing about the run, so the run refuses to start over it.
+
+### The comparison after the run — and what it cannot see
+
+```python
+(root / "report.md").unlink()  # remove the plant; now run for real
+before = snapshot(root)
+
+(root / "report.md").write_text("restocked 6 tubs")  # the provider writes its outputs
+(root / "notes" / "scratch.txt").write_text("thinking...")
+(root.parent / "outside.txt").write_text("this write is INVISIBLE to the snapshot")
+
+appeared = snapshot(root) - before
+print("appeared inside the boundary:", sorted(appeared))
+```
+
+```text
+appeared inside the boundary: ['notes/scratch.txt', 'report.md']
+```
+
+Honest reading, both directions. The comparison names exactly what appeared
+inside the observed root — that is real, useful evidence. And
+`outside.txt` is simply absent from the report: not caught, not flagged,
+invisible, because it landed outside what the snapshot observes. A snapshot
+diff **detects, after the fact, inside its observed scope** — it neither
+prevents the write nor sees beyond its root. (The production check watches
+the *organization* root and excludes the workspace and ledger — the
+scope-naming discussion below — but the structural limit is identical.)
+
+### The receipt, sealed
+
+What survives the run is the receipt: canonical JSON plus a SHA-256 sidecar,
+so later readers can prove the bytes they hold are the bytes that were
+written:
+
+```python
+import hashlib
+import json
+
+canonical = (
+    json.dumps(
+        {"status": "completed", "outputs": sorted(appeared), "actor": "operator-lucy"},
+        sort_keys=True,
+        separators=(",", ":"),
+    )
+    + "\n"
+)
+(root / "receipt.json").write_text(canonical)
+recorded = hashlib.sha256(canonical.encode()).hexdigest()
+(root / "receipt.json.sha256").write_text(recorded + "\n")
+print("receipt digest:", recorded[:12])
+
+tampered = canonical.replace("completed", "heroic")
+(root / "receipt.json").write_text(tampered)
+current = hashlib.sha256((root / "receipt.json").read_text().encode()).hexdigest()
+print("sidecar still matches the bytes:", current == recorded)
+```
+
+```text
+receipt digest: 9bf55dc8898a
+sidecar still matches the bytes: False
+```
+
+Canonical form (`sort_keys`, fixed separators) matters: the digest is only
+reproducible if the bytes are. And carry Chapter 2's honesty forward: the
+sidecar proves the receipt **bytes are unchanged** — consistency, not
+authorship. Whoever can rewrite the receipt can rewrite the sidecar beside
+it. Byte-integrity and authenticity are different claims, and this mechanism
+makes only the first.
+
+### Why `shell=False` is not a style preference
+
+Chapter 3 asserted that providers are invoked with argv lists and no shell.
+Here is the difference, live, with a filename a provider might "choose":
+
+```python
+import subprocess
+
+evil_name = "cones.txt; echo INJECTED"
+
+shell_run = subprocess.run(f"echo {evil_name}", shell=True, capture_output=True, text=True)
+print("shell=True :", shell_run.stdout.strip())
+
+argv_run = subprocess.run(["echo", evil_name], capture_output=True, text=True)
+print("argv list  :", argv_run.stdout.strip())
+```
+
+```text
+shell=True : cones.txt
+INJECTED
+argv list  : cones.txt; echo INJECTED
+```
+
+Under `shell=True` the `;` ended one command and started another — the
+`INJECTED` on its own line is a *second program that ran*. As an argv element
+the same string is inert data passed to `echo` verbatim. Every production
+invocation goes through `run_spec` in `execution.py`: argv list,
+`shell=False`, and an environment allowlisted down to `PATH`/`HOME`/`LANG`
+plus what the provider spec explicitly adds. A command that cannot be parsed
+cannot be injected into.
+
+### Extend it (before running the production version)
+
+Add one new protected artifact to the toy: the `receipt.json.sha256` sidecar
+itself must not be preplanted before a run. Write **both** tests — the bypass
+test (plant it, run the unmodified check, watch the plant survive
+undetected) and the enforcement test (add the sidecar to `expected_outputs`,
+watch the refusal fire). A boundary change without its bypass test is a
+claim; with it, it is a measurement.
+
 ## The exercise
 
 ```bash
@@ -84,6 +334,12 @@ invocation.
     "output_dir_preserved": true,
     "scratch_removed": true
   },
+  "persistent_reclaim": {
+    "assignment_state": "COMPLETED",
+    "reclaimed_something": false,
+    "tree_unchanged": true,
+    "scratch_still_present": true
+  },
   "workspace_policy_default": "temporary_directory"
 }
 ```
@@ -106,20 +362,35 @@ Four things worth reading closely:
    shows up in `added`, because nothing in this system relies on a provider's
    own good behavior to prove the boundary held — it is checked from outside,
    after the fact.
-4. **Reclaim is a policy decision, not an automatic cleanup.** `provider-raw`
-   (the disposable scratch space) is gone after reclaim; `receipt.json`,
-   `receipt.json.sha256`, and `.sovereign-out` (the durable proof of what ran,
-   and its declared output) are not touched. `_require_deliverables` and
-   `accept()` both read from `.sovereign-out` long after `run_assignment`
-   returns — a reclaim policy that deleted it would silently break
-   re-verification.
+4. **Reclaim is a policy decision, not an automatic cleanup — and BOTH
+   policies are exercised, not just named.** Under `temporary_directory`,
+   `provider-raw` (the disposable scratch space) is gone after reclaim;
+   `receipt.json`, `receipt.json.sha256`, and `.sovereign-out` (the durable
+   proof of what ran, and its declared output) are not touched.
+   `_require_deliverables` and `accept()` both read from `.sovereign-out`
+   long after `run_assignment` returns — a reclaim policy that deleted it
+   would silently break re-verification. Then a *second* real assignment
+   plants the same scratch and reclaims under `persistent`:
+   `tree_unchanged: true`, `scratch_still_present: true` — nothing removed,
+   the entire run left inspectable. Reading a policy's default value proves
+   a configuration exists; only running the reclaim under each policy and
+   diffing the tree proves the *behavior*.
 
 ## Why detection, not prevention
 
-Only Codex's adapter gives real OS-level containment (`--sandbox
-workspace-write`). `claude`, `cursor`, and `scripted` have none — Chapter 3
-already told you `--workspace` is a selected directory, not a sandbox. This
-chapter does not invent containment those providers don't have. It makes the
+Only Codex's adapter even *requests* OS-level containment: it probes for
+`--sandbox` in the CLI's own help and supplies `--sandbox workspace-write`,
+refusing to run when that support cannot be proven. State the evidence for
+that precisely, because it is capability evidence, not containment evidence:
+the production bytes and tests prove the flag is discovered and correctly
+placed on argv — they do **not** attempt a live filesystem escape from
+inside a sandboxed Codex run and observe it blocked. "The adapter requests
+the sandbox and fails closed without it" is what is proven; "the sandbox
+holds" is Codex's claim, which a live escape test would be needed to
+verify behaviorally. `claude`, `cursor`, and `scripted` do not even request
+one — Chapter 3 already told you `--workspace` is a selected directory, not
+a sandbox. This chapter does not invent containment those providers don't
+have. It makes the
 *absence* of containment checkable: a clean boundary report is evidence that,
 for this one invocation, nothing outside the workspace changed — not a claim
 that anything was stopped from changing. A dirty report does not block the

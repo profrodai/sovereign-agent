@@ -1,0 +1,1001 @@
+{
+  "_comment": "Curriculum coverage manifest v2: concept -> chapter anchor -> exact AST symbols -> precise test node ids -> exercise, plus source_text for prose-level evidence and known_gap for machine-readable honesty. Read by scripts/verify_book_depth.py, hardened per the Principal's B3/B4 findings: canonical chapter set enforced, contained paths only, AST-exact names, no fragments.",
+  "chapters": {
+    "ch00_first_shift": {
+      "depth": "tour",
+      "concepts": [
+        {
+          "concept": "accepted-is-a-claim-the-code-proved",
+          "anchor": "The whole point: break it, and watch the lie get caught",
+          "symbols": [
+            {
+              "file": "scripts/verify_store_outcome.py",
+              "name": "verify"
+            }
+          ],
+          "tests": [
+            "tests/test_acceptance_falsification.py::test_refuses_when_inventory_is_below_reorder_point",
+            "tests/test_acceptance_falsification.py::test_refuses_stale_evidence_even_when_checks_still_pass"
+          ],
+          "exercise": "book/ch00_first_shift/solution.py"
+        },
+        {
+          "concept": "doer-is-never-the-approver",
+          "anchor": "What the organization just did",
+          "symbols": [
+            {
+              "file": "scripts/verify_store_outcome.py",
+              "name": "verify"
+            }
+          ],
+          "tests": [
+            "tests/test_acceptance_falsification.py::test_operator_cannot_accept_its_own_work",
+            "tests/test_acceptance_falsification.py::test_performer_is_derived_from_the_ledger_not_supplied"
+          ],
+          "exercise": "book/ch00_first_shift/solution.py"
+        },
+        {
+          "concept": "no-heartbeat-yet-honest-absence",
+          "anchor": "Why nothing happened until you typed",
+          "symbols": [
+            {
+              "file": "src/sovereign_agent/cli.py",
+              "name": "_demo"
+            }
+          ],
+          "tests": [
+            "tests/test_demo_cli.py::test_demo_store_simulated"
+          ],
+          "exercise": "book/ch00_first_shift/solution.py"
+        }
+      ],
+      "limits_anchor": "The organization has no heartbeat yet",
+      "break_evidence": [
+        "UPDATE inventory SET on_hand = 0 WHERE on_hand > 0;",
+        "available=0 (on_hand=0 - reserved=0) vs reorder_point=3",
+        "3 problem(s): this outcome is NOT truthfully accepted."
+      ]
+    },
+    "ch01_organization_remembers": {
+      "depth": "full",
+      "concepts": [
+        {
+          "concept": "append-only-enforced-in-the-database",
+          "anchor": "Build it yourself: memory that cannot half-happen",
+          "symbols": [
+            {
+              "file": "src/sovereign_agent/database.py",
+              "name": "MIGRATIONS"
+            }
+          ],
+          "tests": [
+            "tests/test_persistence.py::test_events_reject_update_and_delete",
+            "tests/test_persistence.py::test_insert_or_replace_cannot_bypass_the_append_only_guard"
+          ],
+          "exercise": "book/ch01_organization_remembers/solution.py",
+          "source_text": [
+            {
+              "file": "src/sovereign_agent/database.py",
+              "text": "events are append-only"
+            }
+          ]
+        },
+        {
+          "concept": "transactional-migrations-forward-only",
+          "anchor": "Growing the schema without losing the shop",
+          "symbols": [
+            {
+              "file": "src/sovereign_agent/database.py",
+              "name": "migrate"
+            },
+            {
+              "file": "src/sovereign_agent/database.py",
+              "name": "MIGRATIONS"
+            }
+          ],
+          "tests": [
+            "tests/test_persistence.py::test_a_failed_migration_rolls_back_schema_and_stamp",
+            "tests/test_persistence.py::test_upgrade_from_prior_schema_preserves_data"
+          ],
+          "exercise": "book/ch01_organization_remembers/solution.py"
+        },
+        {
+          "concept": "pure-projection-verification-vs-explicit-reconcile",
+          "anchor": "Projections: files the ledger can regenerate",
+          "symbols": [
+            {
+              "file": "src/sovereign_agent/governance.py",
+              "name": "render_outcome"
+            },
+            {
+              "file": "scripts/verify_projections.py",
+              "name": "check"
+            }
+          ],
+          "tests": [
+            "tests/test_verifier_scripts.py::test_projection_verification_is_pure",
+            "tests/test_verifier_scripts.py::test_verifier_compares_every_projected_file"
+          ],
+          "exercise": "book/ch01_organization_remembers/solution.py"
+        },
+        {
+          "concept": "atomic-write-old-or-new-never-torn",
+          "anchor": "Writing a file without tearing it",
+          "symbols": [
+            {
+              "file": "src/sovereign_agent/files.py",
+              "name": "atomic_write"
+            }
+          ],
+          "tests": [],
+          "exercise": "book/ch01_organization_remembers/solution.py",
+          "known_gap": "files.py atomic_write has no direct behavioral test in the suite; flagged in the Batch 1 filing as scoped follow-up implementation work, not smuggled into book scope."
+        }
+      ],
+      "limits_anchor": "What this does not guarantee",
+      "break_evidence": [
+        "left behind:",
+        "still broken:",
+        "OK\nOK"
+      ]
+    },
+    "ch02_work_needs_governance": {
+      "depth": "full",
+      "concepts": [
+        {
+          "concept": "acceptance-as-composed-proof-obligation",
+          "anchor": "Build it yourself: acceptance in seven layers",
+          "symbols": [
+            {
+              "file": "src/sovereign_agent/organization.py",
+              "name": "accept"
+            },
+            {
+              "file": "src/sovereign_agent/policy.py",
+              "name": "forbid_self_approval"
+            }
+          ],
+          "tests": [
+            "tests/test_acceptance_falsification.py::test_refuses_when_inventory_is_below_reorder_point",
+            "tests/test_acceptance_falsification.py::test_refuses_evidence_bound_to_another_execution"
+          ],
+          "exercise": "book/ch02_work_needs_governance/solution.py"
+        },
+        {
+          "concept": "checks-reexecuted-at-acceptance-time",
+          "anchor": "Layer 2: re-read the world, right now",
+          "symbols": [
+            {
+              "file": "src/sovereign_agent/checks.py",
+              "name": "run_check"
+            }
+          ],
+          "tests": [
+            "tests/test_acceptance_falsification.py::test_refuses_stale_evidence_even_when_checks_still_pass"
+          ],
+          "exercise": "book/ch02_work_needs_governance/solution.py"
+        },
+        {
+          "concept": "digest-covers-exactly-what-the-check-observes",
+          "anchor": "Layer 7: the world must not have moved",
+          "symbols": [
+            {
+              "file": "src/sovereign_agent/checks.py",
+              "name": "_digest_observation"
+            }
+          ],
+          "tests": [
+            "tests/test_acceptance_falsification.py::test_refuses_stale_evidence_even_when_checks_still_pass"
+          ],
+          "exercise": "book/ch02_work_needs_governance/solution.py"
+        },
+        {
+          "concept": "refusal-recovers-through-new-work",
+          "anchor": "Exercise 7: being refused is not the end",
+          "symbols": [
+            {
+              "file": "src/sovereign_agent/organization.py",
+              "name": "review"
+            },
+            {
+              "file": "src/sovereign_agent/policy.py",
+              "name": "advance_sow"
+            }
+          ],
+          "tests": [
+            "tests/test_recovery.py::test_red_repair_reassign_verify_review_accept",
+            "tests/test_recovery.py::test_acceptance_is_refused_while_changes_are_outstanding"
+          ],
+          "exercise": "book/ch02_work_needs_governance/solution.py"
+        }
+      ],
+      "limits_anchor": "can rewrite the organization's memory",
+      "break_evidence": [
+        "receipts on file: 0",
+        "evidence reassigned: 1",
+        "holds for OTHER reasons"
+      ]
+    },
+    "ch03_actor_is_not_a_model": {
+      "depth": "full",
+      "concepts": [
+        {
+          "concept": "authority-from-role-policy-not-model",
+          "anchor": "Authority is granted by role, not by the model",
+          "symbols": [
+            {
+              "file": "src/sovereign_agent/policy.py",
+              "name": "ROLE_AUTHORITY"
+            },
+            {
+              "file": "src/sovereign_agent/policy.py",
+              "name": "require_authority"
+            }
+          ],
+          "tests": [
+            "tests/test_actors_and_mailbox.py::test_an_actor_cannot_expand_its_own_authority",
+            "tests/test_actors_and_mailbox.py::test_role_separation_covers_operator_reviewer_and_principal"
+          ],
+          "exercise": "book/ch03_actor_is_not_a_model/solution.py"
+        },
+        {
+          "concept": "rebind-dual-store-seam",
+          "anchor": "The rebind is two writes, and the seam between them",
+          "symbols": [
+            {
+              "file": "src/sovereign_agent/organization.py",
+              "name": "rebind_actor"
+            }
+          ],
+          "tests": [
+            "tests/test_actors_and_mailbox.py::test_rebinding_the_provider_preserves_identity_and_authority",
+            "tests/test_actors_and_mailbox.py::test_rebinding_requires_ruling_authority"
+          ],
+          "exercise": "book/ch03_actor_is_not_a_model/solution.py"
+        },
+        {
+          "concept": "provider-neutral-envelope-host-validates-proposal",
+          "anchor": "The envelope: what the provider is actually told",
+          "symbols": [
+            {
+              "file": "src/sovereign_agent/execution.py",
+              "name": "build_assignment_envelope"
+            },
+            {
+              "file": "src/sovereign_agent/execution.py",
+              "name": "write_failed_receipt"
+            }
+          ],
+          "tests": [
+            "tests/test_providers.py::test_proven_flags_are_the_only_ones_on_argv"
+          ],
+          "exercise": "book/ch03_actor_is_not_a_model/solution.py"
+        },
+        {
+          "concept": "capability-probe-from-live-help",
+          "anchor": "An adapter is a hostile-boundary parser",
+          "symbols": [
+            {
+              "file": "src/sovereign_agent/providers/claude.py",
+              "name": "probe"
+            }
+          ],
+          "tests": [
+            "tests/test_providers.py::test_cursor_workspace_flag_requires_exact_probe"
+          ],
+          "exercise": "book/ch03_actor_is_not_a_model/solution.py"
+        }
+      ],
+      "limits_anchor": "know about and detect",
+      "break_evidence": [
+        "ledger's last rebind: scripted",
+        "silence is not success",
+        "cannot prove capability"
+      ]
+    },
+    "ch04_work_stays_inside_its_boundary": {
+      "depth": "full",
+      "concepts": [
+        {
+          "concept": "safe-join-refuses-by-shape",
+          "anchor": "The join that refuses by shape",
+          "symbols": [
+            {
+              "file": "src/sovereign_agent/workspace.py",
+              "name": "safe_join"
+            }
+          ],
+          "tests": [
+            "tests/test_workspace_lifecycle.py::test_traversal_deliverable_is_refused"
+          ],
+          "exercise": "book/ch04_work_stays_inside_its_boundary/solution.py"
+        },
+        {
+          "concept": "boundary-detected-not-prevented",
+          "anchor": "The comparison after the run \u2014 and what it cannot see",
+          "symbols": [
+            {
+              "file": "src/sovereign_agent/workspace.py",
+              "name": "snapshot_boundary"
+            },
+            {
+              "file": "src/sovereign_agent/workspace.py",
+              "name": "diff_boundary"
+            }
+          ],
+          "tests": [
+            "tests/test_workspace_lifecycle.py::test_detects_write_outside_workspace",
+            "tests/test_workspace_lifecycle.py::test_a_new_file_outside_the_workspace_is_also_detected"
+          ],
+          "exercise": "book/ch04_work_stays_inside_its_boundary/solution.py"
+        },
+        {
+          "concept": "receipt-canonical-json-sha256-sidecar",
+          "anchor": "The receipt, sealed",
+          "symbols": [
+            {
+              "file": "src/sovereign_agent/execution.py",
+              "name": "write_receipt"
+            },
+            {
+              "file": "src/sovereign_agent/execution.py",
+              "name": "canonical_receipt_json"
+            }
+          ],
+          "tests": [
+            "tests/test_persistence.py::test_receipts_are_deliberately_not_append_only"
+          ],
+          "exercise": "book/ch04_work_stays_inside_its_boundary/solution.py"
+        },
+        {
+          "concept": "argv-shell-false-injection-inert",
+          "anchor": "Why `shell=False` is not a style preference",
+          "symbols": [
+            {
+              "file": "src/sovereign_agent/execution.py",
+              "name": "run_spec"
+            }
+          ],
+          "tests": [
+            "tests/test_providers.py::test_proven_flags_are_the_only_ones_on_argv"
+          ],
+          "exercise": "book/ch04_work_stays_inside_its_boundary/solution.py"
+        }
+      ],
+      "limits_anchor": "INVISIBLE to the snapshot",
+      "break_evidence": [
+        "inside according to the string check: True",
+        "deliverable(s) already exist",
+        "INJECTED"
+      ]
+    },
+    "ch05_authority_needs_a_fence": {
+      "depth": "full",
+      "concepts": [
+        {
+          "concept": "cas-claim-one-statement-decides",
+          "anchor": "The claim that decides and writes in one statement",
+          "symbols": [
+            {
+              "file": "src/sovereign_agent/relay.py",
+              "name": "claim"
+            }
+          ],
+          "tests": [
+            "tests/test_actors_and_mailbox.py::test_claim_lease_is_exclusive"
+          ],
+          "exercise": "book/ch05_authority_needs_a_fence/solution.py"
+        },
+        {
+          "concept": "same-statement-token-check-never-rederived",
+          "anchor": "Completing under the token, not the name",
+          "symbols": [
+            {
+              "file": "src/sovereign_agent/relay.py",
+              "name": "complete"
+            }
+          ],
+          "tests": [
+            "tests/test_actors_and_mailbox.py::test_only_the_claimant_can_complete"
+          ],
+          "exercise": "book/ch05_authority_needs_a_fence/solution.py"
+        },
+        {
+          "concept": "same-owner-idempotent-vs-expired-fresh-token",
+          "anchor": "Leases: ownership that expires, and the token that guards the handover",
+          "symbols": [
+            {
+              "file": "src/sovereign_agent/relay.py",
+              "name": "_mint_claim_token"
+            },
+            {
+              "file": "src/sovereign_agent/fencing.py",
+              "name": "new_process_identity"
+            }
+          ],
+          "tests": [
+            "tests/test_actors_and_mailbox.py::test_expired_lease_is_reclaimable"
+          ],
+          "exercise": "book/ch05_authority_needs_a_fence/solution.py"
+        },
+        {
+          "concept": "retry-budget-dead-letter-terminal",
+          "anchor": "Retries are budgeted, and the budget ends somewhere honest",
+          "symbols": [
+            {
+              "file": "src/sovereign_agent/relay.py",
+              "name": "dead_letter"
+            }
+          ],
+          "tests": [
+            "tests/test_actors_and_mailbox.py::test_expired_lease_is_reclaimable"
+          ],
+          "exercise": "book/ch05_authority_needs_a_fence/solution.py"
+        }
+      ],
+      "limits_anchor": "Two honest limits of this toy",
+      "break_evidence": [
+        "owner on disk: worker-b",
+        "refused, unexpired lease held by worker-b",
+        "refused, stale or wrong token"
+      ]
+    },
+    "ch06_the_organization_recovers": {
+      "depth": "full",
+      "concepts": [
+        {
+          "concept": "presence-never-blessed-as-success",
+          "anchor": "The recoverer that wants to be kind",
+          "symbols": [
+            {
+              "file": "src/sovereign_agent/supervisor.py",
+              "name": "WORKER_LOST"
+            }
+          ],
+          "tests": [
+            "tests/test_supervisor.py::test_never_guesses_success_recovery_receipt_is_always_failed"
+          ],
+          "exercise": "book/ch06_the_organization_recovers/solution.py"
+        },
+        {
+          "concept": "fence-cleared-with-terminal-state-one-transaction",
+          "anchor": "The recoverer that refuses to guess",
+          "symbols": [
+            {
+              "file": "src/sovereign_agent/supervisor.py",
+              "name": "recover_abandoned_assignments"
+            }
+          ],
+          "tests": [
+            "tests/test_supervisor.py::test_recovery_is_idempotent_a_second_tick_recovers_nothing_more"
+          ],
+          "exercise": "book/ch06_the_organization_recovers/solution.py"
+        },
+        {
+          "concept": "two-supervisors-cas-one-winner",
+          "anchor": "Two supervisors, one recovery",
+          "symbols": [
+            {
+              "file": "src/sovereign_agent/supervisor.py",
+              "name": "tick"
+            }
+          ],
+          "tests": [
+            "tests/test_supervisor.py::test_supervisor_recovers_a_real_sigkilled_assignment"
+          ],
+          "exercise": "book/ch06_the_organization_recovers/solution.py"
+        },
+        {
+          "concept": "reclaim-after-durable-terminal-keeps-evidence",
+          "anchor": "Reclaim comes last, and keeps the evidence",
+          "symbols": [
+            {
+              "file": "src/sovereign_agent/workspace.py",
+              "name": "reclaim_workspace"
+            }
+          ],
+          "tests": [
+            "tests/test_supervisor.py::test_workspace_reclaim_applies_only_after_the_terminal_write_is_durable"
+          ],
+          "exercise": "book/ch06_the_organization_recovers/solution.py"
+        }
+      ],
+      "limits_anchor": "never creates work",
+      "break_evidence": [
+        "worker left a completed report -- marked COMPLETED",
+        "nothing to recover",
+        "kept: ['report.json']"
+      ]
+    },
+    "ch07_the_organization_wakes_itself": {
+      "depth": "full",
+      "concepts": [
+        {
+          "concept": "gate-decides-what-tick-decides-how",
+          "anchor": "The gate decides WHAT \u2014 and nothing else",
+          "symbols": [
+            {
+              "file": "src/sovereign_agent/pulse.py",
+              "name": "WakeGate"
+            },
+            {
+              "file": "src/sovereign_agent/pulse.py",
+              "name": "WakeDecision"
+            }
+          ],
+          "tests": [
+            "tests/test_pulse.py::test_pulse_once_works"
+          ],
+          "exercise": "book/ch07_the_organization_wakes_itself/solution.py"
+        },
+        {
+          "concept": "unique-claim-one-canonical-work-per-signal",
+          "anchor": "The tick that claims the decision, atomically",
+          "symbols": [
+            {
+              "file": "src/sovereign_agent/pulse.py",
+              "name": "run_pulse_once"
+            },
+            {
+              "file": "src/sovereign_agent/organization.py",
+              "name": "create_pulse_work"
+            }
+          ],
+          "tests": [
+            "tests/test_pulse.py::test_two_real_processes_evaluating_the_same_signal_create_one_canonical_sow"
+          ],
+          "exercise": "book/ch07_the_organization_wakes_itself/solution.py"
+        },
+        {
+          "concept": "creation-rolls-back-whole-at-any-fault",
+          "anchor": "The fault that leaves nothing behind",
+          "symbols": [
+            {
+              "file": "src/sovereign_agent/pulse.py",
+              "name": "run_pulse_once"
+            }
+          ],
+          "tests": [
+            "tests/test_pulse.py::test_canonical_created_work_survives_restart_and_resumes_without_duplication"
+          ],
+          "exercise": "book/ch07_the_organization_wakes_itself/solution.py"
+        },
+        {
+          "concept": "revalidate-signal-at-transaction-time",
+          "anchor": "The world moved; the signal did not",
+          "symbols": [
+            {
+              "file": "src/sovereign_agent/pulse.py",
+              "name": "_still_qualifies"
+            }
+          ],
+          "tests": [
+            "tests/test_pulse.py::test_seeded_store_with_no_sale_creates_no_work"
+          ],
+          "exercise": "book/ch07_the_organization_wakes_itself/solution.py"
+        }
+      ],
+      "limits_anchor": "It does **not**",
+      "break_evidence": [
+        "SOWs on the ledger: 2",
+        "already decided: canonical work is sow-sig-1",
+        "signal no longer qualifies"
+      ]
+    },
+    "ch08_the_store_becomes_a_catalog": {
+      "depth": "full",
+      "concepts": [
+        {
+          "concept": "identity-name-quantity-are-separate-concerns",
+          "anchor": "The migration, on live data, in one transaction",
+          "symbols": [
+            {
+              "file": "src/reference_organizations/store/__init__.py",
+              "name": "CatalogEntry"
+            }
+          ],
+          "tests": [
+            "tests/test_store_multi_sku.py::test_a_sale_of_one_sku_does_not_change_another_skus_inventory"
+          ],
+          "exercise": "book/ch08_the_store_becomes_a_catalog/solution.py"
+        },
+        {
+          "concept": "seed-is-validated-transactional-act",
+          "anchor": "Seeding a catalog is a validated act, not a loop of inserts",
+          "symbols": [
+            {
+              "file": "src/reference_organizations/store/__init__.py",
+              "name": "seed_catalog"
+            }
+          ],
+          "tests": [
+            "tests/test_store_multi_sku.py::test_signals_for_different_skus_never_share_a_dedupe_key"
+          ],
+          "exercise": "book/ch08_the_store_becomes_a_catalog/solution.py",
+          "source_text": [
+            {
+              "file": "src/reference_organizations/store/__init__.py",
+              "text": "a catalog needs at least two distinct SKUs"
+            },
+            {
+              "file": "src/reference_organizations/store/__init__.py",
+              "text": "duplicate SKUs in catalog"
+            }
+          ]
+        },
+        {
+          "concept": "populated-migration-rolls-back-whole",
+          "anchor": "The fault, again, because populated data raises the stakes",
+          "symbols": [
+            {
+              "file": "src/sovereign_agent/database.py",
+              "name": "migrate"
+            }
+          ],
+          "tests": [
+            "tests/test_persistence.py::test_migration_13_upgrade_from_a_populated_unit7_database_preserves_every_record"
+          ],
+          "exercise": "book/ch08_the_store_becomes_a_catalog/solution.py"
+        },
+        {
+          "concept": "additive-seed-contract-never-reverted",
+          "anchor": "The payoff of identity: the name is free to change",
+          "symbols": [
+            {
+              "file": "src/reference_organizations/store/__init__.py",
+              "name": "seed"
+            },
+            {
+              "file": "src/reference_organizations/store/__init__.py",
+              "name": "seed_catalog"
+            }
+          ],
+          "tests": [
+            "tests/test_store_multi_sku.py::test_reopening_the_database_preserves_both_skus_canonical_work"
+          ],
+          "exercise": "book/ch08_the_store_becomes_a_catalog/solution.py"
+        }
+      ],
+      "limits_anchor": "one deliberate shared resource",
+      "break_evidence": [
+        "refused: duplicate SKUs in catalog: ['SKU-TEA', 'SKU-TEA']",
+        "refused: negative opening stock is unrecorded debt, not inventory",
+        "the shop row, untouched: (1, 'Assam tea', 4, 3)"
+      ]
+    },
+    "ch09_each_product_has_its_own_threshold": {
+      "depth": "full",
+      "concepts": [
+        {
+          "concept": "sale-five-writes-one-transaction",
+          "anchor": "One exact sale, traced through every write",
+          "symbols": [
+            {
+              "file": "src/reference_organizations/store/__init__.py",
+              "name": "record_sale"
+            }
+          ],
+          "tests": [
+            "tests/test_persistence.py::test_successful_sale_and_replenishment_keep_cash_reconciled"
+          ],
+          "exercise": "book/ch09_each_product_has_its_own_threshold/solution.py"
+        },
+        {
+          "concept": "read-inside-transaction-prevents-oversell",
+          "anchor": "Break it: the sale that checks first and writes later",
+          "symbols": [
+            {
+              "file": "src/reference_organizations/store/__init__.py",
+              "name": "record_sale"
+            }
+          ],
+          "tests": [
+            "tests/test_persistence.py::test_inventory_never_goes_negative"
+          ],
+          "exercise": "book/ch09_each_product_has_its_own_threshold/solution.py",
+          "source_text": [
+            {
+              "file": "src/reference_organizations/store/__init__.py",
+              "text": "happens INSIDE the immediate transaction"
+            }
+          ]
+        },
+        {
+          "concept": "reservation-aware-availability",
+          "anchor": "Available is not on-hand",
+          "symbols": [
+            {
+              "file": "src/sovereign_agent/checks.py",
+              "name": "inventory_at_or_above_reorder_point"
+            }
+          ],
+          "tests": [
+            "tests/test_acceptance_falsification.py::test_reserved_stock_is_not_available_stock"
+          ],
+          "exercise": "book/ch09_each_product_has_its_own_threshold/solution.py"
+        },
+        {
+          "concept": "dedupe-key-per-occurrence-append-only-signals",
+          "anchor": "loud\ninstead of silent",
+          "symbols": [
+            {
+              "file": "src/reference_organizations/store/__init__.py",
+              "name": "record_sale"
+            }
+          ],
+          "tests": [
+            "tests/test_persistence.py::test_signal_is_recorded_with_the_sale",
+            "tests/test_store_multi_sku.py::test_signals_for_different_skus_never_share_a_dedupe_key"
+          ],
+          "exercise": "book/ch09_each_product_has_its_own_threshold/solution.py",
+          "source_text": [
+            {
+              "file": "src/reference_organizations/store/__init__.py",
+              "text": "INSERT OR REPLACE"
+            }
+          ]
+        }
+      ],
+      "limits_anchor": "one connection",
+      "break_evidence": [
+        "on hand now: -2",
+        "refused: only 1 available (6 on hand, 5 reserved)",
+        "on_hand=5 cash_rows=4 events=4"
+      ]
+    },
+    "ch10_one_signal_wakes_one_need": {
+      "depth": "full",
+      "concepts": [
+        {
+          "concept": "authentication-corroboration-causal-binding-distinct",
+          "anchor": "Three different questions that all sound like",
+          "symbols": [
+            {
+              "file": "src/sovereign_agent/organization.py",
+              "name": "accept"
+            }
+          ],
+          "tests": [
+            "tests/test_causal_binding.py::test_condition_true_but_no_effects_exist_at_all_is_refused"
+          ],
+          "exercise": "book/ch10_one_signal_wakes_one_need/solution.py",
+          "source_text": [
+            {
+              "file": "src/sovereign_agent/organization.py",
+              "text": "The bound execution must have CONTRIBUTED"
+            }
+          ]
+        },
+        {
+          "concept": "world-right-is-not-work-done",
+          "anchor": "Generation 1: the check that sees a full freezer",
+          "symbols": [
+            {
+              "file": "src/sovereign_agent/organization.py",
+              "name": "accept"
+            }
+          ],
+          "tests": [
+            "tests/test_causal_binding.py::test_condition_true_but_another_execution_contributed_is_refused"
+          ],
+          "exercise": "book/ch10_one_signal_wakes_one_need/solution.py"
+        },
+        {
+          "concept": "execution-derived-from-sow-never-supplied",
+          "anchor": "Generation 3: the right effect",
+          "symbols": [
+            {
+              "file": "src/sovereign_agent/organization.py",
+              "name": "completed_assignment_for_sow"
+            }
+          ],
+          "tests": [
+            "tests/test_causal_binding.py::test_condition_false_but_contribution_true_is_refused"
+          ],
+          "exercise": "book/ch10_one_signal_wakes_one_need/solution.py"
+        },
+        {
+          "concept": "subject-read-from-outcome-not-supplied",
+          "anchor": "Generation 5: the caller supplies one fact only",
+          "symbols": [
+            {
+              "file": "src/sovereign_agent/organization.py",
+              "name": "accept"
+            }
+          ],
+          "tests": [
+            "tests/test_store_multi_sku.py::test_wake_gate_maps_each_signal_to_its_own_skus_outcome_only"
+          ],
+          "exercise": "book/ch10_one_signal_wakes_one_need/solution.py",
+          "source_text": [
+            {
+              "file": "src/sovereign_agent/organization.py",
+              "text": "Subject is read from the outcome, not supplied"
+            }
+          ]
+        }
+      ],
+      "limits_anchor": "forge every row in",
+      "break_evidence": [
+        "effects recorded by run-t: 0",
+        "run-t did something",
+        "ACCEPTED: run-x caused a replenishment on SKU-TEA",
+        "replenishment on SKU-COFFEE"
+      ]
+    },
+    "ch11_replenishment_scales_without_losing_governance": {
+      "depth": "full",
+      "concepts": [
+        {
+          "concept": "scan-before-transaction-double-orders",
+          "anchor": "Break it: scan first, order later",
+          "symbols": [
+            {
+              "file": "src/reference_organizations/store/__init__.py",
+              "name": "apply_restock"
+            }
+          ],
+          "tests": [
+            "tests/test_persistence.py::test_idempotency_is_scoped_to_assignment_and_sku"
+          ],
+          "exercise": "book/ch11_replenishment_scales_without_losing_governance/solution.py",
+          "source_text": [
+            {
+              "file": "src/reference_organizations/store/__init__.py",
+              "text": "on_hand went to 14"
+            }
+          ]
+        },
+        {
+          "concept": "unique-claim-inside-transaction-canonical-replay",
+          "anchor": "Repair: the claim is a row, not a scan",
+          "symbols": [
+            {
+              "file": "src/reference_organizations/store/__init__.py",
+              "name": "apply_restock"
+            }
+          ],
+          "tests": [
+            "tests/test_store_multi_sku.py::test_replaying_pulse_for_multiple_skus_creates_no_duplicate_work"
+          ],
+          "exercise": "book/ch11_replenishment_scales_without_losing_governance/solution.py"
+        },
+        {
+          "concept": "idempotency-key-from-stable-operation-identity",
+          "anchor": "The key must name the operation, not the attempt",
+          "symbols": [
+            {
+              "file": "src/reference_organizations/store/__init__.py",
+              "name": "apply_restock"
+            }
+          ],
+          "tests": [
+            "tests/test_persistence.py::test_the_effect_key_cannot_collide_across_assignment_and_subject"
+          ],
+          "exercise": "book/ch11_replenishment_scales_without_losing_governance/solution.py",
+          "source_text": [
+            {
+              "file": "src/reference_organizations/store/__init__.py",
+              "text": "UNIQUE(assignment_id, kind, subject)"
+            }
+          ]
+        },
+        {
+          "concept": "authorization-separate-from-idempotency",
+          "anchor": "Only once is not the same as allowed",
+          "symbols": [
+            {
+              "file": "src/reference_organizations/store/__init__.py",
+              "name": "_authorize_effect"
+            }
+          ],
+          "tests": [
+            "tests/test_persistence.py::test_a_forged_effect_cannot_be_inserted_from_outside"
+          ],
+          "exercise": "book/ch11_replenishment_scales_without_losing_governance/solution.py"
+        }
+      ],
+      "limits_anchor": "sequential run cannot",
+      "break_evidence": [
+        "on_hand=14 purchase_entries=2",
+        "idempotent replay: 6 SKU-TEA for 1500c",
+        "refused: asg-invented is not an authorized assignment"
+      ]
+    },
+    "ch12_the_pilot_begins_with_a_receipt": {
+      "depth": "full",
+      "concepts": [
+        {
+          "concept": "pilot-start-replays-only-on-exact-identity",
+          "anchor": "Replay on exact identity; refuse everything else",
+          "symbols": [
+            {
+              "file": "src/reference_organizations/store/pilot.py",
+              "name": "start_pilot"
+            },
+            {
+              "file": "src/reference_organizations/store/pilot.py",
+              "name": "PilotRecord"
+            }
+          ],
+          "tests": [
+            "tests/test_pilot.py::test_replaying_the_same_start_request_does_not_create_a_second_pilot",
+            "tests/test_pilot.py::test_a_colliding_pilot_id_with_different_identity_is_refused_not_replayed"
+          ],
+          "exercise": "book/ch12_the_pilot_begins_with_a_receipt/solution.py",
+          "source_text": [
+            {
+              "file": "src/reference_organizations/store/pilot.py",
+              "text": "incompatible start under a reused id, not a replay"
+            }
+          ]
+        },
+        {
+          "concept": "singleton-slot-refusal-strands-nothing",
+          "anchor": "a refused start strands nothing",
+          "symbols": [
+            {
+              "file": "src/reference_organizations/store/pilot.py",
+              "name": "start_pilot"
+            },
+            {
+              "file": "src/reference_organizations/store/pilot.py",
+              "name": "active_pilot_id"
+            }
+          ],
+          "tests": [
+            "tests/test_pilot.py::test_a_second_different_pilot_is_refused_while_one_is_active",
+            "tests/test_pilot.py::test_a_refused_start_leaves_no_orphaned_pilot_row"
+          ],
+          "exercise": "book/ch12_the_pilot_begins_with_a_receipt/solution.py"
+        },
+        {
+          "concept": "proof-pack-catches-tamper-and-dishonest-not-run",
+          "anchor": "The lies it catches",
+          "symbols": [
+            {
+              "file": "scripts/verify_proof_pack.py",
+              "name": "check_digests"
+            },
+            {
+              "file": "scripts/verify_proof_pack.py",
+              "name": "check_not_run_means_pass_lie"
+            }
+          ],
+          "tests": [
+            "tests/test_proof_pack.py::test_digest_mismatch_still_rejected",
+            "tests/test_proof_pack.py::test_andrea_not_run_with_success_prose_is_rejected"
+          ],
+          "exercise": "book/ch12_the_pilot_begins_with_a_receipt/solution.py"
+        },
+        {
+          "concept": "internal-consistency-is-not-authenticity",
+          "anchor": "The lie it structurally cannot catch",
+          "symbols": [
+            {
+              "file": "scripts/verify_proof_pack.py",
+              "name": "verify"
+            }
+          ],
+          "tests": [
+            "tests/test_proof_pack.py::test_the_real_committed_manifest_passes",
+            "tests/test_proof_pack.py::test_verify_function_import_matches_cli_behavior"
+          ],
+          "exercise": "book/ch12_the_pilot_begins_with_a_receipt/solution.py",
+          "source_text": [
+            {
+              "file": "scripts/verify_proof_pack.py",
+              "text": "does NOT claim the manifest is COMPLETE"
+            }
+          ]
+        }
+      ],
+      "limits_anchor": "internal consistency is not authenticity",
+      "break_evidence": [
+        "who pilot-1 actually belongs to: ('lucys-shop', 'standard')",
+        "refused: pilot-1 already exists with DIFFERENT identity (lucys-shop/standard)",
+        "['dishonest NOT_RUN: live-provider.txt claims success in prose']"
+      ]
+    }
+  }
+}

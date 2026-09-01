@@ -33,6 +33,8 @@ doctor:
 verify: lint test
 	$(UV) run --python 3.14 python scripts/verify_runtime_dependencies.py
 	$(UV) run --python 3.14 python scripts/verify_source_budget.py
+	$(UV) run --python 3.14 python scripts/verify_book_snippets.py
+	$(UV) run --python 3.14 python scripts/verify_book_depth.py
 	$(UV) run --python 3.14 sovereign-agent --help >/dev/null
 	$(UV) run --python 3.14 sovereign-agent doctor
 	$(UV) run --python 3.14 sovereign-agent demo store --mode simulated --root /tmp/sovereign-agent-demo

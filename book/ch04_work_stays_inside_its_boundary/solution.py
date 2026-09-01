@@ -98,6 +98,18 @@ def explore_workspace_lifecycle(root: Path) -> dict[str, Any]:
     reclaimed = reclaim_workspace(temp_workspace, "temporary_directory")
     after_reclaim = sorted(p.name for p in temp_workspace.iterdir())
 
+    # 4. The persistent policy is EXERCISED, not merely read: a second real
+    # assignment, the same planted scratch, and a reclaim under "persistent"
+    # that must remove nothing at all -- the whole run stays inspectable.
+    persistent_state, persistent_workspace = _run_one_assignment(
+        org, "Write the required offline report again."
+    )
+    (persistent_workspace / "provider-raw").mkdir(exist_ok=True)
+    (persistent_workspace / "provider-raw" / "scratch.log").write_text("scratch", encoding="utf-8")
+    before_persistent = sorted(p.name for p in persistent_workspace.iterdir())
+    persistent_reclaimed = reclaim_workspace(persistent_workspace, "persistent")
+    after_persistent = sorted(p.name for p in persistent_workspace.iterdir())
+
     org.rebind_actor("operator-course", "scripted", "principal-human")
     persistent_actor = org.actor("operator-course")
 
@@ -119,6 +131,12 @@ def explore_workspace_lifecycle(root: Path) -> dict[str, Any]:
             "receipt_preserved": "receipt.json" in after_reclaim,
             "output_dir_preserved": ".sovereign-out" in after_reclaim,
             "scratch_removed": "provider-raw" not in after_reclaim,
+        },
+        "persistent_reclaim": {
+            "assignment_state": persistent_state,
+            "reclaimed_something": persistent_reclaimed,
+            "tree_unchanged": before_persistent == after_persistent,
+            "scratch_still_present": "provider-raw" in after_persistent,
         },
         "workspace_policy_default": persistent_actor.workspace_policy,
     }

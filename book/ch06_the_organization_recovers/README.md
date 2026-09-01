@@ -33,6 +33,220 @@ happens when the process holding it simply stops existing.
 | **Hard-kill recovery** | The supervisor writing a durable `FAILED` receipt for an assignment whose execution attempt expired with no worker left to finish it — `failure_category="worker_lost"`. |
 | **Worker lost** | The one failure category this recovery path ever writes. Never inferred success, however far the dead subprocess might actually have gotten. |
 
+## Build the recovery yourself, then watch it almost lie
+
+Before the real supervisor and the real `SIGKILL`, build recovery small
+enough to see every decision — including the one that goes wrong.
+
+The scene: assignment `run-9` went `RUNNING` with fencing token 41 and an
+execution attempt that expired at minute 115. It is now minute 130 and the
+worker has not been heard from. Crucially, its workspace is **not empty** —
+there is diagnostic scratch, and there is a `report.json` that says
+`completed`:
+
+```python
+import pathlib
+import sqlite3
+import tempfile
+
+db = sqlite3.connect(":memory:")
+db.executescript("""
+    CREATE TABLE assignments (id TEXT PRIMARY KEY, state TEXT NOT NULL,
+                              fencing_token INT, attempt_expires_at INT);
+    CREATE TABLE receipts (assignment_id TEXT PRIMARY KEY, status TEXT,
+                           failure_category TEXT);
+""")
+workspace = pathlib.Path(tempfile.mkdtemp())
+(workspace / "provider-raw").mkdir()
+(workspace / "provider-raw" / "stream.log").write_text("...half a stream...")
+(workspace / "report.json").write_text('{"status": "completed"}')  # the TRAP
+
+db.execute("INSERT INTO assignments VALUES ('run-9', 'RUNNING', 41, 115)")
+db.commit()
+```
+
+### The recoverer that wants to be kind
+
+The tempting recovery logic looks *diligent*: before declaring failure, check
+whether the worker actually finished — and if a valid-looking completed
+report is sitting right there, honor the poor worker's last act.
+
+```python
+import json
+
+
+def recover_naive(db, assignment_id, workspace, now):
+    state, expires = db.execute(
+        "SELECT state, attempt_expires_at FROM assignments WHERE id = ?", (assignment_id,)
+    ).fetchone()
+    if state != "RUNNING" or expires > now:
+        return "nothing to recover"
+    report = workspace / "report.json"
+    if report.is_file() and json.loads(report.read_text()).get("status") == "completed":
+        db.execute("UPDATE assignments SET state = 'COMPLETED' WHERE id = ?", (assignment_id,))
+        db.commit()
+        return "worker left a completed report -- marked COMPLETED"
+    db.execute("UPDATE assignments SET state = 'FAILED' WHERE id = ?", (assignment_id,))
+    db.commit()
+    return "marked FAILED"
+
+
+print(recover_naive(db, "run-9", workspace, now=130))
+```
+
+```text
+worker left a completed report -- marked COMPLETED
+```
+
+The ledger now says `COMPLETED`, and nobody decided that — a *file* did. Ask
+what that file actually proves. Chapter 3 taught that a report is a
+**proposal** the host validates: no terminal event was seen, no session
+identity extracted, no protocol completed. Chapter 4 taught that **presence
+is not work**: that file could be preplanted, half-written-but-parseable, or
+written by a stale process that is *still running somewhere* and about to do
+who-knows-what. The killed worker might genuinely have been one line from
+finishing correctly — and the organization has no way to know. Blessing the
+file converts "unknown" into "success" on zero evidence, which is precisely
+the lie a governed ledger exists to make unwritable.
+
+### The recoverer that refuses to guess
+
+The honest version writes the only thing that is actually known — *we don't
+know it finished, so it didn't* — and does all of its writes in **one
+transaction**:
+
+```python
+def recover(db, assignment_id, now):
+    cursor = db.execute(
+        "UPDATE assignments SET state = 'FAILED', fencing_token = NULL,"
+        " attempt_expires_at = NULL"
+        " WHERE id = ? AND state = 'RUNNING' AND attempt_expires_at <= ?",
+        (assignment_id, now),
+    )
+    if cursor.rowcount != 1:
+        db.commit()
+        return "nothing to recover"
+    db.execute("INSERT INTO receipts VALUES (?, 'failed', 'worker_lost')", (assignment_id,))
+    db.commit()  # ONE commit: terminal state, cleared fence, receipt -- together
+    return "recovered: FAILED, category worker_lost, fence cleared"
+
+
+db.execute(
+    "UPDATE assignments SET state = 'RUNNING', fencing_token = 41, attempt_expires_at = 115"
+    " WHERE id = 'run-9'"
+)
+db.commit()
+print(recover(db, "run-9", now=130))
+print(recover(db, "run-9", now=131))  # the second tick
+row = db.execute(
+    "SELECT status, failure_category FROM receipts WHERE assignment_id = 'run-9'"
+).fetchone()
+print("receipt:", row)
+```
+
+```text
+recovered: FAILED, category worker_lost, fence cleared
+nothing to recover
+receipt: ('failed', 'worker_lost')
+```
+
+Three deliberate choices, each doing real work:
+
+- **The `WHERE` clause is the detector.** `state = 'RUNNING' AND
+  attempt_expires_at <= now` — recovery is a compare-and-set, the exact
+  pattern Chapter 5 built, aimed at a different table. Expiry alone is not a
+  fault; it just makes the row *recoverable*.
+- **The fence clears in the same transaction as the terminal write.** So
+  there is never a moment when the assignment is terminal but still fenced
+  (stranding the workspace) or unfenced but still `RUNNING` (inviting a
+  second writer). And it is why the second tick finds *nothing*: idempotency
+  falls out of the CAS, rather than needing a "did I already recover this?"
+  memory.
+- **`worker_lost` is the only category this path ever writes**, and
+  production names it exactly once, as a module constant — so no receipt
+  reader ever reconciles two spellings of "the worker never came back."
+  Richer failure taxonomy (timeout vs. nonzero exit vs. interruption, and
+  which wins when several are observed at once) is decided at *execution*
+  time by the host that watched the process die; the supervisor never
+  re-litigates it. It handles only the case where nobody was left to decide.
+
+### Two supervisors, one recovery
+
+Nothing above assumed the supervisor is unique — and it must not, because
+supervisors crash too, and someone restarts them. Run two against the same
+abandoned assignment:
+
+```python
+db.execute("INSERT INTO assignments VALUES ('run-10', 'RUNNING', 55, 220)")
+db.commit()
+
+print("supervisor-1:", recover(db, "run-10", now=230))
+print("supervisor-2:", recover(db, "run-10", now=230))
+count = db.execute("SELECT COUNT(*) FROM receipts WHERE assignment_id = 'run-10'").fetchone()[0]
+print("receipts written:", count)
+```
+
+```text
+supervisor-1: recovered: FAILED, category worker_lost, fence cleared
+supervisor-2: nothing to recover
+receipts written: 1
+```
+
+One winner, one receipt, no coordination protocol between the supervisors —
+the same CAS that made one tick idempotent makes two supervisors safe. This
+is the payoff of Chapter 5 generalizing: every "exactly once against shared
+state" problem in this system is solved by the same shape.
+
+### Reclaim comes last, and keeps the evidence
+
+The workspace still holds the dead worker's scratch — and the trap file.
+Reclaiming is a *policy* act, gated on the durable terminal state:
+
+```python
+def reclaim(db, assignment_id, workspace):
+    state = db.execute("SELECT state FROM assignments WHERE id = ?", (assignment_id,)).fetchone()[0]
+    if state == "RUNNING":
+        return "refused: assignment not terminal, scratch may still be in use"
+    scratch = workspace / "provider-raw"
+    if scratch.is_dir():
+        for item in sorted(scratch.rglob("*")):
+            item.unlink()
+        scratch.rmdir()
+    return f"reclaimed scratch; kept: {sorted(p.name for p in workspace.iterdir())}"
+
+
+db.execute("INSERT INTO assignments VALUES ('run-11', 'RUNNING', 60, 320)")
+db.commit()
+print(reclaim(db, "run-11", workspace))
+print(recover(db, "run-11", now=330))
+print(reclaim(db, "run-11", workspace))
+```
+
+```text
+refused: assignment not terminal, scratch may still be in use
+recovered: FAILED, category worker_lost, fence cleared
+reclaimed scratch; kept: ['report.json']
+```
+
+Order is everything: reclaim before the terminal state is durable and you
+might delete the scratch of a worker that turns out to be alive; production
+applies workspace policy strictly **after** the recovery transaction
+commits. And notice what survived: `report.json` — the trap — is *kept*. Not
+as a result (its assignment is `FAILED`, permanently, whatever the file
+says) but as **evidence** a human can inspect when they ask what the dead
+worker was doing. Deleting it would be laundering the crash; blessing it
+would be laundering the guess. Keeping it, attached to an honest `FAILED`,
+is the only move that lies about nothing.
+
+The production versions live in `src/sovereign_agent/supervisor.py`: a
+`tick` does exactly four things in a fixed order — report expired actor
+leases (read-only), sweep expired mailbox claims back to `NEW`, recover
+abandoned assignments as you just built, and *nothing else*. The governing
+contract is explicit that the supervisor never creates work, never reads a
+Pulse signal, never installs itself as a service — because "a process cannot
+record its own death" cuts both ways: the one process allowed to declare
+others dead must itself stay too simple to need declaring.
+
 ## A note on realism, before you run this
 
 This exercise does not simulate a crash with a caught exception. It starts a
@@ -136,6 +350,14 @@ only after the recovery transaction is durable.
 5. No new `AssignmentState` was added for a recovered assignment — it reuses
    `FAILED`. What would a dedicated `RECOVERED` state let a reader assume
    that they should not be allowed to assume?
+6. `recover_naive` looked *more* diligent than `recover` — it checked the
+   report before deciding. Explain precisely why the extra check made it
+   less honest, not more.
+7. Two supervisors recovered `run-10` with no coordination protocol between
+   them, yet wrote exactly one receipt. Name the mechanism, and say where
+   you built it before.
+8. Reclaim kept `report.json` on a `FAILED` assignment. Defend keeping a
+   file whose contents the ledger explicitly refuses to believe.
 
 ## Where to look next
 

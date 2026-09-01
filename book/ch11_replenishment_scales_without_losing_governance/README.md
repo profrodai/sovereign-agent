@@ -37,6 +37,224 @@ None new — this chapter combines every mechanism Chapters 0-10 already
 named (outcome, SOW, assignment, effect, verification, review, acceptance,
 wake gate, Pulse) and proves they compose correctly at more than one SKU.
 
+## Build the restock yourself, then double-order under retry
+
+Production paid a specific bill here, and its own docstring names it: "An
+earlier version scanned the event log and validated cash before opening its
+transaction, so two concurrent retries both passed the scan and both
+ordered: on_hand went to 14 with two purchase entries." Reproduce that exact
+failure, to the digit, then repair it.
+
+```python
+import sqlite3
+
+db = sqlite3.connect(":memory:")
+db.executescript("""
+    CREATE TABLE inventory (sku TEXT PRIMARY KEY, on_hand INT, reorder INT);
+    CREATE TABLE cash_entries (id INTEGER PRIMARY KEY, amount_cents INT NOT NULL);
+    CREATE TABLE assignments (id TEXT PRIMARY KEY);
+    CREATE TABLE effects (id INTEGER PRIMARY KEY, assignment_id TEXT, kind TEXT,
+                          subject TEXT, payload TEXT,
+                          UNIQUE(assignment_id, kind, subject));
+""")
+db.execute("INSERT INTO inventory VALUES ('SKU-TEA', 2, 3)")
+db.execute("INSERT INTO cash_entries(amount_cents) VALUES (4000)")  # opening cash
+db.execute("INSERT INTO assignments VALUES ('asg-1')")
+db.execute("INSERT INTO assignments VALUES ('asg-2')")
+db.execute("INSERT INTO assignments VALUES ('asg-3')")
+db.commit()
+
+
+def state(db):
+    on_hand = db.execute("SELECT on_hand FROM inventory WHERE sku = 'SKU-TEA'").fetchone()[0]
+    entries = db.execute("SELECT COUNT(*) FROM cash_entries WHERE amount_cents < 0").fetchone()[0]
+    cash = db.execute("SELECT SUM(amount_cents) FROM cash_entries").fetchone()[0]
+    return f"on_hand={on_hand} purchase_entries={entries} cash={cash}c"
+
+
+print(state(db))
+```
+
+```text
+on_hand=2 purchase_entries=0 cash=4000c
+```
+
+The `UNIQUE(assignment_id, kind, subject)` on `effects` is the chapter's
+protagonist. It looks like a data-hygiene constraint. It is a concurrency
+mechanism.
+
+### Break it: scan first, order later
+
+The tempting shape: check whether this restock already happened, and if
+not, do it. Two retries of the same assignment arrive close together — both
+scan **before** either writes:
+
+```python
+def restock_naive(db, sku, quantity, unit_cost, already_done_seen):
+    if already_done_seen:
+        return "skipped: already restocked"
+    db.execute("UPDATE inventory SET on_hand = on_hand + ? WHERE sku = ?", (quantity, sku))
+    db.execute("INSERT INTO cash_entries(amount_cents) VALUES (?)", (-quantity * unit_cost,))
+    db.commit()
+    return f"ordered {quantity} {sku}"
+
+
+done_a = db.execute("SELECT COUNT(*) FROM effects WHERE assignment_id = 'asg-1'").fetchone()[0] > 0
+done_b = db.execute("SELECT COUNT(*) FROM effects WHERE assignment_id = 'asg-1'").fetchone()[0] > 0
+print("retry-a scanned first, saw done:", done_a, "| retry-b scanned too, saw done:", done_b)
+print(restock_naive(db, "SKU-TEA", 6, 250, done_a))
+print(restock_naive(db, "SKU-TEA", 6, 250, done_b))
+print(state(db))
+```
+
+```text
+retry-a scanned first, saw done: False | retry-b scanned too, saw done: False
+ordered 6 SKU-TEA
+ordered 6 SKU-TEA
+on_hand=14 purchase_entries=2 cash=1000c
+```
+
+`on_hand=14 purchase_entries=2` — the production docstring's exact numbers,
+resurrected. Lucy paid twice, twelve tubs arrive for a freezer that needed
+six, and both retries behaved "correctly" against what they saw. Chapter 9's
+oversell race, mirrored: there stale reads sold stock twice; here they
+*bought* it twice.
+
+### Repair: the claim is a row, not a scan
+
+Everything that decides — the idempotency claim, the authorization, the cash
+check — moves **inside** the transaction that acts, and the claim itself
+becomes an insert under the `UNIQUE` constraint:
+
+```python
+db.execute("UPDATE inventory SET on_hand = 2 WHERE sku = 'SKU-TEA'")
+db.execute("DELETE FROM cash_entries WHERE amount_cents < 0")
+db.commit()
+
+
+def apply_restock(db, sku, quantity, unit_cost, assignment_id):
+    db.execute("BEGIN IMMEDIATE")
+    existing = db.execute(
+        "SELECT payload FROM effects WHERE assignment_id = ? AND kind = 'replenishment'"
+        " AND subject = ?",
+        (assignment_id, sku),
+    ).fetchone()
+    if existing is not None:
+        db.execute("COMMIT")
+        return f"idempotent replay: {existing[0]}"
+    known = db.execute(
+        "SELECT COUNT(*) FROM assignments WHERE id = ?", (assignment_id,)
+    ).fetchone()[0]
+    if not known:
+        db.execute("ROLLBACK")
+        return f"refused: {assignment_id} is not an authorized assignment"
+    total = quantity * unit_cost
+    cash = db.execute("SELECT SUM(amount_cents) FROM cash_entries").fetchone()[0]
+    if total > cash:
+        db.execute("ROLLBACK")
+        return f"refused: costs {total}c, only {cash}c on hand"
+    db.execute("UPDATE inventory SET on_hand = on_hand + ? WHERE sku = ?", (quantity, sku))
+    db.execute("INSERT INTO cash_entries(amount_cents) VALUES (?)", (-total,))
+    payload = f"{quantity} {sku} for {total}c"
+    db.execute(
+        "INSERT INTO effects(assignment_id, kind, subject, payload)"
+        " VALUES (?, 'replenishment', ?, ?)",
+        (assignment_id, sku, payload),
+    )
+    db.execute("COMMIT")
+    return f"ordered {payload}"
+
+
+print(apply_restock(db, "SKU-TEA", 6, 250, "asg-1"))
+print(apply_restock(db, "SKU-TEA", 6, 250, "asg-1"))
+print(state(db))
+```
+
+```text
+ordered 6 SKU-TEA for 1500c
+idempotent replay: 6 SKU-TEA for 1500c
+on_hand=8 purchase_entries=1 cash=2500c
+```
+
+The retry does not fail, and does not re-order: it returns the **canonical
+prior result** — the same payload the winner committed — which is exactly
+what a confused retry mechanism needs to hear. In the toy the replay is
+caught by the read inside `BEGIN IMMEDIATE`; under genuine two-connection
+contention the second claimant's *insert itself* collides with the `UNIQUE`
+constraint inside the transaction that does the work, and production
+converts that `IntegrityError` into the same canonical replay — the
+database refuses the duplicate, so nothing depends on timing.
+
+### The key must name the operation, not the attempt
+
+Idempotency is only as good as the key's identity. Suppose the retry
+infrastructure mints a *fresh assignment id per attempt* — or keys the claim
+on a timestamp, or a process id:
+
+```python
+print(apply_restock(db, "SKU-TEA", 6, 250, "asg-2"))  # same logical restock, fresh id per retry
+print(state(db))
+```
+
+```text
+ordered 6 SKU-TEA for 1500c
+on_hand=14 purchase_entries=2 cash=1000c
+```
+
+Fourteen again — the naive failure, walked straight back in through the
+front door, past a perfectly functioning `UNIQUE` constraint. The mechanism
+held; the *key* lied. An idempotency key must be derived from the
+operation's **stable identity** — this assignment, this kind, this subject —
+never from anything that changes per attempt (time, attempt counters,
+process ids), because a key that varies across retries is a key that never
+matches, which is no key at all.
+
+### Only once is not the same as allowed
+
+Two more refusals, because idempotency answers "*again*?" and says nothing
+about "*may you at all*?":
+
+```python
+print(apply_restock(db, "SKU-TEA", 6, 250, "asg-invented"))
+print(apply_restock(db, "SKU-TEA", 60, 250, "asg-3"))
+print(state(db))
+```
+
+```text
+refused: asg-invented is not an authorized assignment
+refused: costs 15000c, only 1000c on hand
+on_hand=14 purchase_entries=2 cash=1000c
+```
+
+A fabricated assignment is refused before any money moves — production does
+this with `_authorize_effect` plus a foreign key, so an invented assignment
+*cannot be named at all* — and a restock the till cannot cover is refused by
+a cash check that runs inside the same lock as the writes. Both checks
+live **inside** `BEGIN IMMEDIATE` with everything else, because a check
+outside the transaction is a scan, and this chapter opened with what scans
+are worth.
+
+### One shape, many tools: what each mechanism actually prevents
+
+You have now built five exactly-once-flavored mechanisms across four
+chapters. They are not interchangeable:
+
+| Mechanism | Prevents | Does NOT prevent |
+| --- | --- | --- |
+| Exclusive lock (`BEGIN IMMEDIATE`) | two writers interleaving mid-transaction | a retry re-running the whole transaction later |
+| `UNIQUE` constraint | a duplicate row ever existing | the duplicate *attempt* — it only makes it fail loudly |
+| Compare-and-set (`WHERE` + rowcount) | acting on a state that already changed | a stale actor acting under a still-matching old state |
+| Lease (expiry) | a dead holder blocking forever | a slow holder acting after expiry |
+| Fencing token | a stale holder's write becoming canonical | the stale holder from running at all |
+| Idempotency key | the same operation charging twice | an *unauthorized* operation charging once |
+
+Read the right column as carefully as the left: every row's gap is filled by
+another row. `apply_restock` composes four of them in one function — the
+lock serializes, the unique key claims, the derived key names the operation,
+and authorization gates the act — which is why the production docstring can
+promise that two concurrent retries produce one order *without depending on
+timing*.
+
 ## The exercise
 
 ```bash
@@ -132,6 +350,17 @@ exercise cannot demonstrate by itself.
    after the other in Python. What property does the concurrency test
    (`test_two_real_connections_racing_two_different_skus_create_two_
    canonical_sows`) prove that this chapter's own sequential run cannot?
+4. The wrong-key demo reached `on_hand=14` past a perfectly functioning
+   `UNIQUE` constraint. State the rule for what an idempotency key may be
+   derived from, and give two things it must never be derived from.
+5. The retry received the canonical prior payload rather than an error.
+   Which Chapter 7 behavior is this the twin of, and what would a raised
+   exception cause a retry loop to do instead?
+6. Pick two rows of the mechanism table whose right-column gaps are filled
+   by each other, and explain the pairing in one sentence each.
+7. "Only once is not the same as allowed." Which check in `apply_restock`
+   enforces each half, and why must both run inside `BEGIN IMMEDIATE`
+   rather than before it?
 
 ## Where to look next
 

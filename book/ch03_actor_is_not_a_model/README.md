@@ -190,6 +190,281 @@ principal cannot rubber-stamp work they personally did. Together: **accountabili
 lives on the role, so upgrading the model can never launder a proposal into an
 approval.**
 
+## The rebind is two writes, and the seam between them
+
+The toy `rebind_actor` above wrote one list. Production writes **two stores**:
+the actor's new provider goes into `sovereign.toml` (the canonical config the
+organization reads at startup — Chapter 1, Exercise 4), and the governed
+record of the act goes into the ledger as an `actor.provider_rebound` event.
+Two stores means Chapter 1's hardest lesson applies: no transaction spans
+them. Build it with the seam visible:
+
+```python
+import json
+import pathlib
+import tempfile
+
+shop = pathlib.Path(tempfile.mkdtemp())
+config_path = shop / "sovereign.toml"
+ledger = []  # stands in for Chapter 1's append-only events table
+
+
+def write_config(path, actors):
+    lines = ["schema_version = 1", ""]
+    for a in actors:
+        lines += ["[[actors]]", f'id = "{a.id}"', f'provider = "{a.provider}"', ""]
+    path.write_text("\n".join(lines))
+
+
+def rebind_durably(actor, new_provider, performed_by, crash_between=False):
+    require_authority(performed_by.role, "rule")
+    actor.provider = new_provider
+    write_config(config_path, [operator, principal])  # store 1: the config file
+    if crash_between:
+        raise RuntimeError("power cut between the two stores")
+    ledger.append({"kind": "actor.provider_rebound", "to": new_provider})  # store 2
+
+
+rebind_durably(operator, "scripted", performed_by=principal)
+provider_line = [li for li in config_path.read_text().splitlines() if "provider" in li][0]
+print("config says: ", provider_line)
+print("ledger says: ", ledger[-1]["kind"], "->", ledger[-1]["to"])
+```
+
+```text
+config says:  provider = "scripted"
+ledger says:  actor.provider_rebound -> scripted
+```
+
+Both stores agree. Now crash between them:
+
+```python
+try:
+    rebind_durably(operator, "ollama", performed_by=principal, crash_between=True)
+except RuntimeError as error:
+    print("crashed:", error)
+
+provider_line = [li for li in config_path.read_text().splitlines() if "provider" in li][0]
+print("config says: ", provider_line)
+print("ledger's last rebind:", ledger[-1]["to"])
+```
+
+```text
+crashed: power cut between the two stores
+config says:  provider = "ollama"
+ledger's last rebind: scripted
+```
+
+Read that disagreement carefully, because it is the *mirror image* of
+Chapter 1's stale projection. There, the ledger was right and the file was
+stale — and the file could be regenerated, so nothing was lost. Here the
+config file is **canonical** for actor bindings: the organization will reopen,
+read `sovereign.toml`, and run the operator on `ollama`. The rebind is
+*effective*. What is missing is the governed **record** of it — no event, no
+"by whom," no audit trail. An effective-but-unrecorded act is a different
+disease from a stale projection, and a worse one, because neither store can be
+regenerated from the other. Production `rebind_actor` has exactly this shape —
+`write_config` first, the ledger transaction second — and the honest statement
+is the one the production comment culture would demand: this is a dual-store
+seam to *know about and detect*, not an atomicity the code quietly pretends
+to have. And here is the part that must be said with no softening:
+**production currently has no automated detector for this seam.** There is a
+drift-checker for governance *projections* (Chapter 1's
+`verify_projections.py`), but no equivalent that compares `sovereign.toml`'s
+actor bindings against the ledger's rebind events — a crash-window mismatch
+persists until a human compares the two by hand. That is a real, tracked
+implementation gap, not a solved problem this chapter is reviewing. The
+shape of the fix is exactly Chapter 1's move — a *pure* comparison of the
+two stores, with repair as a separate explicit act, never a checker that
+"helpfully" rewrites either side — and building precisely that comparison
+is this chapter's best stretch exercise: you have both stores, you know the
+event kind (`actor.provider_rebound`), and you know from Chapter 1 what a
+verifier must never do.
+
+## The envelope: what the provider is actually told
+
+When an assignment runs, the provider does not get a chat message — it gets a
+**provider-neutral envelope**: one JSON document, identical no matter which
+CLI is behind the actor. Build its skeleton:
+
+```python
+def build_envelope(actor, sow_title, workspace):
+    return json.dumps(
+        {
+            "kind": "sovereign-agent.assignment.v1",
+            "actor": {"id": actor.id, "role": actor.role, "authority": actor.authority},
+            "statement_of_work": sow_title,
+            "workspace": {"root": str(workspace), "boundary": "Stay inside this workspace."},
+            "report_contract": {
+                "required_action": "Before exiting, write report.json with status"
+                " completed, blocked, or failed."
+            },
+        },
+        sort_keys=True,
+    )
+
+
+envelope = build_envelope(operator, "Restock SKU-VANILLA to its reorder point", shop)
+print("authority in the envelope:", json.loads(envelope)["actor"]["authority"])
+```
+
+```text
+authority in the envelope: ['read', 'write_workspace', 'run_checks', 'report']
+```
+
+The actor's authority travels *inside* the envelope — the model is told, in
+writing, what this actor may do, and the production contract adds: "Do not
+claim authority the actor lacks." But telling is not trusting. The report the
+model writes back is a **proposal**, and the host validates it before
+anything becomes durable:
+
+```python
+def host_collect_report(workspace):
+    report_path = workspace / "report.json"
+    if not report_path.is_file():
+        return ("failed", "provider exited 0 but wrote no report -- silence is not success")
+    report = json.loads(report_path.read_text())
+    if report.get("status") not in {"completed", "blocked", "failed"}:
+        return ("failed", f"invalid report status: {report.get('status')!r}")
+    return (report["status"], "report accepted")
+
+
+print(host_collect_report(shop))  # the model wrote nothing at all
+(shop / "report.json").write_text(json.dumps({"status": "triumphant"}))
+print(host_collect_report(shop))
+(shop / "report.json").write_text(json.dumps({"status": "completed"}))
+print(host_collect_report(shop))
+```
+
+```text
+('failed', 'provider exited 0 but wrote no report -- silence is not success')
+('failed', "invalid report status: 'triumphant'")
+('completed', 'report accepted')
+```
+
+Three runs, three verdicts, and only the last one counts as completion. A
+clean exit code with no report is a *failure* — the process ending happily
+says nothing about the work. An enthusiastic but off-contract status
+(`"triumphant"`) is a failure too: the contract is three words, and the host
+enforces the contract rather than interpreting the vibe. In production this
+is `invoke_actor` in `execution.py`: the model proposes an `ActorReport`
+(against a JSON schema shipped in the envelope), and the host validates it,
+writes the receipt, and persists — or writes a *failed* receipt via
+`write_failed_receipt`. Be exact about what that division of labor is: the
+*protocol* assigns ledger persistence to the host — the provider is handed
+report paths, not a database API, and nothing in its instructions points at
+`organization.db`. But an instruction is not a wall. Not every provider runs
+OS-sandboxed (Chapter 4 names which ones do not), and the workspace boundary
+check deliberately excludes the ledger file itself — so an unsandboxed
+provider process is *directed* away from the ledger and *validated* before
+anything it proposes becomes durable, yet it is not mechanically proven
+unable to open the database file the way a sandboxed one is. That residual
+is Chapter 4's subject, and pretending it away here would be the kind of
+overclaim this book exists to refuse.
+
+## An adapter is a hostile-boundary parser
+
+Between the envelope and the report sits the provider CLI — an external
+program the organization did not write and must not trust. The adapter's job
+is to invoke it without assuming anything it cannot prove. Three disciplines,
+each buildable in a few lines.
+
+**Prove flags before sending them.** Capabilities come from a live `--help`
+probe of the installed CLI, never from a version table or memory:
+
+```python
+FAKE_HELP = """
+Usage: shopcli [OPTIONS]
+  --print          run non-interactively and print the result
+  --resume ID      resume a provider session
+"""
+
+
+def probe(help_text):
+    return {flag for flag in ("--print", "--resume", "--sandbox") if flag in help_text}
+
+
+def build_argv(help_text, wanted_flags):
+    missing = [flag for flag in wanted_flags if flag not in probe(help_text)]
+    if missing:
+        raise PermissionError(f"refused: cannot prove capability {missing} from --help")
+    return ["shopcli", *wanted_flags]
+
+
+print(build_argv(FAKE_HELP, ["--print"]))
+try:
+    build_argv(FAKE_HELP, ["--print", "--sandbox"])
+except PermissionError as error:
+    print(error)
+```
+
+```text
+['shopcli', '--print']
+refused: cannot prove capability ['--sandbox'] from --help
+```
+
+`--sandbox` might exist in a newer release; this installation cannot prove
+it, so it is never sent. Note also *what* `build_argv` returned: a **list**,
+not a string. Production runs every provider with `shell=False` and an argv
+list — there is no shell to interpret a maliciously-named file or a `;` in a
+prompt. And the environment the child sees is allowlisted down to almost
+nothing, so credentials never leak across the boundary by default:
+
+```python
+def minimal_env(full_env, allow=("PATH", "HOME", "LANG")):
+    return {key: value for key, value in full_env.items() if key in allow}
+
+
+fake_env = {"PATH": "/usr/bin", "HOME": "/home/lucy", "AWS_SECRET_KEY": "hunter2"}
+print("env that crosses the boundary:", sorted(minimal_env(fake_env)))
+
+
+def parse_stream(lines):
+    session, terminal = None, False
+    for line in lines:
+        try:
+            event = json.loads(line)
+        except json.JSONDecodeError:
+            return f"protocol failure: not JSON: {line[:19]!r}"
+        if event.get("type") == "result":
+            terminal = True
+            session = event.get("session_id")
+        # any OTHER well-formed event type is valid: tolerated and recorded, not fatal
+    if not terminal:
+        return "protocol failure: stream ended with no terminal event"
+    if session is None:
+        return "protocol failure: terminal event carries no session id"
+    return f"ok: session {session}"
+
+
+print(parse_stream(['{"type": "greeting"}', '{"type": "result", "session_id": "s-77"}']))
+print(parse_stream(['{"type": "result"}']))
+print(parse_stream(["definitely not json"]))
+print(parse_stream(['{"type": "greeting"}']))
+```
+
+```text
+env that crosses the boundary: ['HOME', 'PATH']
+ok: session s-77
+protocol failure: terminal event carries no session id
+protocol failure: not JSON: 'definitely not json'
+protocol failure: stream ended with no terminal event
+```
+
+`AWS_SECRET_KEY` never crossed. A provider that genuinely needs an auth
+variable gets it *added to the allowlist by name*, as a reviewed decision —
+not inherited because it happened to be in the parent environment.
+
+The stream parser draws a line worth memorizing: an *unknown but well-formed*
+event (`greeting`) is *valid* — providers add event types, and an adapter
+that dies on novelty breaks on every upstream release. A *malformed* line is
+a protocol failure. And a stream that ends without a terminal event carrying
+a session id is a failure even if the process exited 0 — the terminal event
+and session identity are how the receipt gets its provenance. Tolerance for
+the unknown, zero tolerance for the broken: that is the whole discipline of
+parsing at a hostile boundary, and it is exactly how the production adapters
+(`providers/claude.py` and its siblings) treat their CLIs.
+
 ## The exercise
 
 Confirm all of this in the *real* organization, where `Actor`, `ROLE_AUTHORITY`,
@@ -307,5 +582,14 @@ shell strings.
    operator cannot approve its own work?
 6. `operator-course` is rebound from `scripted` to `ollama`. Who is accountable
    for the next restock it proposes, and how would you show that from the ledger?
+7. The crash between the two rebind writes left the config saying `ollama` and
+   the ledger saying `scripted`. Explain why this is *worse* than Chapter 1's
+   stale projection, and why "regenerate one from the other" is not available
+   here.
+8. A provider exits with code 0 and writes no `report.json`. The host records a
+   failure. Defend that choice against "but the process succeeded."
+9. The stream parser tolerates `{"type": "greeting"}` but fails the whole run
+   on `definitely not json`. Why is tolerating the first and refusing the
+   second the right pairing, rather than the reverse?
 
 Next: [Chapter 4 — Work stays inside its boundary](../ch04_work_stays_inside_its_boundary/README.md)
