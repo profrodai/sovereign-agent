@@ -47,7 +47,7 @@ def _caps(**changes: object) -> ProviderCapabilities:
 
 
 def test_registry_names_are_equal_adapters() -> None:
-    assert list(PROVIDERS) == ["scripted", "claude", "codex", "cursor"]
+    assert list(PROVIDERS) == ["scripted", "claude", "codex", "cursor", "ollama"]
     with pytest.raises(Refusal, match="Unknown provider"):
         get_provider("sonnet")
 
