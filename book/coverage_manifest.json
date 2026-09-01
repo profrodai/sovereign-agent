@@ -424,8 +424,83 @@
       ]
     },
     "ch06_the_organization_recovers": {
-      "depth": "pending",
-      "concepts": []
+      "depth": "full",
+      "concepts": [
+        {
+          "concept": "presence-never-blessed-as-success",
+          "anchor": "The recoverer that wants to be kind",
+          "symbols": [
+            {
+              "file": "src/sovereign_agent/supervisor.py",
+              "name": "WORKER_LOST"
+            }
+          ],
+          "tests": [
+            {
+              "file": "tests/test_supervisor.py",
+              "name": "def test_"
+            }
+          ],
+          "exercise": "book/ch06_the_organization_recovers/solution.py"
+        },
+        {
+          "concept": "fence-cleared-with-terminal-state-one-transaction",
+          "anchor": "The recoverer that refuses to guess",
+          "symbols": [
+            {
+              "file": "src/sovereign_agent/supervisor.py",
+              "name": "def recover_abandoned_assignments"
+            }
+          ],
+          "tests": [
+            {
+              "file": "tests/test_supervisor.py",
+              "name": "idempotent"
+            }
+          ],
+          "exercise": "book/ch06_the_organization_recovers/solution.py"
+        },
+        {
+          "concept": "two-supervisors-cas-one-winner",
+          "anchor": "Two supervisors, one recovery",
+          "symbols": [
+            {
+              "file": "src/sovereign_agent/supervisor.py",
+              "name": "def tick"
+            }
+          ],
+          "tests": [
+            {
+              "file": "tests/test_supervisor.py",
+              "name": "def test_"
+            }
+          ],
+          "exercise": "book/ch06_the_organization_recovers/solution.py"
+        },
+        {
+          "concept": "reclaim-after-durable-terminal-keeps-evidence",
+          "anchor": "Reclaim comes last, and keeps the evidence",
+          "symbols": [
+            {
+              "file": "src/sovereign_agent/workspace.py",
+              "name": "def reclaim_workspace"
+            }
+          ],
+          "tests": [
+            {
+              "file": "tests/test_supervisor.py",
+              "name": "workspace_reclaim"
+            }
+          ],
+          "exercise": "book/ch06_the_organization_recovers/solution.py"
+        }
+      ],
+      "limits_anchor": "never creates work",
+      "break_evidence": [
+        "worker left a completed report -- marked COMPLETED",
+        "nothing to recover",
+        "kept: ['report.json']"
+      ]
     },
     "ch07_the_organization_wakes_itself": {
       "depth": "pending",
