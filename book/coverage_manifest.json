@@ -749,8 +749,83 @@
       ]
     },
     "ch11_replenishment_scales_without_losing_governance": {
-      "depth": "pending",
-      "concepts": []
+      "depth": "full",
+      "concepts": [
+        {
+          "concept": "scan-before-transaction-double-orders",
+          "anchor": "Break it: scan first, order later",
+          "symbols": [
+            {
+              "file": "src/reference_organizations/store/__init__.py",
+              "name": "on_hand went to 14"
+            }
+          ],
+          "tests": [
+            {
+              "file": "tests/test_persistence.py",
+              "name": "idempotency_is_scoped"
+            }
+          ],
+          "exercise": "book/ch11_replenishment_scales_without_losing_governance/solution.py"
+        },
+        {
+          "concept": "unique-claim-inside-transaction-canonical-replay",
+          "anchor": "Repair: the claim is a row, not a scan",
+          "symbols": [
+            {
+              "file": "src/reference_organizations/store/__init__.py",
+              "name": "def apply_restock"
+            }
+          ],
+          "tests": [
+            {
+              "file": "tests/test_store_multi_sku.py",
+              "name": "def test_"
+            }
+          ],
+          "exercise": "book/ch11_replenishment_scales_without_losing_governance/solution.py"
+        },
+        {
+          "concept": "idempotency-key-from-stable-operation-identity",
+          "anchor": "The key must name the operation, not the attempt",
+          "symbols": [
+            {
+              "file": "src/reference_organizations/store/__init__.py",
+              "name": "UNIQUE(assignment_id, kind, subject)"
+            }
+          ],
+          "tests": [
+            {
+              "file": "tests/test_persistence.py",
+              "name": "idempotency_is_scoped"
+            }
+          ],
+          "exercise": "book/ch11_replenishment_scales_without_losing_governance/solution.py"
+        },
+        {
+          "concept": "authorization-separate-from-idempotency",
+          "anchor": "Only once is not the same as allowed",
+          "symbols": [
+            {
+              "file": "src/reference_organizations/store/__init__.py",
+              "name": "_authorize_effect"
+            }
+          ],
+          "tests": [
+            {
+              "file": "tests/test_store_multi_sku.py",
+              "name": "def test_"
+            }
+          ],
+          "exercise": "book/ch11_replenishment_scales_without_losing_governance/solution.py"
+        }
+      ],
+      "limits_anchor": "sequential run cannot",
+      "break_evidence": [
+        "on_hand=14 purchase_entries=2",
+        "idempotent replay: 6 SKU-TEA for 1500c",
+        "refused: asg-invented is not an authorized assignment"
+      ]
     },
     "ch12_the_pilot_begins_with_a_receipt": {
       "depth": "pending",
