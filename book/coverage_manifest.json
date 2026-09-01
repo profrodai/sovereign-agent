@@ -1,5 +1,5 @@
 {
-  "_comment": "Curriculum coverage manifest: concept -> chapter anchor -> production symbols -> production tests -> exercise. Read by scripts/verify_book_depth.py, which mechanically checks every reference. depth 'full' chapters are also held to the structural depth gates; 'pending' chapters are exempt until their rebuild batch lands (era-aware grading, not a free pass).",
+  "_comment": "Curriculum coverage manifest v2: concept -> chapter anchor -> exact AST symbols -> precise test node ids -> exercise, plus source_text for prose-level evidence and known_gap for machine-readable honesty. Read by scripts/verify_book_depth.py, hardened per the Principal's B3/B4 findings: canonical chapter set enforced, contained paths only, AST-exact names, no fragments.",
   "chapters": {
     "ch00_first_shift": {
       "depth": "pending",
@@ -14,16 +14,20 @@
           "symbols": [
             {
               "file": "src/sovereign_agent/database.py",
-              "name": "events_no_update"
+              "name": "MIGRATIONS"
             }
           ],
           "tests": [
-            {
-              "file": "tests/test_persistence.py",
-              "name": "append_only"
-            }
+            "tests/test_persistence.py::test_events_reject_update_and_delete",
+            "tests/test_persistence.py::test_insert_or_replace_cannot_bypass_the_append_only_guard"
           ],
-          "exercise": "book/ch01_organization_remembers/solution.py"
+          "exercise": "book/ch01_organization_remembers/solution.py",
+          "source_text": [
+            {
+              "file": "src/sovereign_agent/database.py",
+              "text": "events are append-only"
+            }
+          ]
         },
         {
           "concept": "transactional-migrations-forward-only",
@@ -31,18 +35,16 @@
           "symbols": [
             {
               "file": "src/sovereign_agent/database.py",
-              "name": "MIGRATIONS"
+              "name": "migrate"
             },
             {
               "file": "src/sovereign_agent/database.py",
-              "name": "def migrate"
+              "name": "MIGRATIONS"
             }
           ],
           "tests": [
-            {
-              "file": "tests/test_persistence.py",
-              "name": "migration"
-            }
+            "tests/test_persistence.py::test_a_failed_migration_rolls_back_schema_and_stamp",
+            "tests/test_persistence.py::test_upgrade_from_prior_schema_preserves_data"
           ],
           "exercise": "book/ch01_organization_remembers/solution.py"
         },
@@ -52,18 +54,16 @@
           "symbols": [
             {
               "file": "src/sovereign_agent/governance.py",
-              "name": "def render_outcome"
+              "name": "render_outcome"
             },
             {
               "file": "scripts/verify_projections.py",
-              "name": "def check"
+              "name": "check"
             }
           ],
           "tests": [
-            {
-              "file": "tests/test_verifier_scripts.py",
-              "name": "projection"
-            }
+            "tests/test_verifier_scripts.py::test_projection_verification_is_pure",
+            "tests/test_verifier_scripts.py::test_verifier_compares_every_projected_file"
           ],
           "exercise": "book/ch01_organization_remembers/solution.py"
         },
@@ -73,11 +73,12 @@
           "symbols": [
             {
               "file": "src/sovereign_agent/files.py",
-              "name": "def atomic_write"
+              "name": "atomic_write"
             }
           ],
           "tests": [],
-          "exercise": "book/ch01_organization_remembers/solution.py"
+          "exercise": "book/ch01_organization_remembers/solution.py",
+          "known_gap": "files.py atomic_write has no direct behavioral test in the suite; flagged in the Batch 1 filing as scoped follow-up implementation work, not smuggled into book scope."
         }
       ],
       "limits_anchor": "What this does not guarantee",
@@ -96,18 +97,16 @@
           "symbols": [
             {
               "file": "src/sovereign_agent/organization.py",
-              "name": "def accept"
+              "name": "accept"
             },
             {
               "file": "src/sovereign_agent/policy.py",
-              "name": "def forbid_self_approval"
+              "name": "forbid_self_approval"
             }
           ],
           "tests": [
-            {
-              "file": "tests/test_acceptance_falsification.py",
-              "name": "def test_"
-            }
+            "tests/test_acceptance_falsification.py::test_refuses_when_inventory_is_below_reorder_point",
+            "tests/test_acceptance_falsification.py::test_refuses_evidence_bound_to_another_execution"
           ],
           "exercise": "book/ch02_work_needs_governance/solution.py"
         },
@@ -117,14 +116,11 @@
           "symbols": [
             {
               "file": "src/sovereign_agent/checks.py",
-              "name": "def run_check"
+              "name": "run_check"
             }
           ],
           "tests": [
-            {
-              "file": "tests/test_acceptance_falsification.py",
-              "name": "stale"
-            }
+            "tests/test_acceptance_falsification.py::test_refuses_stale_evidence_even_when_checks_still_pass"
           ],
           "exercise": "book/ch02_work_needs_governance/solution.py"
         },
@@ -134,14 +130,11 @@
           "symbols": [
             {
               "file": "src/sovereign_agent/checks.py",
-              "name": "state_digest"
+              "name": "_digest_observation"
             }
           ],
           "tests": [
-            {
-              "file": "tests/test_acceptance_falsification.py",
-              "name": "digest"
-            }
+            "tests/test_acceptance_falsification.py::test_refuses_stale_evidence_even_when_checks_still_pass"
           ],
           "exercise": "book/ch02_work_needs_governance/solution.py"
         },
@@ -151,14 +144,16 @@
           "symbols": [
             {
               "file": "src/sovereign_agent/organization.py",
-              "name": "CHANGES_REQUESTED"
+              "name": "review"
+            },
+            {
+              "file": "src/sovereign_agent/policy.py",
+              "name": "advance_sow"
             }
           ],
           "tests": [
-            {
-              "file": "tests/test_recovery.py",
-              "name": "def test_"
-            }
+            "tests/test_recovery.py::test_red_repair_reassign_verify_review_accept",
+            "tests/test_recovery.py::test_acceptance_is_refused_while_changes_are_outstanding"
           ],
           "exercise": "book/ch02_work_needs_governance/solution.py"
         }
@@ -183,14 +178,12 @@
             },
             {
               "file": "src/sovereign_agent/policy.py",
-              "name": "def require_authority"
+              "name": "require_authority"
             }
           ],
           "tests": [
-            {
-              "file": "tests/test_actors_and_mailbox.py",
-              "name": "def test_"
-            }
+            "tests/test_actors_and_mailbox.py::test_an_actor_cannot_expand_its_own_authority",
+            "tests/test_actors_and_mailbox.py::test_role_separation_covers_operator_reviewer_and_principal"
           ],
           "exercise": "book/ch03_actor_is_not_a_model/solution.py"
         },
@@ -200,14 +193,12 @@
           "symbols": [
             {
               "file": "src/sovereign_agent/organization.py",
-              "name": "def rebind_actor"
+              "name": "rebind_actor"
             }
           ],
           "tests": [
-            {
-              "file": "tests/test_actors_and_mailbox.py",
-              "name": "rebind"
-            }
+            "tests/test_actors_and_mailbox.py::test_rebinding_the_provider_preserves_identity_and_authority",
+            "tests/test_actors_and_mailbox.py::test_rebinding_requires_ruling_authority"
           ],
           "exercise": "book/ch03_actor_is_not_a_model/solution.py"
         },
@@ -217,18 +208,15 @@
           "symbols": [
             {
               "file": "src/sovereign_agent/execution.py",
-              "name": "def build_assignment_envelope"
+              "name": "build_assignment_envelope"
             },
             {
               "file": "src/sovereign_agent/execution.py",
-              "name": "def write_failed_receipt"
+              "name": "write_failed_receipt"
             }
           ],
           "tests": [
-            {
-              "file": "tests/test_providers.py",
-              "name": "def test_"
-            }
+            "tests/test_providers.py::test_proven_flags_are_the_only_ones_on_argv"
           ],
           "exercise": "book/ch03_actor_is_not_a_model/solution.py"
         },
@@ -238,14 +226,11 @@
           "symbols": [
             {
               "file": "src/sovereign_agent/providers/claude.py",
-              "name": "def probe"
+              "name": "probe"
             }
           ],
           "tests": [
-            {
-              "file": "tests/test_providers.py",
-              "name": "exact_probe"
-            }
+            "tests/test_providers.py::test_cursor_workspace_flag_requires_exact_probe"
           ],
           "exercise": "book/ch03_actor_is_not_a_model/solution.py"
         }
@@ -266,14 +251,11 @@
           "symbols": [
             {
               "file": "src/sovereign_agent/workspace.py",
-              "name": "def safe_join"
+              "name": "safe_join"
             }
           ],
           "tests": [
-            {
-              "file": "tests/test_workspace_lifecycle.py",
-              "name": "traversal"
-            }
+            "tests/test_workspace_lifecycle.py::test_traversal_deliverable_is_refused"
           ],
           "exercise": "book/ch04_work_stays_inside_its_boundary/solution.py"
         },
@@ -283,18 +265,16 @@
           "symbols": [
             {
               "file": "src/sovereign_agent/workspace.py",
-              "name": "def snapshot_boundary"
+              "name": "snapshot_boundary"
             },
             {
               "file": "src/sovereign_agent/workspace.py",
-              "name": "def diff_boundary"
+              "name": "diff_boundary"
             }
           ],
           "tests": [
-            {
-              "file": "tests/test_workspace_lifecycle.py",
-              "name": "outside"
-            }
+            "tests/test_workspace_lifecycle.py::test_detects_write_outside_workspace",
+            "tests/test_workspace_lifecycle.py::test_a_new_file_outside_the_workspace_is_also_detected"
           ],
           "exercise": "book/ch04_work_stays_inside_its_boundary/solution.py"
         },
@@ -304,14 +284,15 @@
           "symbols": [
             {
               "file": "src/sovereign_agent/execution.py",
-              "name": "def write_receipt"
+              "name": "write_receipt"
+            },
+            {
+              "file": "src/sovereign_agent/execution.py",
+              "name": "canonical_receipt_json"
             }
           ],
           "tests": [
-            {
-              "file": "tests/test_workspace_lifecycle.py",
-              "name": "receipt"
-            }
+            "tests/test_persistence.py::test_receipts_are_deliberately_not_append_only"
           ],
           "exercise": "book/ch04_work_stays_inside_its_boundary/solution.py"
         },
@@ -321,14 +302,11 @@
           "symbols": [
             {
               "file": "src/sovereign_agent/execution.py",
-              "name": "def run_spec"
+              "name": "run_spec"
             }
           ],
           "tests": [
-            {
-              "file": "tests/test_providers.py",
-              "name": "argv"
-            }
+            "tests/test_providers.py::test_proven_flags_are_the_only_ones_on_argv"
           ],
           "exercise": "book/ch04_work_stays_inside_its_boundary/solution.py"
         }
@@ -349,14 +327,11 @@
           "symbols": [
             {
               "file": "src/sovereign_agent/relay.py",
-              "name": "def claim"
+              "name": "claim"
             }
           ],
           "tests": [
-            {
-              "file": "tests/test_actors_and_mailbox.py",
-              "name": "def test_"
-            }
+            "tests/test_actors_and_mailbox.py::test_claim_lease_is_exclusive"
           ],
           "exercise": "book/ch05_authority_needs_a_fence/solution.py"
         },
@@ -366,14 +341,11 @@
           "symbols": [
             {
               "file": "src/sovereign_agent/relay.py",
-              "name": "def complete"
+              "name": "complete"
             }
           ],
           "tests": [
-            {
-              "file": "tests/test_fencing.py",
-              "name": "def test_"
-            }
+            "tests/test_actors_and_mailbox.py::test_only_the_claimant_can_complete"
           ],
           "exercise": "book/ch05_authority_needs_a_fence/solution.py"
         },
@@ -387,14 +359,11 @@
             },
             {
               "file": "src/sovereign_agent/fencing.py",
-              "name": "def new_process_identity"
+              "name": "new_process_identity"
             }
           ],
           "tests": [
-            {
-              "file": "tests/test_fencing.py",
-              "name": "acquire_actor_lease"
-            }
+            "tests/test_actors_and_mailbox.py::test_expired_lease_is_reclaimable"
           ],
           "exercise": "book/ch05_authority_needs_a_fence/solution.py"
         },
@@ -404,14 +373,11 @@
           "symbols": [
             {
               "file": "src/sovereign_agent/relay.py",
-              "name": "def dead_letter"
+              "name": "dead_letter"
             }
           ],
           "tests": [
-            {
-              "file": "tests/test_actors_and_mailbox.py",
-              "name": "def test_"
-            }
+            "tests/test_actors_and_mailbox.py::test_expired_lease_is_reclaimable"
           ],
           "exercise": "book/ch05_authority_needs_a_fence/solution.py"
         }
@@ -436,10 +402,7 @@
             }
           ],
           "tests": [
-            {
-              "file": "tests/test_supervisor.py",
-              "name": "def test_"
-            }
+            "tests/test_supervisor.py::test_never_guesses_success_recovery_receipt_is_always_failed"
           ],
           "exercise": "book/ch06_the_organization_recovers/solution.py"
         },
@@ -449,14 +412,11 @@
           "symbols": [
             {
               "file": "src/sovereign_agent/supervisor.py",
-              "name": "def recover_abandoned_assignments"
+              "name": "recover_abandoned_assignments"
             }
           ],
           "tests": [
-            {
-              "file": "tests/test_supervisor.py",
-              "name": "idempotent"
-            }
+            "tests/test_supervisor.py::test_recovery_is_idempotent_a_second_tick_recovers_nothing_more"
           ],
           "exercise": "book/ch06_the_organization_recovers/solution.py"
         },
@@ -466,14 +426,11 @@
           "symbols": [
             {
               "file": "src/sovereign_agent/supervisor.py",
-              "name": "def tick"
+              "name": "tick"
             }
           ],
           "tests": [
-            {
-              "file": "tests/test_supervisor.py",
-              "name": "def test_"
-            }
+            "tests/test_supervisor.py::test_supervisor_recovers_a_real_sigkilled_assignment"
           ],
           "exercise": "book/ch06_the_organization_recovers/solution.py"
         },
@@ -483,14 +440,11 @@
           "symbols": [
             {
               "file": "src/sovereign_agent/workspace.py",
-              "name": "def reclaim_workspace"
+              "name": "reclaim_workspace"
             }
           ],
           "tests": [
-            {
-              "file": "tests/test_supervisor.py",
-              "name": "workspace_reclaim"
-            }
+            "tests/test_supervisor.py::test_workspace_reclaim_applies_only_after_the_terminal_write_is_durable"
           ],
           "exercise": "book/ch06_the_organization_recovers/solution.py"
         }
@@ -512,13 +466,14 @@
             {
               "file": "src/sovereign_agent/pulse.py",
               "name": "WakeGate"
+            },
+            {
+              "file": "src/sovereign_agent/pulse.py",
+              "name": "WakeDecision"
             }
           ],
           "tests": [
-            {
-              "file": "tests/test_pulse.py",
-              "name": "def test_"
-            }
+            "tests/test_pulse.py::test_pulse_once_works"
           ],
           "exercise": "book/ch07_the_organization_wakes_itself/solution.py"
         },
@@ -528,18 +483,15 @@
           "symbols": [
             {
               "file": "src/sovereign_agent/pulse.py",
-              "name": "def run_pulse_once"
+              "name": "run_pulse_once"
             },
             {
               "file": "src/sovereign_agent/organization.py",
-              "name": "def create_pulse_work"
+              "name": "create_pulse_work"
             }
           ],
           "tests": [
-            {
-              "file": "tests/test_pulse.py",
-              "name": "def test_"
-            }
+            "tests/test_pulse.py::test_two_real_processes_evaluating_the_same_signal_create_one_canonical_sow"
           ],
           "exercise": "book/ch07_the_organization_wakes_itself/solution.py"
         },
@@ -549,14 +501,11 @@
           "symbols": [
             {
               "file": "src/sovereign_agent/pulse.py",
-              "name": "def run_pulse_once"
+              "name": "run_pulse_once"
             }
           ],
           "tests": [
-            {
-              "file": "tests/test_pulse.py",
-              "name": "def test_"
-            }
+            "tests/test_pulse.py::test_canonical_created_work_survives_restart_and_resumes_without_duplication"
           ],
           "exercise": "book/ch07_the_organization_wakes_itself/solution.py"
         },
@@ -570,10 +519,7 @@
             }
           ],
           "tests": [
-            {
-              "file": "tests/test_pulse.py",
-              "name": "def test_"
-            }
+            "tests/test_pulse.py::test_seeded_store_with_no_sale_creates_no_work"
           ],
           "exercise": "book/ch07_the_organization_wakes_itself/solution.py"
         }
@@ -598,14 +544,11 @@
           "symbols": [
             {
               "file": "src/reference_organizations/store/__init__.py",
-              "name": "def record_sale"
+              "name": "record_sale"
             }
           ],
           "tests": [
-            {
-              "file": "tests/test_persistence.py",
-              "name": "cash_reconciled"
-            }
+            "tests/test_persistence.py::test_successful_sale_and_replenishment_keep_cash_reconciled"
           ],
           "exercise": "book/ch09_each_product_has_its_own_threshold/solution.py"
         },
@@ -615,16 +558,19 @@
           "symbols": [
             {
               "file": "src/reference_organizations/store/__init__.py",
-              "name": "happens INSIDE the immediate transaction"
+              "name": "record_sale"
             }
           ],
           "tests": [
-            {
-              "file": "tests/test_persistence.py",
-              "name": "never_goes_negative"
-            }
+            "tests/test_persistence.py::test_inventory_never_goes_negative"
           ],
-          "exercise": "book/ch09_each_product_has_its_own_threshold/solution.py"
+          "exercise": "book/ch09_each_product_has_its_own_threshold/solution.py",
+          "source_text": [
+            {
+              "file": "src/reference_organizations/store/__init__.py",
+              "text": "happens INSIDE the immediate transaction"
+            }
+          ]
         },
         {
           "concept": "reservation-aware-availability",
@@ -632,14 +578,11 @@
           "symbols": [
             {
               "file": "src/sovereign_agent/checks.py",
-              "name": "reserv"
+              "name": "inventory_at_or_above_reorder_point"
             }
           ],
           "tests": [
-            {
-              "file": "tests/test_store_multi_sku.py",
-              "name": "def test_"
-            }
+            "tests/test_acceptance_falsification.py::test_reserved_stock_is_not_available_stock"
           ],
           "exercise": "book/ch09_each_product_has_its_own_threshold/solution.py"
         },
@@ -649,16 +592,20 @@
           "symbols": [
             {
               "file": "src/reference_organizations/store/__init__.py",
-              "name": "dedupe_key"
+              "name": "record_sale"
             }
           ],
           "tests": [
-            {
-              "file": "tests/test_persistence.py",
-              "name": "signal_is_recorded"
-            }
+            "tests/test_persistence.py::test_signal_is_recorded_with_the_sale",
+            "tests/test_store_multi_sku.py::test_signals_for_different_skus_never_share_a_dedupe_key"
           ],
-          "exercise": "book/ch09_each_product_has_its_own_threshold/solution.py"
+          "exercise": "book/ch09_each_product_has_its_own_threshold/solution.py",
+          "source_text": [
+            {
+              "file": "src/reference_organizations/store/__init__.py",
+              "text": "INSERT OR REPLACE"
+            }
+          ]
         }
       ],
       "limits_anchor": "one connection",
@@ -677,16 +624,19 @@
           "symbols": [
             {
               "file": "src/sovereign_agent/organization.py",
-              "name": "CONTRIBUTED"
+              "name": "accept"
             }
           ],
           "tests": [
-            {
-              "file": "tests/test_causal_binding.py",
-              "name": "def test_"
-            }
+            "tests/test_causal_binding.py::test_condition_true_but_no_effects_exist_at_all_is_refused"
           ],
-          "exercise": "book/ch10_one_signal_wakes_one_need/solution.py"
+          "exercise": "book/ch10_one_signal_wakes_one_need/solution.py",
+          "source_text": [
+            {
+              "file": "src/sovereign_agent/organization.py",
+              "text": "The bound execution must have CONTRIBUTED"
+            }
+          ]
         },
         {
           "concept": "world-right-is-not-work-done",
@@ -694,14 +644,11 @@
           "symbols": [
             {
               "file": "src/sovereign_agent/organization.py",
-              "name": "required_effect_kind"
+              "name": "accept"
             }
           ],
           "tests": [
-            {
-              "file": "tests/test_causal_binding.py",
-              "name": "def test_"
-            }
+            "tests/test_causal_binding.py::test_condition_true_but_another_execution_contributed_is_refused"
           ],
           "exercise": "book/ch10_one_signal_wakes_one_need/solution.py"
         },
@@ -715,10 +662,7 @@
             }
           ],
           "tests": [
-            {
-              "file": "tests/test_causal_binding.py",
-              "name": "def test_"
-            }
+            "tests/test_causal_binding.py::test_condition_false_but_contribution_true_is_refused"
           ],
           "exercise": "book/ch10_one_signal_wakes_one_need/solution.py"
         },
@@ -728,16 +672,19 @@
           "symbols": [
             {
               "file": "src/sovereign_agent/organization.py",
-              "name": "Subject is read from the outcome"
+              "name": "accept"
             }
           ],
           "tests": [
-            {
-              "file": "tests/test_acceptance_falsification.py",
-              "name": "def test_"
-            }
+            "tests/test_store_multi_sku.py::test_wake_gate_maps_each_signal_to_its_own_skus_outcome_only"
           ],
-          "exercise": "book/ch10_one_signal_wakes_one_need/solution.py"
+          "exercise": "book/ch10_one_signal_wakes_one_need/solution.py",
+          "source_text": [
+            {
+              "file": "src/sovereign_agent/organization.py",
+              "text": "Subject is read from the outcome, not supplied"
+            }
+          ]
         }
       ],
       "limits_anchor": "forge every row in",
@@ -757,16 +704,19 @@
           "symbols": [
             {
               "file": "src/reference_organizations/store/__init__.py",
-              "name": "on_hand went to 14"
+              "name": "apply_restock"
             }
           ],
           "tests": [
-            {
-              "file": "tests/test_persistence.py",
-              "name": "idempotency_is_scoped"
-            }
+            "tests/test_persistence.py::test_idempotency_is_scoped_to_assignment_and_sku"
           ],
-          "exercise": "book/ch11_replenishment_scales_without_losing_governance/solution.py"
+          "exercise": "book/ch11_replenishment_scales_without_losing_governance/solution.py",
+          "source_text": [
+            {
+              "file": "src/reference_organizations/store/__init__.py",
+              "text": "on_hand went to 14"
+            }
+          ]
         },
         {
           "concept": "unique-claim-inside-transaction-canonical-replay",
@@ -774,14 +724,11 @@
           "symbols": [
             {
               "file": "src/reference_organizations/store/__init__.py",
-              "name": "def apply_restock"
+              "name": "apply_restock"
             }
           ],
           "tests": [
-            {
-              "file": "tests/test_store_multi_sku.py",
-              "name": "def test_"
-            }
+            "tests/test_store_multi_sku.py::test_replaying_pulse_for_multiple_skus_creates_no_duplicate_work"
           ],
           "exercise": "book/ch11_replenishment_scales_without_losing_governance/solution.py"
         },
@@ -791,16 +738,19 @@
           "symbols": [
             {
               "file": "src/reference_organizations/store/__init__.py",
-              "name": "UNIQUE(assignment_id, kind, subject)"
+              "name": "apply_restock"
             }
           ],
           "tests": [
-            {
-              "file": "tests/test_persistence.py",
-              "name": "idempotency_is_scoped"
-            }
+            "tests/test_persistence.py::test_the_effect_key_cannot_collide_across_assignment_and_subject"
           ],
-          "exercise": "book/ch11_replenishment_scales_without_losing_governance/solution.py"
+          "exercise": "book/ch11_replenishment_scales_without_losing_governance/solution.py",
+          "source_text": [
+            {
+              "file": "src/reference_organizations/store/__init__.py",
+              "text": "UNIQUE(assignment_id, kind, subject)"
+            }
+          ]
         },
         {
           "concept": "authorization-separate-from-idempotency",
@@ -812,10 +762,7 @@
             }
           ],
           "tests": [
-            {
-              "file": "tests/test_store_multi_sku.py",
-              "name": "def test_"
-            }
+            "tests/test_persistence.py::test_a_forged_effect_cannot_be_inserted_from_outside"
           ],
           "exercise": "book/ch11_replenishment_scales_without_losing_governance/solution.py"
         }
