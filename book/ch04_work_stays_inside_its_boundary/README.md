@@ -334,6 +334,12 @@ invocation.
     "output_dir_preserved": true,
     "scratch_removed": true
   },
+  "persistent_reclaim": {
+    "assignment_state": "COMPLETED",
+    "reclaimed_something": false,
+    "tree_unchanged": true,
+    "scratch_still_present": true
+  },
   "workspace_policy_default": "temporary_directory"
 }
 ```
@@ -356,20 +362,35 @@ Four things worth reading closely:
    shows up in `added`, because nothing in this system relies on a provider's
    own good behavior to prove the boundary held — it is checked from outside,
    after the fact.
-4. **Reclaim is a policy decision, not an automatic cleanup.** `provider-raw`
-   (the disposable scratch space) is gone after reclaim; `receipt.json`,
-   `receipt.json.sha256`, and `.sovereign-out` (the durable proof of what ran,
-   and its declared output) are not touched. `_require_deliverables` and
-   `accept()` both read from `.sovereign-out` long after `run_assignment`
-   returns — a reclaim policy that deleted it would silently break
-   re-verification.
+4. **Reclaim is a policy decision, not an automatic cleanup — and BOTH
+   policies are exercised, not just named.** Under `temporary_directory`,
+   `provider-raw` (the disposable scratch space) is gone after reclaim;
+   `receipt.json`, `receipt.json.sha256`, and `.sovereign-out` (the durable
+   proof of what ran, and its declared output) are not touched.
+   `_require_deliverables` and `accept()` both read from `.sovereign-out`
+   long after `run_assignment` returns — a reclaim policy that deleted it
+   would silently break re-verification. Then a *second* real assignment
+   plants the same scratch and reclaims under `persistent`:
+   `tree_unchanged: true`, `scratch_still_present: true` — nothing removed,
+   the entire run left inspectable. Reading a policy's default value proves
+   a configuration exists; only running the reclaim under each policy and
+   diffing the tree proves the *behavior*.
 
 ## Why detection, not prevention
 
-Only Codex's adapter gives real OS-level containment (`--sandbox
-workspace-write`). `claude`, `cursor`, and `scripted` have none — Chapter 3
-already told you `--workspace` is a selected directory, not a sandbox. This
-chapter does not invent containment those providers don't have. It makes the
+Only Codex's adapter even *requests* OS-level containment: it probes for
+`--sandbox` in the CLI's own help and supplies `--sandbox workspace-write`,
+refusing to run when that support cannot be proven. State the evidence for
+that precisely, because it is capability evidence, not containment evidence:
+the production bytes and tests prove the flag is discovered and correctly
+placed on argv — they do **not** attempt a live filesystem escape from
+inside a sandboxed Codex run and observe it blocked. "The adapter requests
+the sandbox and fails closed without it" is what is proven; "the sandbox
+holds" is Codex's claim, which a live escape test would be needed to
+verify behaviorally. `claude`, `cursor`, and `scripted` do not even request
+one — Chapter 3 already told you `--workspace` is a selected directory, not
+a sandbox. This chapter does not invent containment those providers don't
+have. It makes the
 *absence* of containment checkable: a clean boundary report is evidence that,
 for this one invocation, nothing outside the workspace changed — not a claim
 that anything was stopped from changing. A dirty report does not block the

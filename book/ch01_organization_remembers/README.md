@@ -66,9 +66,17 @@ db.commit()
 ```
 
 Notice the shape of `cash_entries`: it is a **ledger of signed movements**, not a
-single balance field. The balance is `SUM(amount_cents)`. Nothing ever overwrites
-a number, so no bug can silently lose money — the worst a mistake can do is add a
-wrong row, which you can see and correct, never erase a right one.
+single balance field. The balance is `SUM(amount_cents)`. Be precise about what
+that shape buys and what it does not. It is an *application accounting
+discipline*: because no code path ever needs to read-modify-write a balance,
+the classic lost-update bug — two writers both computing `balance + delta`
+from the same stale read — has nothing to attack, and an erroneous movement
+is corrected by adding a compensating row you can see, not by editing
+history. What it is **not** is a database-enforced guarantee: unlike
+`events` (whose triggers you will meet in a moment), nothing at the SQLite
+layer stops a raw `UPDATE` or `DELETE` on `cash_entries` — a bug or a 2am
+shell that mutates a cash row directly will succeed. The discipline removes
+the *tempting* mistake; it does not make the table immutable.
 
 Now the append-only guarantee for the event log, enforced by the *database*, not
 by Python remembering to be careful:
@@ -634,7 +642,11 @@ sovereign-agent demo store --mode simulated --root /tmp/lucy-memory
 sqlite3 /tmp/lucy-memory/.sovereign/organization.db ".tables"
 ```
 
-Expected: sixteen tables listed. The ones to care about now:
+Expected: twenty-seven tables listed (count them —
+`SELECT COUNT(*) FROM sqlite_master WHERE type='table' AND name NOT LIKE
+'sqlite_%'` returns 27; the schema has grown well past this chapter's toy,
+which is exactly what the migrations section explains). The ones to care
+about now:
 
 | Table | Holds |
 | --- | --- |
@@ -651,7 +663,11 @@ sqlite3 -header -column /tmp/lucy-memory/.sovereign/organization.db \
 
 Cash is a **ledger of movements**, not a single balance field. The balance is
 `SUM(amount_cents)`: `10000` opening, `+800` from the sale, `-720` for the
-purchase. Nothing overwrites a balance, so nothing can quietly lose money.
+purchase. No supported code path overwrites a movement — corrections are new
+compensating rows — but remember the honest scope from earlier: this is the
+application's discipline, not a trigger-enforced guarantee like the one you
+are about to meet on `events`. Try `UPDATE cash_entries SET amount_cents = 0`
+from this same `sqlite3` shell if you want the difference to sting.
 
 ## Exercise 2: prove the events are append-only
 

@@ -335,6 +335,27 @@ ever proven an execution happened. The lie v1 let through has only now been
 fully closed, three layers later. Layered obligations catch each other's
 leftovers; that is why they compose instead of replacing each other.
 
+**A labeled simplification before Layer 5.** The toy has one SOW, so it can
+get away with one review bound to "the latest verification." Production
+cannot, and splits what the toy collapses into **two different things**:
+
+- **per-SOW review** — every SOW's *own* verification batch must have been
+  reviewed by an independent actor, checked SOW by SOW (a second
+  verification must not be able to replace every reviewed row while
+  acceptance still reports "the work was reviewed");
+- **the final outcome observation** — one last, separate verification that
+  the outcome's world-condition holds *now*. This final observation is
+  freshness-checked (its digests must match, as Layer 7 builds) but it has
+  **no reviewer of its own**, deliberately: it is a *measurement* of the
+  world, not a unit of work, and the production comment says exactly that —
+  requiring a reviewer for it would mean reviewing a measurement rather
+  than reviewing work.
+
+Keep that split in mind as you build Layer 5 against the one-SOW toy: the
+review you are about to demand plays the *per-SOW* role, and Layer 7's
+digest check plays the *final observation* role. In production they are
+distinct queries against distinct verifications.
+
 ### Layer 5: someone else must have looked
 
 Nothing yet requires a second pair of eyes. The performer's proof can all be
@@ -660,7 +681,7 @@ for check_id in org._outcome(oid).acceptance_checks:
 Expected:
 
 ```text
-inventory_at_or_above_reorder_point: PASS - on_hand=8 vs reorder_point=3
+inventory_at_or_above_reorder_point: PASS - available=8 (on_hand=8 - reserved=0) vs reorder_point=3
 cash_reconciles: PASS - 1 purchase entr(y/ies) reconcile
 replenishment_event_exists: PASS - 1 replenishment event(s) for SKU-TEA
 ```

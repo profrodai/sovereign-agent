@@ -267,9 +267,19 @@ regenerated from the other. Production `rebind_actor` has exactly this shape —
 `write_config` first, the ledger transaction second — and the honest statement
 is the one the production comment culture would demand: this is a dual-store
 seam to *know about and detect*, not an atomicity the code quietly pretends
-to have. Detecting it is Chapter 1's move again: compare the stores, resolve
-the disagreement by an explicit act, and never let a checker "helpfully"
-rewrite either side.
+to have. And here is the part that must be said with no softening:
+**production currently has no automated detector for this seam.** There is a
+drift-checker for governance *projections* (Chapter 1's
+`verify_projections.py`), but no equivalent that compares `sovereign.toml`'s
+actor bindings against the ledger's rebind events — a crash-window mismatch
+persists until a human compares the two by hand. That is a real, tracked
+implementation gap, not a solved problem this chapter is reviewing. The
+shape of the fix is exactly Chapter 1's move — a *pure* comparison of the
+two stores, with repair as a separate explicit act, never a checker that
+"helpfully" rewrites either side — and building precisely that comparison
+is this chapter's best stretch exercise: you have both stores, you know the
+event kind (`actor.provider_rebound`), and you know from Chapter 1 what a
+verifier must never do.
 
 ## The envelope: what the provider is actually told
 
@@ -340,7 +350,17 @@ enforces the contract rather than interpreting the vibe. In production this
 is `invoke_actor` in `execution.py`: the model proposes an `ActorReport`
 (against a JSON schema shipped in the envelope), and the host validates it,
 writes the receipt, and persists — or writes a *failed* receipt via
-`write_failed_receipt`. The model never touches the ledger.
+`write_failed_receipt`. Be exact about what that division of labor is: the
+*protocol* assigns ledger persistence to the host — the provider is handed
+report paths, not a database API, and nothing in its instructions points at
+`organization.db`. But an instruction is not a wall. Not every provider runs
+OS-sandboxed (Chapter 4 names which ones do not), and the workspace boundary
+check deliberately excludes the ledger file itself — so an unsandboxed
+provider process is *directed* away from the ledger and *validated* before
+anything it proposes becomes durable, yet it is not mechanically proven
+unable to open the database file the way a sandboxed one is. That residual
+is Chapter 4's subject, and pretending it away here would be the kind of
+overclaim this book exists to refuse.
 
 ## An adapter is a hostile-boundary parser
 
