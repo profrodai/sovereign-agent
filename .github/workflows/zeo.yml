@@ -1,0 +1,103 @@
+name: zeo
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+jobs:
+  zeo:
+    name: zeo
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    env:
+      NO_COLOR: "1"
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v5
+        with:
+          enable-cache: true
+
+      - name: Install Go (only when the repo has a Go module)
+        if: ${{ hashFiles('go.mod') != '' }}
+        uses: actions/setup-go@v5
+        with:
+          go-version-file: go.mod
+          cache: true
+
+      - name: Install zero-employee (zeo) — PINNED
+        run: uv tool install 'zero-employee==0.12.0'
+
+      - name: Corpus-wide integrity check (ruling/SOW n-collisions)
+        run: |
+          if [ -f "claude-md/CLAUDE.md" ]; then
+            uv tool run --from 'zero-employee==0.12.0' zeo --commit-check-corpus
+          else
+            echo "No claude-md/CLAUDE.md marker — not a zeo corpus root; corpus check not applicable."
+          fi
+
+      - name: Per-file commit-check (changed sow/ and ruling/ files)
+        run: |
+          set -euo pipefail
+          if [ "${{ github.event_name }}" = "pull_request" ]; then
+            BASE="${{ github.event.pull_request.base.sha }}"
+            HEAD="${{ github.event.pull_request.head.sha }}"
+            RANGE="${BASE}...${HEAD}"
+          else
+            BEFORE="${{ github.event.before }}"
+            if [ -z "$BEFORE" ] || [ "$BEFORE" = "0000000000000000000000000000000000000000" ]; then
+              RANGE=""
+            else
+              RANGE="${BEFORE}...${{ github.sha }}"
+            fi
+          fi
+
+          if [ -n "$RANGE" ]; then
+            CHANGED=$(git diff --name-only --diff-filter=ACMR "$RANGE" -- | grep -E '(^|/)(sow|ruling)/.*\.md$' || true)
+          else
+            CHANGED=$(git ls-files | grep -E '(^|/)(sow|ruling)/.*\.md$' || true)
+          fi
+
+          if [ -z "$CHANGED" ]; then
+            echo "No sow/ or ruling/ .md files in range — nothing to lint."
+            exit 0
+          fi
+
+          echo "Files to check:"
+          echo "$CHANGED"
+          echo ""
+
+          FAILED=0
+          while IFS= read -r f; do
+            [ -z "$f" ] && continue
+            [ -f "$f" ] || continue
+            echo "-- checking $f --"
+            if ! uv tool run --from 'zero-employee==0.12.0' zeo --commit-check "$f"; then
+              echo "-- FAILED: $f --"
+              FAILED=1
+            fi
+          done <<< "$CHANGED"
+
+          if [ "$FAILED" -ne 0 ]; then
+            echo "One or more sow/ruling files failed zeo --commit-check." >&2
+            exit 1
+          fi
+
+      - name: Real gate — make verify (the anti-hollow step)
+        run: |
+          set -euo pipefail
+          if [ -f Makefile ] && grep -qE '^verify:' Makefile; then
+            echo "Repo declares the mandated gate target — running make verify."
+            make verify
+          elif [ -f "claude-md/CLAUDE.md" ]; then
+            echo "Corpus repo with no Makefile gate — corpus checks above are the gate."
+          else
+            echo "DEFECT: no corpus marker AND no 'verify' Makefile target." >&2
+            echo "A governed repo must declare its gate (CLAUDE.md s6a). Refusing green-by-absence." >&2
+            exit 1
+          fi
