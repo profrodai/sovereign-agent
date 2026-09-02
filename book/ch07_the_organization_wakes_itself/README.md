@@ -53,15 +53,15 @@ flowchart LR
     D --> W[SOW + origin\ncreated atomically]
     W --> A[Assignment]
     A --> X[Provider execution]
-    G -->|do not fire| N[Decision recorded\nno work]
+    G -->|do not fire| N[Nothing recorded\nre-evaluated next pass]
 ```
 
 The signal is not a task. It records that the world crossed a meaningful
 boundary. The gate is not a worker. It decides whether that signal still merits
 work and specifies the governed work shape. Pulse is not a scheduler. One call
-scans eligible signals, invokes the gate, and records the result. The provider
-is not the decider. It executes only after ordinary governance creates an
-assignment.
+scans eligible signals and invokes the gate; only a firing decision is durable.
+The provider is not the decider. It executes only after ordinary governance
+creates an assignment.
 
 This decomposition gives each race one database invariant. Two Pulse processes
 may evaluate the same signal concurrently, but `UNIQUE(source_signal_id)` allows

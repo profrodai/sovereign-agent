@@ -43,7 +43,7 @@ independent operational state:
 
 ```mermaid
 erDiagram
-    PRODUCTS ||--|| INVENTORY : "has current stock"
+    PRODUCTS ||--|| INVENTORY : "shares sku by convention"
     PRODUCTS ||--o{ SIGNALS : "is subject of"
     PRODUCTS ||--o{ EFFECTS : "is changed by (logical subject)"
     PRODUCTS {
@@ -51,17 +51,18 @@ erDiagram
         json record
     }
     INVENTORY {
-        string sku PK,FK
+        string sku PK
         int on_hand
         int reorder_point
         int reserved
     }
 ```
 
-This diagram mixes one physical foreign-key relationship (`products.sku` to
-`inventory.sku`) with two logical subject relationships carried in serialized
-signal/effect data; it does not invent a `sales` table the implementation does
-not have. Sales are represented by cash rows, signals, and append-only events.
+This diagram shows three logical subject relationships. The schema does not
+enforce a foreign key or one-to-one relationship between `products.sku` and
+`inventory.sku`; signals use `subject_ref`, while effects use a structured
+`subject` column. Sales are represented by cash rows, signals, and append-only
+events.
 
 The SKU is an identity, not a label. If Lucy renames "Vanilla Bean" to
 "Madagascar Vanilla," references do not move. If code joins on `display_name`, a

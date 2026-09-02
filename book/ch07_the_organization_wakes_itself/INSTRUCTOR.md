@@ -31,8 +31,8 @@ signal) should already be fluent by this point.
   after this chapter, and the book's own non-scope section says so
   explicitly ("no OS service, no scheduling, no cron, no webhooks").
 - **"Pulse is the heartbeat."** It is not. Pulse converts business signals
-  into governed work during one explicit pass. A heartbeat would publish
-  process/actor liveness periodically; no such mechanism exists here. A
+  into governed work during one explicit pass. The installed system's
+  `heartbeat` records momentary runtime liveness and never creates work. A
   scheduler could invoke Pulse, but scheduling would still not make Pulse a
   liveness protocol.
 - **"Any chapter could claim Pulse fired if the prose sounds right."** This

@@ -61,7 +61,7 @@ sequenceDiagram
 ```
 
 The idempotency key names the **logical operation**, not the process attempt. In
-production it is `(assignment_id, kind, subject_ref)`. A retry of the same
+production it is `(assignment_id, kind, subject)`. A retry of the same
 assignment and SKU is the same operation and must return the canonical result. A
 different assignment for the same SKU is new authorized work. The same
 assignment aimed at a different SKU must not collide. Choosing only `sku` would
