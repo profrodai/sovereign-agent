@@ -1,97 +1,101 @@
 # Architecture
 
-This page is the architecture summary for `sovereign-agent`. It is not a pointer
-to a longer document elsewhere in this tree, because there is no longer document.
+Sovereign Agent 1.x is a local, SQLite-backed teaching implementation of a
+governed organization. It separates probabilistic proposals from deterministic
+authority, state transitions, and acceptance.
 
-Earlier revisions of this page described a root `SOW.md` as "the authoritative
-architecture document." No such file has ever existed in this repository, and it
-is not going to be added. The reason is a repository boundary, not an oversight:
+## System shape
 
-- **`work_repo`** — this repository. It holds code that genuinely collides, so
-  work lands on branches and is merged through pull requests. What it owes you is
-  readable code, this architecture summary, the API contract in
-  [API stability](API.md), and the [CHANGELOG](https://github.com/zeroemployeeorg/sovereign-agent/blob/main/CHANGELOG.md).
-- **`sow_repo`** — a separate corpus repository. Scoping and reporting live
-  there, not here.
+```text
+world change
+  -> durable signal
+  -> deterministic wake decision (optional Pulse path)
+  -> outcome -> SOW -> assignment
+  -> provider proposes an ActorReport
+  -> host validates and commits a domain effect
+  -> receipt + verification + evidence
+  -> independent review
+  -> acceptance re-checks the outcome
+```
 
-These are deliberately two different fields. A Statement of Work committed onto a
-branch in a work repo is invisible to everyone who is not already on that branch,
-which is exactly the failure mode the split exists to prevent. So: no `SOW.md` in
-this tree, and no path in this tree that claims to be one.
+The language model or provider never becomes the authority merely because it is
+capable. An `Actor` has a role and a provider binding. Role policy determines
+which operation the actor may attempt; the provider produces data; host Python
+validates that data and performs the canonical write.
 
-The governed handshake is the same split in runtime form. This repository
-validates request shape, capabilities, and technical evidence, then returns an
-immutable `ExecutionReceipt`. Zero Employee validates that receipt against
-doctrine (conformance / acceptance). Sovereign Agent does not set that bit.
+## Canonical state and projections
 
+SQLite at `.sovereign/organization.db` is canonical for operational and
+governance state in 1.x. Transactions keep related rows and append-only events
+all-or-nothing. Database triggers protect proof-bearing append-only tables.
 
-For the current release-readiness picture, read
-[CHANGELOG.md](https://github.com/zeroemployeeorg/sovereign-agent/blob/main/CHANGELOG.md)
-and [v0.3 non-goals](v0.3-non-goals.md). Those are maintained; a checklist buried
-in a spec document would not be.
+JSON and Markdown under `governance/` are derived projections for people and
+version-control review. They can be regenerated from SQLite. A verifier compares
+freshly rendered bytes without repairing drift unless reconciliation is
+explicitly requested.
 
-## One sentence
+See [Persistence boundary](persistence-boundary.md).
 
-sovereign-agent is a Python framework for building agents that run continuously, have persistent memory, and run on infrastructure you own — built around the observation that **the session directory is the unit of everything**.
+## Work and proof graph
 
-## The nine architectural decisions
+An `Outcome` describes a desired condition in the world. A `StatementOfWork`
+describes bounded work toward that outcome. An `Assignment` binds one actor and
+workspace to one SOW.
 
-1. **Per-session filesystem isolation.** Every task gets its own directory under `sessions/sess_<id>/`. All state for that task lives there, nowhere else.
-2. **SessionQueue with three guarantees.** Per-session serialization, global concurrency cap, retry with exponential backoff.
-3. **Filesystem IPC with atomic rename.** Workers talk via JSON files written with `temp-file + rename`.
-4. **Idle preemption via sentinel, not signal.** A `_close` file tells a worker to exit cleanly. No `SIGKILL`.
-5. **Credential gateway.** API keys live in the orchestrator process environment; workers are injected at spawn time with per-tool scoping.
-6. **Drift-corrected scheduler.** Recurring tasks anchor to their scheduled time, not `now()`. Missed intervals are skipped, not run back-to-back.
-7. **Mount allowlist outside project root.** `~/.config/sovereign-agent/mount-allowlist.json` — a path the agent cannot reach.
-8. **Graceful shutdown detaches, does not kill.** Running workers are logged as "detached" on SIGTERM and left alone. The next startup resumes them.
-9. **Long operations are tickets with explicit state.** `pending → running → (success | skipped | error)`. SUCCESS requires a verified sha256 manifest. No manifest, no success.
+Execution produces a `Receipt`; verification re-runs deterministic checks and
+records `Evidence`; review is performed by a distinct actor. Acceptance follows
+those ledger edges, checks required effects and deliverables, re-runs the
+outcome condition, checks evidence freshness, and refuses self-approval. A
+status string alone cannot make an outcome true.
 
-## The four patterns from QuackVerse
+## Runtime mechanisms that must remain distinct
 
-- **Pattern A — Discovery.** Every extension implements `discover()` returning a JSON schema. Agents learn about extensions at runtime.
-- **Pattern B — Summary artifact.** Every long operation emits a short LLM-readable summary alongside its raw output. The agent reads the summary; the audit log keeps the raw output.
-- **Pattern C — Structured error taxonomy.** Errors carry machine-readable category codes (`SA_SYS_*`, `SA_VAL_*`, `SA_IO_*`, `SA_EXT_*`, `SA_TOOL_*`). Agents branch on category, not on exception class.
-- **Pattern D — Manifest discipline.** A long operation has not succeeded until it has written a manifest with verified checksums. This catches LLM hallucinated success at the framework level.
+| Mechanism | Responsibility | Explicit non-claim |
+| --- | --- | --- |
+| Provider invocation | Produce a typed proposal for an assignment. | Does not grant authority or commit canonical state. |
+| Pulse | Turn eligible business signals into governed work. | Is not a scheduler or liveness protocol. |
+| Supervisor | Reconcile expired claims and abandoned attempts. | Never creates new business work or guesses success. |
+| Heartbeat | Append a timestamped liveness observation. | Does not prove progress, health, or death from silence. |
 
-## Why filesystem, not database
+## Concurrency and recovery
 
-A database approach has five failure modes that the directory approach does not:
+SQLite `BEGIN IMMEDIATE`, uniqueness constraints, and compare-and-set updates
+move race arbitration to the database boundary. Actor leases and execution
+attempts carry monotonic fencing tokens. A process that resumes after takeover
+cannot commit terminal state with an old token.
 
-1. Databases are opaque to humans. Directories you `ls`.
-2. Databases are hard to make atomic across multiple writes. Rename is atomic, per-file.
-3. Databases couple the agent's lifetime to the database's. A directory is portable (`tar` it).
-4. Databases hide the schema inside the database. The directory layout is the schema, and it's documented.
-5. Databases don't scale to multiple agent halves sharing state without an API contract. Directories do — the directory is the API.
+The supervisor may recover an expired attempt as `worker_lost`. It writes the
+failed receipt and terminal ledger state before applying workspace reclamation.
+It never infers success from a partial provider artifact.
 
-The cost is about 1s of polling latency for IPC, which is invisible for an agent system and unacceptable for high-frequency trading. Pick the cost that fits the problem.
+## Workspace and provider boundary
 
-## Why two halves (loop + structured)
+`safe_join` refuses absolute, empty, traversing, and symlink-resolved escape
+paths. Boundary snapshots detect tracked changes within
+`organization_root_excluding_workspace_and_ledger`. This is a detective control,
+not universal OS containment: the organization database and paths outside the
+organization root are outside snapshot scope. Provider-specific sandbox claims
+are made only when the adapter proves and requests them.
 
-Open-ended research and high-stakes rule-following are different kinds of work. The loop half uses an LLM with tools. The structured half uses explicit rules that are testable and auditable.
+## Module map
 
-The planner decides which half gets which subgoal. The halves communicate only through the session directory — one writes a handoff file, the other picks it up.
+| Module | Responsibility |
+| --- | --- |
+| `organization.py` | Governed lifecycle, execution, verification, review, acceptance. |
+| `models.py` | Strict boundary records and state enums. |
+| `database.py` | Schema, migrations, transactions, append-only enforcement. |
+| `policy.py` | Role authority and legal state transitions. |
+| `execution.py`, `providers/` | Provider protocol and adapters. |
+| `fencing.py`, `supervisor.py` | Leases, execution fences, reconciliation. |
+| `pulse.py` | Signal-to-work decisions and attribution. |
+| `heartbeat.py` | Durable liveness observations. |
+| `workspace.py` | Safe paths, boundary snapshots, reclaim policy. |
+| `governance.py`, `evidence.py`, `checks.py` | Projections and proof obligations. |
 
-This is the split Claude Code makes (ReAct loop for coding, structured dialogs for destructive operations). sovereign-agent makes it explicit and pluggable.
+## Deliberate limits
 
-## Why two-stage planner + executor
-
-Reasoning models plan well but are slow at tool use. Fast tool-calling models execute well but are less good at multi-step planning.
-
-Split the roles: the planner produces subgoals; the executor runs each one through a ReAct loop. Empirically, this lifts task success by 15–30% on multi-step tasks while reducing total latency, because the executor moves much faster than a thinking model would.
-
-## Where the rest of it lives
-
-There is no single specification document to send you to. The material an SOW
-would have carried is distributed across artifacts that are actually maintained:
-
-| What you want | Where it is |
-|---|---|
-| Prior art and credits | [`CREDITS.md`](https://github.com/zeroemployeeorg/sovereign-agent/blob/main/CREDITS.md) |
-| File-level specifications | The module docstrings. Every public module explains why it exists before it explains what it does. |
-| Test obligations | `tests/`, and the CI workflow that gates them |
-| What shipped, when | [`CHANGELOG.md`](https://github.com/zeroemployeeorg/sovereign-agent/blob/main/CHANGELOG.md) |
-| What is deliberately deferred | [v0.3 non-goals](v0.3-non-goals.md) |
-| What the public API promises | [API stability](API.md) |
-
-Scoping and reporting for work on this repository live in the corpus repository
-(`sow_repo`), not here. See the boundary note at the top of this page.
+The core has no HTTP service, web dashboard, distributed scheduler, plugin
+marketplace, general secrets manager, or model SDK dependency. It does not claim
+equivalent sandboxing across providers or independent authenticity from a
+self-authored proof pack. See [Durable non-goals](non-goals.md) and
+[Security](../SECURITY.md).

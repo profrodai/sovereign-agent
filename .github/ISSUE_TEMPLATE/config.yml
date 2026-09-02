@@ -1,0 +1,8 @@
+blank_issues_enabled: false
+contact_links:
+  - name: Security vulnerability
+    url: https://github.com/profrodai/sovereign-agent/security/advisories/new
+    about: Report vulnerabilities privately. Do not open a public issue.
+  - name: Usage and support
+    url: https://github.com/profrodai/sovereign-agent/discussions
+    about: Ask installation and usage questions without filing a bug.

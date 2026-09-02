@@ -13,7 +13,7 @@ Clone the repository (the book, labs, and audit scripts live there — the
 same walkthrough below uses them) and let uv build the environment:
 
 ```bash
-git clone https://github.com/zeroemployeeorg/sovereign-agent.git
+git clone https://github.com/profrodai/sovereign-agent.git
 cd sovereign-agent
 uv sync
 ```
@@ -125,15 +125,11 @@ shelf was still empty. That gap is what the book is about.
 - [Persistence boundary](persistence-boundary.md) — what is canonical, what is
   derived, and what this design does *not* promise.
 
-## What this version does not do
+## What this walkthrough does not do
 
-The organization does not wake itself up. You ran a command and work happened.
-Proactive waking is called Pulse and it does not exist yet; nothing here
-simulates it.
-
-**Added, Unit 9:** Pulse is now real production code (`sovereign-agent pulse
---once`; see `docs/v1-unit9-pulse-proactive-work.md`). This quickstart's own
-walkthrough above remains exactly as it was — manually dispatched, and
-truthful about it — because it is teaching the Unit 5 slice, not the Unit 9
-one; nothing on this page has been silently upgraded to claim proactive
-behavior it does not demonstrate.
+This walkthrough uses the manual dispatch path: you ran a command and work
+happened. The installed package also contains Pulse, which can turn a durable
+business signal into governed work during one explicit pass, but this example
+does not invoke it and its ledger contains no `pulse.*` event. Pulse is distinct
+from both scheduling and the heartbeat liveness record. Continue to Chapter 7
+and [the Pulse reference](v1-unit9-pulse-proactive-work.md) for that mechanism.

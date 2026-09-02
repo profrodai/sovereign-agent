@@ -1,73 +1,51 @@
-# sovereign-agent documentation
+# Sovereign Agent documentation
 
-Build auditable AI agents whose state, work, and evidence stay on infrastructure
-you control.
-
-Sovereign Agent stores each run as a directory of plain files. It combines
-typed ZeoCore capabilities with planning, execution, policy rules, approvals,
-and bounded workers. The result is an agent you can inspect, test offline,
-resume after a crash, and operate without a hosted control plane.
-
-!!! warning "v0.7 is alpha"
-    Pin `sovereign-agent~=0.7.0`, read the
-    [non-goals and limitations](non-goals.md), and review code before
-    making it load-bearing. Sovereign Agent 1.x is an authorized educational
-    reset on branch `v1-educational`; it is not a compatible continuation of
-    this API. See [migrate v0.7 to v1](migration-v0.7-to-v1.md) and pin
-    `sovereign-agent<1` to stay on 0.x.
+Sovereign Agent 1.x is an executable textbook for learning how an outcome
+becomes governed work performed by accountable actors. It is a compact Python
+reference implementation, not the production Zero Employee control plane.
 
 ## Start here
 
-1. [Install and run the Quickstart](quickstart.md).
-2. [Build your first agent](tutorials/first-agent.md).
-3. [Inspect and debug its session](tutorials/sessions-and-traces.md).
-4. Choose the next path below.
+1. [Install and run the quickstart](quickstart.md).
+2. Work through the [executable book](../book/README.md).
+3. Read the [architecture](architecture.md) when you want to connect a chapter
+   concept to the production modules.
+4. Use the [API reference](api_reference.md) and
+   [compatibility policy](compatibility.md) when integrating the package.
 
-The install check and repository examples work without an API key. Networked
-steps are labeled before they can spend tokens.
+The default curriculum is offline and deterministic. Live provider CLIs are
+optional and credentialed execution is never required by the default test suite.
 
-## Choose your path
+## Current 1.x reference
 
-### Build agents
+- [Architecture](architecture.md)
+- [Public API and stability contract](API.md)
+- [Task-oriented API reference](api_reference.md)
+- [Persistence boundary](persistence-boundary.md)
+- [Durable non-goals](non-goals.md)
+- [Security policy](../SECURITY.md) and [threat model](threat-model.md)
+- [Migration from 0.7 to 1.x](migration-v0.7-to-v1.md)
+- [Rulings index](rulings/index.md)
 
-- [Quickstart](quickstart.md) — installation to a real typed capability.
-- [Tutorials](tutorials/index.md) — a progressive course for Python users.
-- [Configuration and providers](how-to/configuration.md).
-- [CLI and session management](how-to/cli-sessions.md).
-- [Common problems](how-to/troubleshooting.md).
+## Historical 0.x documentation
 
-### Learn the internals
+Files named `v0.*`, `migration-v0.*`, the legacy tutorials, generated-reference
+stubs, and release notes describe the retired pre-1.0 framework. They remain in
+the repository so old releases and migration decisions stay auditable; they are
+not a guide to the code on `main`. See [Historical documentation](history.md)
+before following one of those pages.
 
-- [Core concepts](concepts/index.md) — sessions, tickets, halves, capabilities,
-  and dataflow integrity.
-- [Architecture](architecture.md) — design rationale and implementation map.
-- [Build-from-scratch chapters](chapters/index.md) — five tested exercises
-  covering the original substrate.
+## Repository map
 
-### Operate and integrate
+| Path | Purpose |
+| --- | --- |
+| `src/sovereign_agent/` | The small governed-organization implementation and CLI. |
+| `src/reference_organizations/store/` | Lucy's store domain used by the book. |
+| `book/` | Reader-facing chapters, solutions, instructor notes, and labs. |
+| `tests/` | Behavioral and adversarial proof matrix. |
+| `scripts/` | Release, curriculum, proof-pack, and repository verifiers. |
+| `docs/` | Current reference plus explicitly retained historical records. |
+| `.github/` | Provider-neutral GitHub automation and contributor templates. |
 
-- [Deployment](deployment.md) — single-host service operation.
-- [v0.7 fleet operator guide](v0.7-operator.md) — Docker, Podman, SSH,
-  placement, quotas, secrets, and reconciliation.
-- [Threat model](threat-model.md) and [compatibility](compatibility.md).
-
-### Look something up
-
-- [API reference](api_reference.md) — task-oriented public API map.
-- [Generated reference](reference/index.md) — signatures and docstrings.
-- [API stability](API.md) — the semver contract.
-- [Example catalog](https://github.com/zeroemployeeorg/sovereign-agent/tree/main/examples).
-
-## The mental model
-
-```text
-task
-  -> planner
-  -> executor
-  -> typed capabilities and runtime commands
-  -> tickets + trace + artifacts
-  -> sessions/sess_<id>/
-```
-
-The model proposes actions. Python code defines what exists and what is
-allowed. Durable files record what happened.
+Local editor, model-provider, credential, build, and session state does not
+belong in the public source tree.

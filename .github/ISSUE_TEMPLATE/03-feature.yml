@@ -1,0 +1,41 @@
+name: Feature proposal
+description: Propose a focused capability or a change to an existing contract.
+title: "proposal: "
+body:
+  - type: textarea
+    id: problem
+    attributes:
+      label: Problem
+      description: Describe the user problem without prescribing an implementation.
+    validations:
+      required: true
+  - type: textarea
+    id: outcome
+    attributes:
+      label: Observable outcome
+      description: What would a user be able to observe or verify if this were solved?
+    validations:
+      required: true
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: Alternatives considered
+      description: Include existing commands, extensions, or workarounds you evaluated.
+    validations:
+      required: true
+  - type: textarea
+    id: boundaries
+    attributes:
+      label: Safety and compatibility boundaries
+      description: Note authority, persistence, provider, migration, or public-API implications.
+    validations:
+      required: true
+  - type: checkboxes
+    id: checks
+    attributes:
+      label: Checks
+      options:
+        - label: I searched existing issues and the roadmap for this proposal.
+          required: true
+        - label: I understand that acceptance of the problem does not commit maintainers to a particular design.
+          required: true

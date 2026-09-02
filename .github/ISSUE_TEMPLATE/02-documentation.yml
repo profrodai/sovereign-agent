@@ -1,0 +1,35 @@
+name: Documentation improvement
+description: Report an unclear, stale, or incorrect learning or reference surface.
+title: "docs: "
+body:
+  - type: input
+    id: location
+    attributes:
+      label: Page or chapter
+      description: Link to the file and heading, or give the repository path.
+      placeholder: "book/ch05_authority_needs_a_fence/README.md#..."
+    validations:
+      required: true
+  - type: textarea
+    id: problem
+    attributes:
+      label: What is unclear or incorrect?
+      description: Quote only the minimum text needed to identify the problem.
+    validations:
+      required: true
+  - type: textarea
+    id: evidence
+    attributes:
+      label: Evidence or proposed correction
+      description: For technical claims, point to the implementation or a runnable observation.
+    validations:
+      required: true
+  - type: checkboxes
+    id: checks
+    attributes:
+      label: Checks
+      options:
+        - label: I checked the current default branch, not an older release or cached page.
+          required: true
+        - label: I searched existing issues for the same documentation problem.
+          required: true
