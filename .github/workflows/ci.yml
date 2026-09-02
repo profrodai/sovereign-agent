@@ -50,6 +50,14 @@ jobs:
           sovereign-agent --help
           sovereign-agent doctor
           sovereign-agent demo store --mode simulated --root "$RUNNER_TEMP/store-demo"
+      - name: Verify the README's documented uv onboarding sequence behaviorally
+        # Grepping the README for "uv run" only proves the text changed, not
+        # that the documented `uv sync` + gate commands actually work from a
+        # clean machine. This runs the exact commands for real, in a fresh
+        # git-archive extraction with a fresh uv cache/venv and a hostile
+        # PATH (decoy python/sovereign-agent shims), and fails by name if any
+        # documented step's real exit code is not 0.
+        run: python scripts/verify_readme_onboarding.py
       - name: Verify the accepted outcome is actually TRUE
         # The demo exiting 0 is not proof. The previous version of this pipeline
         # ran the demo and stopped there, and the demo printed ACCEPTED while the

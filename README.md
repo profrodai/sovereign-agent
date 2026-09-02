@@ -96,11 +96,11 @@ credential allowlists: Claude (`ANTHROPIC_API_KEY`, `ANTHROPIC_AUTH_TOKEN`,
 ## Unit 1 gates
 
 ```bash
-python -m pytest -q
-python scripts/verify_runtime_dependencies.py
-python scripts/verify_source_budget.py
-sovereign-agent --help
-sovereign-agent doctor
+uv run python -m pytest -q
+uv run python scripts/verify_runtime_dependencies.py
+uv run python scripts/verify_source_budget.py
+uv run sovereign-agent --help
+uv run sovereign-agent doctor
 ```
 
 See the [educational reset ruling](docs/rulings/2026-08-25-educational-reset.md)

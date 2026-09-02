@@ -45,3 +45,4 @@ verify: lint test
 	$(UV) run --python 3.14 sovereign-agent --help >/dev/null
 	$(UV) run --python 3.14 sovereign-agent doctor
 	$(UV) run --python 3.14 sovereign-agent demo store --mode simulated --root /tmp/sovereign-agent-demo
+	$(UV) run --python 3.14 python scripts/verify_readme_onboarding.py
