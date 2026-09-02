@@ -5,15 +5,17 @@ description = "An executable textbook for learning Zero-Employee Organizations"
 readme = "README.md"
 requires-python = ">=3.14"
 license = "Apache-2.0"
-license-files = ["LICENSE"]
+license-files = ["LICENSE", "NOTICE"]
 authors = [{ name = "Rod Rivera" }]
 keywords = ["agents", "governance", "education", "zero-employee-organization"]
 classifiers = [
-  "Development Status :: 3 - Alpha",
+  "Development Status :: 4 - Beta",
   "Intended Audience :: Education",
+  "Operating System :: OS Independent",
   "Programming Language :: Python :: 3",
   "Programming Language :: Python :: 3.14",
   "Topic :: Education",
+  "Typing :: Typed",
 ]
 dependencies = ["pydantic>=2,<3"]
 
@@ -21,9 +23,11 @@ dependencies = ["pydantic>=2,<3"]
 sovereign-agent = "sovereign_agent.cli:main"
 
 [project.urls]
-Homepage = "https://github.com/zeroemployeeorg/sovereign-agent"
-Repository = "https://github.com/zeroemployeeorg/sovereign-agent"
-Issues = "https://github.com/zeroemployeeorg/sovereign-agent/issues"
+Homepage = "https://github.com/profrodai/sovereign-agent"
+Documentation = "https://github.com/profrodai/sovereign-agent/tree/main/book"
+Repository = "https://github.com/profrodai/sovereign-agent"
+Issues = "https://github.com/profrodai/sovereign-agent/issues"
+Changelog = "https://github.com/profrodai/sovereign-agent/blob/main/CHANGELOG.md"
 
 [dependency-groups]
 dev = [
@@ -40,6 +44,9 @@ build-backend = "setuptools.build_meta"
 [tool.setuptools.packages.find]
 where = ["src"]
 include = ["sovereign_agent*", "reference_organizations*"]
+
+[tool.setuptools.package-data]
+sovereign_agent = ["py.typed"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]

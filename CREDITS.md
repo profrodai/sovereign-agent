@@ -1,60 +1,70 @@
 # Credits
 
-sovereign-agent is not a clean-room invention. This file lists every system, paper, and author whose work shaped it. Listed roughly in order of influence.
+Sovereign Agent combines established software-systems patterns with a runnable
+teaching approach. This file names the principal influences on the current 1.x
+line; it is not a dependency manifest or a claim that those projects endorse
+this one.
 
 ## Direct predecessors
 
-- **NanoClaw** — Gavriel Cohen, 2026. A WhatsApp-based interface to Claude Code. Contributed Decisions 1–8 (per-session filesystem isolation, SessionQueue with three guarantees, filesystem IPC with atomic rename, idle preemption via sentinel, credential gateway, drift-corrected scheduler, mount allowlist outside project root, graceful shutdown detaches not kills). `github.com/qwibitai/nanoclaw`.
+- **NanoClaw** — Gavriel Cohen's filesystem-isolated Claude Code agent system
+  contributed the concrete lineage behind session isolation, queued execution,
+  atomic filesystem IPC, idle preemption, credential gateways, drift-corrected
+  scheduling, mount allowlists, and graceful detachment.
+- **QuackVerse** — Rod Rivera's media-operations agent system contributed
+  explicit ticket state, discovery and summary artifacts, structured failure
+  taxonomies, and manifest discipline.
 
-- **QuackVerse** — Rod Rivera, 2024–2025. A media-operations agent system. Contributed Decision 9 (tickets with explicit state) and Patterns A/B/C/D (discovery, summary artifact, structured error taxonomy, manifest discipline).
+## Agent-system and research influences
 
-## Architectural influences
+- **Claude Code** — the repository-scoped execution and session model.
+- **OpenHands** — Wang et al., _OpenHands: An Open Platform for AI Software
+  Developers as Generalist Agents_ (arXiv:2407.16741).
+- **Aider** — Paul Gauthier's repository-local coding-agent workflow.
+- **SWE-agent** — Yang et al., _Agent-Computer Interfaces Enable Automated
+  Software Engineering_ (arXiv:2405.15793).
+- **Voyager**, **Reflexion**, **MemGPT**, **RAG**, **Mem0**, **A-MEM**,
+  **GraphRAG**, and **RAPTOR** — skill libraries, reflective feedback,
+  hierarchical memory, retrieval, and graph/tree memory patterns credited in
+  the project's original design record.
 
-- **Claude Code** (Anthropic, 2024–). Closed source; architecture visible via public docs. The per-repository working directory pattern and the "session directory is the agent's memory" idea.
+## Pedagogical influences
 
-- **OpenHands / OpenDevin** — Wang et al., 2024. `github.com/All-Hands-AI/OpenHands`. "OpenHands: An Open Platform for AI Software Developers as Generalist Agents" (arxiv:2407.16741). The closest open-source production agent to sovereign-agent.
+- **Sebastian Raschka, _Build a Large Language Model from Scratch_** — the
+  build-it-yourself progression, worked mechanisms, and adversarial exercises.
+- **Andrej Karpathy, nanoGPT** — a compact implementation that readers can hold
+  in their heads and run locally.
+- **Sasha Rush and the MiniTorch project** — executable lessons in which the
+  teaching implementation and tested implementation stay connected.
 
-- **Aider** — Paul Gauthier, 2023–. `github.com/paul-gauthier/aider`. Per-repository state via `.aider/`.
+## Systems influences
 
-- **SWE-agent** — Yang et al., 2024. "SWE-agent: Agent-Computer Interfaces Enable Automated Software Engineering" (arxiv:2405.15793). The agent-computer interface framing.
+- **SQLite** — transactions, constraints, and a locally inspectable canonical
+  ledger.
+- **Capability security and reference monitors** — authority is checked by
+  deterministic host policy rather than granted by model confidence.
+- **Lease fencing and idempotent consumers** — stale-worker exclusion and
+  replay-safe effects under retries and recovery.
+- **Event sourcing and derived projections** — append-only facts beside
+  reproducible human-readable views.
 
-## Memory and planning influences
+## Runtime and development dependencies
 
-- **Voyager** — Wang et al., 2023 (arxiv:2305.16291). File-based skill libraries.
-- **Reflexion** — Shinn et al., 2023 (arxiv:2303.11366). Verbal reinforcement learning.
-- **MemGPT** — Packer et al., 2023 (arxiv:2310.08560). Hierarchical memory; the four-part working/semantic/episodic/procedural taxonomy.
-- **RAG** — Lewis et al., 2020 (arxiv:2005.11401). Retrieval-augmented generation.
-- **Mem0** — Chhikara et al., 2025 (arxiv:2504.19413).
-- **A-MEM** — Rasmussen et al., 2025 (arxiv:2501.13956).
-- **GraphRAG** — Edge et al., 2024 (arxiv:2404.16130).
-- **RAPTOR** — Sarthi et al., 2024 (arxiv:2401.18059).
+The current package intentionally has one direct runtime dependency:
 
-## Pedagogical models
+- [Pydantic](https://github.com/pydantic/pydantic), MIT — strict boundary
+  models and validation.
 
-- **nanoGPT** — Andrej Karpathy, 2023. `github.com/karpathy/nanoGPT`. "Build a real system from scratch in a small number of files."
-- **minitorch** — Sasha Rush (Cornell), 2020–2023. `minitorch.github.io`. "The tutorial's answer is the production code." sovereign-agent's chapter-drift CI check is a direct port.
-- **Build a Large Language Model from Scratch** — Sebastian Raschka, 2024. Manning Publications.
+The development toolchain uses
+[build](https://github.com/pypa/build),
+[mypy](https://github.com/python/mypy),
+[pytest](https://github.com/pytest-dev/pytest), and
+[Ruff](https://github.com/astral-sh/ruff). Their authoritative versions and
+transitive dependencies are recorded in `pyproject.toml` and `uv.lock`; this
+file deliberately does not duplicate the lockfile.
 
-## Third-party libraries
+## Contributors
 
-Runtime dependencies:
-
-- `openai` (Apache 2.0) — OpenAI-compatible HTTP client
-- `typer` (MIT) — CLI framework
-- `croniter` (MIT) — cron expression parsing
-- `python-dateutil` (Apache 2.0 / BSD) — date arithmetic
-
-Optional extras:
-
-- `evidently` (Apache 2.0)
-- `opentelemetry-*` (Apache 2.0)
-- `speechmatics-python`, `elevenlabs` — respective vendor licenses
-- `rasa-pro` — Rasa license; check terms before redistribution
-- `docker` (Apache 2.0) — declared by the `[docker]` extra only. Not used by any
-  code path and excluded from `[all]`; see `docs/v0.3-non-goals.md`.
-
-Development dependencies:
-
-- `pytest`, `pytest-asyncio`, `pytest-timeout` (MIT)
-- `ruff` (MIT)
-- `mypy` (MIT)
+Copyright is held by Rod Rivera and Sovereign Agent contributors. Git history
+is the authoritative attribution record for individual contributions. See
+[LICENSE](LICENSE) and [NOTICE](NOTICE) for redistribution terms.

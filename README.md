@@ -2,6 +2,11 @@
 
 **The executable textbook for Zero-Employee Organizations.**
 
+[![CI](https://github.com/profrodai/sovereign-agent/actions/workflows/ci.yml/badge.svg)](https://github.com/profrodai/sovereign-agent/actions/workflows/ci.yml)
+[![PyPI](https://img.shields.io/pypi/v/sovereign-agent.svg)](https://pypi.org/project/sovereign-agent/)
+[![Python 3.14+](https://img.shields.io/badge/python-3.14%2B-blue.svg)](https://www.python.org/downloads/)
+[![License: Apache-2.0](https://img.shields.io/badge/license-Apache--2.0-blue.svg)](LICENSE)
+
 Sovereign Agent 1.x is a small Python reference implementation for learning how
 an outcome becomes governed work performed by accountable actors. Production
 organizations graduate to [Zero Employee](https://github.com/zeroemployeeorg).
@@ -100,3 +105,12 @@ sovereign-agent doctor
 
 See the [educational reset ruling](docs/rulings/2026-08-25-educational-reset.md)
 and [v0.7 migration guide](docs/migration-v0.7-to-v1.md).
+
+## Project resources
+
+- [Book and runnable exercises](book/README.md)
+- [Architecture](docs/architecture.md) and [API reference](docs/api_reference.md)
+- [Contributing guide](CONTRIBUTING.md)
+- [Support](SUPPORT.md) and [security policy](SECURITY.md)
+- [Code of Conduct](CODE_OF_CONDUCT.md)
+- [Changelog](CHANGELOG.md)

@@ -1,8 +1,12 @@
 # Contributing to sovereign-agent
 
 Bug reports, documentation improvements, tests, and focused code changes are
-welcome. The project is alpha, and its governance and evidence contracts are
-deliberate.
+welcome. The project is beta, and its governance and evidence contracts are
+deliberate. Participation is governed by the [Code of Conduct](CODE_OF_CONDUCT.md).
+Use [GitHub Discussions](https://github.com/profrodai/sovereign-agent/discussions)
+for support questions and the structured issue forms for reproducible bugs,
+documentation defects, and proposals. Vulnerabilities must follow
+[SECURITY.md](SECURITY.md), never a public issue.
 
 ## Set up a development checkout
 
@@ -10,7 +14,7 @@ Requirements: Git, Python 3.14+, `make`, and
 [`uv`](https://docs.astral.sh/uv/).
 
 ```bash
-git clone https://github.com/zeroemployeeorg/sovereign-agent.git
+git clone https://github.com/profrodai/sovereign-agent.git
 cd sovereign-agent
 make install
 ```
@@ -25,25 +29,27 @@ uv run sovereign-agent doctor
 
 ## Development loop
 
-The Makefile has five working targets, plus `help` as the default goal:
+The Makefile exposes the supported development entry points, with `help` as the
+default goal:
 
 ```bash
 make install   # uv sync --python 3.14 --group dev
 make lint      # ruff format --check, ruff check, mypy (src tests scripts book)
 make test      # pytest
-make verify    # lint + test + runtime deps, source budget, doctor, demo
+make verify    # lint, test, deps, budgets, four book gates, doctor, demo
 make doctor    # the CLI's own environment check
+make labs      # execute every companion lab from a fresh root
 ```
 
 `make lint` runs the identical target list to CI, so it cannot pass while CI
 fails on a path the Makefile forgot.
 
-Before opening a pull request, run `make verify`, plus the two checks CI runs
-that it does not wrap:
+Before opening a pull request, run the same full local gate and check that
+dependency metadata is locked:
 
 ```bash
 uv lock --check
-uv run python scripts/verify_curriculum.py
+make verify
 ```
 
 If you change a Makefile target, change this list in the same commit. A
@@ -99,3 +105,8 @@ Keep changes focused and explain:
 1. the user-visible problem;
 2. why the chosen behavior is correct;
 3. what evidence proves it — ideally a test that fails without the change.
+
+The pull request template is the canonical checklist. Do not commit editor,
+assistant, credential, session, virtual-environment, build, or generated-site
+state. Repository-specific automation belongs in `.github/`; local tool policy
+belongs in each contributor's environment.
