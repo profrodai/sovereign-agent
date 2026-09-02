@@ -85,16 +85,17 @@ class PulseReport:
 def _unevaluated_signals(org: Organization) -> list[Signal]:
     """Every durable signal with no wake decision yet, oldest first.
 
-    A signal that already has a `pulse_wake_decisions` row (fired or not --
-    the row exists the instant this process wins the CAS, before the SOW
-    itself is created) is never re-offered to the GATE: re-evaluating it
-    would either race the canonical creation transaction pointlessly or, for
-    a signal the gate would now refuse, produce no new information. Read
-    fresh, from the current authoritative Store state, exactly as the SOW
-    requires -- this is a live SELECT, not a cached list. A signal that
-    already fired but whose assignment has not yet reached a terminal or
-    running state is picked up separately, by `_resumable_signals` below --
-    this function is only ever about NEW gate evaluations.
+    A signal that already has a `pulse_wake_decisions` row -- which exists
+    only once a firing decision wins the CAS and commits, never for a
+    non-firing pass, which writes nothing -- is never re-offered to the
+    GATE: re-evaluating it would either race the canonical creation
+    transaction pointlessly or, for a signal the gate would now refuse,
+    produce no new information. Read fresh, from the current authoritative
+    Store state, exactly as the SOW requires -- this is a live SELECT, not
+    a cached list. A signal that already fired but whose assignment has
+    not yet reached a terminal or running state is picked up separately,
+    by `_resumable_signals` below -- this function is only ever about NEW
+    gate evaluations.
     """
     rows = org.db.connection.execute(
         "SELECT s.record AS record FROM signals s "

@@ -139,3 +139,40 @@ business signal into governed work during one explicit pass, but this example
 does not invoke it and its ledger contains no `pulse.*` event. Pulse is distinct
 from both scheduling and the heartbeat liveness record. Continue to Chapter 7
 and [the Pulse reference](v1-unit9-pulse-proactive-work.md) for that mechanism.
+
+## Liveness, separately: the `heartbeat` command
+
+Heartbeat is unrelated to everything above — it is not Pulse, it is not the
+supervisor, and it never creates work. It answers exactly one question: "was
+this organization's runtime alive recently?"
+
+```bash
+# Record one liveness beat (default source "cli"):
+uv run sovereign-agent heartbeat --root /tmp/andrea-shift
+# -> beat recorded: <beat-id>
+
+# From a different watcher/source:
+uv run sovereign-agent heartbeat --root /tmp/andrea-shift --source watchdog
+
+# Read the verdict on the newest beat:
+uv run sovereign-agent heartbeat --status --root /tmp/andrea-shift
+# -> ALIVE: last beat <id> from 'watchdog' at <timestamp>, <N>s ago (threshold 900s)
+```
+
+`--status` prints one of three honest verdicts and exits accordingly:
+
+- `ALIVE` — the newest beat is within the staleness window (`--stale-after`
+  seconds, default `900`). Exit code `0`.
+- `STALE` — no beat was recorded within the window. This proves silence, not
+  death: the recorder may be wedged, crashed, or merely cut off from the
+  database. Exit code `1`.
+- `NO_BEATS` — the `heartbeats` table is empty; nothing has ever recorded a
+  beat here. Exit code `1`.
+
+Because `--status` exits `0` only on `ALIVE`, a cron job or external watchdog
+can key off the exit code directly, without parsing output.
+
+Beats live in their own append-only `heartbeats` table, entirely separate from
+the `events` ledger that records governed work — so a live process can never
+be mistaken for progress having been made. See
+[`heartbeat.py`](../src/sovereign_agent/heartbeat.py) for the full contract.

@@ -78,7 +78,7 @@ only once.
 | Signal | Domain transaction | A relevant fact occurred. |
 | Pulse tick | Caller invocation | Eligible signals were evaluated once. |
 | Supervisor tick | Loop or caller | Expired claims/attempts were reconciled. |
-| Heartbeat | Not implemented in this version | Would report periodic actor/process liveness. |
+| Heartbeat | Explicit `record_heartbeat` call | The runtime was alive at that moment; never that work happened, never a Pulse trigger. |
 
 Keeping these clocks distinct prevents an operational command loop from being
 mistaken for a liveness protocol, or a liveness protocol from being mistaken for
