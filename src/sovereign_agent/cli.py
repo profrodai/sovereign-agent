@@ -235,6 +235,27 @@ def _pulse(namespace: argparse.Namespace) -> int:
     return 0
 
 
+def _heartbeat(namespace: argparse.Namespace) -> int:
+    """Record or read durable liveness beats. NOT the Pulse: creates no work.
+
+    Default: append one beat and print its id. `--status`: read the newest
+    beat and print the honest verdict — ALIVE within `--stale-after` seconds,
+    STALE beyond it (which proves silence, not death), NO_BEATS when none
+    exist. `--status` exits 0 only on ALIVE, so a cron or watchdog can use
+    the exit code directly.
+    """
+    from sovereign_agent.heartbeat import heartbeat_status, record_heartbeat
+
+    org = Organization(_root(namespace))
+    if namespace.status:
+        status = heartbeat_status(org, stale_after_seconds=namespace.stale_after)
+        print(status.line())
+        return 0 if status.verdict == "ALIVE" else 1
+    beat_id = record_heartbeat(org, source=namespace.source)
+    print(f"beat recorded: {beat_id}")
+    return 0
+
+
 def _demo(namespace: argparse.Namespace) -> int:
     from reference_organizations.store.demo import run_simulated
 
@@ -355,6 +376,24 @@ def build_parser() -> argparse.ArgumentParser:
         help="run a single deterministic reconciliation tick and exit, instead of looping",
     )
     supervisor.set_defaults(handler=_supervisor)
+
+    heartbeat = subparsers.add_parser(
+        "heartbeat",
+        parents=[shared],
+        help=(
+            "record or read durable liveness beats (NOT the pulse: proves the "
+            "runtime was alive at a moment, never that work happened)"
+        ),
+    )
+    heartbeat.add_argument("--status", action="store_true", help="read the newest beat and verdict")
+    heartbeat.add_argument(
+        "--stale-after",
+        type=int,
+        default=900,
+        help="seconds before the last beat counts as STALE (with --status)",
+    )
+    heartbeat.add_argument("--source", default="cli", help="who is beating (recorded verbatim)")
+    heartbeat.set_defaults(handler=_heartbeat)
 
     pulse = subparsers.add_parser(
         "pulse",

@@ -73,6 +73,7 @@ See [`book/ch00_first_shift`](book/ch00_first_shift/README.md) and
 | Control loop | `supervisor` |
 | Installed OS hosting | `service` |
 | Proactive wake | `pulse` |
+| Liveness proof | `heartbeat` (records the runtime was alive; never creates work) |
 | Intelligence CLI | `provider` |
 | Governed identity | `actor` |
 
