@@ -707,6 +707,38 @@ END;
 """
 
 
+MIGRATION_17 = """
+-- Heartbeat: durable liveness records (see heartbeat.py). DELIBERATELY a
+-- separate table, never rows in `events`: the ledger records governed WORK,
+-- and a liveness tick written there would let "the process is running"
+-- masquerade as "something happened". Presence is not behavior.
+CREATE TABLE IF NOT EXISTS heartbeats (
+    beat_id TEXT PRIMARY KEY,
+    source TEXT NOT NULL,
+    created_at TEXT NOT NULL
+);
+
+-- Append-only like every proof-bearing table here: liveness history is a
+-- record, not a mutable "last seen" field an eager writer could rewrite.
+CREATE TRIGGER IF NOT EXISTS heartbeats_no_update
+BEFORE UPDATE ON heartbeats
+BEGIN
+    SELECT RAISE(ABORT, 'heartbeats are append-only: update refused');
+END;
+CREATE TRIGGER IF NOT EXISTS heartbeats_no_delete
+BEFORE DELETE ON heartbeats
+BEGIN
+    SELECT RAISE(ABORT, 'heartbeats are append-only: delete refused');
+END;
+CREATE TRIGGER IF NOT EXISTS heartbeats_no_replace
+BEFORE INSERT ON heartbeats
+WHEN EXISTS (SELECT 1 FROM heartbeats WHERE beat_id = NEW.beat_id)
+BEGIN
+    SELECT RAISE(ABORT, 'heartbeats are append-only: replace refused');
+END;
+"""
+
+
 MIGRATIONS: tuple[tuple[int, str], ...] = (
     (1, MIGRATION_1),
     (2, MIGRATION_2),
@@ -724,6 +756,7 @@ MIGRATIONS: tuple[tuple[int, str], ...] = (
     (14, MIGRATION_14),
     (15, MIGRATION_15),
     (16, MIGRATION_16),
+    (17, MIGRATION_17),
 )
 
 

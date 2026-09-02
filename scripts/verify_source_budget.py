@@ -25,7 +25,14 @@ MAX_MODULES = 40
 # prior ~40-line headroom; this bump is PROPOSED in the provider PR and stands
 # only once Master/Principal sanction it on merge, exactly as the 6_000->6_250
 # raise was ruled.
-MAX_NONBLANK_LINES = 6_400
+#
+# Raised from 6_400 to 6_600 for the Operator-directed heartbeat mechanism
+# (~152 nonblank lines: heartbeat.py, migration 17, CLI wiring) -- durable
+# liveness records deliberately separate from the events ledger. The feature
+# could not fit the prior 28-line headroom; this bump is PROPOSED in the
+# heartbeat PR and stands only once sanctioned on merge, per the same
+# precedent as both prior raises.
+MAX_NONBLANK_LINES = 6_600
 MAX_ROOT_EXPORTS = 30
 
 
