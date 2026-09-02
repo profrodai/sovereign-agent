@@ -52,11 +52,11 @@ sequenceDiagram
     alt A wins unique claim
         DB-->>A: inserted
         A->>DB: inventory + cash + event, same transaction
-        DB-->>B: conflict; read canonical effect
+        DB-->>B: conflict, read canonical effect
     else B wins unique claim
         DB-->>B: inserted
         B->>DB: inventory + cash + event, same transaction
-        DB-->>A: conflict; read canonical effect
+        DB-->>A: conflict, read canonical effect
     end
 ```
 
