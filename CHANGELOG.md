@@ -4,12 +4,48 @@ All notable changes to sovereign-agent.
 
 Repository: [`profrodai/sovereign-agent`](https://github.com/profrodai/sovereign-agent).
 
-## Unreleased
+## [1.2.0] — 2026-09-02
 
-- Modernized the public repository surface: complete community-health files,
-  canonical project metadata, a complete Apache-2.0 license, typed-package
-  signaling, and current 1.x architecture and API documentation. An obsolete
-  pre-1.0 manifest is no longer tracked as public project source.
+- **New `heartbeat` mechanism, deliberately separate from work.**
+  `sovereign-agent heartbeat` records or reads a durable liveness beat: an
+  append-only `heartbeats` table (a plain `INSERT`, no update path — history
+  of beats is a record, not a mutable "last seen" field) that lives apart
+  from the `events` ledger by design, so "the process is running" can never
+  masquerade as "governed work happened." Default invocation appends one
+  beat (`--source <name>`, default `cli`) and prints its id; `--status`
+  reads the newest beat and prints a verdict — `ALIVE` (a beat within
+  `--stale-after` seconds, default 900), `STALE` (no beat recorded in the
+  window — proof of silence, not of death), or `NO_BEATS` (the table is
+  empty) — and exits `0` only on `ALIVE`, so a cron or watchdog can key off
+  the exit code directly. This is explicitly **not** the Pulse: the book's
+  chapters use "heartbeat" informally for the organization waking itself to
+  create work (`sovereign-agent pulse`); this mechanism creates no work,
+  ever, under any circumstance.
+- **Book pedagogy deepened with implementation-grounded diagrams.** Every
+  finished chapter (ch00–ch12, both `full`-depth and guided-`tour`-depth) now
+  carries at least one conceptual Mermaid diagram showing the real mechanism,
+  not a rendering of a transcript — the book depth verifier's finished-chapter
+  gate (`scripts/verify_book_depth.py::check_depth_gates`) now refuses any
+  finished chapter that has no such diagram, or one that is empty, backed by
+  new regression tests in `tests/test_book_verifiers.py`. Chapter 7's Pulse
+  narrative is sharpened into explicit stages (signal, wake gate, wake
+  decision, execution) with a "four clocks" table distinguishing Signal, Pulse
+  tick, Supervisor tick, and Heartbeat so the mechanisms are never mistaken
+  for one another. Chapter 0's coverage manifest entry was corrected from an
+  absolute "the organization has no heartbeat yet" to the narrower,
+  still-accurate "this demo does not run an unattended scheduler or a
+  heartbeat," now that a heartbeat module exists elsewhere in the package. A
+  `known_gap` was added to Chapter 9's manifest entry documenting that its
+  acceptance check models a stronger sale contract (reserved-stock aware) than
+  production `record_sale` currently implements.
+- **Modernized the public repository surface** (carried over from the prior
+  Unreleased entry): complete community-health files, canonical project
+  metadata, a complete Apache-2.0 license, typed-package signaling, and
+  current 1.x architecture and API documentation. An obsolete pre-1.0
+  manifest is no longer tracked as public project source.
+- **Adopted fleet canon `zeo.yml` v2.2** (org issue #276): both CI jobs now
+  pin `actions/checkout@v7` (up from `v4`), and the workflow file's own
+  header now carries the canon marker recording byte-identical adoption.
 
 ## [1.1.1] — 2026-09-01
 
