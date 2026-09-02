@@ -37,6 +37,56 @@ None new — this chapter combines every mechanism Chapters 0-10 already
 named (outcome, SOW, assignment, effect, verification, review, acceptance,
 wake gate, Pulse) and proves they compose correctly at more than one SKU.
 
+## Exactly once is a ledger property, not an execution count
+
+Distributed and retried systems rarely execute a function exactly once. The
+useful guarantee is that repeated attempts converge on one canonical effect:
+
+```mermaid
+sequenceDiagram
+    participant A as Attempt A
+    participant B as Retry B
+    participant DB as SQLite
+    A->>DB: INSERT effect key (assignment, kind, SKU)
+    B->>DB: INSERT same effect key
+    alt A wins unique claim
+        DB-->>A: inserted
+        A->>DB: inventory + cash + event, same transaction
+        DB-->>B: conflict; read canonical effect
+    else B wins unique claim
+        DB-->>B: inserted
+        B->>DB: inventory + cash + event, same transaction
+        DB-->>A: conflict; read canonical effect
+    end
+```
+
+The idempotency key names the **logical operation**, not the process attempt. In
+production it is `(assignment_id, kind, subject_ref)`. A retry of the same
+assignment and SKU is the same operation and must return the canonical result. A
+different assignment for the same SKU is new authorized work. The same
+assignment aimed at a different SKU must not collide. Choosing only `sku` would
+suppress future legitimate restocks; choosing an attempt UUID would allow every
+retry to charge again.
+
+Atomic placement of the unique claim matters. A preflight `SELECT` followed by
+an `INSERT` leaves a gap in which both callers observe absence. The uniqueness
+constraint must arbitrate at the write boundary, and inventory, cash, event, and
+effect must share the transaction so no caller can win the claim without also
+committing the business effect.
+
+### Three scaling dimensions
+
+| Dimension | Failure exposed | Required evidence |
+| --- | --- | --- |
+| More subjects | vanilla work mutates chocolate | two distinguishable SKUs and subject assertions |
+| More attempts | retry double-charges | same logical key replayed |
+| More processes | check-then-act race | separate connections synchronized at the contested write |
+
+The chapter exercise covers subjects and retries sequentially. The named
+two-connection test covers process concurrency. Being explicit about which
+dimension an experiment varies is how a demonstration becomes evidence rather
+than theater.
+
 ## Build the restock yourself, then double-order under retry
 
 Production paid a specific bill here, and its own docstring names it: "An

@@ -39,6 +39,55 @@ nothing before this chapter's mechanism could tell them apart.
 mutate canonical execution state, acknowledge mailbox work, or reclaim the
 active workspace.**
 
+## Why a lease alone is insufficient
+
+A lease answers "who should be working now?" It cannot erase a process that was
+paused before expiry and resumes afterward. That stale process still has memory,
+open file descriptors, and a sincere belief that it owns the work. The fencing
+token makes the *resource* reject it:
+
+```mermaid
+sequenceDiagram
+    participant A as Process A
+    participant DB as SQLite ledger
+    participant B as Process B
+    A->>DB: acquire actor lease → token 41
+    A--xA: pause / partition
+    Note over DB: lease 41 expires
+    B->>DB: takeover → token 42
+    B->>DB: commit terminal state WHERE token = 42
+    DB-->>B: accepted
+    A->>DB: late commit WHERE token = 41
+    DB-->>A: zero rows changed → refused
+```
+
+The safety property comes from the `WHERE` clause at the terminal write, not
+from comparing wall clocks in Python. Time tells the system when takeover is
+allowed; monotonic tokens tell the protected resource which generation is
+current. This distinction is why fencing remains safe under pause, scheduling
+delay, or network partition after a lease expires.
+
+There are three nested claims in production:
+
+| Scope | Identity being fenced | Protected terminal act |
+| --- | --- | --- |
+| Actor lease | process hosting an actor | acquire/renew/release actor authority |
+| Execution attempt | process running one assignment | write assignment terminal state |
+| Mailbox claim | actor handling one message | complete or dead-letter the message |
+
+An execution attempt stores the actor-lease token from which it descended. A
+caller cannot present an arbitrary integer: `acquire_execution_attempt()` reads
+the current actor lease and verifies both actor and token. The terminal
+transaction then checks the attempt is still current before it writes success.
+The two levels close different races—actor takeover and assignment takeover—and
+neither can substitute for the other.
+
+One useful mental model is a versioned capability: possession of token 41 was
+authority in generation 41, but authority is never timeless. Renewal preserves
+the token because it is the same generation; takeover mints a higher token
+because it is a new one. Equality authorizes the write, and monotonic ordering
+explains why every older capability is stale.
+
 ## Build the mailbox yourself, then break it
 
 The fence is easiest to understand where the organization first needed it: the

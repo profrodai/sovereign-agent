@@ -3,11 +3,9 @@
 ## Teaching intent
 
 This is the payoff chapter for a thread every earlier chapter deliberately
-left open: Chapter 0 said "the organization has no heartbeat yet," Chapter 3
-mentioned "stronger workspace lifecycle policies arrive in Unit 7" as a
-precedent for naming future territory honestly, and this book's own
-`book/README.md` tracked the gap explicitly across three units before this
-chapter closed it. The teaching payoff is not "Pulse exists" — it is that
+left open: Chapter 0's exercise created no work from its own signal. The
+teaching payoff is not "Pulse exists"—and Pulse must not be called a
+heartbeat—it is that
 this chapter's own claim ("the organization woke itself") is backed by
 durable, structured, mechanically-checked evidence, not merely true prose.
 This chapter is where the book's central discipline (a claim needs a check
@@ -32,12 +30,11 @@ signal) should already be fluent by this point.
   immediately — it is the single most likely overclaim a learner will make
   after this chapter, and the book's own non-scope section says so
   explicitly ("no OS service, no scheduling, no cron, no webhooks").
-- **"Chapters 0-3 were lying when they said there's no heartbeat."** They
-  were not — Pulse genuinely did not exist as production code until Unit 9,
-  well after those chapters were written, and the book's own additive notes
-  (in Chapter 0 and `book/README.md`) document exactly when that changed and
-  why those chapters were left as an accurate historical record rather than
-  silently rewritten.
+- **"Pulse is the heartbeat."** It is not. Pulse converts business signals
+  into governed work during one explicit pass. A heartbeat would publish
+  process/actor liveness periodically; no such mechanism exists here. A
+  scheduler could invoke Pulse, but scheduling would still not make Pulse a
+  liveness protocol.
 - **"Any chapter could claim Pulse fired if the prose sounds right."** This
   is the misconception to correct most forcefully, because it is the exact
   defect class this chapter's own mechanical guard exists to prevent. Point

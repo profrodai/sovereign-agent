@@ -249,6 +249,31 @@ def test_tour_does_not_require_inline_python(tmp_path, capsys) -> None:
     assert "depth 'full' but no inline python construction" in output
 
 
+def test_output_transcripts_do_not_count_as_conceptual_diagrams() -> None:
+    """A chapter can have many text fences and still leave the model implicit."""
+    module = _load_depth_module()
+    manifest = real_manifest()
+    chapter = "ch00_first_shift"
+    entry = manifest["chapters"][chapter]
+    readme = (REPO_ROOT / "book" / chapter / "README.md").read_text(encoding="utf-8")
+    without_mermaid = module.re.sub(r"```mermaid\n.*?```", "", readme, flags=module.re.S)
+    problems = module.check_depth_gates(chapter, entry, without_mermaid, entry["depth"])
+    assert any("no conceptual Mermaid diagram" in problem for problem in problems)
+
+
+def test_an_empty_mermaid_fence_is_refused() -> None:
+    module = _load_depth_module()
+    manifest = real_manifest()
+    chapter = "ch00_first_shift"
+    entry = manifest["chapters"][chapter]
+    readme = (REPO_ROOT / "book" / chapter / "README.md").read_text(encoding="utf-8")
+    with_empty_diagram = module.re.sub(
+        r"```mermaid\n.*?```", "```mermaid\n```", readme, count=1, flags=module.re.S
+    )
+    problems = module.check_depth_gates(chapter, entry, with_empty_diagram, entry["depth"])
+    assert any("empty Mermaid diagram" in problem for problem in problems)
+
+
 def test_a_full_book_reports_zero_pending(capsys) -> None:
     """With every chapter at a finished depth, the summary must say 0 pending."""
     module = _load_depth_module()

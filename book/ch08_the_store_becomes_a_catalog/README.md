@@ -1,7 +1,7 @@
 # Chapter 8 — The Store becomes a catalog
 
 Up to now Lucy's shop has sold exactly one thing. That was a convenient lie — it
-let us build memory, judgement, boundaries, fencing, recovery, and a heartbeat
+let us build memory, judgement, boundaries, fencing, recovery, and Pulse
 without the distraction of a second product. But a real ice cream shop has
 vanilla *and* chocolate, and the moment there are two, a new question appears that
 never existed with one: **when something happens to one product, does it stay
@@ -35,6 +35,60 @@ real store with more than one product on the shelf actually needs.
 | **Catalog** | More than one `Product`, each with its own `products` row and its own `inventory` row — not one product repeated, not a single row carrying a list. |
 | **`CatalogEntry`** | One SKU's own opening position: the product itself, plus its own starting `on_hand` and `reorder_point`, independent of every other entry in the same catalog. |
 | **`seed_catalog`** | The production function that writes a whole catalog in one transaction. Additive alongside `seed`, never a replacement for it. |
+
+## The data model is where isolation begins
+
+A catalog is not "a list of names." It is a set of stable identities joined to
+independent operational state:
+
+```mermaid
+erDiagram
+    PRODUCTS ||--|| INVENTORY : "has current stock"
+    PRODUCTS ||--o{ SIGNALS : "is subject of"
+    PRODUCTS ||--o{ EFFECTS : "is changed by (logical subject)"
+    PRODUCTS {
+        string sku PK
+        json record
+    }
+    INVENTORY {
+        string sku PK,FK
+        int on_hand
+        int reorder_point
+        int reserved
+    }
+```
+
+This diagram mixes one physical foreign-key relationship (`products.sku` to
+`inventory.sku`) with two logical subject relationships carried in serialized
+signal/effect data; it does not invent a `sales` table the implementation does
+not have. Sales are represented by cash rows, signals, and append-only events.
+
+The SKU is an identity, not a label. If Lucy renames "Vanilla Bean" to
+"Madagascar Vanilla," references do not move. If code joins on `display_name`, a
+marketing edit becomes a referential-integrity event and historical records can
+detach from the product they described.
+
+Migrating a populated single-product store therefore has four proof obligations:
+
+1. **Preservation:** the original inventory quantity and thresholds survive.
+2. **Identity:** the legacy row maps to exactly one stable SKU.
+3. **Totality:** every inventory row references an existing product.
+4. **Atomicity:** schema, backfill, and migration stamp become visible together.
+
+The production migration runner wraps migration statements and the version stamp
+in one explicit transaction. `seed_catalog` validates the catalog-wide
+cardinality and duplicate-SKU rules before entering its transaction, then writes
+each product and inventory pair atomically. This ordering matters: a duplicate
+found after earlier commits could leave half a catalog. "Validate the batch,
+then mutate atomically" is the batch equivalent of Chapter 1's transaction
+lesson. Individual numeric fields are not comprehensively validated here; that
+is a contract edge, not a guarantee to infer from the two checks that exist.
+
+The second SKU is also a diagnostic instrument. With one product, code that
+forgets a `WHERE sku = ?` clause often appears correct because every row is the
+right row. Two distinguishable products turn accidental global state into a
+visible cross-talk failure. Cardinality is therefore part of the test design,
+not merely more sample data.
 
 ## Build the migration yourself: one product becomes a catalog, without losing the shop
 

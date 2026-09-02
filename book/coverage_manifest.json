@@ -35,7 +35,7 @@
           "exercise": "book/ch00_first_shift/solution.py"
         },
         {
-          "concept": "no-heartbeat-yet-honest-absence",
+          "concept": "no-unattended-trigger-used-in-first-shift",
           "anchor": "Why nothing happened until you typed",
           "symbols": [
             {
@@ -49,7 +49,7 @@
           "exercise": "book/ch00_first_shift/solution.py"
         }
       ],
-      "limits_anchor": "The organization has no heartbeat yet",
+      "limits_anchor": "This demo does not run an unattended scheduler or a heartbeat",
       "break_evidence": [
         "UPDATE inventory SET on_hand = 0 WHERE on_hand > 0;",
         "available=0 (on_hand=0 - reserved=0) vs reorder_point=3",
@@ -721,7 +721,8 @@
           "tests": [
             "tests/test_acceptance_falsification.py::test_reserved_stock_is_not_available_stock"
           ],
-          "exercise": "book/ch09_each_product_has_its_own_threshold/solution.py"
+          "exercise": "book/ch09_each_product_has_its_own_threshold/solution.py",
+          "known_gap": "The acceptance check subtracts reserved stock, but production record_sale currently reads only on_hand and reorder_point. The chapter model deliberately demonstrates the stronger sale contract and labels the production divergence; reservation-aware selling is not yet implemented."
         },
         {
           "concept": "dedupe-key-per-occurrence-append-only-signals",

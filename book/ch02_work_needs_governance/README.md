@@ -42,6 +42,51 @@ to decide what, and what has to be true before a decision sticks.
 | **Acceptance** | The Principal declaring the outcome true — if it survives proof. |
 | **Ruling** | A recorded decision that changes the rules. |
 
+## Acceptance is a proof graph, not a workflow status
+
+The nouns above form a directed proof graph. The graph matters more than the
+order of buttons in a UI because each edge answers a different adversarial
+question:
+
+```mermaid
+flowchart LR
+    O[Outcome\nworld predicate] --> S[SOW\nscope + checks]
+    S --> X[Assignment\nactor + workspace]
+    X --> C[Receipt\nexecution identity]
+    X --> E[Evidence\ncheck observation]
+    C --> E
+    E --> V[Verification\nchecks rerun]
+    V --> R[Review\ndistinct actor]
+    R --> A[Acceptance]
+    O --> A
+    S --> A
+```
+
+Acceptance is permitted only when the necessary paths converge at `A`. A receipt
+without evidence proves an execution ended, not that it worked. Evidence without
+an execution binding may have been borrowed from another run. A review by the
+performer is self-attestation. A green check whose observed inputs changed after
+it ran is stale. Production `Organization.accept()` therefore behaves like a
+proof checker: it does not trust a summary of this graph; it follows the ledger
+edges and re-establishes the obligations.
+
+The seven layers you are about to build can be understood as attacks on graph
+integrity:
+
+| Attack | Missing relation | False conclusion |
+| --- | --- | --- |
+| Paperwork-only acceptance | outcome → current observation | "The freezer is full" because a field says so. |
+| Stale check | evidence → current world digest | Yesterday's truth is accepted today. |
+| Borrowed evidence | evidence → assignment/receipt | Alice's successful run proves Bob's failed run. |
+| Self-review | reviewer ≠ performer | The worker marks its own answer correct. |
+| Moved world | digest → exact observed inputs | A check still exits zero while the facts it supposedly proved changed. |
+
+This also explains why review and acceptance are not one act. Review evaluates
+the bounded work described by a SOW. Acceptance evaluates whether the outcome is
+true after the necessary reviewed work and observations converge. One outcome
+may require several SOWs; approving one diff is not automatically accepting the
+world-level result.
+
 ## Build it yourself: acceptance in seven layers
 
 The whole chapter turns on one function. Production `accept()` — in

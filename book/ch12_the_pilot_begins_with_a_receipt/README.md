@@ -41,6 +41,55 @@ is a separate, later, separately-authorized act, entirely outside this book.
 | **Fail-closed refusal** | A DIFFERENT pilot identity, while one is already active, is refused outright — never silently ignored, never silently allowed to proceed. |
 | **Started vs. finished** | This mechanism proves a pilot BEGAN. Nothing in this project claims, or could currently check, that a pilot has ENDED — there is no completion mechanism yet. |
 
+## Two proof boundaries at release time
+
+The final chapter contains two related but distinct proofs. The pilot-start
+transaction proves a state transition in one ledger. The proof pack proves that
+a collection of release artifacts is internally consistent:
+
+```mermaid
+flowchart LR
+    Q[Pilot request\nid + store + profile] --> C{Compare with\nexisting active pilot}
+    C -->|exact match| R[Return canonical row\nidempotent replay]
+    C -->|same id, different request| F[Refuse collision]
+    C -->|different active pilot| F
+    C -->|none active| T[Atomic insert pilot\n+ active slot + event]
+    T --> P[Pilot-start receipt]
+
+    M[Manifest] --> V[Proof-pack verifier]
+    D[Artifact digests] --> V
+    S[Declared statuses] --> V
+    V --> I[Internal consistency claim]
+```
+
+The left side is a compare-and-set state machine. Replay equality covers the
+whole request identity, not only `pilot_id`; otherwise a colliding customer can
+receive another customer's canonical record. The single active slot makes
+"only one pilot" a database invariant rather than a query performed just before
+an insert.
+
+The right side is deliberately weaker than external attestation. A digest proves
+that bytes match the manifest. A closed status vocabulary prevents invented
+labels. Cross-field rules can reject `NOT_RUN` paired with success language. But
+if one untrusted author fabricates both an artifact and the digest describing
+it, internal consistency still passes. Authenticity requires an independent
+root of trust—such as a CI identity, signed provenance, or credentialed provider
+record—that this verifier does not manufacture.
+
+Use this ladder when reading any release claim:
+
+| Level | Claim | Evidence needed |
+| --- | --- | --- |
+| 1 | Request was received | input record |
+| 2 | Pilot start committed | pilot row + active slot + append-only event |
+| 3 | Repeated request was the same request | full identity comparison |
+| 4 | Pack is internally consistent | schema, cross-field checks, real digests |
+| 5 | External action really occurred | independent authenticated provenance |
+| 6 | Pilot achieved its outcome | a completion protocol and outcome checks—not implemented |
+
+Stopping at the level actually proven is the final governance skill. A receipt
+is valuable precisely because it is narrow enough to be true.
+
 ## Build the pilot start yourself, then hand Mo's diner Lucy's data
 
 A pilot start looks like an INSERT. It is a **contract**: the same request

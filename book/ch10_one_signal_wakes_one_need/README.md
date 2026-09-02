@@ -32,6 +32,47 @@ belongs to which outcome.
 | --- | --- |
 | **Signal-to-SKU binding** | A signal's own `subject_ref` field is what the wake gate reads to decide which outcome it is about — not the order signals arrive in, not which one was created first. |
 
+## Trace identity end to end
+
+Isolation is not achieved by putting `sku` on one table. The same subject must
+survive every edge from observation to accepted effect:
+
+```mermaid
+flowchart LR
+    S[Signal\nsubject_ref=SKU-VANILLA] --> G[Wake gate]
+    G --> O[Outcome\nsubject=SKU-VANILLA]
+    O --> W[SOW\nrequired effect=replenishment]
+    W --> X[Assignment/execution]
+    X --> E[Effect\nsubject=SKU-VANILLA]
+    E --> A[Acceptance]
+    A -->|re-read| I[(Inventory\nSKU-VANILLA)]
+```
+
+At each arrow, ask whether identity is **derived** from the preceding durable
+record or supplied again by a caller. Re-supplying `sku="vanilla"` at acceptance
+creates a confused-deputy opportunity: a caller can present a real effect for
+coffee while asking the verifier to inspect vanilla. Production instead follows
+the ledger chain and compares the effect kind and subject required by the SOW.
+
+This is stronger than corroboration. Suppose vanilla is already full because a
+delivery arrived outside the organization. A world-state check passes, but it
+does not prove this execution replenished vanilla. Conversely, a real vanilla
+effect does not justify accepting a chocolate outcome. Causal binding requires
+both the correct world predicate and the correct provenance path.
+
+Use a binding matrix to reason about the four possibilities:
+
+| World state | Effect binding | Verdict |
+| --- | --- | --- |
+| wrong | wrong | refuse |
+| right | wrong or absent | refuse: no causal credit |
+| wrong | right | refuse: action did not achieve outcome |
+| right | right | eligible, subject to review/evidence rules |
+
+The two-signal experiment is therefore not merely a feature demonstration. It
+is a non-interference test: changing the arrival order or state of coffee must
+not change which vanilla outcome the vanilla signal selects.
+
 ## Three different questions that all sound like "is it done?"
 
 Before building anything, split one innocent question into the three it

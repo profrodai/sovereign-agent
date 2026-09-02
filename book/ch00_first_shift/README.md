@@ -26,6 +26,45 @@ hand and watched an independent check *catch the lie*.
 
 ## The exercise
 
+## A map of the system before you touch it
+
+The demo is small, but it is not one undifferentiated "agent." It is four
+different kinds of machinery arranged so that no probabilistic component gets
+the last word:
+
+```mermaid
+flowchart LR
+    W[World state\ninventory + cash] -->|sale commits| S[Signal\nappend-only fact]
+    S --> G[Deterministic wake gate]
+    G -->|creates| P[Governed work\noutcome → SOW → assignment]
+    P --> M[Provider/model\nproposes]
+    M --> V[Host Python\nvalidates + commits]
+    V --> W
+    V --> E[Evidence + receipt]
+    E --> R[Independent review]
+    R --> A[Acceptance\nchecks rerun]
+    A -. refuses if false .-> P
+```
+
+Read the arrow labels as changes of epistemic status—changes in what the
+organization is entitled to claim. A signal says *something happened*. A SOW
+says *someone has specified work*. A receipt says *an execution ended*. Evidence
+says *a named check observed a result*. Acceptance says *the declared outcome is
+true now*. These are deliberately not synonyms. A common agent design collapses
+all five into a single `status="done"` field and then has no vocabulary for
+distinguishing an attempted action from a true outcome.
+
+There are also two loops. The operational loop changes Lucy's shop; the proof
+loop challenges the claim about that change. The worker participates in the
+first loop but cannot close the second. That separation—not the model prompt—is
+the safety architecture you will spend the book constructing.
+
+Use this diagnostic throughout the course: point to any arrow and ask, **what
+durable row authorizes this transition, what deterministic code enforces it,
+and what false claim becomes possible if the arrow is skipped?** If you cannot
+answer all three, you have found either a gap in your understanding or a gap in
+the system.
+
 The shop that ships with the framework is a tiny store. Run its full loop once,
 with no API keys, no network, and no model — it uses a deterministic `scripted`
 stand-in so the result is identical on every machine:
@@ -155,10 +194,11 @@ conflate them, and it lets you check.
 Worth noticing before you move on: **you** started this. The sale, the signal,
 the statement of work, the restock — none of it began until you ran a command.
 
-The organization has no heartbeat yet. It cannot notice on its own that stock
-fell and decide to reorder. Every step you just watched was dispatched because
-the demo dispatched it, by hand. You can confirm that claim the same way you
-checked the others — by reading the ledger:
+This demo does not run an unattended scheduler or a heartbeat. Every step you
+just watched was dispatched because the demo dispatched it synchronously. The
+installed system does contain Pulse, a signal-to-work mechanism introduced in
+Chapter 7, but this exercise does not invoke it. You can confirm this narrower
+and testable claim the same way you checked the others—by reading the ledger:
 
 ```bash
 sqlite3 /tmp/first-shift/.sovereign/organization.db \
@@ -220,7 +260,7 @@ these once:
 | 4 — Work stays inside its boundary | The workspace boundary | Path escapes that try to write outside it |
 | 5 — Authority needs a fence | Fencing tokens, compare-and-swap, leases | The stale actor that still *thinks* it holds authority |
 | 6 — The organization recovers | Supervised recovery from lost workers | A "kind" recoverer that quietly lies about what it restored |
-| 7 — The organization wakes itself | The pulse: the heartbeat this first shift honestly lacked | A tick that orders twice for one signal |
+| 7 — The organization wakes itself | Pulse: one signal-to-work decision pass, distinct from scheduling and heartbeat | A tick that orders twice for one signal |
 | 8 — The store becomes a catalog | A migration on *populated* data, and validated seeding | A mid-migration fault — and the old data untouched afterward |
 | 9 — Each product has its own threshold | A sale as five writes in one transaction | The oversell: on-hand driven below zero by a stale read |
 | 10 — One signal wakes one need | Causal binding: *this* run caused *that* effect | A checker satisfied that "run-t did something" when run-t did nothing |
