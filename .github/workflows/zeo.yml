@@ -1,3 +1,4 @@
+# canon: zeo.yml v2.2 (org issue #276; byte-identical adoption mandatory)
 name: zeo
 
 on:
@@ -21,7 +22,7 @@ jobs:
       NO_COLOR: "1"
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
         with:
           fetch-depth: 0
 
@@ -97,7 +98,7 @@ jobs:
       NO_COLOR: "1"
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
         with:
           fetch-depth: 0
       - name: Install uv
