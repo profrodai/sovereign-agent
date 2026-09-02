@@ -1,7 +1,7 @@
 # Contributing to sovereign-agent
 
 Bug reports, documentation improvements, tests, and focused code changes are
-welcome. The project is alpha, and its governance and evidence contracts are
+welcome. The project is beta, and its governance and evidence contracts are
 deliberate. Participation is governed by the [Code of Conduct](CODE_OF_CONDUCT.md).
 Use [GitHub Discussions](https://github.com/profrodai/sovereign-agent/discussions)
 for support questions and the structured issue forms for reproducible bugs,
@@ -36,7 +36,7 @@ default goal:
 make install   # uv sync --python 3.14 --group dev
 make lint      # ruff format --check, ruff check, mypy (src tests scripts book)
 make test      # pytest
-make verify    # lint + test + runtime deps, source budget, doctor, demo
+make verify    # lint, test, deps, budgets, four book gates, doctor, demo
 make doctor    # the CLI's own environment check
 make labs      # execute every companion lab from a fresh root
 ```

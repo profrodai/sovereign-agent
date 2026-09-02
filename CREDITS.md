@@ -5,6 +5,29 @@ teaching approach. This file names the principal influences on the current 1.x
 line; it is not a dependency manifest or a claim that those projects endorse
 this one.
 
+## Direct predecessors
+
+- **NanoClaw** — Gavriel Cohen's filesystem-isolated Claude Code agent system
+  contributed the concrete lineage behind session isolation, queued execution,
+  atomic filesystem IPC, idle preemption, credential gateways, drift-corrected
+  scheduling, mount allowlists, and graceful detachment.
+- **QuackVerse** — Rod Rivera's media-operations agent system contributed
+  explicit ticket state, discovery and summary artifacts, structured failure
+  taxonomies, and manifest discipline.
+
+## Agent-system and research influences
+
+- **Claude Code** — the repository-scoped execution and session model.
+- **OpenHands** — Wang et al., _OpenHands: An Open Platform for AI Software
+  Developers as Generalist Agents_ (arXiv:2407.16741).
+- **Aider** — Paul Gauthier's repository-local coding-agent workflow.
+- **SWE-agent** — Yang et al., _Agent-Computer Interfaces Enable Automated
+  Software Engineering_ (arXiv:2405.15793).
+- **Voyager**, **Reflexion**, **MemGPT**, **RAG**, **Mem0**, **A-MEM**,
+  **GraphRAG**, and **RAPTOR** — skill libraries, reflective feedback,
+  hierarchical memory, retrieval, and graph/tree memory patterns credited in
+  the project's original design record.
+
 ## Pedagogical influences
 
 - **Sebastian Raschka, _Build a Large Language Model from Scratch_** — the

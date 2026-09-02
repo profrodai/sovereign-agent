@@ -34,8 +34,9 @@ uv run sovereign-agent --version
 uv run sovereign-agent doctor
 ```
 
-`doctor` reports your Python and Pydantic versions and lists which provider CLIs
-you happen to have. **You do not need any of them.** The quickstart runs on the
+`doctor` reports your Python and Pydantic versions, probes the Claude, Codex, and
+Cursor CLIs, and shows the configured OpenAI-compatible provider without making
+a network request. **You do not need any of them.** The quickstart runs on the
 `scripted` provider, which is a deterministic fixture.
 
 ## 2. Run one shift
@@ -69,7 +70,7 @@ This is the part that matters. `ACCEPTED` is a claim; here is how you audit it.
 uv run sovereign-agent inspect --root /tmp/andrea-shift
 ```
 
-Expected, in three parts:
+Expected, in four parts:
 
 ```text
 inventory
@@ -83,9 +84,11 @@ events
     ...
     1  replenishment.committed
     ...
+outcomes
+  ACCEPTED out_...  Keep the tea jar stocked
 ```
 
-Read it as three separate claims:
+Read it as four separate claims:
 
 - **`OK`** — available stock is at or above the reorder point. The tea jar
   really is full. `LOW` would mean it is not, whatever the outcome says.
@@ -93,6 +96,9 @@ Read it as three separate claims:
   120 cents is exactly 720, and the balance still adds up.
 - **`replenishment.committed`** — a restock is on the append-only ledger, not
   merely implied by the inventory number.
+- **`ACCEPTED`** — the governed outcome reached its terminal state after its
+  checks, evidence, and review; it does not replace the three world-state
+  observations above.
 
 ## 4. Break it on purpose
 

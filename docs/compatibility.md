@@ -13,10 +13,12 @@
 The lockfile records the tested development environment. The package metadata,
 not the lockfile, defines the runtime dependency range users install.
 
-Provider adapters invoke external executables. Their availability and supported
-flags are probed at runtime; installing Sovereign Agent does not install Claude,
-Codex, Cursor, or Ollama. A missing optional provider does not prevent the
-scripted offline curriculum from running.
+Claude, Codex, and Cursor adapters invoke external executables and probe their
+availability and supported flags at runtime. The OpenAI-compatible adapter runs
+inside Sovereign Agent and reports configured availability without contacting
+its endpoint; actual invocation still fails honestly if that endpoint is
+unreachable. Optional providers never prevent the scripted offline curriculum
+from running.
 
 ## Versioning
 

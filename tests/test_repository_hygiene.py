@@ -53,9 +53,8 @@ def tracked_paths() -> set[str]:
     return {path.decode() for path in result.stdout.split(b"\0") if path}
 
 
-def test_local_assistant_policy_and_obsolete_manifest_are_not_public_source() -> None:
+def test_obsolete_manifest_is_not_public_source() -> None:
     tracked = tracked_paths()
-    assert not any(path == ".claude" or path.startswith(".claude/") for path in tracked)
     assert "MANIFEST-CRITICAL.txt" not in tracked
 
 

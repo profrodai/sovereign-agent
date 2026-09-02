@@ -8,9 +8,8 @@ Repository: [`profrodai/sovereign-agent`](https://github.com/profrodai/sovereign
 
 - Modernized the public repository surface: complete community-health files,
   canonical project metadata, a complete Apache-2.0 license, typed-package
-  signaling, and current 1.x architecture and API documentation. Local
-  assistant configuration and an obsolete pre-1.0 manifest are no longer
-  tracked as public project source.
+  signaling, and current 1.x architecture and API documentation. An obsolete
+  pre-1.0 manifest is no longer tracked as public project source.
 
 ## [1.1.1] — 2026-09-01
 

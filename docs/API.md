@@ -20,9 +20,10 @@ from sovereign_agent import (
 )
 ```
 
-The source-budget gate verifies this list mechanically. Direct imports from
-other modules are implementation-level integration points unless a current 1.x
-document explicitly says otherwise.
+The source-budget gate caps the number of top-level exports; it does not verify
+this documentation's names. Direct imports from other modules are
+implementation-level integration points unless a current 1.x document
+explicitly says otherwise.
 
 ## Compatibility promise
 
