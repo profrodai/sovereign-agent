@@ -41,6 +41,58 @@ data-structure trick.
 **Prerequisites:** Chapters 0–2. Comfort with Python classes and `pydantic`
 models. No machine-learning background required.
 
+## The actor boundary: proposal is data, authority is code
+
+An actor is a durable organizational identity. A provider is an interchangeable
+mechanism that produces a proposal for that actor. The host application remains
+the reference monitor—the component that checks authority and decides whether a
+proposal may change canonical state:
+
+```mermaid
+sequenceDiagram
+    participant Org as Organization host
+    participant Policy as Role policy
+    participant Provider as Model/provider
+    participant DB as Canonical ledger
+    Org->>Policy: may actor perform action?
+    Policy-->>Org: allow or refuse
+    Org->>Provider: bounded prompt + workspace
+    Provider-->>Org: typed ActorReport proposal
+    Org->>Org: parse, validate, check invariants
+    alt valid and authorized
+        Org->>DB: transactional state change + receipt
+    else malformed or forbidden
+        Org->>DB: failure receipt / refusal evidence
+    end
+```
+
+This is a capability-security idea expressed with ordinary Python. The provider
+does not receive "authority" as prose in a prompt; it receives inputs and can
+return data. The host looks up `ROLE_AUTHORITY`, validates the report schema, and
+executes the narrow operation. Rebinding an actor from `scripted` to `ollama`
+changes the proposal generator, not the policy lookup.
+
+Do not overread the diagram. For providers that run as local subprocesses, this
+is a **logical authority boundary**, not automatically an operating-system
+security boundary. A subprocess may possess ambient filesystem or network
+capabilities inherited from its environment. Chapter 4 detects a stated class
+of filesystem changes; it does not turn every provider into a sandbox. The
+architecture's strong claim is narrower: a provider response cannot directly
+write canonical organizational state through the governed protocol. Any
+ambient access outside that protocol is residual risk to remove with process or
+container isolation when the deployment threat model requires it.
+
+Keep three identities separate when debugging:
+
+| Identity | Example | What may change it? |
+| --- | --- | --- |
+| Actor | `operator-course` | Governance and actor registration. |
+| Role | `OPERATOR` | Policy/ruling, never a provider response. |
+| Provider binding | `scripted`, `ollama`, `codex` | An authorized rebind. |
+
+Collapsing these is how "the model did it" becomes an excuse rather than an
+auditable statement.
+
 ## The tempting mistake, built and broken
 
 The intuitive design ties power to smartness: a good-enough model earns the right

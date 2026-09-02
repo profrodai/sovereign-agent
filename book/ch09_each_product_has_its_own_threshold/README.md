@@ -29,6 +29,74 @@ exact same-shaped sale already flagged tea.
 | **Per-SKU threshold** | `below_reorder` evaluates EACH SKU's `on_hand` against THAT SKU's own `reorder_point` — never a catalog-wide number. |
 | **Signal severity** | `record_sale`'s own `warning`/`info` distinction, now shown to depend on the selling SKU's own threshold, not a shared one. |
 
+## One transaction, two derived quantities, five durable effects
+
+The sale path is a compact lesson in transactional domain modeling. The diagram
+shows the **hardened version you build in this chapter**, not an unqualified map
+of the shipped function:
+
+```mermaid
+flowchart LR
+    I[(inventory row\nfor requested SKU)] --> A[available =\non_hand - reserved]
+    A -->|quantity ≤ available| U[decrement on_hand]
+    A -->|quantity > available| R[refuse + rollback]
+    U --> C[append positive\ncash movement]
+    U --> N[new_on_hand ≤\nthis SKU's reorder point?]
+    N --> S[append signal\nwarning or info]
+    S --> E[append sale event]
+    C --> K[COMMIT]
+    E --> K
+```
+
+`available` and `total` are derived inside the toy operation rather than passed
+as precomputed values. The unit price is still caller-supplied; a stronger
+production contract would look it up from the product record. The inventory row
+is read after `BEGIN IMMEDIATE`, so the decision and decrement are serialized
+against competing writers. Checking before the transaction creates a classic
+check-then-act race: two sellers can both observe one remaining tub and both
+decide it is available.
+
+The threshold predicate is evaluated against `new_on_hand`, not the opening
+quantity. It is also local to the selected row. Write it mathematically:
+
+```text
+available(sku) = on_hand(sku) - reserved(sku)
+sale allowed    ⇔ quantity > 0 ∧ quantity ≤ available(sku)
+warning         ⇔ on_hand_after(sku) ≤ reorder_point(sku)
+```
+
+That notation exposes boundary choices prose can hide. Equality produces a
+warning in this implementation. Reserved units reduce sellable stock without
+changing physical on-hand. An unknown SKU is refused rather than implicitly
+created. A non-positive quantity cannot be used as a disguised return. Each is a
+domain policy, and each needs an explicit test because SQLite constraints alone
+do not express the full predicate.
+
+The signal is written even at `info` severity. This makes the sale auditable
+while allowing the wake gate to decline work. Recording facts broadly and
+creating work narrowly is cleaner than suppressing facts merely because they do
+not yet require action.
+
+### Contract audit: the teaching model is stricter than production
+
+Read `src/reference_organizations/store/__init__.py::record_sale` before
+assuming the exercise describes it exactly:
+
+| Rule | Chapter implementation | Current production implementation |
+| --- | --- | --- |
+| Concurrent read/write | `BEGIN IMMEDIATE` | `db.immediate()`—same guarantee |
+| Reservation-aware availability | checks `on_hand - reserved` | reads only `on_hand`; reservations are ignored |
+| Positive quantity | explicitly refused | no explicit check; a negative quantity can increase stock |
+| Price authority | caller supplies unit price | caller also supplies unit price; catalog price is not consulted |
+| Atomic durable effects | inventory, cash, signal, event | same four classes of write in one transaction |
+
+This mismatch is pedagogically useful and operationally real. The exercise
+builds the contract Lucy would want, then the production comparison shows that
+an attractive schema field (`reserved`) is not a guarantee until the mutation
+path consumes it. The chapter proves the current per-SKU threshold behavior; it
+does **not** claim production already enforces reservation-aware selling or
+catalog-authoritative pricing.
+
 ## Build the sale yourself, then oversell the freezer
 
 A sale looks like one act. It is at least **five writes that must be true
@@ -194,10 +262,12 @@ processes colliding — `BEGIN IMMEDIATE`'s reserved lock is what serializes
 genuinely concurrent connections, and the production suite proves that case
 with real separate connections.
 
-### Available is not on-hand
+### Available is not on-hand—and production has not wired that rule yet
 
-Chapter 2's acceptance checks counted reservations; the sale must too. Six
-tubs physically in the freezer, five promised to a wedding order:
+Chapter 2's acceptance checks count reservations; a consistent sale contract
+should too. The current production `record_sale` does not. Build the desired
+rule in the chapter model to see the missing behavior precisely: six tubs
+physically in the freezer, five promised to a wedding order:
 
 ```python
 db.execute("UPDATE inventory SET on_hand = 6, reserved = 5 WHERE sku = 'SKU-TEA'")
@@ -211,11 +281,12 @@ refused: only 1 available (6 on hand, 5 reserved)
 sold 1 SKU-TEA for 400c -> on_hand 5, signal info
 ```
 
-Selling from `on_hand` alone would double-promise the wedding's tubs to a
+Selling from `on_hand` alone can double-promise the wedding's tubs to a
 walk-in customer — both truths recorded, both impossible to honor.
 `available = on_hand - reserved` is one subtraction, and it is the entire
 difference between a ledger that models commitments and one that models
-shelves.
+shelves. Treat this as a named implementation gap until a production test and
+code change close it.
 
 ### All five writes, or none
 
@@ -255,11 +326,12 @@ after:  on_hand=5 cash_rows=4 events=4
 Inventory and cash had already been written when the power died — and the
 rollback took both back. A sale that decrements stock but records no cash,
 or takes cash but emits no signal for Pulse to wake on, is not a partial
-sale; it is a ledger at war with itself. The production version —
-`record_sale` in `src/reference_organizations/store/__init__.py` — is this
-function with real models: same inside-the-transaction read, same derived
-total, same per-SKU severity judgment, same per-occurrence dedupe key, same
-all-or-nothing commit.
+sale; it is a ledger at war with itself. The production version—`record_sale`
+in `src/reference_organizations/store/__init__.py`—shares the
+inside-the-transaction read, caller-price multiplication, per-SKU severity,
+per-occurrence dedupe key, and all-or-nothing commit. It does not share this
+toy model's reservation or positive-quantity checks. Similarity of transaction
+shape must not be inflated into equality of domain validation.
 
 ## The exercise
 

@@ -56,9 +56,9 @@ labels first, then formally in Chapter 2.
   what this book is actually testing?"
 - "If you were auditing this organization a year from now, which of the
   things you just saw would you trust, and which would you re-verify?"
-- "The organization has 'no heartbeat yet.' What would have to be true for
-  it to develop one, and would you want it to, for a system handling real
-  money?"
+- "This demo invokes neither Pulse nor a heartbeat. Which durable evidence
+  would distinguish signal-driven work creation from process liveness, and
+  why should those be separate mechanisms?"
 
 ## Facilitation timing
 

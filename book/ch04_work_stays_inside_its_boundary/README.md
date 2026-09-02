@@ -43,6 +43,60 @@ chapter builds the machinery that makes that flag honest rather than alarming.
 | **Workspace policy** | `temporary_directory` (scratch space reclaimed after the assignment finishes) or `persistent` (nothing reclaimed, the whole run stays inspectable). |
 | **Reclaim** | Removing an assignment's disposable scratch space — never the receipt or its declared output. |
 
+## Two boundaries, and the blind region between them
+
+This chapter uses two mechanisms that are easy to confuse. `safe_join` is a
+preventive check on a path the host is about to use. `snapshot_boundary` is a
+detective check on files after an untrusted provider returns:
+
+```mermaid
+flowchart TB
+    P[Provider process]
+    subgraph R[Organization root]
+        subgraph W[Authorized workspace]
+            D[deliverables + scratch]
+        end
+        L[(organization.db*)]
+        T[other tracked files]
+    end
+    O[Outside organization root]
+    P --> W
+    P -. possible ambient write .-> T
+    P -. outside snapshot scope .-> O
+    P -. excluded from snapshot .-> L
+    T -->|before/after SHA-256 map| B[BoundaryReport]
+```
+
+The dashed arrows are not claims that the provider *will* write there. They
+name what is possible without OS isolation. The snapshot hashes `T`, excluding
+the authorized workspace and SQLite files because both legitimately change
+during a run. It cannot see `O`, and by design it cannot attribute an unexpected
+database mutation inside `L` to the provider. A clean report therefore means
+"no tracked file changed inside `organization_root_excluding_workspace_and_ledger`,"
+not "the process was contained."
+
+Path safety has its own subtlety. Lexical normalization removes `..`, but a
+symlink can change the filesystem meaning after strings have been joined:
+
+```text
+workspace/report/latest -> ../../secrets
+         lexical path: workspace/report/latest/prices.txt
+         resolved path: organization/secrets/prices.txt
+```
+
+That is why `safe_join` resolves both the root and candidate, then asks whether
+the candidate is relative to the resolved root. It also refuses absolute paths
+and empty names before resolution. This is a reference-monitor pattern: all
+host-mediated deliverable paths must pass through one narrow check.
+
+There remains a time-of-check/time-of-use question: a filesystem entry can
+change after validation and before use. The current implementation reduces
+common traversal errors but does not claim race-free kernel-level confinement.
+When hostile local processes are in scope, use directory file descriptors,
+no-follow flags, and an OS sandbox or container. The lesson is not that hashing
+is enough; it is that every boundary claim must name both its enforcement point
+and its blind spots.
+
 ## Build the boundary yourself, then attack it
 
 Before touching the production module, build each piece and break it. The

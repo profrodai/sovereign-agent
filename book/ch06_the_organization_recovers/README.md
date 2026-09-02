@@ -33,6 +33,54 @@ happens when the process holding it simply stops existing.
 | **Hard-kill recovery** | The supervisor writing a durable `FAILED` receipt for an assignment whose execution attempt expired with no worker left to finish it — `failure_category="worker_lost"`. |
 | **Worker lost** | The one failure category this recovery path ever writes. Never inferred success, however far the dead subprocess might actually have gotten. |
 
+## Recovery is reconciliation, not resurrection
+
+The supervisor does not continue the dead process's computation. It reconciles
+durable facts after authority expires:
+
+```mermaid
+stateDiagram-v2
+    [*] --> RUNNING: attempt + fence acquired
+    RUNNING --> TERMINAL: worker commits while fence current
+    RUNNING --> EXPIRED: deadline passes
+    EXPIRED --> FAILED: supervisor wins compare-and-set
+    EXPIRED --> TERMINAL: worker won the race first
+    FAILED --> [*]: worker_lost receipt + events durable
+    TERMINAL --> [*]
+```
+
+The apparent fork at `EXPIRED` is intentional. Expiry makes recovery eligible;
+it does not itself prove the worker is dead. A late worker and the supervisor may
+race. The ledger's compare-and-set on `current_execution_attempt` selects one
+canonical terminal writer. If the worker completed first, recovery changes zero
+rows and reports nothing. If the supervisor won, the stale worker's fence can no
+longer commit completion.
+
+The order of recovery operations is a correctness argument:
+
+1. Read the expired attempt and current assignment.
+2. Construct a `FAILED` receipt with `failure_category="worker_lost"`.
+3. In one database transaction, persist the receipt, move assignment/SOW state,
+   release the attempt, and append recovery events.
+4. Reproject the outcome.
+5. Only then apply workspace reclamation policy.
+
+Reclaiming first would destroy diagnostic evidence before the durable ledger
+admits the failure. Guessing success from a `report.json` would let an
+untrusted, half-written artifact outrank the fence and transaction. Recovery is
+conservative because uncertainty is asymmetric: a false failure can be retried;
+a false success can move money or hide unfinished work.
+
+### Failure detector versus heartbeat
+
+An expired lease is a **timeout-based failure suspicion**, not proof of process
+death. The current supervisor loops and reconciles lease/attempt deadlines, but
+workers do not periodically publish liveness samples. A heartbeat would add a
+new observation—"this process reported alive at time *t*"—and a freshness
+policy. It would improve diagnosis and responsiveness, but it would not replace
+fencing: delayed heartbeats and partitions can still create ambiguity, so only
+the token at the protected write establishes safety.
+
 ## Build the recovery yourself, then watch it almost lie
 
 Before the real supervisor and the real `SIGKILL`, build recovery small

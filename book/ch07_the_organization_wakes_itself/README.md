@@ -26,9 +26,10 @@ real mechanism, both checkable after the fact — never a status string, never
 an inference from "nobody typed a command."
 
 Chapter 0 ended by telling you the truth: you started everything; the
-organization had no heartbeat yet. This chapter is where that stops being true —
-and it earns the change honestly, because the ledger this exercise produces
-proves the organization woke itself rather than merely claiming it did.
+organization had no heartbeat. That remains true here. What changes is that one
+manually invoked Pulse tick can derive work from a durable signal without a
+human authoring that work. A scheduler, daemon, or future heartbeat may invoke
+ticks unattended; none is smuggled into the claim this chapter proves.
 
 ## Vocabulary this chapter adds
 
@@ -38,6 +39,50 @@ proves the organization woke itself rather than merely claiming it did.
 | **Wake gate** | A deterministic callback that decides whether a signal fires, and what governed work it should create if it does. The Store's own gate lives outside `sovereign_agent`'s budget: it is domain logic about SKUs and reorder points, not a general Pulse mechanism. |
 | **Wake decision** | The durable, `UNIQUE(source_signal_id)` claim that one signal fired — the SQLite-boundary enforcement of "exactly one canonical decision per signal," not a preflight check a race can slip past. |
 | **Pulse origin** | The structured, queryable answer to "manual or Pulse, and from what?" — every SOW, manual or Pulse-created, has exactly one row. Absence of a row is never the definition of manual. |
+
+## Separate trigger, decision, and execution
+
+"Autonomous" is too vague to test. Pulse splits it into explicit stages:
+
+```mermaid
+flowchart LR
+    E[Domain event\nsale committed] --> S[Signal\ndurable fact]
+    S --> Q[Pulse query\nunevaluated signals]
+    Q --> G[Wake gate\npure domain decision]
+    G -->|fire| D[Wake decision\nUNIQUE signal id]
+    D --> W[SOW + origin\ncreated atomically]
+    W --> A[Assignment]
+    A --> X[Provider execution]
+    G -->|do not fire| N[Nothing recorded\nre-evaluated next pass]
+```
+
+The signal is not a task. It records that the world crossed a meaningful
+boundary. The gate is not a worker. It decides whether that signal still merits
+work and specifies the governed work shape. Pulse is not a scheduler. One call
+scans eligible signals and invokes the gate; only a firing decision is durable.
+The provider is not the decider. It executes only after ordinary governance
+creates an assignment.
+
+This decomposition gives each race one database invariant. Two Pulse processes
+may evaluate the same signal concurrently, but `UNIQUE(source_signal_id)` allows
+only one canonical wake decision. The winner creates the SOW and its
+`pulse_origins` row in the same transaction. The loser observes the existing
+decision instead of manufacturing duplicate work. "Exactly once" here means
+one canonical decision in the ledger—not that a function is physically invoked
+only once.
+
+### Four clocks that should not share one name
+
+| Mechanism | What advances it? | What it proves |
+| --- | --- | --- |
+| Signal | Domain transaction | A relevant fact occurred. |
+| Pulse tick | Caller invocation | Eligible signals were evaluated once. |
+| Supervisor tick | Loop or caller | Expired claims/attempts were reconciled. |
+| Heartbeat | Not implemented in this version | Would report periodic actor/process liveness. |
+
+Keeping these clocks distinct prevents an operational command loop from being
+mistaken for a liveness protocol, or a liveness protocol from being mistaken for
+business decision-making.
 
 ## Build the tick yourself, then double-order the cones
 
@@ -348,16 +393,14 @@ SQL
 Expected: one row, `origin_kind = pulse`, naming a real signal and a real
 source event.
 
-## Why this claim is allowed here and nowhere else in this book
+## Why this Pulse claim is allowed here and nowhere else in this book
 
-Chapters 0 through 3 say the organization has no heartbeat, and mean it — no
-chapter before this one ever calls `run_pulse_once`, and this project's own
-curriculum checker refuses any of them from claiming otherwise, mechanically,
-every time it runs. That is not this chapter overwriting an old truth; it is this book being honest
-about *when* a capability arrives. Chapter 0 was careful to say the organization
-cannot yet wake itself, and to show you a ledger with no `pulse.*` event in it.
-Pulse is a separate mechanism you invoke yourself — it never runs on its own —
-and this is the chapter where you invoke it for the first time.
+No chapter before this one calls `run_pulse_once`, and this project's own
+curriculum checker refuses an earlier chapter from claiming that its exercise
+did. Chapter 0 shows a ledger with no `pulse.*` event because that demo takes the
+manual path. This chapter invokes Pulse for the first time in the learning
+sequence and produces the durable origin chain. Pulse remains separate from a
+heartbeat and from scheduling: this exercise calls it explicitly once.
 
 The same curriculum checker that refuses an early chapter's Pulse claim
 holds THIS chapter to a stricter standard than "the words are true": it
@@ -423,8 +466,9 @@ project's own curriculum checker enforces specifically for Chapter 7.
 `solution.py` imports the production package rather than copying it.
 
 You have now built the whole spine of a governed organization: memory,
-judgement, bounded work, fenced authority, recovery, and a heartbeat. Chapters 8
-through 12 turn from the machinery to the shop itself — Lucy's catalog grows, and
-you watch every guarantee you built hold up as it scales.
+judgement, bounded work, fenced authority, recovery, and signal-driven work
+creation. Chapters 8 through 12 turn from the machinery to the shop itself—
+Lucy's catalog grows, and you watch every guarantee you built hold up as it
+scales. Heartbeat-based liveness remains a separate, unimplemented lesson.
 
 Next: [Chapter 8 — The Store becomes a catalog](../ch08_the_store_becomes_a_catalog/README.md)

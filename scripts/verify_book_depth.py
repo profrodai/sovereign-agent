@@ -258,14 +258,22 @@ def check_depth_gates(
     chapter: it must still declare and pass real coverage.
     """
     problems: list[str] = []
+    blocks = fences(readme_text)
     if depth == "full":
-        blocks = fences(readme_text)
         python_blocks = [i for i, (lang, _) in enumerate(blocks) if lang == "python"]
         if not python_blocks:
             problems.append(f"{chapter}: depth 'full' but no inline python construction")
         paired = any(i + 1 < len(blocks) and blocks[i + 1][0] == "text" for i in python_blocks)
         if python_blocks and not paired:
             problems.append(f"{chapter}: no expected-output text fence follows any python fence")
+    diagrams = [body.strip() for lang, body in blocks if lang == "mermaid"]
+    if not diagrams:
+        problems.append(
+            f"{chapter}: depth {depth!r} but no conceptual Mermaid diagram "
+            "(output transcripts are not explanatory diagrams)"
+        )
+    elif any(not body for body in diagrams):
+        problems.append(f"{chapter}: contains an empty Mermaid diagram")
     if not entry.get("concepts"):
         problems.append(f"{chapter}: depth {depth!r} but empty concept coverage")
     limits = str(entry.get("limits_anchor", ""))

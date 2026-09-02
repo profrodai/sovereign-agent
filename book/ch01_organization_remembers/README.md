@@ -31,6 +31,58 @@ By the end you should be able to say, for any piece of data in this system,
 
 ## Why memory is the first hard problem
 
+## Three kinds of memory, three different guarantees
+
+"Persist it" is not a design. The implementation uses three forms of memory,
+and each answers a different question:
+
+```mermaid
+flowchart TB
+    C[Canonical SQLite rows] -->|append event in same transaction| L[Append-only event log]
+    C -->|render deterministically| P[Human-readable projections]
+    L -->|audit how state changed| H[History]
+    P -->|compare with fresh render| Q[Projection verifier]
+    Q -->|mismatch means stale or edited| C
+```
+
+| Memory | Question it answers | Principal guarantee | Deliberate limit |
+| --- | --- | --- | --- |
+| Canonical rows | What is true now? | Related writes commit or roll back together. | Most operational rows are mutable. |
+| Append-only events | How did the organization say it changed? | SQLite triggers refuse update and delete. | The log does not prove an external-world claim by itself. |
+| Projections | What can a human inspect conveniently? | They are reproducible from canonical rows. | A file can become stale; it is evidence only after comparison. |
+
+This is a miniature CQRS-style separation without requiring a framework: the
+write model is the database; the readable view is derived. The useful idea is
+not the acronym. It is that a convenient representation must not quietly become
+a second authority. If both a Markdown status file and a database row can win a
+disagreement, the system has two truths and therefore none.
+
+The transaction boundary is equally important. Atomicity does not mean "every
+step succeeded." It means observers see either the state before a transaction or
+the state after it—never a committed subset:
+
+```mermaid
+sequenceDiagram
+    participant App
+    participant DB as SQLite transaction
+    App->>DB: BEGIN
+    App->>DB: decrement inventory
+    App->>DB: append cash movement
+    App->>DB: append event
+    alt all statements succeed
+        App->>DB: COMMIT
+        DB-->>App: one new consistent state
+    else any statement fails
+        App->>DB: ROLLBACK
+        DB-->>App: original state
+    end
+```
+
+Durability is a separate axis: after SQLite acknowledges the commit, its journal
+mode and filesystem decide what survives a crash. Atomicity answers "all or
+none"; durability answers "does the chosen one survive?" Keeping those words
+separate prevents a large class of confident but incorrect database claims.
+
 An organization that forgets cannot be held to anything. If an order can vanish
 because a process died halfway through — exactly what happened to Lucy's cones —
 then "we ordered it" is a hope, not a fact.
