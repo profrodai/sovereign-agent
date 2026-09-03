@@ -869,6 +869,28 @@ Expected: all tests pass. They prove rollback, append-only enforcement,
 migrations applying in order, and a v1 database upgrading to v2 without losing
 its history.
 
+## Summary
+
+This chapter built the three-part memory split — canonical SQLite rows,
+append-only events enforced by database triggers, and regenerable Markdown
+projections — plus a migration runner that keeps the schema change and its
+version stamp inside one explicit transaction.
+
+The invariant it establishes is that only one thing is ever the authority
+for a given fact, and every other representation is either derived from it
+or provably stale against it: a projection that disagrees with the ledger is
+wrong by definition, never the other way around.
+
+The failure it prevents is silent, permanent data loss disguised as a
+successful upgrade — the migration that half-applies outside its
+transaction and poisons the database forever, and the "helpful" verifier
+that overwrites tampered evidence instead of reporting it. Both are built
+and caught in this chapter, not merely described.
+
+Back at Lucy's shop: this is the difference between "we ordered the cones"
+and a signed invoice you can still produce six months later. A memory that
+can half-happen is not a memory Lucy's business can be held to.
+
 ## Explain it back
 
 1. Cash is stored as a list of signed movements instead of one balance number.

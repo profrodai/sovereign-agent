@@ -411,6 +411,30 @@ Expected: all pass. The pytest selection proves a sale of one SKU cannot
 touch another SKU's own row — this chapter only seeds the catalog, but the
 isolation the next chapters rely on starts here, at the schema.
 
+## Summary
+
+This chapter built the migration from a `CHECK (id = 1)` singleton shop to a
+real multi-SKU catalog: separate `products` and `inventory` tables keyed by
+a stable, opaque `sku`, plus `seed_catalog`, a validated batch write that
+refuses fewer than two SKUs, duplicate SKUs, and negative opening stock
+before it ever opens its transaction.
+
+The invariant it establishes is that identity and display name are
+different concerns: the ledger binds to `sku`, so renaming a product never
+orphans a single row of its history, and every migration proof obligation
+from Chapter 1 — preservation, identity, totality, atomicity — applies to a
+populated shop, not an empty one.
+
+The failure it prevents is the migration that strands a shop mid-schema:
+built and crashed on purpose, after `products` existed but before
+`inventory` was copied and the old table dropped, and shown to leave the
+original singleton row completely untouched rather than half-migrated.
+
+Back at Lucy's shop: this is vanilla and chocolate finally getting their own
+rows instead of sharing one, so a run on one flavor can never quietly change
+the other's count — the schema-level guarantee the rest of the book from
+here on depends on.
+
 ## Explain it back
 
 1. `seed` and `seed_catalog` both exist in the same module. Why keep `seed`

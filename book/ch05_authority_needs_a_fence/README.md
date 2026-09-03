@@ -495,6 +495,30 @@ Expected: all pass. Together they prove the actor-lease CAS, the
 execution-attempt fencing bound to it, and that the ordinary CLI path
 cannot bypass either.
 
+## Summary
+
+This chapter built a fencing token drawn from one shared, strictly
+increasing counter, layered under an actor lease: every claim's terminal
+write is a compare-and-set (CAS) whose `WHERE` clause checks the caller's
+token in the same statement that performs the write, never a value read
+earlier and trusted.
+
+The invariant it establishes is that a worker who no longer holds the
+current lease may still be running, but its writes can never become
+canonical — the resource, not the worker's good behavior, is what refuses a
+stale token.
+
+The failure it prevents is two processes both believing they are the same
+actor — the ordinary shape of a crash-and-restart, not an attack — which the
+naive read-then-write claim let through silently, and which the CAS with a
+monotonic token refuses by construction, even when the stale process is
+still alive and finishes its work.
+
+Back at Lucy's shop: this is the numbered key that only turns for the
+current holder, so two staff who each believe they are closing tonight can
+never both count the till, no matter which one actually still has a key in
+hand.
+
 ## Explain it back
 
 1. Why is a fencing token drawn from one shared, strictly increasing

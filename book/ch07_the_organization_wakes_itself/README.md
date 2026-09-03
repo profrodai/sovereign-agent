@@ -427,6 +427,28 @@ and that Pulse-created work is not exempt from Chapter 5's fencing.
 evidence, not merely present in the prose — the mechanical guard this
 project's own curriculum checker enforces specifically for Chapter 7.
 
+## Summary
+
+This chapter built `run_pulse_once`'s wake gate and wake decision: a pure
+gate that decides what work a signal warrants, and a `UNIQUE(source_signal_id)`
+claim, made inside one transaction with the SOW and origin rows it creates,
+that lets exactly one canonical decision exist per signal.
+
+The invariant it establishes is that self-generated work is provable only
+positively — a real `pulse.work_created` event and a `pulse_origins` row
+naming a real signal — never inferred from the absence of a manual
+dispatch call, which this chapter's own curriculum checker enforces by
+re-deriving the claim from the database rather than trusting the prose.
+
+The failure it prevents is the naive tick's double-order: retried or
+re-run against the same signal, it created two replenishment SOWs from one
+sale, and nothing about that retry was unreasonable — ticks get retried
+constantly. The claimed decision closes it structurally, at the database.
+
+Back at Lucy's shop: this is the freezer alarm that fires exactly once per
+low-stock sale, however many times the alarm system itself gets restarted
+or double-checks its own work.
+
 ## Explain it back
 
 1. This file never calls `create_sow`, `ready_sow`, or `assign`. What

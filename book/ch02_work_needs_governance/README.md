@@ -829,6 +829,30 @@ uv run python -m pytest tests/test_acceptance_falsification.py tests/test_actors
 Expected: all pass. Together they prove that acceptance refuses every lie listed
 above, and that authority cannot be self-granted.
 
+## Summary
+
+This chapter built `accept()` as seven composed layers, each one closing a
+specific lie the layer before it still let through: re-reading the world,
+recording evidence, binding that evidence to the right outcome and
+execution, requiring a distinct reviewer, requiring the credited execution
+to have actually produced the required effect, and refusing evidence whose
+observed world has since moved.
+
+The invariant it establishes is that `ACCEPTED` is a proof graph that must
+fully converge, not a workflow status: an outcome, its SOW (a **statement of
+work**, this book's own term for the deliverable and its acceptance checks),
+its evidence, and its review all have to point at each other correctly, or
+acceptance refuses.
+
+The failure it prevents is not one bug but a family: paperwork-only
+acceptance, stale evidence, borrowed evidence, self-review, and crediting an
+execution for a condition that became true for unrelated reasons — five
+distinct attacks, five distinct refusals, each with its own failing test.
+
+Back at Lucy's shop: this is why a restock actually has to happen before the
+freezer counts as "handled" — and why the person who did the restock is
+never the same person who signs off that it was done correctly.
+
 ## Explain it back
 
 1. An outcome declares its acceptance checks. Why is it dangerous to let the

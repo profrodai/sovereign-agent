@@ -393,6 +393,32 @@ uv run python scripts/verify_curriculum.py
 
 Expected: all pass.
 
+## Summary
+
+This chapter built acceptance across five generations, each closing a way
+"the world is right" gets mistaken for "this execution made it right": read
+current state, require recorded evidence, bind that evidence to this
+outcome's own verification batch, derive the execution from the SOW instead
+of accepting a caller-supplied id, and finally derive the subject itself
+from the outcome rather than accepting it as an argument.
+
+The invariant it establishes is causal binding: an acceptance requires both
+the correct world predicate *and* the correct provenance path from outcome
+to SOW to execution to effect — a real, right-shaped effect from the wrong
+execution, or the right execution credited against the wrong subject, both
+still refuse.
+
+The failure it prevents is the crossed wire named in this chapter's own
+open: two signals close together, and the vanilla alarm's proof accidentally
+crediting the chocolate outcome (or vice versa). Generation 4's own worked
+attack shows exactly this — every individual binding correct, and the whole
+chain still pointed at the wrong SKU — closed only once every fact is
+derived from the ledger instead of supplied by the caller.
+
+Back at Lucy's shop: vanilla's alarm at 2:00 and chocolate's alarm at 2:05
+each wake their own restock and only their own, however close together they
+fire.
+
 ## Explain it back
 
 1. `store_wake_gate` takes a `Signal`, not a SKU string, as its argument.

@@ -387,6 +387,30 @@ concurrency proof — two genuinely separate database connections racing two
 different SKUs' canonical creation — which this chapter's own sequential
 exercise cannot demonstrate by itself.
 
+## Summary
+
+This chapter built `apply_restock`'s idempotency key — `UNIQUE(assignment_id,
+kind, subject)` on the `effects` table — and ran two complete governed
+replenishment chains, each restocked twice under the same assignment id, to
+show every guarantee from Chapters 0-10 composes at more than one SKU
+without exception.
+
+The invariant it establishes is that "exactly once" is a ledger property,
+not an execution count: a retry of the same logical operation returns the
+canonical prior result rather than failing or repeating it, because the key
+names the operation's stable identity (this assignment, this kind, this
+subject), never a per-attempt value like a timestamp or a fresh id.
+
+The failure it prevents is the double-order this chapter reproduces to the
+digit — `on_hand=14, purchase_entries=2` from one intended restock — by
+building the naive "scan first, then act" version and watching two retries
+that each saw "not done yet" both place the order.
+
+Back at Lucy's shop: this is the guarantee that survives past the demo —
+two restocks in flight, one for vanilla and one for chocolate, and neither
+a retried order nor a busy Saturday can make either SKU's effect land on the
+other or get charged twice.
+
 ## Explain it back
 
 1. This chapter calls `apply_restock` twice for each SKU, on purpose. What

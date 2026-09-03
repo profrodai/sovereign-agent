@@ -414,6 +414,33 @@ idempotency, fail-closed refusal, atomicity, and REAL two-connection
 concurrency are proven exhaustively — this chapter's own exercise shows you
 one slice of that proof matrix, running.
 
+## Summary
+
+This chapter built `start_pilot` as a compare-and-set state machine — exact
+identity replay returns the canonical row, a colliding id with a different
+request refuses outright, a singleton `active_pilot` slot enforces one
+pilot at a time as a schema constraint, and a refused start strands nothing
+because the pilot row and the active-slot claim share one transaction — and
+a proof-pack verifier that checks a manifest's digests and status
+vocabulary for internal consistency.
+
+The invariant it establishes is the sharpest one in the book: internal
+consistency is not authenticity. A forged pack that rewrites both an
+artifact and its manifest digest together passes every check this
+verifier can run, and the chapter proves that by forging one and watching
+it pass.
+
+The failure it prevents, where it can, is the confident half-truth — "pilot
+started" standing in for "pilot finished," or a `NOT_RUN` status dressed in
+success-shaped prose — and it prevents the failure it cannot yet check
+(a completion protocol does not exist) by refusing to claim it can, which is
+itself the load-bearing act.
+
+Back at Lucy's shop: this is the difference between a receipt that says the
+delivery truck left the warehouse and a receipt that says the ice cream
+arrived — the book ends by handing you the first receipt, honestly labeled,
+and refusing to forge the second.
+
 ## Explain it back
 
 1. This chapter calls `start_pilot` twice with the SAME identity. What

@@ -3,6 +3,12 @@
 The book grows with the implementation. Each chapter uses the production
 package; it does not copy or fork it.
 
+**New here? Start with the front matter:** [`PREFACE.md`](PREFACE.md) (who
+this book is for, prerequisites, setup, and the build-break-repair teaching
+method) and [`CONVENTIONS.md`](CONVENTIONS.md) (notation, recurring terms,
+and the chapter-to-lab map). Both are additive — the chapter sequence below
+is unchanged and remains the required reading path.
+
 Read them in order. Each one takes apart something the previous chapter asked
 you to take on faith.
 
