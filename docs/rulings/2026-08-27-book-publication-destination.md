@@ -4,7 +4,9 @@
 - **decided:** 2026-08-27
 - **authority:** principal
 - **applies_to:** Sovereign Agent 1.x textbook publication
-- **status:** ACTIVE
+- **status:** SUPERSEDED
+- **superseded_by:** `ruling-2026-09-03-book-publication-destination-is-profrod-site`
+- **updated:** 2026-09-03
 
 ## The question
 

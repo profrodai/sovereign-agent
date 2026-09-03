@@ -14,7 +14,8 @@ list, so the list cannot silently drift behind the directory.
 - [Ruling: an outcome is a standing condition; a SOW is a unit of work](2026-08-26-outcomes-are-conditions-sows-are-work.md)
 - [Ruling: the persistence boundary, refined](2026-08-26-persistence-boundary-refinement.md)
 - [Ruling: SQLite writers are inside the trust boundary](2026-08-26-sqlite-writers-are-inside-the-boundary.md)
-- [Ruling: the book is published by `zeo-site`; this repository builds no site](2026-08-27-book-publication-destination.md)
+- [Ruling: the book is published by `zeo-site`; this repository builds no site](2026-08-27-book-publication-destination.md) — **SUPERSEDED**, see below
+- [Ruling: the book's rendered home is a section of `profrod-site`; this repository still builds no site](2026-09-03-book-publication-destination-is-profrod-site.md)
 - [Ruling: Unit 7 is workspace lifecycle; Pulse stays out until Unit 9](2026-08-27-unit7-is-workspaces-not-pulse.md)
 - [Ruling: Unit 9 Pulse is a separate mechanism from the supervisor; attribution is structured and durable](2026-08-29-unit9-pulse-is-separate-from-supervisor.md)
 - [Ruling: attributed governance communication protocol](2026-08-29-attributed-governance-communication-protocol.md)
