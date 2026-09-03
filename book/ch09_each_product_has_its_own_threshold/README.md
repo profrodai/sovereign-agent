@@ -407,6 +407,31 @@ uv run python scripts/verify_curriculum.py
 
 Expected: all pass.
 
+## Summary
+
+This chapter built `record_sale` as five writes inside one transaction —
+inventory down, cash up, a severity-judged signal, a committed event, and a
+derived total — with the read of current stock happening *inside* the same
+`BEGIN IMMEDIATE` block as the decrement, and the reorder-point comparison
+evaluated per SKU, against that SKU's own row.
+
+The invariant it establishes is that severity is a property of where a SKU
+lands relative to its *own* threshold, never a property of how much sold:
+two genuinely identical two-unit sales on tea and coffee produced a
+`warning` and an `info` signal respectively, because the two SKUs' reorder
+points differ.
+
+The failure it prevents is the oversell — a check-then-act race where two
+sales both read "2 available" before either writes, and the naive version
+built here drove `on_hand` to `-2`, promising ice cream that does not exist.
+Moving the read inside the transaction closes it.
+
+Back at Lucy's shop: this is why vanilla (which flies off the shelf) and
+lavender-honey (which nobody buys) each get their own reorder line instead
+of one shared number — and why a sale of either one is checked against
+reality at the instant it happens, not against what the till believed a
+moment earlier.
+
 ## Explain it back
 
 1. `below_reorder` takes no SKU argument — it scans the whole `inventory`

@@ -224,6 +224,28 @@ Exit `0` means the accepted outcome is genuinely true; exit `1` means it is not,
 and the message says which check failed. (If you ran the sabotage step above,
 re-run the demo into a fresh `--root` to get a clean `0` again.)
 
+## Summary
+
+This chapter built nothing yet — it ran the finished mechanism once, end to
+end, so every later chapter has a shape to recognize pieces of. The
+mechanism you watched was one sale traveling through five distinct proof
+roles (signal, SOW, receipt, evidence, acceptance) rather than collapsing
+into a single `status="done"` field.
+
+The invariant it establishes is that `ACCEPTED` is checked against the
+world at the moment you ask, not trusted from history: `verify_store_outcome.py`
+re-reads the database rather than the status string.
+
+The failure it prevents is the ordinary one — paperwork that says done while
+the shelf is empty — and you produced that exact failure by hand, by
+editing `on_hand` directly under an already-`ACCEPTED` outcome, and watched
+the checker refuse it with the precise row that no longer holds.
+
+Back at Lucy's shop: if a supplier's invoice says delivered and the freezer
+is still empty, the invoice is not evidence, and neither is this book's
+`ACCEPTED` unless something re-checked the freezer after the invoice was
+filed.
+
 ## Explain it back
 
 Answer these in your own words before moving on. If you cannot, re-read the

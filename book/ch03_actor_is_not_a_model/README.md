@@ -584,19 +584,22 @@ of a run. That is the correct outcome: an unprovable capability fails closed.
    into a separate table would be a genuine architecture change requiring its own
    design decision — not something a chapter can simply assert.
 
-<details>
-<summary>Solutions</summary>
+Exercises 1 and 2 are yours to build and check against your own running code,
+the same way every other chapter in this book expects — no answer is given
+here, because a runnable claim you did not verify yourself is exactly the
+kind of unearned `ACCEPTED` Chapter 0 taught you to distrust.
 
-1. `record_evidence` is in the `verifier` role's set but not the `operator`'s, so
-   the first call raises and the second does not.
-2. Check membership before mutating: `if new_provider not in KNOWN: raise
-   PermissionError(...)`, placed before `actor.provider = new_provider`, so a
-   refusal leaves the field untouched.
-3. Production stores the provider on the actor and `rebind_actor` mutates it in
-   one place; a separate binding table would change the data model, the migration,
-   and every read path — a real design change with its own trade-offs, not a
-   detail prose can wave into existence.
-</details>
+### Worked walkthrough — exercise 3
+
+Exercise 3 asks for a design judgment, not a runnable check, so there is
+nothing here for you to execute and confirm the way you would exercises 1
+and 2. This is a worked answer to that one conceptual question, not a
+solutions key for the chapter:
+
+Production stores the provider on the actor and `rebind_actor` mutates it in
+one place; a separate binding table would change the data model, the
+migration, and every read path — a real design change with its own
+trade-offs, not a detail prose can wave into existence.
 
 ## Learner verification command
 
@@ -610,14 +613,27 @@ shell strings.
 
 ## Summary
 
-- An **actor** carries its swappable `provider` as a field, alongside its `role`
-  and `authority`. The model lives on the actor; it is not the actor.
-- **Rebinding** changes `provider`, is reserved to ruling roles, and is recorded
-  as an event. Identity — id, role, authority — is untouched: `identity_unchanged: true`.
-- **Authority is granted by role**, through a role→actions policy, enforced by
-  `require_authority`. The operator role cannot `accept`, and no model changes that.
-- Because accountability lives on the role, **upgrading the model changes the
-  proposals but never the rules** — the answer to Lucy's friend.
+This chapter built the actor/provider split: an **actor** carries its
+swappable `provider` as a field, alongside its fixed `role` and `authority`,
+and rebinding that field — reserved to ruling roles, recorded as an
+`actor.provider_rebound` event — changes only the proposal generator, never
+the actor's identity (`identity_unchanged: true`).
+
+The invariant it establishes is that **authority is granted by role, through
+a role-to-actions policy (`ROLE_AUTHORITY`), never by the model behind the
+actor**. `require_authority` looks the role up in that table; it never
+inspects `provider` at all.
+
+That is what makes the specific refusal in this chapter's title hold under
+every future upgrade: an operator actor cannot `accept` its own work no
+matter which model it is bound to, because `accept` was never in the
+operator role's action set to begin with, and swapping `scripted` for
+`ollama` or `claude` cannot add an entry the check never reads.
+
+Back at Lucy's shop, this is the literal answer to her friend's question: a
+sharper model behind the operator proposes better restock quantities, but it
+never gets a longer leash, because the leash was never attached to the
+model.
 
 ## Explain it back
 

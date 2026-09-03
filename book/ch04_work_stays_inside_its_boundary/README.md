@@ -465,6 +465,29 @@ Expected: all pass. Together they prove reclaim runs on every terminal path,
 workspace is detected, and a legitimate in-workspace write is not
 misreported as one.
 
+## Summary
+
+This chapter built two mechanisms that are easy to confuse: `safe_join`, a
+preventive check that refuses a path by its resolved shape before any write
+is attempted, and `snapshot_boundary`/`diff_boundary`, a detective check
+that compares tracked files before and after a provider runs.
+
+The invariant it establishes is honesty about scope: a clean boundary report
+means nothing changed inside `organization_root_excluding_workspace_and_ledger`
+— never an unqualified claim that the provider was contained, and never a
+claim about files outside that scope.
+
+The failure it prevents is trusting a provider's own good behavior, or
+worse, trusting a docstring's claim about what a check covers: the exercise
+plants a real write outside the workspace and shows it caught, and plants a
+real write outside the boundary's own observed scope and shows it invisible
+— both facts recorded honestly rather than one asserted and the other
+ignored.
+
+Back at Lucy's shop: this is the difference between following a contractor
+around the shop (which nobody does) and checking the till afterward (which
+Lucy always can) — detection instead of a promise you cannot keep.
+
 ## Explain it back
 
 1. `safe_join` refuses an absolute path outright, even one that would resolve

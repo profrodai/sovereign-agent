@@ -382,6 +382,30 @@ honest, the supervisor (not the dead process) recovers it, recovery is
 idempotent, the receipt is always `failed`, and workspace reclaim happens
 only after the recovery transaction is durable.
 
+## Summary
+
+This chapter built the supervisor's recovery path: a compare-and-set on
+`state = 'RUNNING' AND attempt_expires_at <= now` that writes a `FAILED`
+receipt with `failure_category="worker_lost"`, clears the fence, and only
+afterward applies workspace reclamation — all in the order that makes a
+second tick, or a second supervisor, find nothing left to do.
+
+The invariant it establishes is that unknown is never success: a genuinely
+`SIGKILL`ed worker's ledger stays honestly `RUNNING` until the supervisor
+says otherwise, and what it says is always `worker_lost`, never a guess
+based on whatever the dead process happened to leave behind.
+
+The failure it prevents is the tempting, more "diligent"-looking recovery
+logic that checks for a `report.json` claiming `completed` and honors it —
+built and shown converting a real hard-kill into a false success on the
+strength of a file that could have been preplanted, half-written, or left
+by a process that was never going to finish correctly.
+
+Back at Lucy's shop: this is someone else walking in on a collapsed
+worker's half-counted till and writing down "we don't know it was
+finished," not "looked done to me" — because the second sentence is how
+real money goes missing.
+
 ## Explain it back
 
 1. Why does `SIGKILL` specifically matter here — what would change if this
