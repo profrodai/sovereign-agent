@@ -307,6 +307,132 @@ running each as its own separate operation. Recovery reconciles work that
 exists; Pulse creates work that should; a mechanism that did both would be a
 process nobody could reason about when it failed halfway through either job.
 
+### The real gate refuses a question your toy never had to ask
+
+Your `wake_gate` only checked one thing: is `on_hand` still below `reorder`.
+The Store's own production gate, `store_wake_gate` in
+`src/reference_organizations/store/pulse_gate.py`, checks that and something
+your toy never modeled, because your toy never had more than one outcome to
+choose between. This is quoted verbatim from `pulse_gate.py` — an excerpt to
+read, not a standalone block to run (`org` and `sku` are the surrounding
+function's real arguments, not names this page defines):
+
+```text
+rows = org.db.connection.execute("SELECT record FROM outcomes").fetchall()
+matching = []
+for row in rows:
+    record = json.loads(row["record"])
+    if record.get("subject") == sku and record.get("state") == OutcomeState.ACTIVE.value:
+        matching.append(record)
+if len(matching) != 1:
+    return None  # zero or ambiguous -- no durable rule disambiguates more than one
+```
+
+A signal names a SKU. It does not name which governed outcome the
+replenishment work belongs to — that has to be looked up, and the lookup can
+fail two different ways. Zero matching active outcomes means nobody has
+chartered replenishment for this SKU yet, so there is no outcome to attach
+the work to. More than one matching active outcome is worse: two different
+principals could both plausibly own "keep `SKU-TEA` stocked," and the gate
+has no rule for picking between them. Both cases return `None` — the same
+signal the gate returns for "stock is fine now." A learner reading only the
+JSON report cannot tell "already resolved" from "ambiguous ownership" apart;
+that distinction lives in `pulse_gate.py`'s own source, not in the report.
+
+```mermaid
+flowchart TD
+    Sig[Signal names one SKU] --> Look[Look up ACTIVE outcomes\nwhere subject = SKU]
+    Look --> Zero{How many\nmatch?}
+    Zero -->|0| None1[No outcome chartered yet\ngate returns None]
+    Zero -->|1| Fire[Exactly one owner\ngate fires]
+    Zero -->|2+| None2[Ambiguous ownership\ngate returns None]
+```
+
+*Figure — the Store's outcome-disambiguation check inside `store_wake_gate`.
+The stock-level check from the section above narrows signals to real
+candidates; this second, independent check narrows candidates to signals
+with exactly one unambiguous owner. Either failure mode returns the same
+`None` a caller cannot distinguish from "already resolved" without reading
+the source.*
+
+Two tests in `tests/test_pulse.py` prove both halves fail closed rather than
+guessing:
+`test_no_active_outcome_matching_the_subject_creates_no_work` seeds a sale
+with no outcome created for that SKU at all and asserts `report.created ==
+()`; `test_more_than_one_matching_active_outcome_creates_no_work` activates
+a *second* outcome naming the same SKU alongside the first and asserts the
+identical empty result. Neither test asserts an error — a gate that raised
+on ambiguity would turn an ordinary chartering mistake (two principals both
+opening an outcome for the same SKU) into a crash instead of a quiet,
+re-evaluable no-op. The signal is not consumed either way: it still has no
+`pulse_wake_decisions` row, so a later Pulse pass — after someone closes the
+duplicate outcome — evaluates it again and can still fire.
+
+**Prove the ambiguous case yourself.** Chapter 0 seeded exactly one outcome
+per SKU, so every earlier chapter's exercises never exercised this branch.
+Run `solution.py` once normally, then run this against the same database to
+force the ambiguity and watch the gate refuse where it previously fired:
+
+```python
+from pathlib import Path
+from sovereign_agent.organization import Organization
+from sovereign_agent.pulse import run_pulse_once
+from reference_organizations.store import record_sale
+from reference_organizations.store.pulse_gate import store_wake_gate
+
+root = Path("/tmp/lucy-ch07-ambiguous")
+org = Organization.init(root)
+from reference_organizations.store import seed
+
+seed(org.db)
+first = org.create_outcome(
+    "Keep the tea jar stocked",
+    "On-hand tea is at or above reorder.",
+    ["inventory_at_or_above_reorder_point"],
+    "principal-human",
+    "SKU-TEA",
+)
+org.activate(first.id, "master-course")
+second = org.create_outcome(
+    "A second outcome about the same SKU",
+    "Also tea.",
+    ["inventory_at_or_above_reorder_point"],
+    "principal-human",
+    "SKU-TEA",
+)
+org.activate(second.id, "master-course")  # two ACTIVE outcomes now name SKU-TEA
+
+signal = record_sale(org.db, "SKU-TEA", 2, 400)
+report = run_pulse_once(org, store_wake_gate)
+print("created:", report.created)  # () -- refused, not fired
+print(
+    "signal still has no decision:",
+    org.db.connection.execute(
+        "SELECT COUNT(*) FROM pulse_wake_decisions WHERE source_signal_id = ?",
+        (signal.id,),
+    ).fetchone()[0]
+    == 0,
+)
+```
+
+```text
+created: ()
+signal still has no decision: True
+```
+
+The mutation: delete the `if len(matching) != 1: return None` guard from
+your own local copy of `pulse_gate.py`'s `store_wake_gate` (leave everything
+else unchanged — do not touch `matching = []` above it) and rerun the same
+script. The gate now has no rule for the two-owner case, so it falls
+through to `matching[0]` — a real `IndexError`-free but silently wrong
+pick, arbitrary Python dict ordering deciding which of two legitimate
+principals' outcomes gets the replenishment work with no record of why
+that one won. `report.created` becomes a one-item tuple instead of `()`:
+the mutated gate fires exactly where the real one must refuse, which is the
+provable, falsifiable failure this exercise is built to expose — not an
+assertion that the guard matters, but the guard's absence producing a
+different, wrong, observable result on the same input.
+
 ## The exercise
 
 ```bash
