@@ -325,6 +325,269 @@ authentication: an actor with raw database access could forge every row in
 it, agreeing with itself perfectly. Chapter 2 drew that boundary; Chapter 12
 will price it.
 
+## Break it: what the gate's ambiguity refusal is actually preventing
+
+`store_wake_gate`'s docstring makes a claim this chapter has not yet
+proven: a qualifying signal must map "to EXACTLY one ACTIVE outcome naming
+that subject." Every run so far has quietly kept that true by construction
+(one outcome per SKU, seeded once, never duplicated). This section breaks
+that assumption on purpose and watches the gate's own code decide what to
+do about it, against the real production function, not a paraphrase of it.
+
+`store_wake_gate` (`src/reference_organizations/store/pulse_gate.py`)
+builds `matching` by scanning every row in `outcomes` and keeping the ones
+whose `subject` equals the signal's SKU *and* whose `state` is `ACTIVE`.
+The one line that decides everything downstream is `if len(matching) != 1:
+return None`. Read literally, that line refuses two shapes of input for
+the same reason: a SKU nobody governs yet (zero matches), and a SKU two
+outcomes both claim to govern (two or more matches). Both refusals are
+`None` — no exception, no partial decision, nothing durable recorded.
+
+```mermaid
+flowchart TD
+    R[rows: every ACTIVE outcome\nwhere subject == sku] --> C{len matching}
+    C -->|0| REFUSE0[return None\nno outcome governs this SKU yet]
+    C -->|1| FIRE[WakeDecision\noutcome_id = the one match]
+    C -->|2 or more| REFUSE2[return None\nno durable rule disambiguates more than one]
+```
+
+**What this figure shows:** the gate has exactly one branch that fires,
+flanked by two refusal branches that look nothing alike in cause — one is
+under-coverage, the other is over-coverage — but collapse to the identical
+observable outcome. A caller reading only "did it fire?" cannot tell which
+refusal happened, and the gate's own contract says it should not have to:
+either way, nothing governs this signal well enough to act.
+
+Prove the ambiguous branch against the real function. Seed one SKU with
+*two* ACTIVE outcomes both naming it (the shape a human could produce by
+activating a second "keep the tea stocked" outcome without noticing the
+first was never closed), then run a real qualifying sale against it:
+
+```python
+import tempfile
+from pathlib import Path
+
+from reference_organizations.store import record_sale, seed_catalog
+from reference_organizations.store.pulse_gate import store_wake_gate
+from sovereign_agent.organization import Organization
+from sovereign_agent.pulse import run_pulse_once
+
+root_ch10 = Path(tempfile.mkdtemp())
+org_ch10 = Organization.init(root_ch10)
+seed_catalog(org_ch10.db)
+
+outcome_original = org_ch10.create_outcome(
+    "Keep the tea jar stocked (original)",
+    "On-hand SKU-TEA is at or above the reorder point.",
+    ["inventory_at_or_above_reorder_point"],
+    "principal-human",
+    "SKU-TEA",
+)
+org_ch10.activate(outcome_original.id, "master-course")
+
+outcome_duplicate = org_ch10.create_outcome(
+    "Keep the tea jar stocked (accidental duplicate)",
+    "On-hand SKU-TEA is at or above the reorder point.",
+    ["inventory_at_or_above_reorder_point"],
+    "principal-human",
+    "SKU-TEA",
+)
+org_ch10.activate(outcome_duplicate.id, "master-course")
+
+tea_signal = record_sale(org_ch10.db, "SKU-TEA", 2, 400)
+
+real_decision = store_wake_gate(org_ch10, tea_signal)
+print("real gate, two ACTIVE outcomes for one SKU:", real_decision)
+
+real_report = run_pulse_once(org_ch10, store_wake_gate)
+print(
+    "real gate, pulse pass status:", real_report.items[0].status, "-", real_report.items[0].detail
+)
+sows_real = org_ch10.db.connection.execute("SELECT COUNT(*) c FROM sows").fetchone()["c"]
+print("real gate, sows created:", sows_real)
+```
+
+```text
+real gate, two ACTIVE outcomes for one SKU: None
+real gate, pulse pass status: skipped - wake gate did not fire
+real gate, sows created: 0
+```
+
+The real function does exactly what its docstring claims: two matches
+refuse as cleanly as zero would. No SOW, no assignment, no wake decision
+row — the signal stays durably recorded and unevaluated, waiting for a
+human to close the duplicate outcome and let the next Pulse pass resolve
+it cleanly.
+
+Now the mutation: a `store_wake_gate` with the `len(matching) != 1` check
+weakened to `if not matching: return None` — it still refuses the
+zero-match case, but silently accepts the ambiguous one by taking whichever
+row `matching[0]` happens to be. Every other line is copied verbatim from
+production, so the only variable is that one refusal condition:
+
+```python
+import json
+
+from reference_organizations.store import below_reorder
+from sovereign_agent.models import OutcomeState, Role
+from sovereign_agent.pulse import WakeDecision
+
+
+def store_wake_gate_picks_first_on_ambiguity(org, signal):
+    if signal.kind != "inventory.changed" or signal.source != "sale":
+        return None
+    sku = signal.subject_ref
+    if sku not in below_reorder(org.db):
+        return None
+    rows = org.db.connection.execute("SELECT record FROM outcomes").fetchall()
+    matching = []
+    for row in rows:
+        record = json.loads(row["record"])
+        if record.get("subject") == sku and record.get("state") == OutcomeState.ACTIVE.value:
+            matching.append(record)
+    if not matching:
+        return None  # BUG: was `if len(matching) != 1`, so ambiguity is no longer refused
+    outcome_id = str(matching[0]["id"])
+    return WakeDecision(
+        outcome_id=outcome_id,
+        scope=f"Pulse-dispatched replenishment after signal {signal.id}",
+        role=Role.OPERATOR,
+        planner_id="master-course",
+        worker_id="operator-course",
+        required_effect_kind="replenishment",
+    )
+
+
+mutated_decision = store_wake_gate_picks_first_on_ambiguity(org_ch10, tea_signal)
+print("mutated gate fired:", mutated_decision is not None)
+print(
+    "mutated gate picked the OLDER outcome (created first):",
+    mutated_decision.outcome_id == outcome_original.id,
+)
+print(
+    "mutated gate picked the NEWER outcome (the actual duplicate):",
+    mutated_decision.outcome_id == outcome_duplicate.id,
+)
+```
+
+```text
+mutated gate fired: True
+mutated gate picked the OLDER outcome (created first): True
+mutated gate picked the NEWER outcome (the actual duplicate): False
+```
+
+This is the false green. The mutated gate does not crash and does not
+notice anything is wrong. It fires, builds a real `WakeDecision`, and a
+full Pulse pass would create an ordinary-looking SOW, assignment, and
+eventually a replenishment effect against `outcome_original` — a choice
+determined entirely by which row SQLite happened to return first, which is
+*never* a governed fact. `sows.outcome_id` would look perfectly ordinary: one row,
+one signal, one outcome, no trace anywhere that a second outcome was
+silently discarded. Nothing downstream (Chapter 9's threshold checks,
+Chapter 12's release evidence) can tell "the gate resolved a real tie
+correctly" apart from "the gate ignored a real conflict and got lucky,"
+because both produce the identical shape of record.
+
+| | Real `store_wake_gate` | Mutated (`if not matching`) |
+| --- | --- | --- |
+| Zero ACTIVE outcomes for the SKU | Refuses, `None` | Refuses, `None` (unchanged) |
+| Two ACTIVE outcomes for the SKU | Refuses, `None` | Fires, picks row order |
+| SOWs created on the duplicate-outcome input | 0 | 1 (arbitrary target) |
+| What a caller would believe | Nothing governs this yet (correct) | The right outcome fired (unverifiable) |
+
+`tests/test_store_multi_sku.py::test_wake_gate_refuses_when_two_active_outcomes_name_the_same_sku`
+pins this as a regression against the real function, and a paired test
+runs the exact mutation shown above and asserts it fires when the real
+gate would not — so a future refactor that weakens the cardinality check
+the way this section did is caught by the test suite, not by a chapter's
+prose.
+
+**Why "exactly one," not "at least one."** A gate that fired on the first
+match rather than refusing on more than one would still pass every test
+this book has run before this section, because every prior exercise seeds
+precisely one ACTIVE outcome per SKU — the bug is invisible until the
+precondition it silently assumes stops holding. A rule that is correct
+under an assumption the code never states, let alone verifies, is a rule
+waiting for the day the assumption breaks. `store_wake_gate` states it and
+verifies it in the same line.
+
+## The signal is a snapshot; the gate re-checks live
+
+The two-outcome case is one way the gate refuses to trust an assumption.
+There is a second, quieter one, named directly in `store_wake_gate`'s own
+docstring: a qualifying trigger's subject must be "CURRENTLY below its
+reorder point (re-checked now, not trusted from the signal's own
+`severity` at the time it was written — stock may have already been
+replenished since)." A `Signal` row's `severity` field is written once, at
+`record_sale`'s moment of creation, and never updated again — it is a
+snapshot, not a live view. If the gate trusted it, a signal born as
+`"warning"` would stay a reason to fire forever, even long after the shelf
+it described was quietly restocked.
+
+```mermaid
+sequenceDiagram
+    participant Sale as record_sale
+    participant Sig as Signal row
+    participant Shelf as inventory table
+    participant Gate as store_wake_gate
+    Sale->>Sig: severity = "warning" (written once)
+    Sale->>Shelf: on_hand below reorder
+    Note over Shelf: off-the-books restock<br/>on_hand updated directly
+    Gate->>Sig: read kind, source, subject_ref<br/>(never severity)
+    Gate->>Shelf: below_reorder(db) -- LIVE read
+    Shelf-->>Gate: on_hand now above reorder
+    Gate-->>Gate: refuse, return None
+    Note over Sig: severity still says "warning" --<br/>the field itself never changes
+```
+
+**What this figure shows:** everything the gate reads from the signal
+object — `kind`, `source`, `subject_ref` — is identity and provenance, set
+once and never expected to change. `severity` is the one field on the same
+object that describes the *world*, not the signal, and the gate never
+reads it at all: every freshness question — is this SKU still below
+reorder, right now — is answered by a second, independent read against
+`inventory`. The frozen `severity` field and the live `below_reorder` read
+can disagree, and when they do, the gate trusts the live read every time.
+
+Prove it against the real gate. Record a real qualifying sale, then
+restock the SKU off the books — direct SQL, exactly the "delivery driver
+restocked it this morning" scene this chapter opened with, never touching
+the signal row itself — and run the same signal through the gate again:
+
+```python
+tea_signal_2 = record_sale(org_ch10.db, "SKU-COFFEE", 5, 650)
+print("signal severity at creation:", tea_signal_2.severity)
+
+org_ch10.db.connection.execute("UPDATE inventory SET on_hand = 20 WHERE sku = 'SKU-COFFEE'")
+org_ch10.db.connection.commit()
+
+decision_after_restock = store_wake_gate(org_ch10, tea_signal_2)
+print("gate decision after an off-the-books restock:", decision_after_restock)
+print("signal severity is still:", tea_signal_2.severity, "(the field itself never changes)")
+```
+
+```text
+signal severity at creation: warning
+gate decision after an off-the-books restock: None
+signal severity is still: warning (the field itself never changes)
+```
+
+The signal's own `severity` field is frozen at `"warning"` forever — reading
+it in isolation would say this SKU still needs attention. The gate ignores
+that frozen field entirely and re-reads `below_reorder(org.db)` against the
+inventory table as it stands right now, so the restock the signal never
+learned about still refuses the decision correctly. Two different fields
+carry two different kinds of truth here: `severity` answers "how urgent did
+this look the moment it was recorded," a fact about the past that a caller
+might reasonably want for triage or an alert dashboard; `below_reorder`'s
+live query answers "does this still need action," the only fact
+`store_wake_gate` is allowed to act on. Confusing the two would make the
+gate's decision depend on how long a signal sat unevaluated rather than on
+the world's current state — the same durable-fact-versus-live-decision
+separation Chapter 7's four-clocks table drew for signals, ticks,
+supervisor sweeps, and heartbeats, applied here to a single field instead
+of a whole mechanism.
+
 ## The exercise
 
 ```bash
@@ -415,18 +678,32 @@ attack shows exactly this — every individual binding correct, and the whole
 chain still pointed at the wrong SKU — closed only once every fact is
 derived from the ledger instead of supplied by the caller.
 
+The same discipline governs the gate that starts this whole chain.
+`store_wake_gate` fires on exactly one condition and refuses on two
+different-looking ones that both reduce to "no durable rule disambiguates
+this": zero ACTIVE outcomes naming the SKU, or more than one. The mutation
+in "Break it" showed what silently narrowing that refusal to only the
+zero-match case buys — a decision that looks identical to a correct one
+in every field it returns, chosen by row order instead of governance. And
+the gate's live re-read of `inventory` against a `Signal`'s frozen
+`severity` field is the same "never trust a cached fact when a live one is
+available" rule this book keeps re-deriving, one mechanism at a time.
+
 Back at Lucy's shop: vanilla's alarm at 2:00 and chocolate's alarm at 2:05
-each wake their own restock and only their own, however close together they
-fire.
+each wake their own restock and only their own, however close together
+they fire — and if a second, forgotten "restock the vanilla" outcome were
+still sitting ACTIVE from last month, the gate would refuse both alarms
+rather than guess which one it meant.
 
 ## Explain it back
 
 1. `store_wake_gate` takes a `Signal`, not a SKU string, as its argument.
    Where inside the gate does it decide WHICH outcome the signal is about?
-2. This chapter creates two ACTIVE outcomes, one per SKU. What would
-   `store_wake_gate` do if TWO active outcomes both named the same SKU as
-   their subject? (Look at the gate's own docstring, not just its code, for
-   the answer.)
+2. "Break it" proved what `store_wake_gate` does when TWO active outcomes
+   both name the same SKU. State the exact one-line change that turns the
+   real gate into the mutated one, and say why the mutated version's return
+   value gives a caller no way to tell it fired on an arbitrary pick rather
+   than a governed decision.
 3. `decisions_never_cross` compares two `outcome_id` strings for
    inequality. Why is that a meaningful proof of isolation, rather than an
    accident of how identifiers happen to be generated?
@@ -436,20 +713,33 @@ fire.
 5. Generation 4 had every individual binding right and was still defeated.
    What single design rule closes it, and where else in this book have you
    seen the same rule?
-6. `sow-coffee` was refused even though its execution genuinely restocked a
-   real SKU. Explain why "causal binding cuts in both directions" is a
-   feature and not bureaucratic cruelty — what would crediting `run-x`'s
-   tea work to `sow-coffee` corrupt downstream?
+6. `sow-coffee` was refused even though its execution restocked a real
+   SKU. Explain why "causal binding cuts in both directions" is a feature
+   and not bureaucratic cruelty — what would crediting `run-x`'s tea work
+   to `sow-coffee` corrupt downstream?
 7. Every arrow in the proof graph is a foreign key. Name the one claim in
    the graph that is NOT a stored row but a live act, and say why it cannot
    be replaced by a stored row.
+8. `Signal.severity` and `store_wake_gate`'s live `below_reorder` read can
+   disagree. Name a legitimate use for the frozen `severity` field (one
+   this chapter says a caller "might reasonably want") that does NOT
+   require it to match the live inventory state.
+9. Both of the gate's refusal branches — zero matching outcomes, and more
+   than one — return the identical value: `None`. What does the chapter's
+   own diagram of this branch (the flowchart, not the sequence diagram)
+   say a caller loses by that collapse, and why does the gate's contract
+   treat that loss as acceptable rather than as a defect to fix?
 
 ## Where to look next
 
 - `src/reference_organizations/store/pulse_gate.py` — `store_wake_gate`, the
-  same gate from Chapter 7, now proven across two SKUs at once
+  same gate from Chapter 7, now proven across two SKUs and one ambiguous
+  case at once
 - `tests/test_store_multi_sku.py` — the wake-decision-isolation and
-  Pulse-origin-isolation tests this chapter's proof extends
+  Pulse-origin-isolation tests this chapter's proof extends, including
+  `test_wake_gate_refuses_when_two_active_outcomes_name_the_same_sku` and
+  `test_removing_the_cardinality_check_makes_the_gate_fire_on_ambiguity`,
+  the pinned regressions for this chapter's "Break it" section
 
 `solution.py` imports the production package rather than copying it.
 

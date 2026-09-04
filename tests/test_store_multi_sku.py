@@ -138,6 +138,89 @@ def test_wake_gate_never_fires_for_a_sku_still_above_reorder(tmp_path: Path) -> 
     assert store_wake_gate(org, coffee_signal) is None
 
 
+def test_wake_gate_refuses_when_two_active_outcomes_name_the_same_sku(
+    tmp_path: Path,
+) -> None:
+    """Ch10's own 'Break it' section: the gate's `len(matching) != 1` check
+    refuses BOTH zero-match and ambiguous-match inputs, not only the
+    zero-match case every other test in this module happens to exercise.
+    A human who activates a second "keep the tea stocked" outcome without
+    closing the first must not get an arbitrary, unverifiable pick."""
+    org, outcome_ids = _seeded_multi_sku_org(tmp_path)
+    duplicate = org.create_outcome(
+        "Keep the tea jar stocked (accidental duplicate)",
+        "On-hand SKU-TEA is at or above the reorder point.",
+        ["inventory_at_or_above_reorder_point"],
+        "principal-human",
+        TEA,
+    )
+    org.activate(duplicate.id, "master-course")
+
+    tea_signal = record_sale(org.db, TEA, 2, 400)
+    assert store_wake_gate(org, tea_signal) is None
+
+    report = run_pulse_once(org, store_wake_gate)
+    assert report.items[0].status == "skipped"
+    assert report.items[0].detail == "wake gate did not fire"
+    sows = org.db.connection.execute("SELECT COUNT(*) AS c FROM sows").fetchone()["c"]
+    assert sows == 0
+    assert outcome_ids[TEA] != duplicate.id  # the fixture's original outcome is untouched
+
+
+def test_removing_the_cardinality_check_makes_the_gate_fire_on_ambiguity(
+    tmp_path: Path,
+) -> None:
+    """Runs the exact mutation ch10's chapter text shows -- `len(matching)
+    != 1` weakened to `not matching` -- and asserts it fires on the same
+    two-active-outcome input the sibling test above proves the real gate
+    refuses. If a future refactor of `store_wake_gate` ever narrows that
+    check the same way, this test catches it; the chapter's prose does
+    not re-run itself."""
+    import json
+
+    from sovereign_agent.models import OutcomeState
+    from sovereign_agent.pulse import WakeDecision
+
+    def store_wake_gate_picks_first_on_ambiguity(org, signal):
+        if signal.kind != "inventory.changed" or signal.source != "sale":
+            return None
+        sku = signal.subject_ref
+        if sku not in below_reorder(org.db):
+            return None
+        rows = org.db.connection.execute("SELECT record FROM outcomes").fetchall()
+        matching = []
+        for row in rows:
+            record = json.loads(row["record"])
+            if record.get("subject") == sku and record.get("state") == OutcomeState.ACTIVE.value:
+                matching.append(record)
+        if not matching:
+            return None  # BUG: was `if len(matching) != 1`
+        return WakeDecision(
+            outcome_id=str(matching[0]["id"]),
+            scope=f"Pulse-dispatched replenishment after signal {signal.id}",
+            role=Role.OPERATOR,
+            planner_id="master-course",
+            worker_id="operator-course",
+            required_effect_kind="replenishment",
+        )
+
+    org, outcome_ids = _seeded_multi_sku_org(tmp_path)
+    duplicate = org.create_outcome(
+        "Keep the tea jar stocked (accidental duplicate)",
+        "On-hand SKU-TEA is at or above the reorder point.",
+        ["inventory_at_or_above_reorder_point"],
+        "principal-human",
+        TEA,
+    )
+    org.activate(duplicate.id, "master-course")
+
+    tea_signal = record_sale(org.db, TEA, 2, 400)
+    mutated_decision = store_wake_gate_picks_first_on_ambiguity(org, tea_signal)
+
+    assert mutated_decision is not None
+    assert mutated_decision.outcome_id == outcome_ids[TEA]  # the older row, an arbitrary pick
+
+
 # === Pulse-origin isolation ======================================================
 
 

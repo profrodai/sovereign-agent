@@ -890,6 +890,47 @@
               "text": "Subject is read from the outcome, not supplied"
             }
           ]
+        },
+        {
+          "concept": "gate-refuses-zero-or-ambiguous-matches-identically",
+          "anchor": "Break it: what the gate's ambiguity refusal is actually preventing",
+          "symbols": [
+            {
+              "file": "src/reference_organizations/store/pulse_gate.py",
+              "name": "store_wake_gate"
+            }
+          ],
+          "tests": [
+            "tests/test_store_multi_sku.py::test_wake_gate_refuses_when_two_active_outcomes_name_the_same_sku",
+            "tests/test_store_multi_sku.py::test_removing_the_cardinality_check_makes_the_gate_fire_on_ambiguity"
+          ],
+          "exercise": "book/ch10_one_signal_wakes_one_need/solution.py",
+          "source_text": [
+            {
+              "file": "src/reference_organizations/store/pulse_gate.py",
+              "text": "zero or ambiguous -- no durable rule disambiguates more than one"
+            }
+          ]
+        },
+        {
+          "concept": "signal-severity-is-a-snapshot-gate-re-reads-live",
+          "anchor": "The signal is a snapshot; the gate re-checks live",
+          "symbols": [
+            {
+              "file": "src/reference_organizations/store/pulse_gate.py",
+              "name": "store_wake_gate"
+            }
+          ],
+          "tests": [
+            "tests/test_store_multi_sku.py::test_wake_gate_never_fires_for_a_sku_still_above_reorder"
+          ],
+          "exercise": "book/ch10_one_signal_wakes_one_need/solution.py",
+          "source_text": [
+            {
+              "file": "src/reference_organizations/store/pulse_gate.py",
+              "text": "trusted from the signal's own `severity` at the time it was written"
+            }
+          ]
         }
       ],
       "limits_anchor": "forge every row in",
@@ -897,7 +938,9 @@
         "effects recorded by run-t: 0",
         "run-t did something",
         "ACCEPTED: run-x caused a replenishment on SKU-TEA",
-        "replenishment on SKU-COFFEE"
+        "replenishment on SKU-COFFEE",
+        "mutated gate fired: True",
+        "gate decision after an off-the-books restock: None"
       ],
       "lab": "book/labs/ch10_one_signal_wakes_one_need"
     },
