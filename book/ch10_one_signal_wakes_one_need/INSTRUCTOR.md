@@ -23,9 +23,12 @@ one). Chapter 9's per-SKU threshold proof is also assumed.
 - **"The gate picks the FIRST matching outcome, so order matters."** It
   does not pick by order — it filters outcomes by `subject == sku` AND
   `state == ACTIVE`, and refuses (returns `None`) unless EXACTLY one
-  matches. Point at `store_wake_gate`'s own `len(matching) != 1` check and
-  have the learner explain what happens if this chapter accidentally
-  created two ACTIVE outcomes for the same SKU.
+  matches. "Break it" now runs this for real: the mutation that DOES pick
+  the first match on ambiguity gets the older row purely as an artifact of
+  SQLite's own row order, never a governed fact. Point the learner at the
+  comparison table right after the mutated run and have them state, in
+  their own words, why "picked the first row" and "resolved the ambiguity
+  correctly" are indistinguishable from the caller's side.
 - **"Two signals means Pulse runs twice."** `run_pulse_once` is still one
   deterministic pass — it evaluates every unevaluated signal within that
   one call, not once per signal. Confirm the learner reads `report.items`
@@ -35,6 +38,14 @@ one). Chapter 9's per-SKU threshold proof is also assumed.
   proves signal-to-outcome BINDING and canonical SOW creation are correct.
   Chapter 11 is where the actual replenishment effects (inventory, cash)
   are shown not to cross between SKUs.
+- **"A stale signal just means the alert was late."** The `severity`
+  section shows the more precise failure mode: staleness is not about
+  timing, it is about which field the gate is willing to trust. The signal
+  itself is never wrong (it recorded a true fact for a moment in the
+  past); the mistake would be treating a snapshot field as if it were a
+  live one. Have the learner say what would happen if `store_wake_gate`
+  branched on `signal.severity == "warning"` instead of calling
+  `below_reorder(org.db)` again.
 
 ## Observation checkpoints
 
@@ -55,16 +66,27 @@ one). Chapter 9's per-SKU threshold proof is also assumed.
 - "If a third SKU were added to this chapter's catalog with no active
   outcome naming it, what would `store_wake_gate` do with a qualifying
   signal for that SKU?"
+- "'Break it' shows two refusal causes (zero matches, ambiguous matches)
+  collapsing to the same `None`. Name a system you've used where an error
+  message DID distinguish those two causes to the caller, and say whether
+  `store_wake_gate` losing that distinction is a real cost or a deliberate,
+  acceptable simplification given what a Pulse pass does with the result."
 
 ## Facilitation timing
 
-Roughly 20-25 minutes: 5 minutes reviewing Chapter 7's gate mechanism, 10
+Roughly 25-30 minutes: 5 minutes reviewing Chapter 7's gate mechanism, 10
 minutes on the exercise output and the `sqlite3` cross-check, 5-10 minutes
-on the discussion prompts, particularly the concurrency-test pointer.
+on "Break it" and the severity/live-read distinction, 5-10 minutes on the
+discussion prompts, particularly the concurrency-test pointer.
 
 ## Exercise debrief and assessment
 
 A learner has landed this chapter if they can explain what `store_wake_
 gate` would do (refuse, via `len(matching) != 1`) if this chapter
-accidentally created two ACTIVE outcomes for the same SKU — reasoning from
-the gate's own fail-closed contract, not from having watched it happen.
+accidentally created two ACTIVE outcomes for the same SKU, AND has now
+watched it happen against the real function in "Break it" — the two
+should agree. A learner has landed the severity material if they can state,
+without re-reading the source, which fields on a `Signal` the gate reads
+(`kind`, `source`, `subject_ref`) and which one it deliberately never reads
+(`severity`), and why that omission is the whole point rather than an
+oversight.
