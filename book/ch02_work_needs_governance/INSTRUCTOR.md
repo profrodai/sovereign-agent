@@ -63,6 +63,11 @@ less surprising than it should be.
 5. After Exercise 7 (recovery): confirm the learner notices that recovery
    creates a NEW assignment rather than reusing the failed one, and can say
    why that matters for auditability.
+6. After Exercise 8 (the vacuous-guard mutation): confirm the learner can
+   explain, without rereading, why `bool(contributors) and execution_id not
+   in contributors` fails silently exactly when `contributors` is empty —
+   the short-circuit is the whole bug. A learner who can only say "it's
+   wrong" without locating the `and` has not yet landed this one.
 
 ## Discussion prompts
 

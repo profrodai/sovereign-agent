@@ -81,6 +81,32 @@ integrity:
 | Self-review | reviewer ≠ performer | The worker marks its own answer correct. |
 | Moved world | digest → exact observed inputs | A check still exits zero while the facts it supposedly proved changed. |
 
+The table names which relation each attack severs; the same graph from above
+shows exactly where that break sits, because "missing relation" is easier to
+place on an edge than to hold in your head across five table rows at once:
+
+```mermaid
+flowchart LR
+    O[Outcome\nworld predicate] -->|"cut here: paperwork-only"| S[SOW\nscope + checks]
+    S --> X[Assignment\nactor + workspace]
+    X --> C[Receipt\nexecution identity]
+    X -->|"cut here: borrowed evidence"| E[Evidence\ncheck observation]
+    C --> E
+    E -->|"cut here: moved world"| V[Verification\nchecks rerun]
+    V -->|"cut here: self-review"| R[Review\ndistinct actor]
+    R --> A[Acceptance]
+    O -->|"cut here: stale check"| A
+    S --> A
+```
+
+**What this figure shows:** each labeled edge is the exact relation a weaker
+`accept()` forgot to check, taken from the table above — this is the same ten
+nodes and edges as the proof graph you just read, with the five attacks
+pinned to the specific edge they sever rather than left as a separate list to
+cross-reference by hand. An edge with no label is one none of the seven
+layers attacks directly; it is enforced structurally (append-only, foreign
+keys) rather than by a layer of `accept()` itself.
+
 This also explains why review and acceptance are not one act. Review evaluates
 the bounded work described by a SOW. Acceptance evaluates whether the outcome is
 true after the necessary reviewed work and observations converge. One outcome
@@ -591,6 +617,62 @@ the toy passed `accepter` in as a trusted string. Presence of a clause is
 never the lesson; the lie it stops is. That is also why the exercises below
 attack the *real* system rather than re-running the toy.
 
+Seven layers, seven refusals — the ladder below is the same seven-version
+build-up you just ran, read top to bottom as one picture instead of seven
+separate code blocks. Each rung names the lie that version of `accept`
+still let through and the layer that closes it; the loop back to `VERIFYING`
+on the right is Exercise 7's recovery cycle, which is how work climbs back
+onto the ladder after a refusal instead of being stuck below it.
+
+```mermaid
+flowchart TB
+    V1["v1: trust the paperwork"] -->|"lie: empty freezer, ACCEPTED anyway"| V2
+    V2["v2: re-read the world now"] -->|"lie: true, but unprovable -- no evidence on file"| V3
+    V3["v3: record evidence"] -->|"lie: evidence borrowed from a different outcome"| V4
+    V4["v4: bind evidence + receipts"] -->|"lie: no second pair of eyes"| V5
+    V5["v5: require independent review"] -->|"lie: true, but not because of this execution"| V6
+    V6["v6: require the credited effect"] -->|"lie: the world moved after verification"| V7
+    V7["v7: compare evidence digest to now"] --> ACCEPTED["ACCEPTED"]
+    V2 -. refuses back to .-> VERIFYING["VERIFYING (repair, reassign, re-verify)"]
+    V3 -. refuses back to .-> VERIFYING
+    V4 -. refuses back to .-> VERIFYING
+    V5 -. refuses back to .-> VERIFYING
+    V6 -. refuses back to .-> VERIFYING
+    V7 -. refuses back to .-> VERIFYING
+    VERIFYING -->|"Exercise 7: repair, new assignment, new batch"| V2
+```
+
+**What this figure shows:** each rung's refusal edge names a specific lie a
+weaker `accept` would let through, and the dashed edges share one thing —
+every refusal returns to `VERIFYING` instead of ending the story, exactly
+Exercise 7's "being refused is not the end." The solid path is the seven
+layers in build order; a dashed edge is what a bug in that layer would skip.
+
+## Expected results and invariants
+
+Before the exercises, here is what each layer guarantees stated as a
+falsifiable predicate — not "what the code does" but "what must be true
+after `accept()` returns `ACCEPTED`, or acceptance itself is broken." Use
+this table to tell a real pass from a false green while you work through
+the exercises below: if an exercise's output does not match the invariant
+here, either the exercise found a real bug or you mis-set-up the scenario —
+it should never be ambiguous which.
+
+| Layer | Invariant that must hold after `ACCEPTED` | What violating it would look like |
+| --- | --- | --- |
+| L1/L2 | The declared check, re-run against the *current* database, returns success. | `ACCEPTED` while `SELECT on_hand, reorder FROM inventory` shows the shelf empty. |
+| L3 | At least one evidence row exists, and every evidence row for this acceptance reports `success=1`. | `ACCEPTED` with zero rows in `evidence` for this outcome. |
+| L4 | Every evidence row belongs to *this outcome's own* verification batch, and every SOW has a completed execution with a receipt. | `ACCEPTED` on evidence copied or reassigned from a different outcome's proof. |
+| L5 | The verification batch has a review, the review's decision is `approved`, and the reviewer is not the accepter. | `ACCEPTED` with no review row, or with `reviewer == accepter`. |
+| L6 | If the SOW declares a `required_effect_kind`, the credited execution produced an effect of that kind. | `ACCEPTED` while `contributing_executions(outcome_id)` is empty for a SOW that promised an effect. |
+| L7 | The evidence's recorded `state_digest` equals the world's digest computed *right now*, at acceptance time. | `ACCEPTED` against evidence whose digest describes a world that no longer exists. |
+
+Exercise 2 falsifies L1/L2. Exercise 3's ten tests falsify L3 through L7 by
+name. Exercise 6 falsifies the append-only guarantee the whole table above
+depends on staying true. Exercise 8, below, falsifies L6 specifically and
+shows what a *broken* L6 would have looked like — a version of this exact
+guard that review caught and rejected before it ever merged.
+
 ## Exercise 1: follow one outcome through the whole chain
 
 ```bash
@@ -819,15 +901,107 @@ then "refusal is the system working" would be a slogan the system contradicts in
 practice. A refusal you cannot recover from teaches the opposite of what it says.
 Recovery is what makes refusal a step in the work rather than the end of it.
 
+## Exercise 8: an attack the seven layers were built to survive
+
+Layer 6 is the deepest lie in this chapter — a condition that is true for
+reasons that have nothing to do with the execution being credited. It is
+also the layer with the most dangerous *near-miss* implementation, because
+the guard it needs is easy to write in a way that looks right and is not.
+
+`tests/test_causal_binding.py` documents exactly this. Its own module
+docstring says the *first version of that test file itself* "did not prove
+independence" and "missed the empty-contributor bypass entirely," because its
+own "condition false" case always had an older contributor present — so it
+could not tell a real guard from a vacuous one. Both reviewers caught it when
+asked to attack the file, before it ever merged. The production
+`organization.py` comment right above the real guard names the same
+almost-guard by the exact code it refuses to write. Reproduce both the real
+behavior and the guard that would have looked plausible and passed nothing,
+side by side:
+
+```python
+import pathlib, tempfile
+from reference_organizations.store import seed
+from sovereign_agent.checks import run_check
+from sovereign_agent.errors import Refusal
+from sovereign_agent.models import Role
+from sovereign_agent.organization import Organization
+
+root = pathlib.Path(tempfile.mkdtemp())
+org = Organization.init(root)
+seed(org.db)
+
+outcome = org.create_outcome(
+    "Keep the tea jar stocked",
+    "On-hand tea stays at or above the reorder point.",
+    ["inventory_at_or_above_reorder_point"],
+    "principal-human",
+    "SKU-TEA",
+)
+org.activate(outcome.id, "master-course")
+
+# A SOW that PROMISES a replenishment effect -- but its assignment never
+# restocks anything. The shelf happens to be fine anyway, for a reason that
+# has nothing to do with this SOW (the seed data starts above the line).
+sow = org.create_sow(outcome.id, "idle", Role.OPERATOR, "master-course", "replenishment")
+org.ready_sow(sow.id)
+assignment = org.run_assignment(org.assign(sow.id, "operator-course", "master-course").id)
+
+contributors = org.contributing_executions(outcome.id)
+print("contributing executions:", len(contributors))
+print(
+    "stock check passes anyway:",
+    run_check(org.db, "inventory_at_or_above_reorder_point", "SKU-TEA").success,
+)
+
+org.verify_outcome(outcome.id, "verifier-course")
+org.review(sow.id, "sparring-course")
+
+try:
+    org.accept(outcome.id, "principal-human")
+    print("ACCEPTED  <-- this would be a bug")
+except Refusal as refusal:
+    print("REFUSED because:", "produced no replenishment effect" in refusal.happened)
+
+# The historical guard, reported by review before it ever shipped, was
+# written as `if contributors and execution_id not in contributors`.
+# Evaluate that exact predicate against this same data:
+buggy_guard_would_refuse = bool(contributors) and assignment.id not in contributors
+print("buggy guard would have refused:", buggy_guard_would_refuse)
+```
+
+Expected result / invariant: the condition is true (the check passes), the
+execution contributed nothing (`contributing executions: 0`), and real
+`accept()` still refuses. The mutation case is the last line: the historical
+guard evaluates `bool(contributors) and ...`, so an *empty* contributor set —
+the strongest possible case for "this execution did nothing" — short-circuits
+the `and` to `False` and never raises at all.
+
+```text
+contributing executions: 0
+stock check passes anyway: True
+REFUSED because: True
+buggy guard would have refused: False
+```
+
+That last line is the false green this exercise exists to expose: a
+plausible-looking guard that is vacuous in exactly the case that matters
+most, silently accepting nothing-happened as done. The real implementation
+in `organization.py` avoids it on purpose — read the comment directly above
+the `required_effect_kind` check, which names the same trap by name — and
+`tests/test_causal_binding.py::test_condition_true_but_no_effects_exist_at_all_is_refused`
+is the regression test that would catch it returning.
+
 ## Learner verification command
 
 ```bash
 uv run python -m pytest tests/test_acceptance_falsification.py tests/test_actors_and_mailbox.py \
-  tests/test_recovery.py -q
+  tests/test_recovery.py tests/test_causal_binding.py -q
 ```
 
 Expected: all pass. Together they prove that acceptance refuses every lie listed
-above, and that authority cannot be self-granted.
+above, that authority cannot be self-granted, and that a credited execution must
+have actually caused the effect it claims.
 
 ## Summary
 
@@ -883,5 +1057,9 @@ never the same person who signs off that it was done correctly.
 12. Layer 6 refuses when the world is genuinely fine. Defend that refusal to
     an annoyed Lucy: what future failure does crediting a do-nothing
     execution set up?
+13. Exercise 8's near-miss guard was `if contributors and execution_id not
+    in contributors`. What does `bool(contributors) and ...` evaluate to
+    when `contributors` is empty, and why is that the worst case for this
+    bug to hide in?
 
 Next: [Chapter 3 — The actor is not a model](../ch03_actor_is_not_a_model/README.md)
