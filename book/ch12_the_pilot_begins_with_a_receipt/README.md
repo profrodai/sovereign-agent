@@ -90,6 +90,80 @@ Use this ladder when reading any release claim:
 Stopping at the level actually proven is the final governance skill. A receipt
 is valuable precisely because it is narrow enough to be true.
 
+## From local consistency to release provenance
+
+The course material separates deterministic evaluation from deployment in
+stages: scripted offline runs, regression fixtures, credentialed provider runs,
+shadow traffic, canary exposure, and finally a wider rollout. Each stage answers
+a different question. Collapsing them into one green badge creates the release
+equivalent of a status file claiming the freezer is full.
+
+```mermaid
+flowchart LR
+    S[Scripted deterministic suite] --> B[Build artifact]
+    B --> I[Installed-wheel isolation test]
+    I --> L[Credentialed provider evaluation]
+    L --> H[Shadow or human-reviewed pilot]
+    H --> C[Canary rollout]
+    C --> R[Wider release]
+    S -. does not prove .-> L
+    L -. does not prove .-> H
+    H -. does not prove .-> R
+```
+
+The arrows are promotions of evidence, not automatic transitions. A scripted
+provider is ideal for reproducibility and fault injection, but cannot prove a
+live CLI accepts the same flags. A credentialed run proves one provider call,
+not that a human workflow is usable. A pilot start proves the trial began, not
+that the trial achieved its outcome. The proof pack should preserve each stage's
+status separately so a missing stage remains visible as `NOT_RUN`, never absorbed
+into the success of an earlier stage.
+
+For each release claim, bind four identities:
+
+| Identity | Question it answers | Example evidence |
+| --- | --- | --- |
+| source commit | Which code was reviewed? | full 40-hex commit id |
+| built artifact | Which bytes were installed? | wheel filename and SHA-256 |
+| execution environment | Where did the check run? | clean environment record and installed package version |
+| verifier/result | Which question was answered? | command, exit code, artifact, and status vocabulary |
+
+If the source commit is reviewed but the wheel was built from another tree, the
+review does not bind the release. If tests run by importing the checkout instead
+of the installed wheel, they do not prove packaging. If a live-provider record
+lacks authentication provenance, it may be internally consistent without being
+credible. Release evidence is a chain; the weakest missing edge limits the
+claim.
+
+### Evaluation should measure trajectories, not only final prose
+
+An agent can produce the correct final answer through an unsafe path. It might
+call an unapproved tool first, retry an external mutation, or skip the required
+completion record and then write convincing prose. A release evaluation should
+therefore inspect the trajectory:
+
+- ordered tool calls and their normalized arguments;
+- which role and assignment authorized each effect;
+- retry count and stable idempotency identity;
+- terminal receipt plus any failure category;
+- evidence bindings from check to outcome, assignment, and observed state;
+- final world state, re-read independently of the provider's report.
+
+Gold trajectories should not require byte-identical model language. Normalize
+the durable structural events and compare the properties that matter: forbidden
+tools never appear, the effect graph has one authorized contributor, and every
+required terminal step exists. Final-answer grading alone is prompt-only
+evaluation in another costume.
+
+### Rollout changes the blast radius, not the proof standard
+
+Shadow mode lets the system propose while a human path remains authoritative.
+A canary gives a small real population the new behavior. Both limit damage, but
+neither makes a false claim true. Continue to use the same acceptance checks and
+incident receipts; add cohort identity so every result can be attributed to the
+rollout stage. If the canary fails, stop promotion and preserve its evidence
+rather than rewriting the release report around it.
+
 ## Build the pilot start yourself, then hand Mo's diner Lucy's data
 
 A pilot start looks like an INSERT. It is a **contract**: the same request
@@ -337,6 +411,29 @@ uv run python book/ch12_the_pilot_begins_with_a_receipt/solution.py --root /tmp/
 Read the file first, and read `EXERCISE_PILOT_ID`'s own comment before running
 anything: the exercise id is unmistakable and the documented path is disposable —
 keep the `/tmp` root so this writes only to a throwaway database.
+
+## Lab: falsify the release chain
+
+This lab tests the edges between source, artifact, and claim rather than adding
+another happy-path pilot. Work on a copy of a proof pack, never the release
+record itself:
+
+1. run `scripts/verify_proof_pack.py` and record the clean result;
+2. change one artifact byte without updating its digest, then confirm the
+   verifier refuses the mismatch;
+3. restore the artifact, change a provider status to a `NOT_RUN` value, and add
+   success-shaped prose beside it; confirm the lie scan refuses it;
+4. update both an artifact and its digest together and observe that internal
+   consistency can pass;
+5. write down the external evidence that would be needed to distinguish the
+   forged pair from an authentic run.
+
+The expected result is not “every forgery fails.” Step 4 is the important
+counterexample: it should teach you the verifier's boundary. If it fails only
+because you accidentally broke schema shape, repair the schema and repeat until
+the forged artifact-digest pair is internally consistent. Then explain why a CI
+identity, signature, or independent rerun changes the trust boundary while one
+more self-authored checksum does not.
 
 ## Expected observations
 

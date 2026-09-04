@@ -72,6 +72,41 @@ return data. The host looks up `ROLE_AUTHORITY`, validates the report schema, an
 executes the narrow operation. Rebinding an actor from `scripted` to `ollama`
 changes the proposal generator, not the policy lookup.
 
+The provider-to-host handoff is therefore a data pipeline, not a transfer of
+authority:
+
+```mermaid
+flowchart LR
+    S[SOW plus actor identity] --> B[Provider-neutral assignment envelope]
+    B --> M[Model or scripted provider]
+    M --> J[ActorReport proposal]
+    J --> P{Schema and role policy}
+    P -->|invalid| F[Failed receipt]
+    P -->|valid| W{Workspace and action checks}
+    W -->|refuse| F
+    W -->|admit| X[Host-side execution]
+    X --> R[Receipt plus evidence]
+```
+
+The provider never receives a Python function reference that carries authority
+by itself. It receives JSON describing an assignment and returns JSON describing
+what it proposes happened. The host parses that output into `ActorReport`,
+checks the actor's role, checks deliverables and workspace boundaries, and only
+then records effects. In other words, the model has a wishlist; the host has the
+hands.
+
+That distinction gives you a precise failure taxonomy:
+
+| Observation | Likely layer | First evidence to inspect |
+| --- | --- | --- |
+| The proposal chooses the wrong action. | provider reasoning or assignment context | provider raw output and the envelope |
+| The proposal is right but malformed. | provider adapter contract | raw output beside the `ActorReport` validation error |
+| The report is valid but the action is refused. | host policy or boundary | refusal category and actor authority |
+| The action ran but the claimed outcome is false. | execution or acceptance check | receipt, effects, and fresh world-state evidence |
+
+“The agent failed” is too coarse to be diagnostic. These four cases have
+different repair sites, different retry safety, and different evidence.
+
 Do not overread the diagram. For providers that run as local subprocesses, this
 is a **logical authority boundary**, not automatically an operating-system
 security boundary. A subprocess may possess ambient filesystem or network
@@ -420,6 +455,28 @@ Between the envelope and the report sits the provider CLI — an external
 program the organization did not write and must not trust. The adapter's job
 is to invoke it without assuming anything it cannot prove. Three disciplines,
 each buildable in a few lines.
+
+```mermaid
+sequenceDiagram
+    participant H as Host
+    participant A as Provider adapter
+    participant C as Provider CLI
+    H->>A: probe executable and live help
+    A->>C: request help or version
+    C-->>A: untrusted text
+    A-->>H: proven capabilities only
+    H->>A: invocation request plus envelope
+    A->>C: argv with proven flags
+    C-->>A: raw stream and exit status
+    A-->>H: parsed proposal or explicit failure
+```
+
+Notice the asymmetry: an unknown capability becomes absent, while an unknown
+output shape becomes failure. Neither becomes a guessed success. This is why
+`run_spec` uses an argv list with `shell=False`, why provider-specific code owns
+parsing, and why the host writes a failed receipt when the provider exits
+without a valid report. A model can be brilliant and the adapter can still be
+wrong; changing models cannot repair an interface contract.
 
 **Prove flags before sending them.** Capabilities come from a live `--help`
 probe of the installed CLI, never from a version table or memory:

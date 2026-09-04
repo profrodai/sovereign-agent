@@ -309,6 +309,105 @@ recover from is a real one, and a caught, pre-classified exception would
 prove something narrower than what actually happens when a worker's process
 disappears.
 
+## Liveness is evidence, not a timeout-shaped guess
+
+The course that led to this book used a useful production comparison: a
+long-running tool, a worker waiting for human approval, and a dead worker can
+all be silent for the same number of seconds. Wall-clock silence alone cannot
+classify them. A sound liveness decision combines a durable claim, evidence of
+recent process life, and the operation's declared tolerance.
+
+Sovereign Agent currently exposes those ingredients as separate mechanisms.
+Execution attempts have acquired and expiry times plus fencing tokens. The
+heartbeat table records that a runtime reached the database at a moment in
+time. The supervisor recovers expired execution attempts. It does **not** yet
+compose heartbeat freshness with per-tool declared timeouts, and this chapter
+must not draw the richer course design as if production already implemented it.
+The actual decision path is narrower:
+
+```mermaid
+flowchart TD
+    T[Supervisor tick] --> E[Read expired execution attempts]
+    E --> S{Assignment still RUNNING and attempt still current?}
+    S -->|no| N[Another writer won; report nothing]
+    S -->|yes| F[Create FAILED receipt: worker_lost]
+    F --> C[One transaction clears current attempt, fails assignment and SOW, appends events]
+    C --> W{Workspace policy}
+    W -->|temporary| Q[Reclaim scratch after durable terminal write]
+    W -->|persistent| K[Keep workspace inspectable]
+```
+
+There are two compare-and-set moments hidden in that flow. The first is the
+re-read of the assignment after the expired-attempt scan: the worker may have
+finished between observation and decision. The second is the guarded update
+whose `WHERE` clause names both the assignment and the current attempt. If
+another supervisor or the worker wins first, `rowcount` is zero and this
+supervisor records no competing history.
+
+### What a heartbeat can and cannot add
+
+`record_heartbeat` appends a row; it does not update a mutable “last seen” cell.
+`heartbeat_status` reads the newest row and returns one of three honest
+verdicts: `ALIVE`, `STALE`, or `NO_BEATS`. `ALIVE` means only that the process
+recorded a beat within the chosen window while the database was reachable.
+`STALE` means no beat was recorded in that window. It does not prove death: the
+recorder may be paused, partitioned from the database, or intentionally idle.
+
+That narrow claim is valuable because it prevents a common observability error:
+turning absence of evidence into evidence of absence. Compare the signals:
+
+| Signal | Positive evidence | Silence leaves ambiguous |
+| --- | --- | --- |
+| heartbeat row | this runtime reached this database at this time | crash, pause, partition, or disabled recorder |
+| current execution attempt | this assignment granted one fenced execution epoch | whether the process is still computing |
+| expired attempt | the lease window ended without a terminal replacement | whether the worker finished an external side effect |
+| provider receipt | the host recorded a terminal provider result | whether the business outcome is true now |
+| acceptance evidence | named checks observed the required world facts | what may change after the observation |
+
+Recovery uses the expired attempt to revoke authority, not the heartbeat to
+infer success. Even if a report file exists, the supervisor writes a failed
+`worker_lost` receipt because the process that owned the attempt did not finish
+the governed terminal transition. A file's presence cannot prove which writes
+committed or whether the provider was still writing it when the process died.
+
+### Why recovery order is part of correctness
+
+Consider the tempting order: delete the temporary workspace, then mark the
+assignment failed. A crash between those steps loses the only artifacts while
+the ledger still says `RUNNING`. The next tick sees an expired attempt but has
+less evidence than the previous one. Production reverses the order:
+
+1. construct the failure receipt;
+2. atomically clear the execution fence, fail the assignment and SOW, and append
+   `assignment.finished` plus `assignment.recovered`;
+3. reproject the outcome;
+4. only then apply the workspace policy.
+
+If the process dies after step 2, the ledger is already truthful and later
+cleanup is safe. If cleanup itself fails, the worst residue is extra evidence,
+not missing truth. “Finish forward, clean up afterward” is a broadly reusable
+recovery rule: make the authoritative state correct before touching disposable
+resources.
+
+### A decision table for a future composite detector
+
+The richer three-signal detector from the course remains a useful design
+exercise, provided you label it as a target rather than shipped behavior:
+
+| Claim age | Heartbeat since claim | Declared long operation | Defensible decision |
+| --- | --- | --- | --- |
+| young | any | any | wait |
+| old | yes | no | work is alive; wait |
+| old | no | yes, still inside declared window | wait, but surface the long operation |
+| old | no | no | candidate for fenced recovery |
+| extremely old | no | declared window also exceeded | recover after the guarded re-read |
+
+The pure part of such a detector should return a decision and reasons; the
+caller should own kill, retry, and ledger side effects. Keeping the decision
+pure makes every row in the table testable without sleeping. Until that
+composition exists in production, the supervisor's only authorization is the
+expired execution attempt and its guarded transaction.
+
 ## The exercise
 
 ```bash

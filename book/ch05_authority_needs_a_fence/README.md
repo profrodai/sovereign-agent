@@ -413,6 +413,73 @@ leases and execution attempts. One counter, every fence: that is what makes
 "a strictly higher token than any minted before it, forever" a property of
 the *organization*, not of one table.
 
+## The stale-writer problem, one interleaving at a time
+
+A lease answers “who may work during this interval?” A fencing token answers a
+different question: “is this completion still from the newest winning claim?”
+You need both because expiry does not stop a process. A paused worker can wake
+after its lease expired, still holding the same actor id and the same in-memory
+message, and attempt to commit late.
+
+```mermaid
+sequenceDiagram
+    participant A as Worker A
+    participant DB as SQLite
+    participant B as Worker B
+    A->>DB: claim message, token 41
+    Note over A: pauses beyond lease expiry
+    B->>DB: reclaim same message, token 42
+    B->>DB: complete where token equals 42
+    DB-->>B: one row updated
+    A->>DB: complete where token equals 41
+    DB-->>A: zero rows updated, stale writer refused
+```
+
+Checking only `claim_owner == actor_id` fails when both processes host the same
+durable actor. Checking only time fails because clocks do not revoke a process's
+memory or file descriptors. The monotonically increasing token makes each
+successful takeover a new epoch. The final `UPDATE` compares the caller's token
+inside the same SQL statement that performs the state change. It never reads the
+current token and hands it back to the caller, because a value re-derived from
+the row will always agree with itself and cannot reveal staleness.
+
+This is a small form of the ABA problem. A row can appear to return to a familiar
+shape while its ownership history changed underneath a paused reader:
+
+| Moment | Durable state | What worker A remembers | Is A still entitled to commit? |
+| --- | --- | --- | --- |
+| A claims | `CLAIMED`, A, token 41 | A, token 41 | yes |
+| lease expires | `CLAIMED`, A, token 41 | A, token 41 | no new work, but nothing erased its memory |
+| B reclaims | `CLAIMED`, B, token 42 | A, token 41 | no |
+| B retries to NEW | `NEW`, no owner | A, token 41 | still no |
+| A completes late | guarded update matches zero rows | A, token 41 | refused |
+
+The important comparison is not merely A versus B. It is epoch 41 versus epoch
+42. The same actor process reclaiming its *own* expired lease also receives a
+fresh token; an older instance under that same actor id remains fenced out.
+
+### Retries need an ending state
+
+Fencing prevents stale commits, but it does not decide how many times a failed
+message should return to the queue. `dead_letter` owns that policy. It compares
+the presented token atomically, increments a bounded retry counter, clears the
+claim when another attempt is allowed, and finally moves the message to `DEAD`.
+Without the terminal state, a permanently malformed message can keep an
+always-on loop busy forever. Without the same token check, a stale in-memory
+copy can overwrite a newer claim while “helpfully” scheduling a retry.
+
+Separate the questions when designing a queue:
+
+1. **Eligibility:** is the message new, or has its prior lease expired?
+2. **Exclusivity:** did this compare-and-set win at the moment of update?
+3. **Freshness:** does the completion present the current fencing token?
+4. **Budget:** has the message exhausted its allowed retries?
+5. **Terminal truth:** is the final state `DONE` or `DEAD`, and which event
+   explains how it got there?
+
+A queue that answers only the first question is a polling table. The other four
+are what make it safe under pauses, crashes, retries, and duplicated workers.
+
 ## The exercise
 
 ```bash

@@ -333,6 +333,96 @@ per-occurrence dedupe key, and all-or-nothing commit. It does not share this
 toy model's reservation or positive-quantity checks. Similarity of transaction
 shape must not be inflated into equality of domain validation.
 
+## Numeric state belongs in the transaction, not in the prompt
+
+Language models are poor places to enforce arithmetic invariants. Even a model
+that subtracts correctly cannot know whether another sale committed between its
+read and its proposed write. The trusted calculation therefore sits beside the
+rows it protects, inside `BEGIN IMMEDIATE`:
+
+```mermaid
+sequenceDiagram
+    participant A as Sale A
+    participant DB as SQLite
+    participant B as Sale B
+    A->>DB: BEGIN IMMEDIATE
+    A->>DB: read SKU-TEA on_hand
+    B->>DB: BEGIN IMMEDIATE
+    Note over B,DB: waits; cannot read a value it can later overwrite stale
+    A->>DB: validate nonnegative, write inventory, cash, signal, event
+    A->>DB: COMMIT
+    B->>DB: lock acquired, read new on_hand
+    B->>DB: validate against the committed value
+```
+
+The lock is not protecting subtraction as a CPU operation. It protects the
+relationship between the read, the decision, and all five writes. Move the read
+above the transaction and both sellers can observe the same stock. Move cash or
+the signal below the commit and a crash can sell an item without recording the
+money or the need to replenish it.
+
+Production also refuses to let the provider invent values the ledger already
+knows. A `RestockProposal` contains only `sku` and `quantity`; unit cost comes
+from the product row. The sale path accepts price as an input because the demo
+models a point-of-sale event, but it stores signed integer cents rather than a
+floating-point balance. The cash balance is derived by summing movements, so no
+writer can overwrite “the current total” and erase another entry.
+
+Use this ownership table whenever a tool call contains numbers:
+
+| Value | Authoritative owner | Why the model must not be final authority |
+| --- | --- | --- |
+| quantity requested | proposal, then host range checks | intent may originate with the actor, but zero, negative, or excessive quantities must refuse |
+| current on-hand | inventory row read under the write lock | a value read earlier can be stale before mutation |
+| available stock | host computes `on_hand - reserved` | ignoring reservations oversells stock that is already promised |
+| unit cost | product record | accepting a proposed cost lets the actor choose how much cash leaves |
+| cash movement | host computes quantity times integer cents | generated arithmetic and floating-point money are both avoidable risks |
+| low-stock severity | host compares the post-sale level to this SKU's threshold | a global threshold destroys product isolation |
+
+### One transaction, five independently checkable facts
+
+`record_sale` writes more than an inventory number. Its output can be traced
+through five durable surfaces:
+
+1. the SKU's `on_hand` decreases;
+2. one positive cash movement records quantity times sale price;
+3. a fresh signal id records the observation for this occurrence;
+4. the signal's dedupe key includes SKU, post-sale level, and that fresh id;
+5. `sale.committed` binds SKU, quantity, cash id, signal id, and resulting stock.
+
+The fresh signal id is subtle. Two separate sales can leave the same numeric
+level at different times, especially after a restock. A dedupe key made only
+from SKU and level would call those distinct events identical. Earlier code used
+`INSERT OR REPLACE`, which could delete the first signal while a Pulse origin
+still referenced it. Production now uses a per-occurrence key and plain
+`INSERT`; a collision raises and rolls back instead of rewriting history.
+
+This is the broader lesson from defensive parsing in the course material:
+structural data should be created and validated by tools. Ask the model to name
+the intended SKU and quantity. Let deterministic code expand identities, read
+current rows, calculate money, classify severity, and bind the event graph. The
+model remains useful where judgment is needed without becoming the arithmetic
+or concurrency boundary.
+
+### Test the boundary cases before the happy path
+
+For any sale function, write the edge matrix before implementation:
+
+| Starting available | Quantity | Required result |
+| ---: | ---: | --- |
+| 5 | 0 | refuse as an invalid sale request |
+| 5 | -1 | refuse; a negative sale must not become a restock |
+| 5 | 5 | commit, leaving exactly zero |
+| 5 | 6 | refuse with every table unchanged |
+| 5 on hand, 3 reserved | 3 | refuse if the contract sells only available stock |
+| missing SKU | 1 | refuse; actors cannot invent inventory |
+
+The current Store demo's `record_sale` guards negative post-sale `on_hand` and
+unknown SKUs, while the acceptance check later uses `on_hand - reserved`.
+That difference is worth noticing: reservations are modeled in verification
+but are not yet consumed by the sale mutation. Do not silently infer a complete
+reservation system from the presence of the column.
+
 ## The exercise
 
 ```bash

@@ -83,6 +83,29 @@ mode and filesystem decide what survives a crash. Atomicity answers "all or
 none"; durability answers "does the chosen one survive?" Keeping those words
 separate prevents a large class of confident but incorrect database claims.
 
+The ownership rule can be drawn as a one-writer path. Every convenient view is
+downstream of the ledger, and no view is allowed to write back merely because a
+human edited it:
+
+```mermaid
+flowchart LR
+    I[Validated intent] --> T[SQLite transaction]
+    T --> C[Canonical operational rows]
+    T --> E[Append-only event]
+    C --> P[Deterministic projection]
+    E --> P
+    P --> H[Human-readable Markdown and JSON]
+    H -. compare, never import .-> V[Projection verifier]
+    V --> C
+```
+
+This is the same principle that makes filesystem handoffs safe only when their
+authority is explicit. A file can be an excellent transport and a terrible
+source of truth. `governance/outcomes/.../STATUS.md` is optimized for a person;
+the SQLite row is optimized for atomic change. The projection verifier compares
+the two, but it does not “heal” the database from the file. Doing so would turn
+an accidental edit into an authorized state transition.
+
 An organization that forgets cannot be held to anything. If an order can vanish
 because a process died halfway through — exactly what happened to Lucy's cones —
 then "we ordered it" is a hope, not a fact.
@@ -858,6 +881,22 @@ right and the Markdown is stale.
 The full boundary — and the one thing this design cannot honestly promise — is
 written up in [docs/persistence-boundary.md](../../docs/persistence-boundary.md).
 Read the section titled "The limit you must not lie about".
+
+## Expected results
+
+Across the four exercises, the durable pattern should be the same:
+
+| Experiment | What changes | What must remain unchanged |
+| --- | --- | --- |
+| Append-only attack | The attempted statement returns an error. | The original event bytes and row count. |
+| Failed multi-row write | Nothing commits. | Inventory, cash, and the event log all remain at the pre-transaction state. |
+| Failed migration | The migration raises. | Both the schema and its version stamp remain on the prior version. |
+| Edited projection | Only the readable file differs. | Canonical rows remain authoritative; verification turns red. |
+
+If any experiment changes only half of a claimed atomic group, the exercise has
+found a real defect. If a verifier repairs the mismatch while checking it, the
+verifier has destroyed its own evidence. A useful negative result preserves the
+scene long enough for you to understand it.
 
 ## Learner verification command
 
