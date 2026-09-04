@@ -348,7 +348,7 @@ sequenceDiagram
     A->>DB: BEGIN IMMEDIATE
     A->>DB: read SKU-TEA on_hand
     B->>DB: BEGIN IMMEDIATE
-    Note over B,DB: waits; cannot read a value it can later overwrite stale
+    Note over B,DB: waits for the writer lock
     A->>DB: validate nonnegative, write inventory, cash, signal, event
     A->>DB: COMMIT
     B->>DB: lock acquired, read new on_hand
