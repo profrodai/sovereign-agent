@@ -911,7 +911,7 @@ the guard it needs is easy to write in a way that looks right and is not.
 `tests/test_causal_binding.py` documents exactly this. Its own module
 docstring says the *first version of that test file itself* "did not prove
 independence" and "missed the empty-contributor bypass entirely," because its
-own "condition false" case always had an older contributor present — so it
+own "contribution false" case always had an older contributor present — so it
 could not tell a real guard from a vacuous one. Both reviewers caught it when
 asked to attack the file, before it ever merged. The production
 `organization.py` comment right above the real guard names the same
