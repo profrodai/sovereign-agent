@@ -209,6 +209,31 @@
             "tests/test_recovery.py::test_acceptance_is_refused_while_changes_are_outstanding"
           ],
           "exercise": "book/ch02_work_needs_governance/solution.py"
+        },
+        {
+          "concept": "credited-execution-must-have-caused-the-effect",
+          "anchor": "Exercise 8: an attack the seven layers were built to survive",
+          "symbols": [
+            {
+              "file": "src/sovereign_agent/organization.py",
+              "name": "accept"
+            },
+            {
+              "file": "src/sovereign_agent/organization.py",
+              "name": "contributing_executions"
+            }
+          ],
+          "tests": [
+            "tests/test_causal_binding.py::test_condition_true_but_no_effects_exist_at_all_is_refused",
+            "tests/test_causal_binding.py::test_condition_true_but_another_execution_contributed_is_refused"
+          ],
+          "exercise": "book/ch02_work_needs_governance/solution.py",
+          "source_text": [
+            {
+              "file": "src/sovereign_agent/organization.py",
+              "text": "No `if contributors and ...` guard"
+            }
+          ]
         }
       ],
       "limits_anchor": "can rewrite the organization's memory",
