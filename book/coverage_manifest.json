@@ -608,7 +608,7 @@
         },
         {
           "concept": "gate-refuses-ambiguous-outcome-ownership",
-          "anchor": "The real gate refuses a question your toy never had to ask",
+          "anchor": "Break it: what the outcome-disambiguation guard is actually preventing",
           "symbols": [
             {
               "file": "src/reference_organizations/store/pulse_gate.py",
@@ -620,6 +620,20 @@
             "tests/test_pulse.py::test_more_than_one_matching_active_outcome_creates_no_work"
           ],
           "exercise": "book/ch07_the_organization_wakes_itself/solution.py"
+        },
+        {
+          "concept": "crash-window-resume-invokes-same-assignment",
+          "anchor": "Exercise 2: prove the crash-window resume, don't just read the prose about it",
+          "symbols": [
+            {
+              "file": "src/sovereign_agent/pulse.py",
+              "name": "_resumable_signals"
+            }
+          ],
+          "tests": [
+            "tests/test_pulse.py::test_canonical_created_work_survives_restart_and_resumes_without_duplication"
+          ],
+          "exercise": "book/ch07_the_organization_wakes_itself/README.md"
         }
       ],
       "limits_anchor": "It does **not**",

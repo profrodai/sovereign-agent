@@ -307,7 +307,7 @@ running each as its own separate operation. Recovery reconciles work that
 exists; Pulse creates work that should; a mechanism that did both would be a
 process nobody could reason about when it failed halfway through either job.
 
-### The real gate refuses a question your toy never had to ask
+### Break it: what the outcome-disambiguation guard is actually preventing
 
 Your `wake_gate` only checked one thing: is `on_hand` still below `reorder`.
 The Store's own production gate, `store_wake_gate` in
@@ -552,6 +552,142 @@ and that Pulse-created work is not exempt from Chapter 5's fencing.
 `verify_curriculum.py` proves this chapter's own claim is backed by durable
 evidence, not merely present in the prose — the mechanical guard this
 project's own curriculum checker enforces specifically for Chapter 7.
+
+## Exercise 2: prove the crash-window resume, don't just read the prose about it
+
+Two sections back, this chapter asserted something and moved on: "a tick
+that finds the decision already committed but the work not yet run doesn't
+create anything — it picks up the canonical identifiers and resumes from
+there, which is precisely `run_pulse_once`'s step one in production." That
+sentence is a claim about `_resumable_signals` and `_resumable_signals`
+alone (`src/sovereign_agent/pulse.py`). Exercise 1 never exercises this
+path — its sale-to-completion run never crosses a crash boundary, so
+`_resumable_signals` always returns nothing for that run. This exercise
+forces the crash window open and checks what actually comes back.
+
+```mermaid
+flowchart LR
+    C1[create_pulse_work\ncommits SOW + assignment\nassignment.state = CREATED] -->|hard kill here| K[process dies\nrun_assignment never called]
+    K --> R2[fresh run_pulse_once\n_resumable_signals finds it]
+    R2 -->|resumes SAME assignment| Done[assignment.state = COMPLETED\nledger: 1 SOW, 1 assignment]
+```
+
+*Figure — the crash window `_resumable_signals` closes. A hard kill between
+canonical creation and provider execution leaves an assignment stuck at
+`CREATED`; the next ordinary `run_pulse_once` pass — no special "resume"
+flag, no operator action — finds it via the same query every pass runs and
+invokes the identical assignment rather than minting a second one.*
+
+Call `Organization.create_pulse_work` directly instead of `run_pulse_once`,
+so the assignment it creates is left at `CREATED` — exactly what a hard
+kill between canonical creation and provider execution would leave behind:
+
+```python
+from pathlib import Path
+import shutil
+
+from reference_organizations.store import record_sale, seed
+from reference_organizations.store.pulse_gate import store_wake_gate
+from sovereign_agent.models import Role
+from sovereign_agent.organization import Organization
+from sovereign_agent.pulse import run_pulse_once
+
+root = Path("/tmp/lucy-ch07-crash")
+shutil.rmtree(root, ignore_errors=True)
+
+org = Organization.init(root)
+seed(org.db)
+outcome = org.create_outcome(
+    "Keep the tea jar stocked",
+    "On-hand tea is at or above the reorder point.",
+    ["inventory_at_or_above_reorder_point"],
+    "principal-human",
+    "SKU-TEA",
+)
+org.activate(outcome.id, "master-course")
+
+signal = record_sale(org.db, "SKU-TEA", 2, 400)
+source_event_id = org.db.connection.execute(
+    "SELECT id FROM events WHERE kind = 'sale.committed'"
+).fetchone()["id"]
+
+# THIS is the simulated crash: create_pulse_work runs, so the SOW,
+# assignment, pulse.work_created event, and origin row are all durable --
+# but nobody calls run_assignment. The assignment is left at CREATED.
+sow, assignment, created = org.create_pulse_work(
+    source_signal_id=signal.id,
+    source_event_id=source_event_id,
+    subject="SKU-TEA",
+    outcome_id=outcome.id,
+    scope="pulse replenishment",
+    role=Role.OPERATOR,
+    planner_id="master-course",
+    worker_id="operator-course",
+    required_effect_kind="replenishment",
+)
+print("assignment state after simulated crash:", assignment.state.value)
+org.db.close()
+
+# "Restart": a fresh Organization handle over the SAME database file, then
+# one ORDINARY Pulse pass -- nothing tells it a crash happened.
+resumed = Organization(root)
+report = run_pulse_once(resumed, store_wake_gate)
+print("items in the resume pass's report:", len(report.items))
+print("status:", report.items[0].status)
+print("resumed assignment id == original:", report.items[0].assignment_id == assignment.id)
+print("resumed assignment state:", report.items[0].assignment_state)
+```
+
+```text
+assignment state after simulated crash: CREATED
+items in the resume pass's report: 1
+status: replayed
+resumed assignment id == original: True
+resumed assignment state: COMPLETED
+```
+
+Four things this proves, read back from the report rather than asserted:
+the resume pass reports exactly one item for a signal that already has a
+wake decision — `_unevaluated_signals` correctly does not re-offer it to
+the gate, because re-deciding an already-decided signal is not this
+function's job; the status is `"replayed"`, never `"created"` — nothing
+new was minted; the assignment id is byte-identical to the one
+`create_pulse_work` returned before the simulated crash — this is
+*resumption*, not a lookup that merely resembles one; and the assignment
+that was stuck at `CREATED` reaches `COMPLETED` through the exact same
+`run_assignment` call every other path in this chapter uses, with no
+special-cased "resume" branch that could drift from ordinary execution.
+
+**The mutation.** Comment out exactly the resume loop in
+`src/sovereign_agent/pulse.py`'s `run_pulse_once` — the two lines quoted
+verbatim below, to read and delete in your own local copy, not a
+standalone block to run:
+
+```text
+    for signal, sow_id, assignment in _resumable_signals(org):
+        items.append(_invoke_or_report(org, signal.id, sow_id, assignment, created=False))
+```
+
+— leaving `_unevaluated_signals` and everything below it untouched, then
+rerun the script above against a fresh `/tmp/lucy-ch07-crash`. The mutated
+function no longer asks the database which signals already fired but never
+finished; it only asks which signals have never been decided at all — and
+this signal already has a decision, so it is invisible to both loops:
+
+```text
+assignment state after simulated crash: CREATED
+items in the resume pass's report: 0
+```
+
+`report.items` is `()`. Not an error, not a refusal — silence. The
+`CREATED` assignment this run left behind is never picked up by this or
+any later pass, because nothing in the mutated function ever looks for it
+again; the sale that woke the organization produced work that then sits
+forever, half-finished, with a green `create_pulse_work` return and no
+downstream signal that anything is wrong. This is the exact failure mode
+`tests/test_pulse.py::test_canonical_created_work_survives_restart_and_resumes_without_duplication`
+exists to catch on every commit — restore the two lines before moving on;
+this repository's own suite will otherwise fail on the next `make verify`.
 
 ## Summary
 
