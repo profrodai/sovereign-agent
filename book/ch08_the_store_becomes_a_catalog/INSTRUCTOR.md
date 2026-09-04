@@ -53,6 +53,14 @@ rather than trusting `seed_catalog`'s own return value.
 3. On the `sqlite3` query: confirm the learner can run it themselves and
    match its two rows against the exercise's own JSON output, independent
    of the Python summary.
+4. On "Break it": before revealing the mutated function's output, have the
+   learner predict whether `seed_catalog_missing_duplicate_check` will
+   raise on the three-entry batch with a repeated `SKU-TEA`. Most predict
+   it raises (an `INSERT OR REPLACE` "sounds like" it should complain about
+   a repeat). Confirm they can explain, after seeing the real output, why
+   the return value (`3`) and the database's actual row count (`2`) can
+   disagree with no exception anywhere in between — this is the chapter's
+   sharpest moment, because it is a bug with no traceback.
 
 ## Discussion prompts
 
@@ -61,13 +69,19 @@ rather than trusting `seed_catalog`'s own return value.
   11 each add one piece of?"
 - "Why does `seed_catalog` refuse fewer than two SKUs (`ValueError`) instead
   of silently accepting a one-product catalog?"
+- "`events` has three append-only triggers guarding it at the database
+  layer. `products` and `inventory` have none, and rely entirely on
+  `seed_catalog`'s own pre-transaction Python check. Is that a weaker
+  guarantee? Why might a real store need `products` to stay editable in a
+  way `events` never should?"
 
 ## Facilitation timing
 
-Roughly 15-20 minutes: 5 minutes reading `seed_catalog` and `CatalogEntry`
+Roughly 20-25 minutes: 5 minutes reading `seed_catalog` and `CatalogEntry`
 before running anything, 5-10 minutes on the exercise output and the
-`sqlite3` cross-check, 5 minutes on the discussion prompts above. Shorter
-than Chapter 7 — this chapter's own claim is narrower.
+`sqlite3` cross-check, 5-8 minutes on "Break it" (predict-then-reveal is
+worth the extra time here — the mutation is the chapter's own strongest
+evidence), 5 minutes on the discussion prompts above.
 
 ## Exercise debrief and assessment
 

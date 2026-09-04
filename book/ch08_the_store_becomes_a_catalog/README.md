@@ -58,11 +58,14 @@ erDiagram
     }
 ```
 
-This diagram shows three logical subject relationships. The schema does not
-enforce a foreign key or one-to-one relationship between `products.sku` and
-`inventory.sku`; signals use `subject_ref`, while effects use a structured
-`subject` column. Sales are represented by cash rows, signals, and append-only
-events.
+**What this figure shows:** three logical subject relationships, all keyed
+by the same opaque `sku`. The schema does not enforce a foreign key or a
+one-to-one relationship between `products.sku` and `inventory.sku` — SQLite
+would happily let a product exist with no matching inventory row, or vice
+versa, if a write path skipped writing one of the pair. `seed_catalog`'s
+own loop is what actually keeps them paired in practice, one `INSERT`
+into each table per entry, inside the same transaction; the diagram states
+the intended shape, the code enforces it.
 
 The SKU is an identity, not a label. If Lucy renames "Vanilla Bean" to
 "Madagascar Vanilla," references do not move. If code joins on `display_name`, a
@@ -71,10 +74,19 @@ detach from the product they described.
 
 Migrating a populated single-product store therefore has four proof obligations:
 
-1. **Preservation:** the original inventory quantity and thresholds survive.
-2. **Identity:** the legacy row maps to exactly one stable SKU.
-3. **Totality:** every inventory row references an existing product.
-4. **Atomicity:** schema, backfill, and migration stamp become visible together.
+| Obligation | What it requires |
+| --- | --- |
+| **Preservation** | The original inventory quantity and thresholds survive. |
+| **Identity** | The legacy row maps to exactly one stable SKU. |
+| **Totality** | Every inventory row references an existing product. |
+| **Atomicity** | Schema, backfill, and migration stamp become visible together. |
+
+The two subject columns in the figure above are not symmetric, either:
+`effects.subject` is a structured, `NOT NULL` SQL column (`MIGRATION_7`);
+a signal's `subject_ref` is a Pydantic field serialized inside
+`signals.record` as JSON, with no matching column at all — see "Break it"
+below for why that distinction matters to what a schema can enforce on its
+own.
 
 The production migration runner wraps migration statements and the version stamp
 in one explicit transaction. `seed_catalog` validates the catalog-wide
@@ -253,6 +265,190 @@ almost verbatim (`a catalog needs at least two distinct SKUs`,
 the one deliberate shared resource — a single opening cash balance, because
 a store has one till, not one per SKU.
 
+## Break it: what "validate the batch, then mutate atomically" is actually preventing
+
+The claim above — "duplicate SKUs would make `INSERT OR REPLACE` silently
+collapse two products into one" — is exactly the kind of sentence a chapter
+can get away with asserting and never proving. This section proves it,
+against the real production function, not the toy above.
+
+`seed_catalog` (`src/reference_organizations/store/__init__.py`) runs its
+two checks — cardinality, then duplicate SKUs — as plain Python `if`
+statements *before* `with db.transaction():` ever opens. That ordering is
+the whole safety property: a refusal that happens before a transaction
+opens cannot leave a half-written catalog, because nothing has been
+written yet. The diagram below is the hardened contract this section
+verifies against real execution, not an aspiration:
+
+```mermaid
+flowchart TD
+    E[entries: tuple of CatalogEntry] --> C1{len entries < 2?}
+    C1 -->|yes| REFUSE1[raise ValueError\nzero rows touched]
+    C1 -->|no| C2{duplicate SKU\nin entries?}
+    C2 -->|yes| REFUSE2[raise ValueError\nzero rows touched]
+    C2 -->|no| TX[BEGIN transaction]
+    TX --> W1[INSERT OR REPLACE\nproducts, per entry]
+    W1 --> W2[INSERT OR REPLACE\ninventory, per entry]
+    W2 --> W3[INSERT OR REPLACE\ncash_entries, once]
+    W3 --> COMMIT[COMMIT]
+```
+
+**What this figure shows:** both refusal paths (`C1`, `C2`) exit *before*
+`BEGIN transaction`, so a refused call and a call that never happened are
+indistinguishable from the database's point of view — zero rows change
+either way. Only a call that survives both checks ever reaches a write.
+
+Run the real function against a three-entry batch where entries 1 and 2
+share a SKU:
+
+```python
+import pathlib
+import tempfile
+
+from reference_organizations.store import CatalogEntry, Product, seed_catalog
+from sovereign_agent.database import Database
+from sovereign_agent.events import append_event
+
+root = pathlib.Path(tempfile.mkdtemp())
+db_ch08 = Database(root / "catalog.db")
+
+entries = (
+    CatalogEntry(
+        product=Product(sku="SKU-TEA", name="Assam tea", unit_cost_cents=120, price_cents=400),
+        on_hand=4,
+        reorder_point=3,
+    ),
+    CatalogEntry(
+        product=Product(sku="SKU-TEA", name="Impostor tea", unit_cost_cents=999, price_cents=999),
+        on_hand=99,
+        reorder_point=99,
+    ),
+    CatalogEntry(
+        product=Product(
+            sku="SKU-COFFEE", name="Kenyan coffee", unit_cost_cents=210, price_cents=650
+        ),
+        on_hand=10,
+        reorder_point=6,
+    ),
+)
+
+try:
+    seed_catalog(db_ch08, entries)
+    print("real seed_catalog: did not raise")
+except ValueError as error:
+    print("real seed_catalog refused:", error)
+
+rows_after_refusal = db_ch08.connection.execute("SELECT COUNT(*) c FROM products").fetchone()["c"]
+print("product rows after refusal:", rows_after_refusal)
+```
+
+```text
+real seed_catalog refused: duplicate SKUs in catalog: ['SKU-TEA', 'SKU-TEA', 'SKU-COFFEE']
+product rows after refusal: 0
+```
+
+That is the real function behaving as claimed. Now the mutation: a
+`seed_catalog` with the duplicate-SKU check deleted, and *only* the
+cardinality check left. Every other line — the transaction, the three
+`INSERT OR REPLACE` statements, the return value — is copied verbatim from
+production, so the only variable between this and the real function is the
+one missing `if`:
+
+```python
+import json
+
+
+def seed_catalog_missing_duplicate_check(db, entries):
+    if len(entries) < 2:
+        raise ValueError("a catalog needs at least two distinct SKUs")
+    with db.transaction():
+        for entry in entries:
+            db.connection.execute(
+                "INSERT OR REPLACE INTO products(sku, record) VALUES (?, ?)",
+                (entry.product.sku, json.dumps(entry.product.__dict__)),
+            )
+            db.connection.execute(
+                "INSERT OR REPLACE INTO inventory("
+                "sku, on_hand, reserved, reorder_point, record) VALUES (?, ?, ?, ?, ?)",
+                (
+                    entry.product.sku,
+                    entry.on_hand,
+                    0,
+                    entry.reorder_point,
+                    json.dumps({"sku": entry.product.sku}),
+                ),
+            )
+            append_event(db, "store.seeded", {"sku": entry.product.sku})
+        db.connection.execute(
+            "INSERT OR REPLACE INTO cash_entries(id, amount_cents, record) VALUES (?, ?, ?)",
+            ("cash-opening", 10_000, json.dumps({"reason": "opening"})),
+        )
+    return tuple(entry.product for entry in entries)
+
+
+mutated_result = seed_catalog_missing_duplicate_check(db_ch08, entries)
+print("mutated function's return value claims:", len(mutated_result), "products seeded")
+
+actual_rows = db_ch08.connection.execute("SELECT sku, record FROM products ORDER BY sku").fetchall()
+print("actual product rows in the database:", len(actual_rows))
+tea_row = db_ch08.connection.execute("SELECT record FROM products WHERE sku = 'SKU-TEA'").fetchone()
+print("SKU-TEA's surviving name:", json.loads(tea_row["record"])["name"])
+```
+
+```text
+mutated function's return value claims: 3 products seeded
+actual product rows in the database: 2
+SKU-TEA's surviving name: Impostor tea
+```
+
+This is the false green: the mutated function does **not** raise. It
+returns a 3-tuple of `Product` objects — the exact shape a caller would
+check to confirm "I seeded 3 products" — while the database underneath it
+holds only 2 product rows. `INSERT OR REPLACE` did precisely what its name
+says: the second `SKU-TEA` row overwrote the first, silently, mid-loop,
+inside the transaction that later committed successfully. The real
+opening tea data (`Assam tea`, `on_hand=4`) is gone, replaced by
+`Impostor tea` at `on_hand=99` — and nothing in the mutated function's own
+return value reveals that a product was lost. A caller trusting `len(result)`
+instead of re-reading the table would ship believing it has three
+products.
+
+| | Real `seed_catalog` | Mutated (duplicate check removed) |
+| --- | --- | --- |
+| Duplicate `SKU-TEA` entry | Refused, `ValueError` | Silently accepted |
+| Rows written on the duplicate input | 0 | 2 (not 3) |
+| Return value | Never returned — raised first | `(Product, Product, Product)`, length 3 |
+| What the caller would believe | Nothing happened (correct) | 3 products seeded (false) |
+
+`tests/test_store_catalog_seeding.py` pins both halves of this as a
+regression: `test_seed_catalog_refuses_duplicate_skus_and_writes_nothing`
+proves the real function's zero-rows-on-refusal guarantee, and
+`test_removing_the_duplicate_check_makes_the_return_value_overclaim_rows_written`
+runs the identical mutation shown above and asserts the identical
+overclaim — so if a future refactor of `seed_catalog` ever moved the
+duplicate check to the wrong side of `db.transaction()`, this is the test
+that would catch it, not a chapter's prose.
+
+**Why this mutation is even possible here, and would not be on `events`.**
+`products` and `inventory` carry no append-only guard at all — `INSERT OR
+REPLACE` is not merely *allowed* to overwrite a matching primary key, it is
+the *intended* mechanism, because both tables hold current operational
+state, not history. Compare `events`: `sovereign_agent/database.py`'s
+`MIGRATION_2` and `MIGRATION_3` install three triggers on that table
+specifically —`events_no_update`, `events_no_delete`, and
+`events_no_replace` — because an event is a historical fact, and
+`INSERT OR REPLACE` silently overwriting one would let a caller rewrite
+what already happened. The comment on `events_no_replace` names the exact
+failure this chapter's mutation reproduces one layer up: "append-only holds
+from ANY client. Enforcement now matches the claim." `seed_catalog`'s
+duplicate-SKU check is that same claim, enforced one layer higher, in
+Python instead of a trigger — and this section just showed what happens
+when that layer is the *only* layer and it goes missing. A catalog's
+`products`/`inventory` rows are deliberately not append-only (a real store
+needs to correct a mis-seeded price), so nothing in the schema itself would
+have caught the duplicate-SKU collapse; the pre-transaction Python check is
+the entire guarantee.
+
 ### The fault, again, because populated data raises the stakes
 
 ```python
@@ -315,6 +511,33 @@ Lucy rebrands the tea; every sale, signal, and replenishment in the history
 still points at `SKU-TEA`, untouched. Had the *name* been the key, that
 rename would have orphaned the entire history — or been forbidden forever.
 Identity is what the ledger binds to; the display name is prose about it.
+
+```mermaid
+flowchart LR
+    subgraph Before["Before rename"]
+        P1["products: sku=SKU-TEA\nname='Assam tea'"]
+        E1["events: sku=SKU-TEA\n(2 rows)"]
+        P1 -. "same sku" .-> E1
+    end
+    subgraph After["After UPDATE name"]
+        P2["products: sku=SKU-TEA\nname=Lucy's house blend"]
+        E2["events: sku=SKU-TEA\n(same 2 rows)"]
+        P2 -. "same sku, still bound" .-> E2
+    end
+    Before --> After
+```
+
+**What this figure shows:** the `UPDATE` above changed exactly one column
+(`name`) on exactly one row. `sku` never appeared on the left side of that
+`UPDATE`, so every `events` row that references `SKU-TEA` stays correctly
+joined across the rename — the two event rows in `After` are the identical
+rows from `Before`, not new ones. If `product_name` had been the primary
+key instead, the same `UPDATE` would have had to either rewrite every
+historical `events.sku` value it touched (a mass rewrite of supposedly
+immutable history) or refuse the rename outright; the schema in this
+chapter makes that choice moot by never putting the mutable column where
+the stable identity belongs.
+
 One more design note worth carrying from production: `seed_catalog` is
 *additive alongside* the old single-product `seed`, never a replacement —
 every chapter and test written before the catalog existed still relies on
@@ -428,7 +651,14 @@ populated shop, not an empty one.
 The failure it prevents is the migration that strands a shop mid-schema:
 built and crashed on purpose, after `products` existed but before
 `inventory` was copied and the old table dropped, and shown to leave the
-original singleton row completely untouched rather than half-migrated.
+original singleton row completely untouched rather than half-migrated. A
+second, narrower failure — the mutated `seed_catalog` in "Break it" — showed
+that removing just one pre-transaction check turns an ordinary
+`INSERT OR REPLACE` into a silent data-loss bug: no exception, a return
+value that overclaims what was written, and a real product's opening data
+gone. `products` and `inventory` have no database-level append-only guard
+the way `events` does; the Python check this chapter traces is the entire
+guarantee against that specific loss.
 
 Back at Lucy's shop: this is vanilla and chocolate finally getting their own
 rows instead of sharing one, so a run on one flavor can never quietly change
@@ -459,6 +689,14 @@ here on depends on.
 8. `CHECK (id = 1)` made the one-product assumption structural. Was that a
    mistake? Argue both sides in a sentence each, then say which this book's
    own migration discipline favors and why.
+9. The mutated `seed_catalog` in "Break it" does not raise on a duplicate
+   SKU, yet its own return value still claims 3 products. Name the exact
+   line where the loss becomes irreversible, and explain why checking
+   `len(result)` after the call could never have caught it.
+10. `events` has three append-only triggers; `products` and `inventory`
+    have none. Give one legitimate, non-buggy reason a real store would
+    need to overwrite a `products` row — something that must stay possible
+    even after this section's mutation is fixed.
 
 ## Where to look next
 
@@ -466,6 +704,12 @@ here on depends on.
   `CatalogEntry`, `DEFAULT_CATALOG`
 - `tests/test_store_multi_sku.py` — the full multi-SKU isolation proof matrix:
   every way one SKU's row could leak into another's, and the proof it cannot
+- `tests/test_store_catalog_seeding.py` — `seed_catalog`'s own validation
+  contract: cardinality, duplicate-SKU refusal, zero-rows-on-refusal, and
+  the exact mutation this chapter's "Break it" section reproduces
+- `src/sovereign_agent/database.py` — `MIGRATION_2`/`MIGRATION_3`, the
+  `events` append-only triggers this chapter's edge-case analysis contrasts
+  with `products`/`inventory`'s deliberately mutable rows
 
 `solution.py` imports the production package rather than copying it.
 

@@ -657,6 +657,30 @@
           ]
         },
         {
+          "concept": "validation-before-transaction-is-the-whole-safety-property",
+          "anchor": "Break it: what \"validate the batch, then mutate atomically\" is actually preventing",
+          "symbols": [
+            {
+              "file": "src/reference_organizations/store/__init__.py",
+              "name": "seed_catalog"
+            },
+            {
+              "file": "src/sovereign_agent/database.py",
+              "name": "MIGRATION_3"
+            }
+          ],
+          "tests": [
+            "tests/test_store_catalog_seeding.py::test_removing_the_duplicate_check_makes_the_return_value_overclaim_rows_written"
+          ],
+          "exercise": "book/ch08_the_store_becomes_a_catalog/README.md",
+          "source_text": [
+            {
+              "file": "src/sovereign_agent/database.py",
+              "text": "append-only holds from ANY client. Enforcement now matches the claim."
+            }
+          ]
+        },
+        {
           "concept": "populated-migration-rolls-back-whole",
           "anchor": "The fault, again, because populated data raises the stakes",
           "symbols": [
@@ -693,7 +717,8 @@
       "break_evidence": [
         "refused: duplicate SKUs in catalog: ['SKU-TEA', 'SKU-TEA']",
         "refused: negative opening stock is unrecorded debt, not inventory",
-        "the shop row, untouched: (1, 'Assam tea', 4, 3)"
+        "the shop row, untouched: (1, 'Assam tea', 4, 3)",
+        "actual product rows in the database: 2"
       ],
       "lab": "book/labs/ch08_the_store_becomes_a_catalog"
     },
