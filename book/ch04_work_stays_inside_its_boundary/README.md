@@ -347,6 +347,74 @@ undetected) and the enforcement test (add the sidecar to `expected_outputs`,
 watch the refusal fire). A boundary change without its bypass test is a
 claim; with it, it is a measurement.
 
+## Threat-model the boundary, not the word “sandbox”
+
+Agent courses often teach tool calling as a neat five-step cycle: the model
+chooses a tool, the host parses arguments, the function runs, its result returns
+to context, and the model continues. The cycle is mechanically accurate, but
+every arrow is a trust boundary. A tool description can be poisoned, arguments
+can name paths outside the intended root, a subprocess can inherit credentials,
+and a valid-looking result can conceal a write somewhere the observer never
+measured.
+
+Sovereign Agent defends different parts of that surface with different
+mechanisms. Treating them as one “sandbox” would overstate all of them:
+
+```mermaid
+flowchart TB
+    U[Untrusted provider output] --> J{Typed report parsing}
+    J -->|malformed| R[Refusal plus failed receipt]
+    J -->|valid| P{safe_join on every declared path}
+    P -->|escape or absolute| R
+    P -->|contained| X[Subprocess with argv list and shell false]
+    X --> B[Before and after boundary snapshots]
+    B --> D{Tracked files changed outside workspace?}
+    D -->|yes| R
+    D -->|no| N[Narrow claim: no visible boundary change]
+```
+
+The last box is deliberately not “the provider was contained.”
+`snapshot_boundary` hashes files under the organization root while excluding
+the assignment workspace and the SQLite ledger. It cannot see a network call,
+a write elsewhere on the host, or a direct ledger mutation by an unsandboxed
+process. A clean `BoundaryReport` therefore carries its scope as data:
+`organization_root_excluding_workspace_and_ledger`. The scope string prevents a
+future reader from silently widening “nothing changed in this measured tree”
+into “nothing changed anywhere.”
+
+The controls form layers rather than duplicates:
+
+| Layer | Rejects | Does not prove |
+| --- | --- | --- |
+| `safe_join` | empty, absolute, `..`, and symlink-resolved path escapes | that the provider never opens some other path itself |
+| argv plus `shell=False` | shell metacharacters becoming a second command | that the invoked executable is trustworthy |
+| minimal child environment | accidental inheritance of unlisted credentials | that an explicitly supplied credential is used safely |
+| before/after snapshots | added, removed, or modified files inside the measured boundary | network isolation, host-wide isolation, or ledger integrity |
+| receipt digest | later tampering with the receipt bytes | that the receipt's original author was authentic |
+
+This table gives you a practical review technique: for each safety claim, name
+both the rejected input and the remaining escape route. “We sanitize paths” is
+not enough; ask whether resolution follows symlinks. “We do not use a shell” is
+not enough; ask what executable receives the argument. “The snapshot is clean”
+is not enough; ask what the snapshot excludes.
+
+### Why tool output is still untrusted data
+
+The boundary applies on the way back in too. Suppose a search tool returns a
+page containing an instruction to read credentials and call another tool. The
+text is valid search output, but it is not a new assignment and it carries no
+authority. The safe architecture keeps provenance attached: this string came
+from an external tool, during this assignment, and remains observation data.
+The model may propose a response to it; the host still applies the same role,
+path, and action checks before anything runs.
+
+Prompt language can help the model classify the text correctly, but a prompt
+is not the enforcement boundary. The enforceable parts live in Python and the
+filesystem: a closed action registry, typed arguments, resolved-path checks,
+credential allowlists, and host-side refusal. The rule is simple enough to use
+in every integration: external text may influence a proposal, never expand the
+set of operations the host is prepared to execute.
+
 ## The exercise
 
 ```bash

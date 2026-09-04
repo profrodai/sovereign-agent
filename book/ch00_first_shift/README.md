@@ -1,4 +1,4 @@
-# Chapter 0 — Lucy's First Shift
+# Chapter 0 — Lucy's First Shift Through a Governed Agent
 
 Meet Lucy. She runs a small ice cream shop, and over the course of this book she
 is going to hand more and more of its dull, repetitive work to a governed AI
@@ -78,6 +78,33 @@ uv run sovereign-agent demo store --mode simulated --root /tmp/first-shift
 needs none of them. (In Chapter 3 you will swap a real local model in for the
 stand-in — as a governed act, optional, with the stand-in always available as a
 fallback — but not yet. One shape at a time.)
+
+The course version of this lesson often begins with a five-step agent loop:
+define a tool, let the model propose a call, execute it in code, return the
+observation, and let the model choose again. That loop is useful, but it hides
+the two boundaries that matter once the action has consequences. A proposal is
+not authorization, and a successful process exit is not a true business
+outcome. The system in this book therefore wraps the familiar loop in two
+deterministic gates:
+
+```mermaid
+flowchart LR
+    D[Host defines assignment and tool contract] --> P[Provider proposes structured action]
+    P --> H{Host validates authority, shape, and boundary}
+    H -->|refuse| X[No world mutation]
+    H -->|admit| E[Host executes and records receipt]
+    E --> O[Observation returns to the organization]
+    O --> C{Independent checks prove the outcome now}
+    C -->|false or stale| R[Repair or new governed work]
+    C -->|true| A[Acceptance may be recorded]
+```
+
+This diagram also tells you where to debug. If the provider proposes the wrong
+action, inspect the assignment and model boundary. If the proposal is right but
+nothing changes, inspect host validation and execution. If execution succeeds
+but acceptance refuses, inspect the world-state checks and their causal
+bindings. Calling all three failures “the agent got it wrong” destroys the
+information you need to repair the correct layer.
 
 ## What the organization just did
 

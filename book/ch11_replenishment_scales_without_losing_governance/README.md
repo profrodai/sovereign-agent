@@ -305,6 +305,107 @@ and authorization gates the act — which is why the production docstring can
 promise that two concurrent retries produce one order *without depending on
 timing*.
 
+## Exactly once is a result contract, not an execution count
+
+Distributed systems cannot generally promise that a function body executes
+once. A caller can time out after the database commits and retry because it
+never saw the response. Two processes can enter the same code. A worker can
+crash after an external supplier accepted an order but before the local receipt
+was written. The useful promise is narrower: every retry of one stable logical
+operation resolves to one canonical effect.
+
+```mermaid
+flowchart LR
+    R[Restock request] --> K[Stable key: assignment, kind, SKU]
+    K --> T{Immediate transaction}
+    T --> A[Authorize assignment and subject]
+    A --> C[Check quantity, product cost, and cash]
+    C --> I{Insert effect under UNIQUE key}
+    I -->|wins| W[Inventory plus cash plus event commit]
+    I -->|key exists| P[Return canonical prior payload]
+    A -->|invalid| F[Refuse with no writes]
+    C -->|invalid| F
+```
+
+Returning the prior payload matters. A duplicate response that merely says
+“already done” forces the caller to guess what done means. Returning the
+canonical quantity, SKU, cash id, and effect identity lets the retry converge on
+the winner's result. Idempotency is not only duplicate suppression; it is a
+protocol for making ambiguous delivery converge.
+
+### Classify the crash window
+
+The placement of the key determines which failures it can close:
+
+| Failure moment | If effect and business writes share one transaction | If the supplier is an external API |
+| --- | --- | --- |
+| before key claim | retry may attempt normally | retry may attempt normally |
+| after key claim, before inventory/cash | rollback removes the key and partial writes | a locally claimed key may exist before the remote call; recovery needs an explicit state |
+| after inventory/cash, before event | rollback restores every local row | remote side effect may already exist even if local rows roll back |
+| after commit, before response | retry reads canonical effect and returns it | retry must query by the same idempotency key, not submit a new order |
+| after response | caller has the canonical result | same, provided the supplier honors the key |
+
+The Store reference organization proves the left column. SQLite owns every
+business effect involved, so one immediate transaction can make the claim,
+inventory, cash, and append-only event indivisible. It does **not** prove the
+right column. A real supplier crosses a system boundary. The supplier must
+accept a stable idempotency key or expose a lookup that lets recovery reconcile
+an ambiguous call. Otherwise exactly-once language is unjustified.
+
+This distinction prevents a common production error: adding a local `effects`
+row and assuming it deduplicates an external purchase. If the process crashes
+after the supplier accepts but before the local row commits, the retry still
+orders twice. The key has to cross the boundary and mean the same logical
+operation on both sides.
+
+### Stable identity is designed upstream
+
+The key `(assignment_id, kind, subject)` works because an assignment is the
+stable identity of governed work, `kind` distinguishes effect families, and
+`subject` separates products. Change any of those per retry and the database
+will correctly accept a new row. That is not a constraint failure; it is an
+identity-design failure.
+
+Check candidate keys with this table:
+
+| Candidate | Stable across retry? | Separates legitimate operations? | Verdict |
+| --- | --- | --- | --- |
+| process id | no | accidentally | never |
+| timestamp | no | yes | never |
+| provider session id | not guaranteed | often | transport identity, not business identity |
+| assignment only | yes | no, one assignment may affect more than one subject | too broad |
+| assignment + kind + subject | yes | yes for this contract | suitable |
+| hash of all request bytes | only if semantically irrelevant fields are normalized | usually | useful only with a canonical request schema |
+
+An idempotency key should be boring to recompute after a crash. If recovery
+needs the dead process's memory to reconstruct it, it is not a durable key.
+
+### Idempotency, authorization, and sufficiency are independent
+
+A duplicate-safe operation can still be forbidden. Production therefore runs
+`_authorize_effect` inside the same lock: the assignment exists, completed, has
+a completed receipt, belongs to an actor with the needed authority, and targets
+the same subject as its outcome. Then `_validate_restock_locked` checks the
+proposal and current cash. Only after both sets of questions pass may the
+effect claim and business writes commit.
+
+Keep the predicates separate in tests:
+
+- same authorized assignment, same SKU, same proposal twice: one effect and the
+  canonical prior result;
+- same authorized assignment, different SKU: a distinct subject that must also
+  agree with the outcome;
+- invented assignment: refuse before an effect row exists;
+- completed assignment with a failed receipt: refuse;
+- authorized assignment with insufficient cash: refuse with inventory and cash
+  unchanged;
+- two real connections racing the same key: one canonical effect.
+
+If a test asserts only that the final effect count is one, it misses whether the
+loser received the correct prior result, whether money moved once, and whether
+an unauthorized caller could have been the winner. Exactly once is a graph of
+invariants, not one row count.
+
 ## The exercise
 
 ```bash
