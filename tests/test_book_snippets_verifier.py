@@ -360,5 +360,5 @@ def test_main_succeeds_when_attempted_count_matches_expected(
 def test_real_book_chapters_still_pass_unchanged() -> None:
     result = run_cli(REPO_ROOT)
     assert result.returncode == 0, result.stdout + result.stderr
-    assert "book snippets sound: 13 chapters, 98 python block(s) executed" in result.stdout
-    assert "88 text-pair(s) checked, all matched" in result.stdout
+    assert "book snippets sound: 13 chapters, 99 python block(s) executed" in result.stdout
+    assert "89 text-pair(s) checked, all matched" in result.stdout

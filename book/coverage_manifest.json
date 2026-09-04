@@ -605,13 +605,29 @@
             "tests/test_pulse.py::test_seeded_store_with_no_sale_creates_no_work"
           ],
           "exercise": "book/ch07_the_organization_wakes_itself/solution.py"
+        },
+        {
+          "concept": "gate-refuses-ambiguous-outcome-ownership",
+          "anchor": "The real gate refuses a question your toy never had to ask",
+          "symbols": [
+            {
+              "file": "src/reference_organizations/store/pulse_gate.py",
+              "name": "store_wake_gate"
+            }
+          ],
+          "tests": [
+            "tests/test_pulse.py::test_no_active_outcome_matching_the_subject_creates_no_work",
+            "tests/test_pulse.py::test_more_than_one_matching_active_outcome_creates_no_work"
+          ],
+          "exercise": "book/ch07_the_organization_wakes_itself/solution.py"
         }
       ],
       "limits_anchor": "It does **not**",
       "break_evidence": [
         "SOWs on the ledger: 2",
         "already decided: canonical work is sow-sig-1",
-        "signal no longer qualifies"
+        "signal no longer qualifies",
+        "signal still has no decision: True"
       ],
       "lab": "book/labs/ch07_the_organization_wakes_itself"
     },
