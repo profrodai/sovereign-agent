@@ -383,25 +383,36 @@ from reference_organizations.store.pulse_gate import store_wake_gate
 root = Path("/tmp/lucy-ch07-ambiguous")
 org = Organization.init(root)
 from reference_organizations.store import seed
+
 seed(org.db)
 first = org.create_outcome(
-    "Keep the tea jar stocked", "On-hand tea is at or above reorder.",
-    ["inventory_at_or_above_reorder_point"], "principal-human", "SKU-TEA",
+    "Keep the tea jar stocked",
+    "On-hand tea is at or above reorder.",
+    ["inventory_at_or_above_reorder_point"],
+    "principal-human",
+    "SKU-TEA",
 )
 org.activate(first.id, "master-course")
 second = org.create_outcome(
-    "A second outcome about the same SKU", "Also tea.",
-    ["inventory_at_or_above_reorder_point"], "principal-human", "SKU-TEA",
+    "A second outcome about the same SKU",
+    "Also tea.",
+    ["inventory_at_or_above_reorder_point"],
+    "principal-human",
+    "SKU-TEA",
 )
 org.activate(second.id, "master-course")  # two ACTIVE outcomes now name SKU-TEA
 
 signal = record_sale(org.db, "SKU-TEA", 2, 400)
 report = run_pulse_once(org, store_wake_gate)
-print("created:", report.created)          # () -- refused, not fired
-print("signal still has no decision:", org.db.connection.execute(
-    "SELECT COUNT(*) FROM pulse_wake_decisions WHERE source_signal_id = ?",
-    (signal.id,),
-).fetchone()[0] == 0)
+print("created:", report.created)  # () -- refused, not fired
+print(
+    "signal still has no decision:",
+    org.db.connection.execute(
+        "SELECT COUNT(*) FROM pulse_wake_decisions WHERE source_signal_id = ?",
+        (signal.id,),
+    ).fetchone()[0]
+    == 0,
+)
 ```
 
 ```text
