@@ -739,6 +739,63 @@ END;
 """
 
 
+MIGRATION_18 = """
+-- Advanced teaching mechanisms. These tables keep durable state in the same
+-- inspectable SQLite file as the rest of the organization; no daemon, broker,
+-- vector database, or scheduler service is hidden behind the lesson.
+CREATE TABLE automations (
+    id TEXT PRIMARY KEY, interval_seconds INTEGER NOT NULL CHECK(interval_seconds >= 1),
+    next_run_at TEXT NOT NULL, condition_state TEXT NOT NULL DEFAULT '{}',
+    payload TEXT NOT NULL, enabled INTEGER NOT NULL DEFAULT 1,
+    failure_count INTEGER NOT NULL DEFAULT 0, max_failures INTEGER NOT NULL DEFAULT 3
+);
+CREATE TABLE automation_runs (
+    id TEXT PRIMARY KEY, automation_id TEXT NOT NULL REFERENCES automations(id),
+    due_at TEXT NOT NULL, message TEXT NOT NULL, status TEXT NOT NULL,
+    error TEXT, created_at TEXT NOT NULL, UNIQUE(automation_id, due_at)
+);
+CREATE TABLE transcript_messages (
+    session_id TEXT NOT NULL, seq INTEGER NOT NULL, role TEXT NOT NULL,
+    content TEXT NOT NULL, created_at TEXT NOT NULL, PRIMARY KEY(session_id, seq)
+);
+CREATE TABLE context_compactions (
+    id TEXT PRIMARY KEY, session_id TEXT NOT NULL, through_seq INTEGER NOT NULL,
+    summary TEXT NOT NULL, created_at TEXT NOT NULL, UNIQUE(session_id, through_seq)
+);
+CREATE TABLE host_instances (
+    id TEXT PRIMARY KEY, lease_expires_at TEXT NOT NULL
+);
+CREATE TABLE session_claims (
+    session_id TEXT PRIMARY KEY, host_id TEXT NOT NULL REFERENCES host_instances(id),
+    incarnation INTEGER NOT NULL, lease_expires_at TEXT NOT NULL
+);
+CREATE TABLE session_completions (
+    session_id TEXT PRIMARY KEY, host_id TEXT NOT NULL, incarnation INTEGER NOT NULL,
+    result TEXT NOT NULL, created_at TEXT NOT NULL
+);
+CREATE TABLE delivery_attempts (
+    delivery_id TEXT PRIMARY KEY, attempt_count INTEGER NOT NULL,
+    status TEXT NOT NULL, process_after TEXT, last_error TEXT
+);
+CREATE TABLE memories (
+    id TEXT PRIMARY KEY, content TEXT NOT NULL, embedding TEXT,
+    visibility TEXT NOT NULL, importance REAL NOT NULL,
+    created_at TEXT NOT NULL
+);
+
+-- Source transcripts and their derived summaries are both history. A new
+-- compaction appends a replacement view; it never rewrites its source.
+CREATE TRIGGER transcript_messages_no_update BEFORE UPDATE ON transcript_messages
+BEGIN SELECT RAISE(ABORT, 'transcript_messages are append-only: update refused'); END;
+CREATE TRIGGER transcript_messages_no_delete BEFORE DELETE ON transcript_messages
+BEGIN SELECT RAISE(ABORT, 'transcript_messages are append-only: delete refused'); END;
+CREATE TRIGGER context_compactions_no_update BEFORE UPDATE ON context_compactions
+BEGIN SELECT RAISE(ABORT, 'context_compactions are append-only: update refused'); END;
+CREATE TRIGGER context_compactions_no_delete BEFORE DELETE ON context_compactions
+BEGIN SELECT RAISE(ABORT, 'context_compactions are append-only: delete refused'); END;
+"""
+
+
 MIGRATIONS: tuple[tuple[int, str], ...] = (
     (1, MIGRATION_1),
     (2, MIGRATION_2),
@@ -757,6 +814,7 @@ MIGRATIONS: tuple[tuple[int, str], ...] = (
     (15, MIGRATION_15),
     (16, MIGRATION_16),
     (17, MIGRATION_17),
+    (18, MIGRATION_18),
 )
 
 
@@ -793,6 +851,17 @@ class Database:
         # WITHOUT firing the BEFORE DELETE guard, silently defeating append-only.
         self.connection.execute("PRAGMA recursive_triggers = ON")
         self.migrate()
+
+    def __del__(self) -> None:
+        # sqlite3.Connection participates in an internal reference cycle. On a
+        # low descriptor limit, waiting for a later GC pass can exhaust files
+        # even though the owning Organization is already unreachable.
+        connection = getattr(self, "connection", None)
+        if connection is not None:
+            try:
+                connection.close()
+            except sqlite3.Error:
+                pass
 
     def applied_versions(self) -> set[int]:
         """Versions already recorded. Empty when the ledger table does not exist yet."""
@@ -945,4 +1014,5 @@ class Database:
         )
 
     def close(self) -> None:
+        """Release SQLite descriptors promptly instead of waiting for cyclic GC."""
         self.connection.close()
