@@ -530,12 +530,12 @@ sequenceDiagram
     participant Sig as Signal row
     participant Shelf as inventory table
     participant Gate as store_wake_gate
-    Sale->>Sig: severity = "warning" (written once)
-    Sale->>Shelf: on_hand below reorder
+    Sale->>Sig: severity = "warning" from available stock (written once)
+    Sale->>Shelf: on_hand minus reserved below reorder
     Note over Shelf: off-the-books restock<br/>on_hand updated directly
     Gate->>Sig: read kind, source, subject_ref<br/>(never severity)
     Gate->>Shelf: below_reorder(db) -- LIVE read
-    Shelf-->>Gate: on_hand now above reorder
+    Shelf-->>Gate: available stock now above reorder
     Gate-->>Gate: refuse, return None
     Note over Sig: severity still says "warning" --<br/>the field itself never changes
 ```
@@ -658,42 +658,22 @@ Expected: all pass.
 
 ## Summary
 
-This chapter built acceptance across five generations, each closing a way
-"the world is right" gets mistaken for "this execution made it right": read
-current state, require recorded evidence, bind that evidence to this
-outcome's own verification batch, derive the execution from the SOW instead
-of accepting a caller-supplied id, and finally derive the subject itself
-from the outcome rather than accepting it as an argument.
+Acceptance now requires two things at once: the world predicate is true, and
+the proof path from outcome to SOW to execution to effect is the path that made
+it true. The five generations progressively stopped accepting caller-supplied
+facts and derived them from the ledger instead. A right-shaped effect from the
+wrong execution, or the right execution credited to the wrong SKU, refuses.
 
-The invariant it establishes is causal binding: an acceptance requires both
-the correct world predicate *and* the correct provenance path from outcome
-to SOW to execution to effect — a real, right-shaped effect from the wrong
-execution, or the right execution credited against the wrong subject, both
-still refuse.
+The wake gate applies the same discipline earlier. It fires only when one
+ACTIVE outcome names the signal's subject. Zero matches and multiple matches
+both mean that governance cannot select one outcome, so both return no
+decision. A cached warning is not enough either: the gate re-reads available
+inventory before it creates work.
 
-The failure it prevents is the crossed wire named in this chapter's own
-open: two signals close together, and the vanilla alarm's proof accidentally
-crediting the chocolate outcome (or vice versa). Generation 4's own worked
-attack shows exactly this — every individual binding correct, and the whole
-chain still pointed at the wrong SKU — closed only once every fact is
-derived from the ledger instead of supplied by the caller.
-
-The same discipline governs the gate that starts this whole chain.
-`store_wake_gate` fires on exactly one condition and refuses on two
-different-looking ones that both reduce to "no durable rule disambiguates
-this": zero ACTIVE outcomes naming the SKU, or more than one. The mutation
-in "Break it" showed what silently narrowing that refusal to only the
-zero-match case buys — a decision that looks identical to a correct one
-in every field it returns, chosen by row order instead of governance. And
-the gate's live re-read of `inventory` against a `Signal`'s frozen
-`severity` field is the same "never trust a cached fact when a live one is
-available" rule this book keeps re-deriving, one mechanism at a time.
-
-Back at Lucy's shop: vanilla's alarm at 2:00 and chocolate's alarm at 2:05
-each wake their own restock and only their own, however close together
-they fire — and if a second, forgotten "restock the vanilla" outcome were
-still sitting ACTIVE from last month, the gate would refuse both alarms
-rather than guess which one it meant.
+At Lucy's shop, vanilla's alarm and chocolate's alarm can arrive minutes apart
+without crossing. Each wakes only its own restock. If a forgotten second
+vanilla outcome remains ACTIVE, the gate refuses rather than let database row
+order make a governance decision.
 
 ## Explain it back
 

@@ -696,9 +696,11 @@ print((shop_root / "STATUS.md").read_text(), end="")
 The crash landed at the worst moment — after the (truncated) temp file was
 written, before the swap — and the real file is untouched. Whatever instant
 the power dies, a reader sees the complete old file or the complete new file,
-never a torn one. This is byte-for-byte the production mechanism: every
-governance file the organization writes goes through `atomic_write` in
-`sovereign_agent/files.py` — sibling temp file, flush, `fsync`, `os.replace`.
+never a torn one. The production mechanism strengthens the example for
+concurrent callers: every governance file goes through `atomic_write` in
+`sovereign_agent/files.py` — a **unique** sibling temp file, flush, `fsync`,
+then `os.replace`. Unique names prevent two writers from truncating each
+other's staging file; replacement still decides which complete value wins.
 
 **What this does not guarantee.** Be precise about the promise. `os.replace`
 swaps the *directory entry* atomically, but this helper does not `fsync` the

@@ -41,7 +41,7 @@ flowchart LR
     A -->|quantity ≤ available| U[decrement on_hand]
     A -->|quantity > available| R[refuse + rollback]
     U --> C[append positive\ncash movement]
-    U --> N[new_on_hand ≤\nthis SKU's reorder point?]
+    U --> N[available_after ≤\nthis SKU's reorder point?]
     N --> S[append signal\nwarning or info]
     S --> E[append sale event]
     C --> K[COMMIT]
@@ -56,13 +56,14 @@ against competing writers. Checking before the transaction creates a classic
 check-then-act race: two sellers can both observe one remaining tub and both
 decide it is available.
 
-The threshold predicate is evaluated against `new_on_hand`, not the opening
-quantity. It is also local to the selected row. Write it mathematically:
+The threshold predicate is evaluated against `available_after`, not the opening
+quantity or physical stock alone. It is also local to the selected row. Write
+it mathematically:
 
 ```text
 available(sku) = on_hand(sku) - reserved(sku)
 sale allowed    ⇔ quantity > 0 ∧ quantity ≤ available(sku)
-warning         ⇔ on_hand_after(sku) ≤ reorder_point(sku)
+warning         ⇔ available_after(sku) ≤ reorder_point(sku)
 ```
 
 That notation exposes boundary choices prose can hide. Equality produces a
@@ -77,7 +78,7 @@ while allowing the wake gate to decline work. Recording facts broadly and
 creating work narrowly is cleaner than suppressing facts merely because they do
 not yet require action.
 
-### Contract audit: the teaching model is stricter than production
+### Contract audit: where the teaching model and production differ
 
 Read `src/reference_organizations/store/__init__.py::record_sale` before
 assuming the exercise describes it exactly:
@@ -85,17 +86,16 @@ assuming the exercise describes it exactly:
 | Rule | Chapter implementation | Current production implementation |
 | --- | --- | --- |
 | Concurrent read/write | `BEGIN IMMEDIATE` | `db.immediate()`—same guarantee |
-| Reservation-aware availability | checks `on_hand - reserved` | reads only `on_hand`; reservations are ignored |
-| Positive quantity | explicitly refused | no explicit check; a negative quantity can increase stock |
+| Reservation-aware availability | checks `on_hand - reserved` | same rule, inside the transaction |
+| Positive quantity | explicitly refused | same refusal before any write |
 | Price authority | caller supplies unit price | caller also supplies unit price; catalog price is not consulted |
 | Atomic durable effects | inventory, cash, signal, event | same four classes of write in one transaction |
 
-This mismatch is pedagogically useful and operationally real. The exercise
-builds the contract Lucy would want, then the production comparison shows that
-an attractive schema field (`reserved`) is not a guarantee until the mutation
-path consumes it. The chapter proves the current per-SKU threshold behavior; it
-does **not** claim production already enforces reservation-aware selling or
-catalog-authoritative pricing.
+The remaining mismatch is operationally real: accepting a caller-supplied price
+is a deliberate teaching seam, not catalog-authoritative commerce. Reservations
+show a different lesson. A schema field became a guarantee only when the
+mutation path consumed it and fault-injection tests proved refusal left every
+table unchanged. The chapter and production now share that stronger contract.
 
 ## Build the sale yourself, then oversell the freezer
 
@@ -139,10 +139,11 @@ def record_sale(db, sku, quantity, unit_price_cents):
         db.execute("ROLLBACK")
         return f"refused: only {available} available ({on_hand} on hand, {reserved} reserved)"
     new_on_hand = on_hand - quantity
+    available_after = new_on_hand - reserved
     total = quantity * unit_price_cents
     db.execute("UPDATE inventory SET on_hand = ? WHERE sku = ?", (new_on_hand, sku))
     db.execute("INSERT INTO cash_entries(amount_cents) VALUES (?)", (total,))
-    severity = "warning" if new_on_hand <= reorder else "info"
+    severity = "warning" if available_after <= reorder else "info"
     count = db.execute("SELECT COUNT(*) FROM signals").fetchone()[0]
     sig_id = f"sig-{count}"
     db.execute(
@@ -262,11 +263,11 @@ processes colliding — `BEGIN IMMEDIATE`'s reserved lock is what serializes
 genuinely concurrent connections, and the production suite proves that case
 with real separate connections.
 
-### Available is not on-hand—and production has not wired that rule yet
+### Available is not on-hand
 
 Chapter 2's acceptance checks count reservations; a consistent sale contract
-should too. The current production `record_sale` does not. Build the desired
-rule in the chapter model to see the missing behavior precisely: six tubs
+must too. Build the rule in the chapter model to see the behavior precisely:
+six tubs
 physically in the freezer, five promised to a wedding order:
 
 ```python
@@ -278,15 +279,16 @@ print(record_sale(db, "SKU-TEA", 1, 400))
 
 ```text
 refused: only 1 available (6 on hand, 5 reserved)
-sold 1 SKU-TEA for 400c -> on_hand 5, signal info
+sold 1 SKU-TEA for 400c -> on_hand 5, signal warning
 ```
 
 Selling from `on_hand` alone can double-promise the wedding's tubs to a
 walk-in customer — both truths recorded, both impossible to honor.
 `available = on_hand - reserved` is one subtraction, and it is the entire
 difference between a ledger that models commitments and one that models
-shelves. Treat this as a named implementation gap until a production test and
-code change close it.
+shelves. Production now performs that subtraction inside `db.immediate()`,
+refuses before any write, and computes signal severity from the remaining
+available stock—not the physically present stock.
 
 ### All five writes, or none
 
@@ -328,10 +330,11 @@ rollback took both back. A sale that decrements stock but records no cash,
 or takes cash but emits no signal for Pulse to wake on, is not a partial
 sale; it is a ledger at war with itself. The production version—`record_sale`
 in `src/reference_organizations/store/__init__.py`—shares the
-inside-the-transaction read, caller-price multiplication, per-SKU severity,
-per-occurrence dedupe key, and all-or-nothing commit. It does not share this
-toy model's reservation or positive-quantity checks. Similarity of transaction
-shape must not be inflated into equality of domain validation.
+inside-the-transaction read, reservation and quantity guards,
+caller-price multiplication, per-SKU severity, per-occurrence dedupe key, and
+all-or-nothing commit. It deliberately does not resolve the caller-price seam.
+Similarity of transaction shape must not be inflated into equality of every
+domain policy.
 
 ## Numeric state belongs in the transaction, not in the prompt
 
@@ -346,12 +349,12 @@ sequenceDiagram
     participant DB as SQLite
     participant B as Sale B
     A->>DB: BEGIN IMMEDIATE
-    A->>DB: read SKU-TEA on_hand
+    A->>DB: read SKU-TEA on_hand + reserved
     B->>DB: BEGIN IMMEDIATE
     Note over B,DB: waits for the writer lock
-    A->>DB: validate nonnegative, write inventory, cash, signal, event
+    A->>DB: validate available stock, write inventory, cash, signal, event
     A->>DB: COMMIT
-    B->>DB: lock acquired, read new on_hand
+    B->>DB: lock acquired, read new on_hand + reserved
     B->>DB: validate against the committed value
 ```
 
@@ -417,11 +420,12 @@ For any sale function, write the edge matrix before implementation:
 | 5 on hand, 3 reserved | 3 | refuse if the contract sells only available stock |
 | missing SKU | 1 | refuse; actors cannot invent inventory |
 
-The current Store demo's `record_sale` guards negative post-sale `on_hand` and
-unknown SKUs, while the acceptance check later uses `on_hand - reserved`.
-That difference is worth noticing: reservations are modeled in verification
-but are not yet consumed by the sale mutation. Do not silently infer a complete
-reservation system from the presence of the column.
+The current Store demo's `record_sale` guards positive quantity, unknown SKUs,
+and `on_hand - reserved` inside the same immediate transaction. That still does
+not imply a complete reservation lifecycle: this example begins with an
+existing reservation value and protects it during sale. It does not create,
+expire, allocate, or fulfill reservations. Never infer a complete subsystem
+from one correctly consumed column.
 
 ## The exercise
 

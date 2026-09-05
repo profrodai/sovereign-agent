@@ -6,6 +6,17 @@ Repository: [`profrodai/sovereign-agent`](https://github.com/profrodai/sovereign
 
 ## Unreleased
 
+- Make `atomic_write` safe under concurrent writers by using a unique
+  same-directory temporary file, syncing its contents before replacement, and
+  cleaning it on both success and failure. Parent-directory durability remains
+  an explicit boundary rather than an implied guarantee.
+- Make sales honor reserved inventory and reject non-positive quantities before
+  any ledger write. Low-stock severity now derives from post-sale available
+  inventory, with adversarial and concurrent-buyer regression coverage.
+- Reconcile the executable manuscript with those runtime contracts, add a
+  digest time-of-check/time-of-use diagram, and remove the final two declared
+  implementation gaps from the book coverage manifest.
+
 ## [1.3.0] — 2026-09-05
 
 Sovereign Agent 1.3.0 turns six patterns from current agent systems into small,

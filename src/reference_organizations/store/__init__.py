@@ -171,7 +171,7 @@ def record_sale(db: Database, sku: str, quantity: int, unit_price_cents: int) ->
     """
     with db.immediate() as connection:
         row = connection.execute(
-            "SELECT on_hand, reorder_point FROM inventory WHERE sku = ?", (sku,)
+            "SELECT on_hand, reserved, reorder_point FROM inventory WHERE sku = ?", (sku,)
         ).fetchone()
         if row is None:
             raise Refusal(
@@ -180,14 +180,23 @@ def record_sale(db: Database, sku: str, quantity: int, unit_price_cents: int) ->
                 "inventory list",
                 "Seed the catalog.",
             )
-        on_hand = int(row["on_hand"]) - quantity
-        if on_hand < 0:
+        if quantity <= 0:
             raise Refusal(
-                "Sale would go negative.",
-                "The ledger refuses unrecorded stock.",
+                "Sale quantity must be positive.",
+                "A sale cannot act as a hidden restock.",
+                "status",
+                "Use a positive quantity.",
+            )
+        available = int(row["on_hand"]) - int(row["reserved"])
+        if quantity > available:
+            raise Refusal(
+                "Sale would consume reserved stock or go negative.",
+                "The ledger refuses stock promised elsewhere or not recorded.",
                 "status",
                 "Restock first.",
             )
+        on_hand = int(row["on_hand"]) - quantity
+        available_after = on_hand - int(row["reserved"])
         cash_id = new_id("cash")
         signal_id = new_id("sig")
         signal = Signal(
@@ -195,7 +204,7 @@ def record_sale(db: Database, sku: str, quantity: int, unit_price_cents: int) ->
             kind="inventory.changed",
             source="sale",
             subject_ref=sku,
-            severity="warning" if on_hand <= int(row["reorder_point"]) else "info",
+            severity="warning" if available_after <= int(row["reorder_point"]) else "info",
             observed_at=utc_now(),
             payload_digest=sku,
             # Unit 9, signal stability: the level a signal describes, not a
@@ -236,6 +245,8 @@ def record_sale(db: Database, sku: str, quantity: int, unit_price_cents: int) ->
                 "sku": sku,
                 "qty": quantity,
                 "on_hand": on_hand,
+                "reserved": int(row["reserved"]),
+                "available_after": available_after,
                 "cash_id": cash_id,
                 "signal_id": signal.id,
             },
