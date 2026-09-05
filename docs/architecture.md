@@ -56,6 +56,9 @@ status string alone cannot make an outcome true.
 | Pulse | Turn eligible business signals into governed work. | Is not a scheduler or liveness protocol. |
 | Supervisor | Reconcile expired claims and abandoned attempts. | Never creates new business work or guesses success. |
 | Heartbeat | Append a timestamped liveness observation. | Does not prove progress, health, or death from silence. |
+| Automation | Evaluate a durable time or condition trigger. | A non-firing evaluation is not work; this is neither Pulse nor heartbeat. |
+| Context compaction | Render a smaller derived view over an immutable transcript. | A generated summary is not canonical source. |
+| Session claim | Fence one host incarnation's callbacks. | Actor identity alone does not prove a process is current. |
 
 ## Concurrency and recovery
 
@@ -90,12 +93,21 @@ are made only when the adapter proves and requests them.
 | `pulse.py` | Signal-to-work decisions and attribution. |
 | `heartbeat.py` | Durable liveness observations. |
 | `workspace.py` | Safe paths, boundary snapshots, reclaim policy. |
+| `isolation.py` | Independent filesystem, network, credential, tool, and process-probe claims. |
+| `automation.py` | Persistent interval and condition state with visible run history. |
+| `context.py` | Append-only transcripts and recoverable derived summaries. |
+| `coordination.py` | Host leases, session incarnations, and delivery attempts. |
+| `tools.py` | Bounded discovery followed by separate authorization. |
+| `memory.py` | Access-filtered lexical/semantic ranking with score provenance. |
 | `governance.py`, `evidence.py`, `checks.py` | Projections and proof obligations. |
 
 ## Deliberate limits
 
-The core has no HTTP service, web dashboard, distributed scheduler, plugin
-marketplace, general secrets manager, or model SDK dependency. It does not claim
-equivalent sandboxing across providers or independent authenticity from a
-self-authored proof pack. See [Durable non-goals](non-goals.md) and
+The core has no HTTP service, web dashboard, daemon scheduler, plugin
+marketplace, general secrets manager, embedding provider, or model SDK
+dependency. The automation module performs one caller-driven due evaluation;
+the isolation module provides application policy and reports OS process
+isolation as unavailable unless a behavioral probe proves it. The package does
+not claim equivalent sandboxing across providers or independent authenticity
+from a self-authored proof pack. See [Durable non-goals](non-goals.md) and
 [Security](../SECURITY.md).

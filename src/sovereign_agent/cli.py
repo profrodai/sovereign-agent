@@ -256,6 +256,14 @@ def _heartbeat(namespace: argparse.Namespace) -> int:
     return 0
 
 
+def _mechanisms(namespace: argparse.Namespace) -> int:
+    """Run the six advanced mechanisms without a provider or network."""
+    from reference_organizations.store.advanced_demo import run_advanced
+
+    print(run_advanced(_root(namespace)))
+    return 0
+
+
 def _demo(namespace: argparse.Namespace) -> int:
     from reference_organizations.store.demo import run_simulated
 
@@ -411,6 +419,13 @@ def build_parser() -> argparse.ArgumentParser:
         help="run a single deterministic pulse pass and exit (the only supported mode)",
     )
     pulse.set_defaults(handler=_pulse)
+
+    mechanisms = subparsers.add_parser(
+        "mechanisms",
+        parents=[shared],
+        help="run the isolation, scheduling, context, fencing, tool, and memory lesson",
+    )
+    mechanisms.set_defaults(handler=_mechanisms)
     return parser
 
 

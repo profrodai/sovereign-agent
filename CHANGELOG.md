@@ -4,6 +4,20 @@ All notable changes to sovereign-agent.
 
 Repository: [`profrodai/sovereign-agent`](https://github.com/profrodai/sovereign-agent).
 
+## Unreleased
+
+- Add six self-contained advanced teaching mechanisms: honest four-plane
+  isolation policy and explanation, persistent condition scheduling distinct
+  from heartbeat and Pulse, append-only transcript compaction, multi-host
+  session incarnations with durable delivery attempts, bounded tool discovery
+  separated from authorization, and hybrid memory ranking with pre-ranking
+  access control and score provenance.
+- Add `sovereign-agent mechanisms`, an offline reference scenario exercising
+  all six against the real package and SQLite schema.
+- Add the Advanced Mechanisms book companion and adversarial regression suite.
+  Runtime dependencies remain exactly `pydantic`; all new machinery uses the
+  Python standard library and the existing SQLite ledger.
+
 ## [1.2.0] — 2026-09-02
 
 - **New `heartbeat` mechanism, deliberately separate from work.**
