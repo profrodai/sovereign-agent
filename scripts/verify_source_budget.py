@@ -36,11 +36,11 @@ MAX_MODULES = 40
 # Raised from 6_600 to 7_250 for the Operator-directed advanced mechanisms:
 # six deliberately separate teaching contracts (isolation, automation,
 # recoverable context, session coordination, tool discovery, and memory).
-# The measured implementation is 668 nonblank package lines total -- about
-# 111 per mechanism -- and introduces no runtime dependency. Keeping separate
+# The measured implementation is 673 nonblank package lines total -- about
+# 112 per mechanism -- and introduces no runtime dependency. Keeping separate
 # modules is part of the pedagogy: discovery must not look like authorization,
 # and a schedule must not hide inside Pulse or heartbeat. The new ceiling
-# leaves only 53 lines of headroom at first filing, so it records the real cost
+# leaves only 48 lines of headroom at first filing, so it records the real cost
 # without turning the budget into permission for unrelated growth.
 MAX_NONBLANK_LINES = 7_250
 MAX_ROOT_EXPORTS = 30
