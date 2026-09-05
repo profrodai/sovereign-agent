@@ -6,6 +6,13 @@ Repository: [`profrodai/sovereign-agent`](https://github.com/profrodai/sovereign
 
 ## Unreleased
 
+## [1.3.0] — 2026-09-05
+
+Sovereign Agent 1.3.0 turns six patterns from current agent systems into small,
+offline mechanisms that learners can inspect, break, and repair. It also brings
+the complete executable book to a deterministic 90+ editorial score on every
+chapter. The score is a prioritization instrument, not a publisher endorsement.
+
 - Integrate all six advanced mechanisms into the canonical thirteen-chapter
   manuscript: hybrid memory in Chapter 1; recoverable context and bounded tool
   discovery in Chapter 3; five-plane isolation in Chapter 4; session
@@ -24,6 +31,21 @@ Repository: [`profrodai/sovereign-agent`](https://github.com/profrodai/sovereign
 - Add the Advanced Mechanisms book companion and adversarial regression suite.
   Runtime dependencies remain exactly `pydantic`; all new machinery uses the
   Python standard library and the existing SQLite ledger.
+- Deepen the executable manuscript with front matter, conventions, a summary in
+  every chapter, course-derived mechanism traces, 38 implementation-grounded
+  Mermaid diagrams, and adversarial exercises. The canonical thirteen chapters
+  now contain 102 executed Python blocks and 92 byte-matched output pairs; all
+  thirteen companion labs remain deterministic across two fresh runs.
+- Add a hostile-`PATH` onboarding proof that runs the README's documented
+  `uv run` commands from a clean archive and refuses stale global `python` or
+  `sovereign-agent` shims. The proof is part of both `make verify` and CI.
+- Harden the six-stage release-candidate verifier by bootstrapping its clean
+  virtual environment in a fresh Python process. Environment-creation failures
+  are now reported as named gate findings instead of unclassified tracebacks.
+- Establish `profrod-site` as the derived rendered home while keeping this
+  repository's `book/` tree canonical. The site imports an exact commit and
+  reports per-chapter editorial scores without writing derived metadata back
+  into the public manuscript.
 
 ## [1.2.0] — 2026-09-02
 
