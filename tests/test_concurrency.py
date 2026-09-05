@@ -114,6 +114,30 @@ def test_concurrent_sales_cannot_oversell(tmp_path: Path) -> None:
     assert on_hand == 4 - 3 * results.count("sold")
 
 
+def test_concurrent_sales_cannot_consume_reserved_stock(tmp_path: Path) -> None:
+    """Two buyers cannot both spend the one unit not already promised."""
+    org, _outcome_id, _sow_id, _assignment_id = governed_assignment(tmp_path)
+    org.db.connection.execute(
+        "UPDATE inventory SET on_hand = 4, reserved = 3 WHERE sku = 'SKU-TEA'"
+    )
+    org.db.connection.commit()
+    org.db.close()
+
+    def work(db: Database, _index: int) -> str:
+        record_sale(db, "SKU-TEA", 1, 400)
+        return "sold"
+
+    results = _run_concurrently(tmp_path, work)
+
+    db = Database(tmp_path / ".sovereign" / "organization.db")
+    row = db.connection.execute(
+        "SELECT on_hand, reserved FROM inventory WHERE sku = 'SKU-TEA'"
+    ).fetchone()
+    db.close()
+    assert results.count("sold") == 1
+    assert (row["on_hand"], row["reserved"]) == (3, 3)
+
+
 def test_only_one_contender_wins_a_contested_lease(tmp_path: Path) -> None:
     """Two DISTINCT contenders: exactly one wins.
 

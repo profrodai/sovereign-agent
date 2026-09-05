@@ -79,6 +79,62 @@ def test_inventory_never_goes_negative(tmp_path: Path) -> None:
         record_sale(org.db, "SKU-TEA", 99, 400)
 
 
+def test_sale_refuses_reserved_stock_without_partial_writes(tmp_path: Path) -> None:
+    from sovereign_agent.errors import Refusal
+
+    org = Organization.init(tmp_path)
+    seed(org.db)
+    org.db.connection.execute(
+        "UPDATE inventory SET on_hand = 6, reserved = 5 WHERE sku = 'SKU-TEA'"
+    )
+    org.db.connection.commit()
+    before = {
+        table: int(org.db.connection.execute(f"SELECT COUNT(*) AS c FROM {table}").fetchone()["c"])
+        for table in ("cash_entries", "signals", "events")
+    }
+
+    with pytest.raises(Refusal, match="reserved stock"):
+        record_sale(org.db, "SKU-TEA", 2, 400)
+
+    row = org.db.connection.execute(
+        "SELECT on_hand, reserved FROM inventory WHERE sku = 'SKU-TEA'"
+    ).fetchone()
+    assert (row["on_hand"], row["reserved"]) == (6, 5)
+    assert {
+        table: int(org.db.connection.execute(f"SELECT COUNT(*) AS c FROM {table}").fetchone()["c"])
+        for table in ("cash_entries", "signals", "events")
+    } == before
+
+
+@pytest.mark.parametrize("quantity", [0, -1])
+def test_sale_quantity_must_be_positive(tmp_path: Path, quantity: int) -> None:
+    from sovereign_agent.errors import Refusal
+
+    org = Organization.init(tmp_path)
+    seed(org.db)
+    with pytest.raises(Refusal, match="positive"):
+        record_sale(org.db, "SKU-TEA", quantity, 400)
+
+
+def test_sale_severity_uses_available_stock_after_reservations(tmp_path: Path) -> None:
+    org = Organization.init(tmp_path)
+    seed(org.db)
+    org.db.connection.execute(
+        "UPDATE inventory SET on_hand = 6, reserved = 2, reorder_point = 3 WHERE sku = 'SKU-TEA'"
+    )
+    org.db.connection.commit()
+
+    signal = record_sale(org.db, "SKU-TEA", 1, 400)
+
+    assert signal.severity == "warning"
+    event = org.db.connection.execute(
+        "SELECT payload FROM events WHERE kind = 'sale.committed' ORDER BY rowid DESC LIMIT 1"
+    ).fetchone()
+    payload = json.loads(event["payload"])
+    assert payload["available_after"] == 3
+    assert payload["reserved"] == 2
+
+
 def test_events_reject_update_and_delete(tmp_path: Path) -> None:
     org = Organization.init(tmp_path)
     seed(org.db)

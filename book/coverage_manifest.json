@@ -128,9 +128,12 @@
               "name": "atomic_write"
             }
           ],
-          "tests": [],
-          "exercise": "book/ch01_organization_remembers/solution.py",
-          "known_gap": "files.py atomic_write has no direct behavioral test in the suite; flagged in the Batch 1 filing as scoped follow-up implementation work, not smuggled into book scope."
+          "tests": [
+            "tests/test_files.py::test_atomic_write_replaces_the_target_and_removes_its_tempfile",
+            "tests/test_files.py::test_atomic_write_preserves_the_old_value_when_replace_fails",
+            "tests/test_files.py::test_concurrent_atomic_writers_never_share_a_tempfile_or_tear_bytes"
+          ],
+          "exercise": "book/ch01_organization_remembers/solution.py"
         },
         {
           "concept": "memory-access-filter-before-hybrid-ranking",
@@ -904,10 +907,11 @@
             }
           ],
           "tests": [
-            "tests/test_acceptance_falsification.py::test_reserved_stock_is_not_available_stock"
+            "tests/test_acceptance_falsification.py::test_reserved_stock_is_not_available_stock",
+            "tests/test_persistence.py::test_sale_refuses_reserved_stock_without_partial_writes",
+            "tests/test_concurrency.py::test_concurrent_sales_cannot_consume_reserved_stock"
           ],
-          "exercise": "book/ch09_each_product_has_its_own_threshold/solution.py",
-          "known_gap": "The acceptance check subtracts reserved stock, but production record_sale currently reads only on_hand and reorder_point. The chapter model deliberately demonstrates the stronger sale contract and labels the production divergence; reservation-aware selling is not yet implemented."
+          "exercise": "book/ch09_each_product_has_its_own_threshold/solution.py"
         },
         {
           "concept": "dedupe-key-per-occurrence-append-only-signals",
