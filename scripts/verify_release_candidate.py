@@ -40,7 +40,6 @@ import re
 import subprocess
 import sys
 import tempfile
-import venv
 from pathlib import Path
 
 REPO_ROOT = Path(__file__).resolve().parent.parent
@@ -124,8 +123,16 @@ def build_and_install_wheel(failures: list[str], work_dir: Path) -> Path | None:
         return None
     wheel = wheels[-1]
 
+    # Stage 1 imports and executes every chapter in this interpreter. Creating
+    # the venv through a fresh interpreter prevents that accumulated module
+    # state from leaking into ensurepip (observed as a macOS Python 3.14
+    # SIGABRT), and lets this gate report bootstrap failure instead of ending
+    # in an unclassified traceback.
     venv_dir = work_dir / "venv"
-    venv.EnvBuilder(with_pip=True, clear=True).create(venv_dir)
+    code, output = run([sys.executable, "-m", "venv", "--clear", str(venv_dir)])
+    if code != 0:
+        fail(failures, f"creating the clean venv failed:\n{output}")
+        return None
     venv_python = venv_dir / "bin" / "python"
     if not venv_python.is_file():
         fail(failures, f"venv creation did not produce {venv_python}")
