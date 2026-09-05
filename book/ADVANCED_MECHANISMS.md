@@ -34,6 +34,19 @@ flowchart TD
 This is not one feature. It is six contracts that compose without borrowing
 one another's claims.
 
+The compact lesson below is the review map. The full build-break-repair
+treatment now lives in the main manuscript, so the same material is published
+through the book's exact-SHA site bridge:
+
+| Mechanism | Full chapter treatment | Runnable extension |
+| --- | --- | --- |
+| hybrid memory retrieval | [Chapter 1](ch01_organization_remembers/README.md#from-durable-history-to-useful-memory) | `book/ch01_organization_remembers/advanced_exercise.py` |
+| context compaction | [Chapter 3](ch03_actor_is_not_a_model/README.md#context-is-a-cache-not-the-conversation) | `book/ch03_actor_is_not_a_model/advanced_exercise.py` |
+| tool discovery and authorization | [Chapter 3](ch03_actor_is_not_a_model/README.md#tool-discovery-is-not-tool-authority) | `book/ch03_actor_is_not_a_model/advanced_exercise.py` |
+| five-plane isolation | [Chapter 4](ch04_work_stays_inside_its_boundary/README.md#one-word-five-different-isolation-claims) | `book/ch04_work_stays_inside_its_boundary/advanced_exercise.py` |
+| session incarnation fencing | [Chapter 5](ch05_authority_needs_a_fence/README.md#a-conversation-needs-its-own-incarnation) | `book/ch05_authority_needs_a_fence/advanced_exercise.py` |
+| durable condition scheduling | [Chapter 7](ch07_the_organization_wakes_itself/README.md#add-a-watcher-without-turning-every-clock-into-pulse) | `book/ch07_the_organization_wakes_itself/advanced_exercise.py` |
+
 ## 1. Isolation is four controls
 
 A path check cannot block a socket. A network allowlist cannot stop a process

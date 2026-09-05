@@ -353,12 +353,12 @@ def test_main_succeeds_when_attempted_count_matches_expected(
 
 
 # ---------------------------------------------------------------------------
-# No regression: the real book must still verify exactly as before.
+# No regression: the real book must match its current checked denominator.
 # ---------------------------------------------------------------------------
 
 
-def test_real_book_chapters_still_pass_unchanged() -> None:
+def test_real_book_chapters_match_the_current_snippet_denominator() -> None:
     result = run_cli(REPO_ROOT)
     assert result.returncode == 0, result.stdout + result.stderr
-    assert "book snippets sound: 13 chapters, 100 python block(s) executed" in result.stdout
-    assert "90 text-pair(s) checked, all matched" in result.stdout
+    assert "book snippets sound: 13 chapters, 102 python block(s) executed" in result.stdout
+    assert "92 text-pair(s) checked, all matched" in result.stdout

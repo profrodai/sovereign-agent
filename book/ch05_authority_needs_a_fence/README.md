@@ -23,6 +23,8 @@ and a **process** (one running instance of the program), and why the ledger
 needs to fence at both levels: two different *processes* claiming to be the
 same actor is the ordinary shape of a crashed-and-restarted worker, and
 nothing before this chapter's mechanism could tell them apart.
+You will extend that argument to multi-host sessions, where a monotonically
+increasing incarnation prevents an old callback from finishing a newer claim.
 
 ## Vocabulary this chapter adds
 
@@ -480,6 +482,91 @@ Separate the questions when designing a queue:
 A queue that answers only the first question is a polling table. The other four
 are what make it safe under pauses, crashes, retries, and duplicated workers.
 
+## A conversation needs its own incarnation
+
+The actor lease fences organizational work, but a long-lived conversation has
+another identity problem. The same actor can resume the same session from a
+second host after the first host's lease expires. If a delayed callback from
+host A later says “finished,” actor id and session id still match. Neither name
+proves that A belongs to the current run.
+
+The coordination layer separates three identities:
+
+| Identity | Example | What it answers |
+| --- | --- | --- |
+| actor | `operator-course` | which organizational role is acting? |
+| host | `kiosk-a` | which runtime currently holds a renewable lease? |
+| session incarnation | `supplier-chat`, generation 2 | which continuous claim may finish this session? |
+
+An incarnation is a monotonically increasing generation attached to one
+session. A same-host renewal can retain the generation. A takeover by another
+host, or any claim after expiry, increments it.
+
+```mermaid
+sequenceDiagram
+    participant A as kiosk A
+    participant DB as SQLite ledger
+    participant B as kiosk B
+    A->>DB: claim supplier-chat, incarnation 1
+    Note over A: lease expires while callback is delayed
+    B->>DB: renew host lease
+    B->>DB: claim supplier-chat, incarnation 2
+    A->>DB: finish incarnation 1
+    DB-->>A: REFUSED stale incarnation
+    B->>DB: finish incarnation 2
+    DB-->>B: committed
+```
+
+`finish_session()` re-reads both rows inside one immediate transaction. It
+requires the current session host, exact incarnation, unexpired session lease,
+and unexpired host lease before inserting the completion. Checking these facts
+before the transaction would reopen the same time-of-check/time-of-use gap the
+mailbox exercise repaired earlier.
+
+### Why host id alone still fails
+
+Imagine kiosk A loses its network, its lease expires, and kiosk B takes over.
+Later, operations restart the session on kiosk A. The host id is again A, but
+the old callback from A's first run is not current. The incarnation distinguishes
+two claims that share both host and session names.
+
+The rule is compact:
+
+```text
+completion allowed
+  iff stored.host == claim.host
+  and stored.incarnation == claim.incarnation
+  and session_lease > now
+  and host_lease > now
+```
+
+The database insert and those predicates belong to the same transaction. A
+successful stale write cannot be repaired afterward because an external effect
+may already have escaped.
+
+Run the takeover experiment:
+
+```bash
+uv run python book/ch05_authority_needs_a_fence/advanced_exercise.py \
+  --root /tmp/sa-ch05-incarnation
+```
+
+It must show incarnations `[1, 2]`, refuse the first completion, and commit only
+kiosk B's result under generation 2. Then delete the incarnation comparison in
+`finish_session()`. The stale result is now eligible if the remaining fields
+happen to line up; the named proof must catch the weakening:
+
+```bash
+uv run pytest -q \
+  tests/test_advanced_mechanisms.py::test_session_takeover_increments_incarnation_and_fences_stale_finish \
+  tests/test_advanced_mechanisms.py::test_expired_session_cannot_finish_without_a_takeover
+```
+
+This mechanism is not distributed consensus. SQLite is the one serialization
+boundary and host clocks are inputs to lease decisions. The lesson is narrower
+and reusable: when continuity can be superseded and later resumed, put a
+generation in the terminal-write predicate.
+
 ## The exercise
 
 ```bash
@@ -570,6 +657,10 @@ write is a compare-and-set (CAS) whose `WHERE` clause checks the caller's
 token in the same statement that performs the write, never a value read
 earlier and trusted.
 
+For resumable conversations, the same idea appears as a session incarnation:
+completion checks the host, generation, session lease, and host lease in the
+same transaction that records the result.
+
 The invariant it establishes is that a worker who no longer holds the
 current lease may still be running, but its writes can never become
 canonical — the resource, not the worker's good behavior, is what refuses a
@@ -609,6 +700,9 @@ hand.
 8. The toy's token numbers skip (1, 3, 5…) because refused claims burn a
    mint. Why does this not weaken the guarantee, and what property of the
    counter is actually load-bearing?
+9. Kiosk A owns incarnation 1, expires, and later hosts the session again under
+   incarnation 3. Why can a host-id check not distinguish its old callback from
+   its current one?
 
 ## Where to look next
 

@@ -27,7 +27,8 @@ but not its *authority*, and why a provider therefore cannot approve its own wor
 You will build the real actor representation (an actor **has** a `provider`
 field), the real role-to-authority policy, and the real rebind, and see that
 authority is enforced by a role lookup — not by a model, a prompt, or a clever
-data-structure trick.
+data-structure trick. You will also preserve source conversation bytes while
+compacting a derived view, and prove that discovering a tool never authorizes it.
 
 ## What you'll learn
 
@@ -574,6 +575,147 @@ the unknown, zero tolerance for the broken: that is the whole discipline of
 parsing at a hostile boundary, and it is exactly how the production adapters
 (`providers/claude.py` and its siblings) treat their CLIs.
 
+## Context is a cache, not the conversation
+
+Changing providers does not solve an ever-growing context window. After a long
+shift, the actor has system instructions, Lucy's corrections, model prose, and
+large tool results. Treating all four as equally disposable makes compaction
+dangerous: a fluent summary can erase the operator's exact words and leave no
+evidence that anything disappeared.
+
+The production context mechanism separates source from view. Every transcript
+message is an append-only row. A compaction adds a second append-only row with
+a summary and `through_seq` cursor. Rendering chooses the latest derived view;
+it does not mutate the source that produced it.
+
+```mermaid
+flowchart TB
+    subgraph Source[Append-only transcript source]
+        S1[system: authority rule]
+        U1[user: Lucy's request]
+        A1[assistant: long reasoning]
+        T1[tool: large result]
+        U2[user: correction]
+        A2[assistant: recent answer]
+    end
+    A1 --> C[compaction marker through_seq=4]
+    T1 --> C
+    C --> V[Rendered context]
+    S1 --> V
+    U1 --> V
+    U2 --> V
+    A2 --> V
+```
+
+Only an eligible assistant/tool exchange is summarized. System and user turns
+stay verbatim, while a configurable head and tail remain in full. If the
+summarizer raises or returns empty text, no marker is committed and the cursor
+does not advance. Two compactors racing the same exchange meet a uniqueness
+constraint; one appends the view and the other returns a safe no-op.
+
+That design makes three claims, each narrower than “the context is correct”:
+
+| Mechanism | Claim earned | Claim deliberately withheld |
+| --- | --- | --- |
+| append-only source | original message bytes remain auditable | the messages were true |
+| cursor-bound marker | a process can resume the derived view after restart | the summary preserved every nuance |
+| protected roles/head/tail | named material stays verbatim | the selected window is optimal |
+
+### Build-break-repair: deleting what you summarize
+
+The naive compactor replaces old rows with one summary. It saves tokens, but a
+bad summary becomes irreversible. The repaired algorithm first calculates an
+eligible exchange, asks for a candidate summary, and appends a marker only
+after non-empty output exists. The transcript is never updated or deleted.
+
+Run the real experiment:
+
+```bash
+uv run python book/ch03_actor_is_not_a_model/advanced_exercise.py \
+  --root /tmp/sa-ch03-context-tools
+```
+
+The JSON must report seven source rows, one derived row, and both user messages
+verbatim. Now change the summarizer in `advanced_exercise.py` to return an empty
+string. `compacted` must become false, source rows must remain seven, and no
+derived row may appear. Verify the failure paths rather than trusting the
+happy-path rendering:
+
+```bash
+uv run pytest -q \
+  tests/test_advanced_mechanisms.py::test_failed_or_empty_compaction_leaves_no_marker \
+  tests/test_advanced_mechanisms.py::test_compactor_exception_leaves_source_and_cursor_untouched \
+  tests/test_advanced_mechanisms.py::test_transcript_source_is_append_only
+```
+
+## Tool discovery is not tool authority
+
+A provider with forty tool schemas spends context on tools it will never use.
+Progressive discovery reduces that prompt surface: search a deterministic
+catalog, return a bounded result set, and disclose when more matches existed.
+It is tempting to call the first match immediately. That turns relevance into
+permission.
+
+```mermaid
+sequenceDiagram
+    participant P as Provider
+    participant C as Tool catalog
+    participant H as Host policy
+    participant T as Tool
+    P->>C: discover "delete stock", limit=1
+    C-->>P: delete_inventory, truncated=true
+    P->>H: authorize delete_inventory
+    H-->>P: REFUSED (deny wins)
+    Note over P,T: The tool is never invoked
+```
+
+`ToolCatalog.discover()` scores overlap with the name, description, and
+keywords, sorts ties by tool name, caps the caller's limit at ten, and returns
+both `total_matches` and `truncated`. Those choices make the prompt budget
+observable. `ToolCatalog.authorize()` is a separate call through
+`IsolationPolicy`, where an explicit deny overrides an allow.
+
+The separation is easier to remember with two questions:
+
+1. Discovery: “Which descriptions are relevant enough to show the model?”
+2. Authorization: “May this actor use this tool for this run?”
+
+The first is retrieval. The second is governance. A denied tool can be the
+best search result without contradiction.
+
+### Work the ranking by hand
+
+The small catalog gives name tokens three points, keywords two, and description
+tokens one. Compute the result before running it:
+
+```python
+def chapter_tool_score(name_hits: int, keyword_hits: int, description_hits: int) -> int:
+    return 3 * name_hits + 2 * keyword_hits + description_hits
+
+
+print(chapter_tool_score(name_hits=1, keyword_hits=1, description_hits=2))
+```
+
+```text
+7
+```
+
+Then inspect the `tools` object emitted by the chapter extension. It discovers
+`delete_inventory`, reports two total matches and a truncated result, but
+authorization says `REFUSED`. Remove the authorization call and return the
+search result directly. The CLI may still look successful; the adversarial
+test must turn red:
+
+```bash
+uv run pytest -q \
+  tests/test_advanced_mechanisms.py::test_discovery_does_not_authorize_a_matching_tool
+```
+
+For a production plugin ecosystem, catalog refresh, signatures, provenance,
+schema validation, and revocation need their own mechanisms. This chapter
+teaches the native seam that those systems must preserve: a tool becoming
+visible never expands the actor's authority.
+
 ## The exercise
 
 Confirm all of this in the *real* organization, where `Actor`, `ROLE_AUTHORITY`,
@@ -681,6 +823,10 @@ a role-to-actions policy (`ROLE_AUTHORITY`), never by the model behind the
 actor**. `require_authority` looks the role up in that table; it never
 inspects `provider` at all.
 
+The same separation governs the provider's working context: transcript source
+is distinct from its compacted view, and a discovered tool is distinct from an
+authorized tool.
+
 That is what makes the specific refusal in this chapter's title hold under
 every future upgrade: an operator actor cannot `accept` its own work no
 matter which model it is bound to, because `accept` was never in the
@@ -716,5 +862,9 @@ model.
 9. The stream parser tolerates `{"type": "greeting"}` but fails the whole run
    on `definitely not json`. Why is tolerating the first and refusing the
    second the right pairing, rather than the reverse?
+10. A summarizer throws after reading an assistant/tool exchange. Which durable
+    rows and cursor values may change, and why are user turns never eligible?
+11. `delete_inventory` is the catalog's highest-ranked match. Explain why that
+    observation says nothing about whether the actor may invoke it.
 
 Next: [Chapter 4 — Work stays inside its boundary](../ch04_work_stays_inside_its_boundary/README.md)
