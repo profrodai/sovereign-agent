@@ -530,12 +530,12 @@ sequenceDiagram
     participant Sig as Signal row
     participant Shelf as inventory table
     participant Gate as store_wake_gate
-    Sale->>Sig: severity = "warning" (written once)
-    Sale->>Shelf: on_hand below reorder
+    Sale->>Sig: severity = "warning" from available stock (written once)
+    Sale->>Shelf: on_hand minus reserved below reorder
     Note over Shelf: off-the-books restock<br/>on_hand updated directly
     Gate->>Sig: read kind, source, subject_ref<br/>(never severity)
     Gate->>Shelf: below_reorder(db) -- LIVE read
-    Shelf-->>Gate: on_hand now above reorder
+    Shelf-->>Gate: available stock now above reorder
     Gate-->>Gate: refuse, return None
     Note over Sig: severity still says "warning" --<br/>the field itself never changes
 ```

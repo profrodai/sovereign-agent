@@ -349,12 +349,12 @@ sequenceDiagram
     participant DB as SQLite
     participant B as Sale B
     A->>DB: BEGIN IMMEDIATE
-    A->>DB: read SKU-TEA on_hand
+    A->>DB: read SKU-TEA on_hand + reserved
     B->>DB: BEGIN IMMEDIATE
     Note over B,DB: waits for the writer lock
     A->>DB: validate available stock, write inventory, cash, signal, event
     A->>DB: COMMIT
-    B->>DB: lock acquired, read new on_hand
+    B->>DB: lock acquired, read new on_hand + reserved
     B->>DB: validate against the committed value
 ```
 

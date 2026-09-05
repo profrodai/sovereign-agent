@@ -550,6 +550,30 @@ accept against evidence describing a world that no longer exists. The final
 clause compares the **evidence's state digest** against the world's digest at
 acceptance time:
 
+```mermaid
+sequenceDiagram
+    participant W as World state
+    participant V as Verifier
+    participant E as Evidence ledger
+    participant A as Accepter
+    V->>W: read exact proof inputs
+    W-->>V: state W1
+    V->>E: append PASS + digest(W1)
+    Note over W: a later sale creates W2
+    A->>W: rerun check and recompute digest
+    W-->>A: check PASS + digest(W2)
+    A->>E: compare current digest with recorded digest
+    alt digest(W2) differs from digest(W1)
+        A-->>A: refuse stale evidence
+    else digests match
+        A-->>A: acceptance may continue
+    end
+```
+
+The check can still return `PASS` in both worlds. The digest rejects the
+stronger lie: that today's passing state is the same state an independent
+reviewer actually examined.
+
 ```python
 def accept_v7(db, outcome_id, accepter):
     subject = db.execute("SELECT subject FROM outcomes WHERE id = ?", (outcome_id,)).fetchone()[0]
