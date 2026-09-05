@@ -25,21 +25,25 @@ hybrid memory retrieval.
 - [Chapter 0: Lucy's first shift](ch00_first_shift/README.md) — run one
   complete piece of work and learn that `ACCEPTED` is a proved claim
 - [Chapter 1: The organization remembers](ch01_organization_remembers/README.md) —
-  SQLite, transactions, append-only events, and what is canonical versus derived
+  SQLite, transactions, append-only events, hybrid memory retrieval, and what
+  is canonical versus derived
 - [Chapter 2: Work needs governance](ch02_work_needs_governance/README.md) —
   outcomes, SOWs, evidence, verification, review, and no-self-approval
 - [Chapter 3: The actor is not a model](ch03_actor_is_not_a_model/README.md) —
-  providers are probed CLIs; Cursor is equal to Claude and Codex
+  providers are probed CLIs; source-preserving context compaction; tool
+  discovery kept separate from authority
 - [Chapter 4: Work stays inside its boundary](ch04_work_stays_inside_its_boundary/README.md) —
-  a detectable workspace boundary, safe joins, and reclaim as a policy choice
+  a detectable workspace boundary, safe joins, reclaim, and five independently
+  qualified isolation planes
 - [Chapter 5: Authority needs a fence](ch05_authority_needs_a_fence/README.md) —
-  process identity, actor leases, and execution-attempt fencing bound together
+  process identity, actor leases, execution-attempt fencing, and multi-host
+  session incarnations
 - [Chapter 6: The organization recovers](ch06_the_organization_recovers/README.md) —
   a real hard-killed worker, and the supervisor that recovers it without
   guessing success
 - [Chapter 7: The organization wakes itself](ch07_the_organization_wakes_itself/README.md) —
   genuine Pulse: governed work created without a human prompt, with durable,
-  structured evidence
+  structured evidence; plus a distinct durable condition scheduler
 - [Chapter 8: The Store becomes a catalog](ch08_the_store_becomes_a_catalog/README.md) —
   the single-product fixture becomes a genuine multi-SKU catalog
 - [Chapter 9: Each product has its own threshold](ch09_each_product_has_its_own_threshold/README.md) —

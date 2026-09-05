@@ -50,6 +50,19 @@ own recurring narrative and mechanism vocabulary.
   whether a signal still merits work (the gate), and the durable,
   `UNIQUE`-constrained row recording that a specific signal fired exactly
   once (the decision). Both introduced in Chapter 7.
+- **Context compaction.** An append-only derived view over transcript source,
+  never permission to delete or rewrite the messages it summarizes. Built in
+  [Chapter 3](ch03_actor_is_not_a_model/README.md).
+- **Session incarnation.** A monotonically increasing generation that
+  distinguishes successive claims on one resumable session, even when actor,
+  host, and session names repeat. Built in
+  [Chapter 5](ch05_authority_needs_a_fence/README.md).
+- **Tool discovery / authorization.** Retrieval decides which tool schemas are
+  relevant enough to show; policy independently decides which tool may run.
+  Built in [Chapter 3](ch03_actor_is_not_a_model/README.md).
+- **Automation due slot.** One durable `(automation_id, due_at)` claim. A
+  condition evaluation is not a run, and a heartbeat is not a scheduler.
+  Built in [Chapter 7](ch07_the_organization_wakes_itself/README.md).
 - **Causal binding.** The requirement that acceptance trace a real
   provenance path — this exact execution produced this exact required
   effect on this exact subject — rather than merely observing that a world

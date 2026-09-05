@@ -29,6 +29,8 @@ this system: not an operating-system sandbox, but a **detectable boundary** —
 checkable before a write is ever attempted (`safe_join`), checkable after a
 provider has run (`snapshot_boundary`/`diff_boundary`), and a disposal policy
 (`reclaim_workspace`) that decides what survives once the work is done.
+You will then separate filesystem, network, credential, tool, and process
+isolation so that one green check cannot impersonate five guarantees.
 
 Chapter 3 flagged that `--workspace` selects a directory, not a sandbox. This
 chapter builds the machinery that makes that flag honest rather than alarming.
@@ -415,6 +417,98 @@ credential allowlists, and host-side refusal. The rule is simple enough to use
 in every integration: external text may influence a proposal, never expand the
 set of operations the host is prepared to execute.
 
+## One word, five different isolation claims
+
+The boundary snapshot above detects filesystem changes after a provider exits.
+It does not stop a socket, hide a credential, refuse a dangerous tool, or
+constrain operating-system calls. Calling that whole arrangement “sandboxed”
+would borrow four guarantees from one detector.
+
+`IsolationPolicy` makes the planes separate on purpose:
+
+```mermaid
+flowchart LR
+    R[Requested action] --> P{Which plane?}
+    P -->|path| F[Resolve path, then check root]
+    P -->|hostname| N[Normalize, then exact allowlist]
+    P -->|credential name| C[Named credential allowlist]
+    P -->|tool name| T[Deny first, then allow]
+    P -->|process| O[Behavioral host probe]
+    F --> D[Qualified decision]
+    N --> D
+    C --> D
+    T --> D
+    O --> D
+```
+
+| Plane | Native mechanism in this project | Honest limit |
+| --- | --- | --- |
+| filesystem | `Path.resolve()` plus permitted roots | application code can still bypass the helper |
+| network | normalized exact-host allowlist | not an operating-system egress firewall |
+| credentials | permission by credential name | secret values remain outside the policy object |
+| tools | deny-over-allow name policy | an allowed shell may have broad sub-effects |
+| process | caller-supplied behavioral probe | no probe means `UNAVAILABLE`, not inferred enforcement |
+
+The process row is the calibration test. `policy.explain()` does not inspect a
+configuration file or notice that a container binary exists. It reports
+`ENFORCED` only when a supplied probe demonstrates the host behavior. Without
+that proof, the correct result is `UNAVAILABLE`, even while the other four rows
+describe their narrower application controls.
+
+### Attack the resolved path, not the spelling
+
+An ancestry check on the input string loses to a symlink:
+
+```text
+workspace/escape/proof.txt
+          └──────────────> ../outside/proof.txt
+```
+
+The spelling begins inside `workspace`; the resolved object does not.
+`authorize_path()` resolves both the candidate and each allowed root before it
+checks equality or ancestry. This is the same reason Chapter 4's earlier
+`safe_join` repairs the prefix test, now expressed as one plane of a larger
+policy.
+
+The deny-over-allow rule tests a different ambiguity. If `shell` appears in
+both sets, denying it is deterministic. A merge, configuration overlay, or
+emergency restriction can narrow authority without first editing every allow
+source.
+
+Run all five observations:
+
+```bash
+uv run python book/ch04_work_stays_inside_its_boundary/advanced_exercise.py \
+  --root /tmp/sa-ch04-isolation
+```
+
+Expected invariants:
+
+- the in-workspace receipt path is accepted;
+- a normalized inventory hostname and named token are accepted;
+- the symlink escape, unlisted payment host, and denied shell are refused;
+- `process` remains `UNAVAILABLE` because the exercise supplied no OS probe.
+
+### Break the claim in three independent ways
+
+First, remove `.resolve()` from the path check; the symlink test must fail.
+Second, change tool policy to “allowed wins”; the doubly-listed shell must
+become an observable false green. Third, change the default process verdict to
+`ENFORCED`; no behavior changed, but the explanation now lies.
+
+```bash
+uv run pytest -q \
+  tests/test_advanced_mechanisms.py::test_isolation_planes_are_independent_and_deny_wins \
+  tests/test_advanced_mechanisms.py::test_isolation_resolves_symlinks_before_authorizing
+```
+
+These tests do not prove malicious Python is contained. They prove the policy
+refuses named application requests and describes its enforcement level
+honestly. Real kernel isolation would add a container, namespace, sandbox
+profile, or managed host policy and a behavioral probe. It would not erase the
+need for credential custody or tool authorization, because those are different
+questions.
+
 ## The exercise
 
 ```bash
@@ -545,6 +639,10 @@ means nothing changed inside `organization_root_excluding_workspace_and_ledger`
 — never an unqualified claim that the provider was contained, and never a
 claim about files outside that scope.
 
+The chapter also decomposed isolation into five independently reported planes.
+Application allowlists can refuse named paths, hosts, credentials, and tools;
+process isolation remains unavailable until a behavioral host probe proves it.
+
 The failure it prevents is trusting a provider's own good behavior, or
 worse, trusting a docstring's claim about what a check covers: the exercise
 plants a real write outside the workspace and shows it caught, and plants a
@@ -572,6 +670,9 @@ Lucy always can) — detection instead of a promise you cannot keep.
    one. If a provider's subprocess already wrote real bytes outside the
    workspace before the after-snapshot ran, what exactly does the recorded
    violation change about those bytes?
+6. A policy accepts a workspace path and refuses an unlisted hostname. Why do
+   those two results still provide no evidence that arbitrary process syscalls
+   are contained?
 
 ## Where to look next
 

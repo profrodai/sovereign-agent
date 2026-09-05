@@ -23,8 +23,8 @@ piece of data in this system — which file or table is the authority for it.
 ## Learning objective
 
 Understand where a Zero-Employee Organization keeps its memory, why some of that
-memory is allowed to change and some is not, and what a transaction actually
-buys you.
+memory is allowed to change and some is not, what a transaction actually buys
+you, and how retrieval filters authority before it ranks relevance.
 
 By the end you should be able to say, for any piece of data in this system,
 **which file or table is the authority for it** — and defend the answer.
@@ -710,6 +710,107 @@ chapter built: the file is a projection. If a crash costs the rename, the
 verifier reports drift and the reconciler regenerates the file from the
 ledger. Durability lives in SQLite; the filesystem only ever holds copies.
 
+## From durable history to useful memory
+
+Lucy now has an honest ledger, but a ledger answers a different question from
+memory retrieval. The ledger answers, “What happened?” Retrieval answers,
+“Which permitted facts are useful for this decision?” Copying the newest rows
+into a prompt is not a neutral shortcut. It is an access policy, relevance
+policy, and context-budget policy disguised as a query.
+
+The production implementation keeps those decisions visible in
+`sovereign_agent.memory`. A memory row contains content, an optional embedding,
+a visibility label, an explicit importance value, and its creation time. The
+retriever performs the operations in a security-sensitive order:
+
+```mermaid
+flowchart LR
+    Q[Query plus actor identity] --> F[SQL visibility filter]
+    F --> C[Permitted candidates only]
+    C --> L[Lexical overlap]
+    C --> S[Optional cosine similarity]
+    C --> R[Recency and importance]
+    L --> W[Weighted score]
+    S --> W
+    R --> W
+    W --> M[MMR diversity pass]
+    M --> H[Hits with score provenance]
+```
+
+The first arrow is the important one. Suppose Bob's private supplier note is a
+perfect semantic match for Alice's query. If code ranks every row and removes
+Bob's note only before display, its content has already influenced selection,
+logs, timing, or a model call. Filtering in SQL means an unauthorized row never
+becomes a candidate at all.
+
+### Build the score before hiding it behind a library
+
+The reference uses a deliberately small formula:
+
+```python
+def chapter_memory_score(
+    lexical: float, semantic: float, recency: float, importance: float
+) -> float:
+    return 0.35 * lexical + 0.35 * semantic + 0.15 * recency + 0.15 * importance
+
+
+print(round(chapter_memory_score(0.5, 1.0, 1.0, 0.5), 3))
+```
+
+```text
+0.75
+```
+
+Every component stays on the returned `MemoryHit`. A learner can therefore
+explain why a row won and predict the effect of changing a weight. When an
+embedding is absent, semantic similarity is zero and
+`semantic_status="unavailable"`; lexical retrieval is not relabeled as
+semantic search. When lexical and semantic relevance are both zero, recency
+and importance cannot rescue the row. A fresh, important chocolate note should
+not answer a vanilla-inventory question.
+
+The final pass uses maximal marginal relevance (MMR). Raw relevance tends to
+return near-duplicates, wasting the scarce prompt window. MMR repeatedly picks
+the candidate with the best tradeoff between relevance and similarity to
+already selected hits:
+
+| Candidate | Raw relevance | Similar to selected hit | MMR consequence |
+| --- | ---: | ---: | --- |
+| current vanilla count | high | low | selected first |
+| duplicate vanilla count | high | high | penalized |
+| vanilla supplier lead time | medium | low | may beat the duplicate |
+
+This is not a vector database benchmark. For a large corpus, SQLite FTS5 and a
+specialized embedding index may become appropriate. The durable lesson stays
+the same: restrict access before ranking, expose score provenance, and make
+semantic unavailability visible.
+
+### Break it: let importance bypass relevance
+
+Run the chapter extension against an empty ledger:
+
+```bash
+uv run python book/ch01_organization_remembers/advanced_exercise.py \
+  --root /tmp/sa-ch01-memory
+```
+
+The result must list `public` and `alice-only`, report that Bob's row never
+reached the visible results, reject the unrelated high-importance row, and show
+the score components for every hit. Then remove the zero-relevance guard in
+`memory.py`. The unrelated row becomes eligible because its recency and
+importance contribute positive weight. Restore the guard and run this
+independent proof:
+
+```bash
+uv run pytest -q \
+  tests/test_advanced_mechanisms.py::test_memory_does_not_return_an_unrelated_high_importance_row \
+  tests/test_advanced_mechanisms.py::test_memory_filters_access_before_ranking_and_exposes_score_components
+```
+
+Expected result: two tests pass. The exercise is successful only if you can
+also point to the SQL `WHERE` clause that prevents Bob's private row from being
+ranked. A clean display alone is an insufficient observation.
+
 ## Exercise 1: look at the operational state
 
 ```bash
@@ -915,6 +1016,10 @@ append-only events enforced by database triggers, and regenerable Markdown
 projections — plus a migration runner that keeps the schema change and its
 version stamp inside one explicit transaction.
 
+It also built a transparent retrieval policy over durable memory: SQL removes
+rows the actor may not see before lexical, optional semantic, recency, and
+importance signals are combined, then MMR avoids spending context on duplicates.
+
 The invariant it establishes is that only one thing is ever the authority
 for a given fact, and every other representation is either derived from it
 or provably stale against it: a projection that disagrees with the ledger is
@@ -955,5 +1060,8 @@ can half-happen is not a memory Lucy's business can be held to.
    not "guaranteed-new." What single missing `fsync` creates that gap, and
    why is the gap acceptable for a projection when it would not be acceptable
    for the ledger?
+9. A private memory is removed after ranking but before display. Name two ways
+   its content has already crossed the access boundary, then explain why a
+   recent, important but irrelevant row must still be excluded.
 
 Next: [Chapter 2 — Work needs governance](../ch02_work_needs_governance/README.md)

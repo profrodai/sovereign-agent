@@ -7,13 +7,14 @@ important: when a sale drops the freezer below its line, she wants the reorder
 hand each time.
 
 Be precise about the claim, because most systems overstate exactly this. This
-chapter builds three separable things and is careful not to confuse them: (1) a
+chapter separates three things and is careful not to confuse them: (1) a
 **signal-driven decision** — a durable low-stock fact turned into a wake
 decision; (2) **one Pulse tick** — a single call that derives governed work from
-that decision; and (3) an **external scheduler or daemon** that would run ticks
-unattended on a timer. This chapter builds and proves (1) and (2). It does **not**
-build (3): *you* invoke the tick. "The organization wakes itself" means it creates
-its own work from its own signals — not that it runs forever on its own. And when
+that decision; and (3) a **durable watcher** that evaluates a condition when a
+host invokes it at a due time. This chapter proves all three state machines, but
+it does not install a daemon: *you* invoke both Pulse and `run_due()`. "The
+organization wakes itself" means it creates its own work from its own signals,
+not that the Python process runs forever on its own. And when
 it does create work, it leaves a durable, traceable record you can walk backward
 from the finished work all the way to the sale that woke it. No record, no claim.
 
@@ -25,11 +26,12 @@ learn what makes that claim honest rather than theater: a durable
 real mechanism, both checkable after the fact — never a status string, never
 an inference from "nobody typed a command."
 
-Chapter 0 ended by telling you the truth: you started everything; the
-organization had no heartbeat. That remains true here. What changes is that one
-manually invoked Pulse tick can derive work from a durable signal without a
-human authoring that work. A scheduler, daemon, or future heartbeat may invoke
-ticks unattended; none is smuggled into the claim this chapter proves.
+Chapter 0 ended by telling you the truth: you started everything. The package
+now has a heartbeat and a durable watcher, but neither rewrites that history and
+neither is smuggled into the Pulse claim. A manually invoked Pulse tick derives
+work from a durable signal without a human authoring that work; a separately
+invoked watcher evaluates its own due condition; a heartbeat proves only that a
+runtime reached the ledger.
 
 ## Vocabulary this chapter adds
 
@@ -433,6 +435,94 @@ provable, falsifiable failure this exercise is built to expose — not an
 assertion that the guard matters, but the guard's absence producing a
 different, wrong, observable result on the same input.
 
+## Add a watcher without turning every clock into Pulse
+
+Pulse reacts to a durable domain signal. A freezer-temperature watcher has a
+different shape: at a due time it observes the world, persists condition state,
+and may fire a payload. A heartbeat cannot substitute for either mechanism. It
+only records that a runtime reached the ledger at one moment.
+
+```mermaid
+flowchart TD
+    Clock[Due time] --> Watch[Evaluate pure condition]
+    Watch -->|fire=false| State[Persist observation state and next due time]
+    State --> NoRun[Create no run row]
+    Watch -->|fire=true| Claim[Uniquely claim automation plus due_at]
+    Claim --> Payload[Call payload with durable run_id]
+    Payload -->|success| Commit[Commit new condition state]
+    Payload -->|failure| Fail[Record failure; keep old condition state]
+    Fail --> Bound{failure budget reached?}
+    Bound -->|yes| Disable[Disable automation]
+    Bound -->|no| Retry[Remain eligible for a later due slot]
+```
+
+The condition is a pure function from prior JSON state to
+`WatchDecision(fire, message, state)`. Its serialized state is capped at 16
+KiB. That limit keeps a convenient checkpoint from quietly becoming another
+unbounded transcript.
+
+### The false checkpoint
+
+Suppose the condition observes a hot freezer and proposes
+`{"notified": true}`. The supplier call then fails. If the scheduler commits
+the proposed state before the payload succeeds, the next evaluation believes
+the alert was already sent and suppresses the retry.
+
+The implementation commits different facts at different moments:
+
+| Outcome | Run row | Condition state | Failure count |
+| --- | --- | --- | --- |
+| not due | none | unchanged | unchanged |
+| condition false | none | new observation | unchanged |
+| payload succeeds | `SUCCEEDED` | proposed state | reset to zero |
+| payload fails | `FAILED` | previous state | incremented |
+
+After a configured number of payload failures, the automation disables itself.
+That does not mean the business problem disappeared. It means repeated
+unattended execution stopped and left a durable reason for intervention.
+
+### Two schedulers, one due slot
+
+A preflight query that says “no run exists” is not a claim. Two processes can
+both read that answer. The actual serialization point is the database
+constraint `UNIQUE(automation_id, due_at)`. Both contenders may evaluate the
+condition, but only one can insert the run for that logical slot. The other
+returns `REPLAYED` and never calls the payload.
+
+Exactly-once external effects still require cooperation. The winning payload
+receives the durable `run_id` as its idempotency key. A payment or notification
+adapter must store or forward that key; SQLite cannot make a remote service
+transactional by declaration.
+
+Run the quiet-then-fire sequence:
+
+```bash
+uv run python book/ch07_the_organization_wakes_itself/advanced_exercise.py \
+  --root /tmp/sa-ch07-automation
+```
+
+The expected statuses are `NO_FIRE` and `SUCCEEDED`. There must be one run row,
+one payload call, a persisted `checks: 1` observation, and the payload's key
+must equal the run id in the ledger.
+
+Now make the false branch insert a run row. The CLI may still print
+`NO_FIRE`, but the history lies by claiming work occurred. Then move condition
+state persistence before the payload and make the payload raise. These proofs
+must expose both mutations:
+
+```bash
+uv run pytest -q \
+  tests/test_advanced_mechanisms.py::test_nonfiring_watcher_persists_state_without_inventing_a_run \
+  tests/test_advanced_mechanisms.py::test_failed_payload_keeps_condition_state_retryable_and_auto_disables \
+  tests/test_advanced_mechanisms.py::test_two_scheduler_processes_claim_one_due_slot
+```
+
+The scheduler here is a durable `run_due()` primitive. It does **not** install a
+daemon or cron job. A native host timer can invoke it. Keeping hosting outside the
+mechanism makes the important state transitions executable on a laptop while
+leaving deployment frequency, clock ownership, and process supervision as
+explicit system decisions.
+
 ## The exercise
 
 ```bash
@@ -696,6 +786,11 @@ gate that decides what work a signal warrants, and a `UNIQUE(source_signal_id)`
 claim, made inside one transaction with the SOW and origin rows it creates,
 that lets exactly one canonical decision exist per signal.
 
+The chapter then added a durable automation state machine. A non-firing
+condition persists observation state without inventing a run, a firing slot is
+claimed once by `(automation_id, due_at)`, and payload failure never commits a
+false checkpoint.
+
 The invariant it establishes is that self-generated work is provable only
 positively — a real `pulse.work_created` event and a `pulse_origins` row
 naming a real signal — never inferred from the absence of a manual
@@ -737,6 +832,9 @@ or double-checks its own work.
 8. `sig-3` was honest when recorded, yet created no work. Reconcile "signals
    are durable append-only facts" with "this signal produced nothing" —
    which of the two would it be dishonest to change?
+9. A watcher records `notified=true` and then its supplier call fails. Why must
+   the next run see the old state, and what durable identifier should the remote
+   call use for idempotency?
 
 ## Where to look next
 
@@ -753,6 +851,7 @@ You have now built the whole spine of a governed organization: memory,
 judgement, bounded work, fenced authority, recovery, and signal-driven work
 creation. Chapters 8 through 12 turn from the machinery to the shop itself—
 Lucy's catalog grows, and you watch every guarantee you built hold up as it
-scales. Heartbeat-based liveness remains a separate, unimplemented lesson.
+scales. Heartbeat-based liveness and due-time automation remain separate from
+Pulse, and this chapter now gives each mechanism its own falsifiable claim.
 
 Next: [Chapter 8 — The Store becomes a catalog](../ch08_the_store_becomes_a_catalog/README.md)

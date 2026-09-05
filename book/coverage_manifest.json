@@ -131,6 +131,25 @@
           "tests": [],
           "exercise": "book/ch01_organization_remembers/solution.py",
           "known_gap": "files.py atomic_write has no direct behavioral test in the suite; flagged in the Batch 1 filing as scoped follow-up implementation work, not smuggled into book scope."
+        },
+        {
+          "concept": "memory-access-filter-before-hybrid-ranking",
+          "anchor": "From durable history to useful memory",
+          "symbols": [
+            {
+              "file": "src/sovereign_agent/memory.py",
+              "name": "recall"
+            },
+            {
+              "file": "src/sovereign_agent/memory.py",
+              "name": "remember"
+            }
+          ],
+          "tests": [
+            "tests/test_advanced_mechanisms.py::test_memory_filters_access_before_ranking_and_exposes_score_components",
+            "tests/test_advanced_mechanisms.py::test_memory_does_not_return_an_unrelated_high_importance_row"
+          ],
+          "exercise": "book/ch01_organization_remembers/advanced_exercise.py"
         }
       ],
       "limits_anchor": "What this does not guarantee",
@@ -267,6 +286,39 @@
           "exercise": "book/ch03_actor_is_not_a_model/solution.py"
         },
         {
+          "concept": "context-compaction-preserves-source-and-cursor",
+          "anchor": "Context is a cache, not the conversation",
+          "symbols": [
+            {
+              "file": "src/sovereign_agent/context.py",
+              "name": "compact_one"
+            },
+            {
+              "file": "src/sovereign_agent/context.py",
+              "name": "render_context"
+            }
+          ],
+          "tests": [
+            "tests/test_advanced_mechanisms.py::test_compaction_appends_a_view_and_preserves_every_source_byte",
+            "tests/test_advanced_mechanisms.py::test_compactor_exception_leaves_source_and_cursor_untouched"
+          ],
+          "exercise": "book/ch03_actor_is_not_a_model/advanced_exercise.py"
+        },
+        {
+          "concept": "tool-discovery-does-not-grant-authority",
+          "anchor": "Tool discovery is not tool authority",
+          "symbols": [
+            {
+              "file": "src/sovereign_agent/tools.py",
+              "name": "ToolCatalog"
+            }
+          ],
+          "tests": [
+            "tests/test_advanced_mechanisms.py::test_discovery_does_not_authorize_a_matching_tool"
+          ],
+          "exercise": "book/ch03_actor_is_not_a_model/advanced_exercise.py"
+        },
+        {
           "concept": "rebind-dual-store-seam",
           "anchor": "The rebind is two writes, and the seam between them",
           "symbols": [
@@ -338,6 +390,21 @@
             "tests/test_workspace_lifecycle.py::test_traversal_deliverable_is_refused"
           ],
           "exercise": "book/ch04_work_stays_inside_its_boundary/solution.py"
+        },
+        {
+          "concept": "isolation-planes-are-independent-and-qualified",
+          "anchor": "One word, five different isolation claims",
+          "symbols": [
+            {
+              "file": "src/sovereign_agent/isolation.py",
+              "name": "IsolationPolicy"
+            }
+          ],
+          "tests": [
+            "tests/test_advanced_mechanisms.py::test_isolation_planes_are_independent_and_deny_wins",
+            "tests/test_advanced_mechanisms.py::test_isolation_resolves_symlinks_before_authorizing"
+          ],
+          "exercise": "book/ch04_work_stays_inside_its_boundary/advanced_exercise.py"
         },
         {
           "concept": "boundary-detected-not-prevented",
@@ -415,6 +482,25 @@
             "tests/test_actors_and_mailbox.py::test_claim_lease_is_exclusive"
           ],
           "exercise": "book/ch05_authority_needs_a_fence/solution.py"
+        },
+        {
+          "concept": "session-incarnation-fences-stale-host-completion",
+          "anchor": "A conversation needs its own incarnation",
+          "symbols": [
+            {
+              "file": "src/sovereign_agent/coordination.py",
+              "name": "claim_session"
+            },
+            {
+              "file": "src/sovereign_agent/coordination.py",
+              "name": "finish_session"
+            }
+          ],
+          "tests": [
+            "tests/test_advanced_mechanisms.py::test_session_takeover_increments_incarnation_and_fences_stale_finish",
+            "tests/test_advanced_mechanisms.py::test_expired_session_cannot_finish_without_a_takeover"
+          ],
+          "exercise": "book/ch05_authority_needs_a_fence/advanced_exercise.py"
         },
         {
           "concept": "same-statement-token-check-never-rederived",
@@ -634,6 +720,25 @@
             "tests/test_pulse.py::test_canonical_created_work_survives_restart_and_resumes_without_duplication"
           ],
           "exercise": "book/ch07_the_organization_wakes_itself/README.md"
+        },
+        {
+          "concept": "durable-automation-separates-condition-run-and-effect",
+          "anchor": "Add a watcher without turning every clock into Pulse",
+          "symbols": [
+            {
+              "file": "src/sovereign_agent/automation.py",
+              "name": "create_automation"
+            },
+            {
+              "file": "src/sovereign_agent/automation.py",
+              "name": "run_due"
+            }
+          ],
+          "tests": [
+            "tests/test_advanced_mechanisms.py::test_nonfiring_watcher_persists_state_without_inventing_a_run",
+            "tests/test_advanced_mechanisms.py::test_two_scheduler_processes_claim_one_due_slot"
+          ],
+          "exercise": "book/ch07_the_organization_wakes_itself/advanced_exercise.py"
         }
       ],
       "limits_anchor": "It does **not**",

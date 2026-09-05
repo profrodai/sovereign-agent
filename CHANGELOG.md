@@ -6,6 +6,13 @@ Repository: [`profrodai/sovereign-agent`](https://github.com/profrodai/sovereign
 
 ## Unreleased
 
+- Integrate all six advanced mechanisms into the canonical thirteen-chapter
+  manuscript: hybrid memory in Chapter 1; recoverable context and bounded tool
+  discovery in Chapter 3; five-plane isolation in Chapter 4; session
+  incarnations in Chapter 5; and durable condition automation in Chapter 7.
+  Each treatment includes an implementation-grounded diagram, a runnable
+  chapter extension, an adversarial mutation, precise expected invariants, and
+  a coverage-manifest binding to production symbols and tests.
 - Add six self-contained advanced teaching mechanisms: honest four-plane
   isolation policy and explanation, persistent condition scheduling distinct
   from heartbeat and Pulse, append-only transcript compaction, multi-host
