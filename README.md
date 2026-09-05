@@ -67,6 +67,18 @@ Chapter 0 is runnable as a **manually dispatched** store shift (no Pulse):
 uv run sovereign-agent demo store --mode simulated
 ```
 
+After the core book, run the six advanced mechanisms with no provider,
+credential, or network:
+
+```bash
+uv run sovereign-agent mechanisms --root /tmp/sovereign-agent-mechanisms
+```
+
+This demonstrates four-plane isolation policy, durable condition scheduling,
+recoverable context compaction, session-incarnation fencing, bounded tool
+discovery, and provenance-bearing hybrid memory. See
+[`book/ADVANCED_MECHANISMS.md`](book/ADVANCED_MECHANISMS.md).
+
 See [`book/ch00_first_shift`](book/ch00_first_shift/README.md) and
 [`book/ch03_actor_is_not_a_model`](book/ch03_actor_is_not_a_model/README.md).
 

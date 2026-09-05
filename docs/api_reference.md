@@ -68,7 +68,25 @@ distribution version.
 ## Advanced implementation modules
 
 The book intentionally reads modules such as `fencing`, `pulse`, `heartbeat`,
-`supervisor`, and `workspace`. They are executable teaching material, but they
-are not added to the supported top-level surface merely by being documented.
+`supervisor`, `workspace`, `isolation`, `automation`, `context`, `coordination`,
+`tools`, and `memory`. They are executable teaching material, but they are not
+added to the supported top-level surface merely by being documented.
+
+The six advanced modules deliberately expose small functions and frozen data
+records instead of a framework facade:
+
+- `IsolationPolicy` authorizes each control plane independently and `explain`
+  reports the effective, qualified claim.
+- `create_automation` and `run_due` persist a watcher while leaving the caller
+  responsible for ticking it.
+- `append_message`, `compact_one`, and `render_context` preserve transcript
+  source while deriving a smaller view.
+- `register_host`, `claim_session`, and `finish_session` fence callbacks by
+  session incarnation.
+- `ToolCatalog.discover` is bounded; `ToolCatalog.authorize` is a distinct
+  policy operation.
+- `remember` and `recall` expose lexical, semantic, recency, importance, and
+  visibility evidence on every hit.
+
 Open a feature proposal before building a third-party integration on a private
 or submodule-only name.

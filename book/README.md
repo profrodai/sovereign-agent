@@ -17,6 +17,11 @@ you an intentionally incomplete starter, behavioral checks, adversarial
 mutations, and a verified reference solution. The checks grade observable
 invariants rather than requiring your code to look like the reference.
 
+After Chapter 12, continue with [Advanced mechanisms](ADVANCED_MECHANISMS.md):
+six compact, production-shaped lessons in isolation, unattended schedules,
+context compaction, session incarnations, progressive tool discovery, and
+hybrid memory retrieval.
+
 - [Chapter 0: Lucy's first shift](ch00_first_shift/README.md) — run one
   complete piece of work and learn that `ACCEPTED` is a proved claim
 - [Chapter 1: The organization remembers](ch01_organization_remembers/README.md) —
