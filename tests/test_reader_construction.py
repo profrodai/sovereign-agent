@@ -20,6 +20,14 @@ ROOT = Path(__file__).resolve().parents[1]
 def saved_definitions(chapter, assignments):
     """Apply the exact save instructions printed in Chapters 2 and 3."""
     text = (ROOT / f"book/always_on/{chapter}/README.md").read_text()
+    if chapter == "ch02_shop_tools":
+        # The save instructions explicitly exclude the standalone library practice.
+        start = "## Meet Pydantic one step at a time"
+        end = "## Describe and validate the three tool interfaces"
+        assert text.count(start) == text.count(end) == 1
+        prefix, practice = text.split(start)
+        _, construction = practice.split(end)
+        text = prefix + end + construction
     nodes = []
     for code in re.findall(r"^```python\n(.*?)^```", text, re.M | re.S):
         for node in ast.parse(code).body:
