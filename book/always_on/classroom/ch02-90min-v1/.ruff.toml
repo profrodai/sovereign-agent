@@ -1,0 +1,3 @@
+extend = "../../../../pyproject.toml"
+# Standalone class notebooks also run in Python 3.10+ Jupyter/Colab kernels.
+target-version = "py310"

@@ -1,0 +1,56 @@
+{
+  "schemaVersion": 1,
+  "created": "2026-09-09",
+  "status": "DRAFT_CLASSROOM_UNREVIEWED",
+  "plannedMinutes": 90,
+  "runtimeTested": "3.14.3",
+  "pydanticTested": "2.13.4",
+  "sourceCommit": "4baba0a1c051d9d02af552b95a14a5b9c76f3f13",
+  "notebooks": [
+    {
+      "path": "instructor/01-typed-tools-and-trustworthy-drafts-v1.ipynb",
+      "sha256": "95cb5908269d9f11618709caccd139905ad4fc0f27398adeb1368ff913970b02",
+      "cells": 28,
+      "codeCells": 16,
+      "freshKernel": "PASS",
+      "python310Syntax": "PASS",
+      "studentStartersIncomplete": false,
+      "instructorAdditionalChecks": "PASS"
+    },
+    {
+      "path": "instructor/02-dispatch-permissions-and-transfer-v1.ipynb",
+      "sha256": "a449e4bf533cd88440093888f95ee62eca0bea22151f53b996e1f0da76f97b36",
+      "cells": 28,
+      "codeCells": 16,
+      "freshKernel": "PASS",
+      "python310Syntax": "PASS",
+      "studentStartersIncomplete": false,
+      "instructorAdditionalChecks": "PASS"
+    },
+    {
+      "path": "student/01-typed-tools-and-trustworthy-drafts-v1.ipynb",
+      "sha256": "69b2b7dfe8a6c98e45ebac4cb6511cb5be2e4f95f0cecfdfa8d2d6eedcd3a1e2",
+      "cells": 25,
+      "codeCells": 15,
+      "freshKernel": "PASS",
+      "python310Syntax": "PASS",
+      "studentStartersIncomplete": true,
+      "instructorAdditionalChecks": "NOT_DISTRIBUTED"
+    },
+    {
+      "path": "student/02-dispatch-permissions-and-transfer-v1.ipynb",
+      "sha256": "b0cfdb7d2cd3aeb5dd45e7e541a162be3274bef057056111dec8f63bf3a7eb18",
+      "cells": 25,
+      "codeCells": 15,
+      "freshKernel": "PASS",
+      "python310Syntax": "PASS",
+      "studentStartersIncomplete": true,
+      "instructorAdditionalChecks": "NOT_DISTRIBUTED"
+    }
+  ],
+  "limitations": [
+    "Python 3.10 syntax checked; runtime execution tested on the recorded Python version",
+    "Jupyter fresh kernels tested; Colab browser UI not separately exercised",
+    "Planned classroom duration and learning outcomes require actual observation"
+  ]
+}
