@@ -1,5 +1,7 @@
 # `book/` is a content source, not a site
 
+**Updated:** 2026-09-09 · **Doctrinal basis:** CLAUDE.md Rev 17 · **Revision:** point verification at the V2 checker, which admits paired practical Jupytext sources.
+
 This directory is the source of truth for the Sovereign Agent textbook. It is
 designated for rendering by a separate site repository; **which** repository is
 recorded in the ruling, not here. That integration does not exist yet, so this
@@ -57,7 +59,7 @@ Every chapter `INSTRUCTOR.md` carries these seven sections, in this order:
 | `## Facilitation timing` | A realistic guided-session time budget |
 | `## Exercise debrief and assessment` | How to tell, from watching or reading a learner's answers, whether the chapter landed |
 
-`scripts/verify_curriculum.py` mechanically checks that every required
+`scripts/verify_curriculum_v2.py` mechanically checks that every required
 chapter's `INSTRUCTOR.md` exists and carries all seven sections — a
 structural check only. It cannot and does not grade whether a misconception
 list is accurate, whether a timing estimate is realistic, or whether a
@@ -65,7 +67,7 @@ discussion prompt is any good; that judgment stays with whoever facilitates.
 
 ## What is guaranteed, and by what
 
-`scripts/verify_curriculum.py` runs in CI and fails the build if any of these
+`scripts/verify_curriculum_v2.py` runs in CI and fails the build if any of these
 break:
 
 - a required chapter is missing, or lacks any required section
@@ -146,7 +148,7 @@ belongs to the site that renders it, not to the source.
 ## Checking it yourself
 
 ```bash
-python scripts/verify_curriculum.py
+python scripts/verify_curriculum_v2.py
 ```
 
 Exits 0 only when every statement in "What is guaranteed" holds. It says nothing

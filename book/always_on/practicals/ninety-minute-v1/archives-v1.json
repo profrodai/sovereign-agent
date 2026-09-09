@@ -1,0 +1,693 @@
+{
+  "schemaVersion": 1,
+  "archives": [
+    {
+      "path": "complete-student-course-v1.zip",
+      "sha256": "5456bc4852f1aab05c54c02d5782311cb58a20cfcdf1fe7e60c84dc984ee9b68",
+      "bytes": 14421405,
+      "members": {
+        "START-HERE.md": "e6bcedd862fb2e3a289c8ead7738f279e7762af19145073ed873e78f0cf7278c",
+        "ch01/student/unit-a-v1.ipynb": "0e10f0fec46d2642040910ef4b49443766be46df8003c0797f23af866d897aab",
+        "ch01/student/unit-a-v1.md": "00707fff6aabd5a3557e77badb8c063f55a372713b602eb8aab41802004dbc20",
+        "ch01/student/unit-b-v1.ipynb": "72ab15d565b7bab42b62edff7410a1b1e52e7109fef5e181302bacabd94d19a7",
+        "ch01/student/unit-b-v1.md": "4dae57f1aa57d7dfb593a983b30ab04f4350d4df84fce2888297cd945d981bb0",
+        "ch02/student/unit-a-v1.ipynb": "0b83108c1fd2bd1812195760400394951d5a072897180cf0c13c96c2b527be8a",
+        "ch02/student/unit-a-v1.md": "b2779c0f1f5f76198eaf6cad99d663bb835898cc7df4ae7b661ba47f7d4bed16",
+        "ch02/student/unit-b-v1.ipynb": "e318fed0fbcf0e3054aec8c84e34d9ff0b5ca6b6b386fb7708ed845e42a1c366",
+        "ch02/student/unit-b-v1.md": "17c87d57086ab09876ccbc93375b35cb78c0d775e3d711db543357bca47255ab",
+        "ch03/student/unit-a-v1.ipynb": "985aad0bcfda513aaeaa71ed5f74fb5a69e6c090e1bc65303b761f73b6562406",
+        "ch03/student/unit-a-v1.md": "bf5fa0b92944c03a04334d833d1c3304312fb890d7ed65f221c8d32219d935c8",
+        "ch03/student/unit-b-v1.ipynb": "8f52ef9e9e6bf5cc9e5b22630c2d4c47c4ac88e5cca1df24158f4912c3bd700a",
+        "ch03/student/unit-b-v1.md": "e60d7095862c2dbe3cc1c22c6cf7dfb976e58fb57ead53c00ecf5c622e013ae8",
+        "ch04/student/unit-a-v1.ipynb": "ea2e946e3e66ba7fcf3fab6e2036eb35bae89d69f8b779a7d5d9feb7a3da0823",
+        "ch04/student/unit-a-v1.md": "f07bb552c92349d9e872f404c672ea324e34a66b9c67ccfce9fb014eda20ae7f",
+        "ch04/student/unit-b-v1.ipynb": "6990253e4990593ec52167e85a1499edee22009a4f994b5ba84e8c588cf1f269",
+        "ch04/student/unit-b-v1.md": "4e13dcf999b17f9be3901b56e9a1c4ab6bbb6366b6db51224bf6a3db9280b6db",
+        "ch05/student/unit-a-v1.ipynb": "3d567a0decb3859e6865ca944fa791c7d77058e1e1f9ea8c6260e31ef99734a3",
+        "ch05/student/unit-a-v1.md": "4ff6e9f00d9e73877d28679e3ee88f82ceef94c0766da08a1b0fa7e4630b9c49",
+        "ch05/student/unit-b-v1.ipynb": "c79fac74add58fc15dddc4e1a93769d0073f95548c59f9b165a874eadb4f279b",
+        "ch05/student/unit-b-v1.md": "a02c7ac4ff17181635f84762e0960110de2b3fdbc0e7197f3888136c5d142eb6",
+        "ch06/student/unit-a-v1.ipynb": "56baad11aa1240af1d749da0343c59d690d78c7925bd9daa35b638ff5ce128b8",
+        "ch06/student/unit-a-v1.md": "e55ccc26cb7b2f1eaac28d0c5389168c5cd83385efb053835b4a2495a8758d44",
+        "ch06/student/unit-b-v1.ipynb": "822929f5cc8cc86143da2768939d5837d096813c785c4d7914c942c0f9e9db8e",
+        "ch06/student/unit-b-v1.md": "63fa498f9b4781f00e253acec9fb7e68c1d4db96b3374385c1d029a7309961bc",
+        "ch07/student/unit-a-v1.ipynb": "99d142720c136684d3143a49b26697280f53df89d596c1a0e4f8d9455d6960da",
+        "ch07/student/unit-a-v1.md": "54c3321a2a17b124c24d13a4c061204ec3fecfccd46e7c10e23cca847652119e",
+        "ch07/student/unit-b-v1.ipynb": "f5e489ab1521ae49a10724b0d3d43fc19bd86bf79c9b2abee5d43f01bd5aee71",
+        "ch07/student/unit-b-v1.md": "0ad7fdc46ab31ebab832bb77f7017bc2e690e62c638af730f65e1d895a17ccba",
+        "ch08/student/unit-a-v1.ipynb": "0c1f0c7fcf94eadb79d83fe7069fba74480c5f01732dba599aa5b61156903718",
+        "ch08/student/unit-a-v1.md": "428a3765259357d28541f23a502675e5ab61798a119e6b5cf098a1d8f7d6b3b6",
+        "ch08/student/unit-b-v1.ipynb": "197f93dae5e552f12ba5c8ccc3d350643f67a5e0df93c149df61746fdb2a2319",
+        "ch08/student/unit-b-v1.md": "871a7dcd5abd78ed77746f46383279086d52dc2f0fbf9b8a10cc8c938f1a7dfd",
+        "ch09/student/unit-a-v1.ipynb": "9bb6ba9cd8da9ba591b2ebd0e7eb6d1151c43aeebc307c346da162d8b3050bb2",
+        "ch09/student/unit-a-v1.md": "9621bbddbaa794f00c9e87f93fe38d858977a011a63c77128bf87c51eb228334",
+        "ch09/student/unit-b-v1.ipynb": "0c65ae7cb33fc79d89d37116b30787b3c03fd91971df0ee87bfe35eaa7b0365c",
+        "ch09/student/unit-b-v1.md": "5b6e46b138432546a6a1fe9c3d3bf6038fdc10ce8986fcfa60ee44691ad251a8",
+        "ch10/student/unit-a-v1.ipynb": "a3fef4c6a797942c4defa8bc8880bfe85f68562d4a50ca6e8d9d0b709b64d92d",
+        "ch10/student/unit-a-v1.md": "e1b807faf7ce0307483afa3d8b5fad4cad2f63d8c80cc81c5278b69be971b4fc",
+        "ch10/student/unit-b-v1.ipynb": "98f7b0ed78b51623856d17e93fc34cd9b98b7be9e31407aabf906188eece0c01",
+        "ch10/student/unit-b-v1.md": "74a82e1ce5aa7d09f58bac50a48f2a0a6e1b6dd8997128bef3168c4ccb87b1db",
+        "ch11/student/unit-a-v1.ipynb": "166fd4310440b5052e78fb1677103cd0aaace09467ee7d13adc3c517cf0a75d4",
+        "ch11/student/unit-a-v1.md": "c49c1792d34ff040f5b83ca5ac29b000b7236f9424286f3380ddefda2ff12b8a",
+        "ch11/student/unit-b-v1.ipynb": "8caab9222404406869704303c2081c9e38660269ab854586e4082f15880dfb7d",
+        "ch11/student/unit-b-v1.md": "9e8d7376ee3acfa6606fc72a0f4a4af89290dc6f516469eb57085ac5182d2d2a",
+        "ch12/student/unit-a-v1.ipynb": "9b6a3d5358bf9755cb1a51000c5a95756649a44e344a98f88b21b846854eee00",
+        "ch12/student/unit-a-v1.md": "35306aa50bca35d7df8f231b08d2e67243a5293d6eba10405a2b9876a30a55c4",
+        "ch12/student/unit-b-v1.ipynb": "585757a771b1c097d66579ce00993cb279cb5195f6aa58bcbd9fcd4f60cd564f",
+        "ch12/student/unit-b-v1.md": "3a515cc518f478392c986b23c431351568e084f14e1c53f9c0950d7cefe93e22",
+        "ch13/student/unit-a-v1.ipynb": "fd50efeb9419c2fcb59e515332218ccc310354cef6abb9b35727321ed8c49f89",
+        "ch13/student/unit-a-v1.md": "78910d0f0598c6fbd4e2e888e0678e9112a18613c216a8873cd2705cfc2fbdb6",
+        "ch13/student/unit-b-v1.ipynb": "193cf1b0addf2f6823ecc26f1021e7f4724a06e8b719d3588c94946281230e23",
+        "ch13/student/unit-b-v1.md": "deba91a8b36a7668ee8ae0ee003f8194f9aeee0dcf4507c46c7d286d160ea9b2",
+        "ch14/student/unit-a-v1.ipynb": "4e4f438ba6248de4275b1414bb6c80a70c1c347a397606c30a9d2ba4fb36b63c",
+        "ch14/student/unit-a-v1.md": "9c41edf3de2e98150736e805fd1cb213847a5b7306c0d8d68b9630bbaf007084",
+        "ch14/student/unit-b-v1.ipynb": "b5248497dcffe88b240fd86c52eadcd337166f911c58e1a58579ead56778e504",
+        "ch14/student/unit-b-v1.md": "d40331d2e063d0b66b0d3b1a3e1b84a056f6bf2b95c6d4dbde33bf16dc38fc6b",
+        "ch15/student/unit-a-v1.ipynb": "7883658c9246d1bb78b64fe4e5d5c0d479083e2f49028127c576d972c4ff856e",
+        "ch15/student/unit-a-v1.md": "ee3217c25ffb70e79928833151c48c2f0425122395d9e4ef4953738211a41b80",
+        "ch15/student/unit-b-v1.ipynb": "391f2943d11871dc36ba10c8643ab8afb07385cf99ef6f061122a86e80b523a0",
+        "ch15/student/unit-b-v1.md": "31d681dac1fa4c1cee771105125dbd5f95cc45de86bc9cfe8dcd55ccd559d0ff",
+        "ch16/student/unit-a-v1.ipynb": "446067c13790b67a2c051a2baed4223e5402bf6476e58825488fbcbcafa5aa5c",
+        "ch16/student/unit-a-v1.md": "abd400581b4b46f9ca1422b423b2f0fde3227e34a2de03c39e6854d51ebe8533",
+        "ch16/student/unit-b-v1.ipynb": "41a2f2e704080536e9c856b20ca59f7bfa2a001b1061c76f4e92d6ef73a8e34f",
+        "ch16/student/unit-b-v1.md": "ce9a06845494874b3352fdc14ec4bf26e2ba124d1478c896871075b9f05433aa"
+      }
+    },
+    {
+      "path": "ch01/ch01-student-pack-v1.zip",
+      "sha256": "1ef514a0251d9d31924df6f8def14743e397e66d319ab02739447b285f64ddd8",
+      "bytes": 901566,
+      "members": {
+        "START-HERE.md": "b5bc51fec001bca9794dd60a7298f36d2383da809edf77e543a4ef232a974313",
+        "ch01/student/unit-a-v1.ipynb": "0e10f0fec46d2642040910ef4b49443766be46df8003c0797f23af866d897aab",
+        "ch01/student/unit-a-v1.md": "00707fff6aabd5a3557e77badb8c063f55a372713b602eb8aab41802004dbc20",
+        "ch01/student/unit-b-v1.ipynb": "72ab15d565b7bab42b62edff7410a1b1e52e7109fef5e181302bacabd94d19a7",
+        "ch01/student/unit-b-v1.md": "4dae57f1aa57d7dfb593a983b30ab04f4350d4df84fce2888297cd945d981bb0"
+      }
+    },
+    {
+      "path": "ch02/ch02-student-pack-v1.zip",
+      "sha256": "b7b4182edbdbb7e6eed2f2aac2ae26b62bd04d2c484c84c275f6a105d810143d",
+      "bytes": 907784,
+      "members": {
+        "START-HERE.md": "9db285c23adf5a374a30ce5d2a14f43ad16ef80c9b5ec881f999d0a25b5ae070",
+        "ch02/student/unit-a-v1.ipynb": "0b83108c1fd2bd1812195760400394951d5a072897180cf0c13c96c2b527be8a",
+        "ch02/student/unit-a-v1.md": "b2779c0f1f5f76198eaf6cad99d663bb835898cc7df4ae7b661ba47f7d4bed16",
+        "ch02/student/unit-b-v1.ipynb": "e318fed0fbcf0e3054aec8c84e34d9ff0b5ca6b6b386fb7708ed845e42a1c366",
+        "ch02/student/unit-b-v1.md": "17c87d57086ab09876ccbc93375b35cb78c0d775e3d711db543357bca47255ab"
+      }
+    },
+    {
+      "path": "ch03/ch03-student-pack-v1.zip",
+      "sha256": "3633b6e89071bea6dc60529dc4f13864f3ba560c9deda2c41bf9b7fe36a9aa09",
+      "bytes": 900905,
+      "members": {
+        "START-HERE.md": "28f582872eef06503eaec3327f5db5daaebbe20ef4dedd3877d662bc487c8a13",
+        "ch03/student/unit-a-v1.ipynb": "985aad0bcfda513aaeaa71ed5f74fb5a69e6c090e1bc65303b761f73b6562406",
+        "ch03/student/unit-a-v1.md": "bf5fa0b92944c03a04334d833d1c3304312fb890d7ed65f221c8d32219d935c8",
+        "ch03/student/unit-b-v1.ipynb": "8f52ef9e9e6bf5cc9e5b22630c2d4c47c4ac88e5cca1df24158f4912c3bd700a",
+        "ch03/student/unit-b-v1.md": "e60d7095862c2dbe3cc1c22c6cf7dfb976e58fb57ead53c00ecf5c622e013ae8"
+      }
+    },
+    {
+      "path": "ch04/ch04-student-pack-v1.zip",
+      "sha256": "62b6297c137058d36fe90429709dce54c1f2060102d8ea81c8e56e21dd78e36f",
+      "bytes": 901332,
+      "members": {
+        "START-HERE.md": "70c1b4b339b34940d82d87c804657a76afa2c0fb83ac841e19e7d30b0f701a9c",
+        "ch04/student/unit-a-v1.ipynb": "ea2e946e3e66ba7fcf3fab6e2036eb35bae89d69f8b779a7d5d9feb7a3da0823",
+        "ch04/student/unit-a-v1.md": "f07bb552c92349d9e872f404c672ea324e34a66b9c67ccfce9fb014eda20ae7f",
+        "ch04/student/unit-b-v1.ipynb": "6990253e4990593ec52167e85a1499edee22009a4f994b5ba84e8c588cf1f269",
+        "ch04/student/unit-b-v1.md": "4e13dcf999b17f9be3901b56e9a1c4ab6bbb6366b6db51224bf6a3db9280b6db"
+      }
+    },
+    {
+      "path": "ch05/ch05-student-pack-v1.zip",
+      "sha256": "ae25a6e058d936e780cd43e7d77b0b977f4bc3ac9b2c35b2668e0eef3fcfa3dc",
+      "bytes": 901682,
+      "members": {
+        "START-HERE.md": "e0fb5aa0b5bd31296efe477a79a2ee5fab24ca7c3faad617bf98da18560b0313",
+        "ch05/student/unit-a-v1.ipynb": "3d567a0decb3859e6865ca944fa791c7d77058e1e1f9ea8c6260e31ef99734a3",
+        "ch05/student/unit-a-v1.md": "4ff6e9f00d9e73877d28679e3ee88f82ceef94c0766da08a1b0fa7e4630b9c49",
+        "ch05/student/unit-b-v1.ipynb": "c79fac74add58fc15dddc4e1a93769d0073f95548c59f9b165a874eadb4f279b",
+        "ch05/student/unit-b-v1.md": "a02c7ac4ff17181635f84762e0960110de2b3fdbc0e7197f3888136c5d142eb6"
+      }
+    },
+    {
+      "path": "ch06/ch06-student-pack-v1.zip",
+      "sha256": "1366a18496f004eb6794062884da518346a2347153d8df425fdf6b1ee36336dc",
+      "bytes": 902049,
+      "members": {
+        "START-HERE.md": "30761e8ba61632c1f8bec8dd5181f08e816e89a3a6976702f71bbb4511c5e67f",
+        "ch06/student/unit-a-v1.ipynb": "56baad11aa1240af1d749da0343c59d690d78c7925bd9daa35b638ff5ce128b8",
+        "ch06/student/unit-a-v1.md": "e55ccc26cb7b2f1eaac28d0c5389168c5cd83385efb053835b4a2495a8758d44",
+        "ch06/student/unit-b-v1.ipynb": "822929f5cc8cc86143da2768939d5837d096813c785c4d7914c942c0f9e9db8e",
+        "ch06/student/unit-b-v1.md": "63fa498f9b4781f00e253acec9fb7e68c1d4db96b3374385c1d029a7309961bc"
+      }
+    },
+    {
+      "path": "ch07/ch07-student-pack-v1.zip",
+      "sha256": "985601458e4f9490e64fea534a7c851d45ee4cf41b26d80b32054c6ac4ba7006",
+      "bytes": 901345,
+      "members": {
+        "START-HERE.md": "6d558ec40c83c563da123b87245ae61262041d9367af88069300f56318d1b462",
+        "ch07/student/unit-a-v1.ipynb": "99d142720c136684d3143a49b26697280f53df89d596c1a0e4f8d9455d6960da",
+        "ch07/student/unit-a-v1.md": "54c3321a2a17b124c24d13a4c061204ec3fecfccd46e7c10e23cca847652119e",
+        "ch07/student/unit-b-v1.ipynb": "f5e489ab1521ae49a10724b0d3d43fc19bd86bf79c9b2abee5d43f01bd5aee71",
+        "ch07/student/unit-b-v1.md": "0ad7fdc46ab31ebab832bb77f7017bc2e690e62c638af730f65e1d895a17ccba"
+      }
+    },
+    {
+      "path": "ch08/ch08-student-pack-v1.zip",
+      "sha256": "9cd5d77ddf7ba568aee6ec7f96063222271af50b108ec25e00b4b0940970178b",
+      "bytes": 901296,
+      "members": {
+        "START-HERE.md": "f8746a566e7dcac6d6503faa3f46969b3941f4034dc75d81791b4bf23896a5f4",
+        "ch08/student/unit-a-v1.ipynb": "0c1f0c7fcf94eadb79d83fe7069fba74480c5f01732dba599aa5b61156903718",
+        "ch08/student/unit-a-v1.md": "428a3765259357d28541f23a502675e5ab61798a119e6b5cf098a1d8f7d6b3b6",
+        "ch08/student/unit-b-v1.ipynb": "197f93dae5e552f12ba5c8ccc3d350643f67a5e0df93c149df61746fdb2a2319",
+        "ch08/student/unit-b-v1.md": "871a7dcd5abd78ed77746f46383279086d52dc2f0fbf9b8a10cc8c938f1a7dfd"
+      }
+    },
+    {
+      "path": "ch09/ch09-student-pack-v1.zip",
+      "sha256": "e506dc667e604cdaa8d49077d9a82850aa79df43a0c30215ff83b828563a456f",
+      "bytes": 912386,
+      "members": {
+        "START-HERE.md": "7a2b2102766eb3e164cd599454bb514f135fa95753500fcdfa4d804145dbcf9b",
+        "ch09/student/unit-a-v1.ipynb": "9bb6ba9cd8da9ba591b2ebd0e7eb6d1151c43aeebc307c346da162d8b3050bb2",
+        "ch09/student/unit-a-v1.md": "9621bbddbaa794f00c9e87f93fe38d858977a011a63c77128bf87c51eb228334",
+        "ch09/student/unit-b-v1.ipynb": "0c65ae7cb33fc79d89d37116b30787b3c03fd91971df0ee87bfe35eaa7b0365c",
+        "ch09/student/unit-b-v1.md": "5b6e46b138432546a6a1fe9c3d3bf6038fdc10ce8986fcfa60ee44691ad251a8"
+      }
+    },
+    {
+      "path": "ch10/ch10-student-pack-v1.zip",
+      "sha256": "1f51294a2247dc10dab2a1a9a10f8577abcb3b79da508ad7ae660767aa1c5397",
+      "bytes": 901078,
+      "members": {
+        "START-HERE.md": "78204f2c9f8513f3d6e58be586b3d760c9c3a75354ca4a2c3f9306cff1735443",
+        "ch10/student/unit-a-v1.ipynb": "a3fef4c6a797942c4defa8bc8880bfe85f68562d4a50ca6e8d9d0b709b64d92d",
+        "ch10/student/unit-a-v1.md": "e1b807faf7ce0307483afa3d8b5fad4cad2f63d8c80cc81c5278b69be971b4fc",
+        "ch10/student/unit-b-v1.ipynb": "98f7b0ed78b51623856d17e93fc34cd9b98b7be9e31407aabf906188eece0c01",
+        "ch10/student/unit-b-v1.md": "74a82e1ce5aa7d09f58bac50a48f2a0a6e1b6dd8997128bef3168c4ccb87b1db"
+      }
+    },
+    {
+      "path": "ch11/ch11-student-pack-v1.zip",
+      "sha256": "f880e306d05d543be384a1c1ed1301fe3a44cb7db30a2494c4fa3e3636ffc40c",
+      "bytes": 893575,
+      "members": {
+        "START-HERE.md": "629117c5de43c1289fc85e82e8559d1f17b91ed5a6d2b55fc861d7dfa8228d1f",
+        "ch11/student/unit-a-v1.ipynb": "166fd4310440b5052e78fb1677103cd0aaace09467ee7d13adc3c517cf0a75d4",
+        "ch11/student/unit-a-v1.md": "c49c1792d34ff040f5b83ca5ac29b000b7236f9424286f3380ddefda2ff12b8a",
+        "ch11/student/unit-b-v1.ipynb": "8caab9222404406869704303c2081c9e38660269ab854586e4082f15880dfb7d",
+        "ch11/student/unit-b-v1.md": "9e8d7376ee3acfa6606fc72a0f4a4af89290dc6f516469eb57085ac5182d2d2a"
+      }
+    },
+    {
+      "path": "ch12/ch12-student-pack-v1.zip",
+      "sha256": "f54d6c9e21f86932fd67a5c7da89b300cc73908cfdf262213f3eb7ea793a8721",
+      "bytes": 900880,
+      "members": {
+        "START-HERE.md": "fc3756831030b24b195357e0ba8d9ce2deee8caa0526a536928c28d1342094b9",
+        "ch12/student/unit-a-v1.ipynb": "9b6a3d5358bf9755cb1a51000c5a95756649a44e344a98f88b21b846854eee00",
+        "ch12/student/unit-a-v1.md": "35306aa50bca35d7df8f231b08d2e67243a5293d6eba10405a2b9876a30a55c4",
+        "ch12/student/unit-b-v1.ipynb": "585757a771b1c097d66579ce00993cb279cb5195f6aa58bcbd9fcd4f60cd564f",
+        "ch12/student/unit-b-v1.md": "3a515cc518f478392c986b23c431351568e084f14e1c53f9c0950d7cefe93e22"
+      }
+    },
+    {
+      "path": "ch13/ch13-student-pack-v1.zip",
+      "sha256": "a095b1045a9adfb0e84ab8d7eb9d6ef20cfabd8fdab40ca79f69fd26481b4d10",
+      "bytes": 901132,
+      "members": {
+        "START-HERE.md": "184aaf0d6e52a71bf331cce2fe461e864203313fee33ef06a7e2ae8278030b95",
+        "ch13/student/unit-a-v1.ipynb": "fd50efeb9419c2fcb59e515332218ccc310354cef6abb9b35727321ed8c49f89",
+        "ch13/student/unit-a-v1.md": "78910d0f0598c6fbd4e2e888e0678e9112a18613c216a8873cd2705cfc2fbdb6",
+        "ch13/student/unit-b-v1.ipynb": "193cf1b0addf2f6823ecc26f1021e7f4724a06e8b719d3588c94946281230e23",
+        "ch13/student/unit-b-v1.md": "deba91a8b36a7668ee8ae0ee003f8194f9aeee0dcf4507c46c7d286d160ea9b2"
+      }
+    },
+    {
+      "path": "ch14/ch14-student-pack-v1.zip",
+      "sha256": "5ecc36a781c70fdf2dd5b821990c71abb9b695c2138c57c56e99e7d04ac3bf4c",
+      "bytes": 900666,
+      "members": {
+        "START-HERE.md": "2ab60b471f94699e20556d5646b103c1dbf429272d82e27cbcb678973a55f810",
+        "ch14/student/unit-a-v1.ipynb": "4e4f438ba6248de4275b1414bb6c80a70c1c347a397606c30a9d2ba4fb36b63c",
+        "ch14/student/unit-a-v1.md": "9c41edf3de2e98150736e805fd1cb213847a5b7306c0d8d68b9630bbaf007084",
+        "ch14/student/unit-b-v1.ipynb": "b5248497dcffe88b240fd86c52eadcd337166f911c58e1a58579ead56778e504",
+        "ch14/student/unit-b-v1.md": "d40331d2e063d0b66b0d3b1a3e1b84a056f6bf2b95c6d4dbde33bf16dc38fc6b"
+      }
+    },
+    {
+      "path": "ch15/ch15-student-pack-v1.zip",
+      "sha256": "80eac25fee92525ee42ccae223d3a75d9d024b002856fb4b1f85eaf8de500cc9",
+      "bytes": 901693,
+      "members": {
+        "START-HERE.md": "42fbdde7ed5abce563770c02e70a4c315f07988c8abb27e8e00069fd0d682c64",
+        "ch15/student/unit-a-v1.ipynb": "7883658c9246d1bb78b64fe4e5d5c0d479083e2f49028127c576d972c4ff856e",
+        "ch15/student/unit-a-v1.md": "ee3217c25ffb70e79928833151c48c2f0425122395d9e4ef4953738211a41b80",
+        "ch15/student/unit-b-v1.ipynb": "391f2943d11871dc36ba10c8643ab8afb07385cf99ef6f061122a86e80b523a0",
+        "ch15/student/unit-b-v1.md": "31d681dac1fa4c1cee771105125dbd5f95cc45de86bc9cfe8dcd55ccd559d0ff"
+      }
+    },
+    {
+      "path": "ch16/ch16-student-pack-v1.zip",
+      "sha256": "cf7258c6416ec8a4df7a9a6d775e9da810cf2929e93b15d0e7aa064bb4f437fb",
+      "bytes": 902729,
+      "members": {
+        "START-HERE.md": "061ef0bb3604ca8316ef996fe4445d65675b1263adc04a914a75fc86ddd4a078",
+        "ch16/student/unit-a-v1.ipynb": "446067c13790b67a2c051a2baed4223e5402bf6476e58825488fbcbcafa5aa5c",
+        "ch16/student/unit-a-v1.md": "abd400581b4b46f9ca1422b423b2f0fde3227e34a2de03c39e6854d51ebe8533",
+        "ch16/student/unit-b-v1.ipynb": "41a2f2e704080536e9c856b20ca59f7bfa2a001b1061c76f4e92d6ef73a8e34f",
+        "ch16/student/unit-b-v1.md": "ce9a06845494874b3352fdc14ec4bf26e2ba124d1478c896871075b9f05433aa"
+      }
+    },
+    {
+      "path": "complete-instructor-course-v1.zip",
+      "sha256": "1fd5a266f2a1c849806989c425be1e1d46cc51a2945f31780262e5972b985f4d",
+      "bytes": 29259497,
+      "members": {
+        "START-HERE.md": "70829ad46ceca3a33f68aa4fab92716e4cae6ea12e023e978f26289323cfe1e2",
+        "ch01/TEACHING-GUIDE.md": "1b5647cbe51fdacaecc374d156d16dddcd0117365cba6f5d2f2e2df58cc871ac",
+        "ch01/instructor/unit-a-v1.ipynb": "7baa8fed4eeb674cb38ccbf51f4fd1181a7deac241b0666cfc178418673a9f82",
+        "ch01/instructor/unit-a-v1.md": "a1c69aa7dd2a89db740605b1832171b79655970562a6c78e9dc847783d83e56c",
+        "ch01/instructor/unit-b-v1.ipynb": "59afc9d79f1aeacabe90b72f9672469950a79a56ef79d6dae0c68d4b63b218fc",
+        "ch01/instructor/unit-b-v1.md": "40f87cc43c2e5234c48374ab96de8fb47f47610800f8d49d17a59226a6891e3b",
+        "ch01/student/unit-a-v1.ipynb": "0e10f0fec46d2642040910ef4b49443766be46df8003c0797f23af866d897aab",
+        "ch01/student/unit-a-v1.md": "00707fff6aabd5a3557e77badb8c063f55a372713b602eb8aab41802004dbc20",
+        "ch01/student/unit-b-v1.ipynb": "72ab15d565b7bab42b62edff7410a1b1e52e7109fef5e181302bacabd94d19a7",
+        "ch01/student/unit-b-v1.md": "4dae57f1aa57d7dfb593a983b30ab04f4350d4df84fce2888297cd945d981bb0",
+        "ch02/TEACHING-GUIDE.md": "d7bf3c76df4c2d4d3afd9de297ee182acfb02166aeaa699419da3b5c5068e9a6",
+        "ch02/instructor/unit-a-v1.ipynb": "3f01bd2d44149773ccdc73eb4d919b8660d92d0556cc3bfe48d055f0fd35f627",
+        "ch02/instructor/unit-a-v1.md": "a4409bc469d2f558644c0412c2b920b822e985c28ab75ced74936a8e70e27e2b",
+        "ch02/instructor/unit-b-v1.ipynb": "f79404469ff72b4d7ab7082c78552aba241261e8deef762e4ef36878796fc315",
+        "ch02/instructor/unit-b-v1.md": "6bc8b11128b6f77436e0907a2a37c08c0c4e2b49d9b971907548e45a23ea2563",
+        "ch02/student/unit-a-v1.ipynb": "0b83108c1fd2bd1812195760400394951d5a072897180cf0c13c96c2b527be8a",
+        "ch02/student/unit-a-v1.md": "b2779c0f1f5f76198eaf6cad99d663bb835898cc7df4ae7b661ba47f7d4bed16",
+        "ch02/student/unit-b-v1.ipynb": "e318fed0fbcf0e3054aec8c84e34d9ff0b5ca6b6b386fb7708ed845e42a1c366",
+        "ch02/student/unit-b-v1.md": "17c87d57086ab09876ccbc93375b35cb78c0d775e3d711db543357bca47255ab",
+        "ch03/TEACHING-GUIDE.md": "4b325a0b17b7c4be89eea366cc7cc1b186971d1d646921000f088a0cabe15283",
+        "ch03/instructor/unit-a-v1.ipynb": "88b9cb5b0eca5d03a08dfc04861e4599dd7580ab4564213b593633afb75c756b",
+        "ch03/instructor/unit-a-v1.md": "3aba742b2252e6eb8006b8774b680bbeb636264e424df44ca896c788be2b60f8",
+        "ch03/instructor/unit-b-v1.ipynb": "63bac2681ed1dc6c22bc465741acc8ad2ba18e8fdf4b89df9d1989ce328ad0c4",
+        "ch03/instructor/unit-b-v1.md": "56628d5e9de1d23d4c1eeed1b5216b506f1af8d9fe68dd7a960e19837fca743d",
+        "ch03/student/unit-a-v1.ipynb": "985aad0bcfda513aaeaa71ed5f74fb5a69e6c090e1bc65303b761f73b6562406",
+        "ch03/student/unit-a-v1.md": "bf5fa0b92944c03a04334d833d1c3304312fb890d7ed65f221c8d32219d935c8",
+        "ch03/student/unit-b-v1.ipynb": "8f52ef9e9e6bf5cc9e5b22630c2d4c47c4ac88e5cca1df24158f4912c3bd700a",
+        "ch03/student/unit-b-v1.md": "e60d7095862c2dbe3cc1c22c6cf7dfb976e58fb57ead53c00ecf5c622e013ae8",
+        "ch04/TEACHING-GUIDE.md": "384420903c2cde02c5fe04fb7ca41192e98c8cbab3a0a4f5f7d00bb47e76a55a",
+        "ch04/instructor/unit-a-v1.ipynb": "0c70dd1c4f06ae92a8c1c1475a9ecd53c7db70d3766fe6365adac40021071ea7",
+        "ch04/instructor/unit-a-v1.md": "3ad1a29830a1b4bbc23abcc4a82131dcf54737e4e3bb90f87813131aab072cc3",
+        "ch04/instructor/unit-b-v1.ipynb": "74b606062b437f090105a64d79e7a4163b36827e613e352172ab781e0e2f0a60",
+        "ch04/instructor/unit-b-v1.md": "b76bccefac0dd6b3fabce6e4bcf9ddd66be527429a198d079d9360628883b31e",
+        "ch04/student/unit-a-v1.ipynb": "ea2e946e3e66ba7fcf3fab6e2036eb35bae89d69f8b779a7d5d9feb7a3da0823",
+        "ch04/student/unit-a-v1.md": "f07bb552c92349d9e872f404c672ea324e34a66b9c67ccfce9fb014eda20ae7f",
+        "ch04/student/unit-b-v1.ipynb": "6990253e4990593ec52167e85a1499edee22009a4f994b5ba84e8c588cf1f269",
+        "ch04/student/unit-b-v1.md": "4e13dcf999b17f9be3901b56e9a1c4ab6bbb6366b6db51224bf6a3db9280b6db",
+        "ch05/TEACHING-GUIDE.md": "e49fa7b39c861c79c069ed054e887eab354ae688cf4929ad3e44616cccb21732",
+        "ch05/instructor/unit-a-v1.ipynb": "363baa85a846cf71691a7defd2372561dc8150ca0588dcf85eb9d5fc058b8c9c",
+        "ch05/instructor/unit-a-v1.md": "a9bb8d3598e8fe3cb93f2b368a68396ed115aad7b59f8c0b15a58653d01a6b1c",
+        "ch05/instructor/unit-b-v1.ipynb": "0ab37a7a5b6e50cc52d6389cc9d0685a7e3a97feaf742ab9be901127384bde44",
+        "ch05/instructor/unit-b-v1.md": "d938ede5903b0d27dd51b0159c9b87943a3b9ce32f9cccca77efbc24bb0cfb11",
+        "ch05/student/unit-a-v1.ipynb": "3d567a0decb3859e6865ca944fa791c7d77058e1e1f9ea8c6260e31ef99734a3",
+        "ch05/student/unit-a-v1.md": "4ff6e9f00d9e73877d28679e3ee88f82ceef94c0766da08a1b0fa7e4630b9c49",
+        "ch05/student/unit-b-v1.ipynb": "c79fac74add58fc15dddc4e1a93769d0073f95548c59f9b165a874eadb4f279b",
+        "ch05/student/unit-b-v1.md": "a02c7ac4ff17181635f84762e0960110de2b3fdbc0e7197f3888136c5d142eb6",
+        "ch06/TEACHING-GUIDE.md": "01abeae0b9b63cc5922c82dfd95e9c6538d529cf38874766238d0231dbabaccf",
+        "ch06/instructor/unit-a-v1.ipynb": "61effbab4795b88c0799695982fa70b266089a597cef5fd158443050e6d242ea",
+        "ch06/instructor/unit-a-v1.md": "40c1d8ccccfeb6ec6651d71b756765601c4a9d113903ce7dbc1bacbe36e7cdcd",
+        "ch06/instructor/unit-b-v1.ipynb": "02e77954740e910ccfd2fd32313323ec3bc5f9593ced5a66eae5c75865086798",
+        "ch06/instructor/unit-b-v1.md": "4e765b9845ecdd9f5b6272b5146b8fb60a75138a569c35afe916448152d0c5df",
+        "ch06/student/unit-a-v1.ipynb": "56baad11aa1240af1d749da0343c59d690d78c7925bd9daa35b638ff5ce128b8",
+        "ch06/student/unit-a-v1.md": "e55ccc26cb7b2f1eaac28d0c5389168c5cd83385efb053835b4a2495a8758d44",
+        "ch06/student/unit-b-v1.ipynb": "822929f5cc8cc86143da2768939d5837d096813c785c4d7914c942c0f9e9db8e",
+        "ch06/student/unit-b-v1.md": "63fa498f9b4781f00e253acec9fb7e68c1d4db96b3374385c1d029a7309961bc",
+        "ch07/TEACHING-GUIDE.md": "ce1a25c98a966b06f5ac29fcc3a9779530fff61919b0a340310af25d064a3aac",
+        "ch07/instructor/unit-a-v1.ipynb": "6fb05ea2d1a51c6f1ca012267be0421350f5ba7a9f091d3d6b7f702f87a2049e",
+        "ch07/instructor/unit-a-v1.md": "f3a6e83490796b6762d8f96da17034b1fbf36a1d29bf5666d65f153683d760be",
+        "ch07/instructor/unit-b-v1.ipynb": "9ba213f68ed1622d60a44460a9035f4d9f8955a143d898e6332d8149dab1dec7",
+        "ch07/instructor/unit-b-v1.md": "ebb6a7d8ec4f4b9190ba95f4b32fc62933950f96b52473db392b2b2668b84f6a",
+        "ch07/student/unit-a-v1.ipynb": "99d142720c136684d3143a49b26697280f53df89d596c1a0e4f8d9455d6960da",
+        "ch07/student/unit-a-v1.md": "54c3321a2a17b124c24d13a4c061204ec3fecfccd46e7c10e23cca847652119e",
+        "ch07/student/unit-b-v1.ipynb": "f5e489ab1521ae49a10724b0d3d43fc19bd86bf79c9b2abee5d43f01bd5aee71",
+        "ch07/student/unit-b-v1.md": "0ad7fdc46ab31ebab832bb77f7017bc2e690e62c638af730f65e1d895a17ccba",
+        "ch08/TEACHING-GUIDE.md": "60ae71de395876bf4d8aec07620967a3c3dd3c0846718d844aca602c785464f6",
+        "ch08/instructor/unit-a-v1.ipynb": "642bd5fcce9d87d8a33a05aae4baedbb88f51308a09fabf46bc36c8a482c943c",
+        "ch08/instructor/unit-a-v1.md": "897ca26fa2d69a034e32bbbdb578e749d8b02dd7b4910d625c965321e7827400",
+        "ch08/instructor/unit-b-v1.ipynb": "ff680a955d853b37cee68d96af38de997a1b8cb7136f90779fbc0fdbe9bf4565",
+        "ch08/instructor/unit-b-v1.md": "3da2b1f64c284a0fda7ed47eacefc89fe9ae2da803f101810424e3d224012fcd",
+        "ch08/student/unit-a-v1.ipynb": "0c1f0c7fcf94eadb79d83fe7069fba74480c5f01732dba599aa5b61156903718",
+        "ch08/student/unit-a-v1.md": "428a3765259357d28541f23a502675e5ab61798a119e6b5cf098a1d8f7d6b3b6",
+        "ch08/student/unit-b-v1.ipynb": "197f93dae5e552f12ba5c8ccc3d350643f67a5e0df93c149df61746fdb2a2319",
+        "ch08/student/unit-b-v1.md": "871a7dcd5abd78ed77746f46383279086d52dc2f0fbf9b8a10cc8c938f1a7dfd",
+        "ch09/TEACHING-GUIDE.md": "f8267ba10c226929450a310001c26ac819b1945313ed2e539d8bf4eeb9b61492",
+        "ch09/instructor/unit-a-v1.ipynb": "3de181be5125c38c1090b73d28be33b3e672bcbdcabb70d84adbd454143e606b",
+        "ch09/instructor/unit-a-v1.md": "382e3a3b725a61430c7f9f39f49b459b9288bd1e38111299f8f3fc830c54e70a",
+        "ch09/instructor/unit-b-v1.ipynb": "786c0a7af5a97f6be0d0e021107666ea4bf7c3574f3b683862536d9f86154bd9",
+        "ch09/instructor/unit-b-v1.md": "dcdb1a740a80dc49765edaf89e67b0a42f46c5df2a47ffef74cacec2bd018249",
+        "ch09/student/unit-a-v1.ipynb": "9bb6ba9cd8da9ba591b2ebd0e7eb6d1151c43aeebc307c346da162d8b3050bb2",
+        "ch09/student/unit-a-v1.md": "9621bbddbaa794f00c9e87f93fe38d858977a011a63c77128bf87c51eb228334",
+        "ch09/student/unit-b-v1.ipynb": "0c65ae7cb33fc79d89d37116b30787b3c03fd91971df0ee87bfe35eaa7b0365c",
+        "ch09/student/unit-b-v1.md": "5b6e46b138432546a6a1fe9c3d3bf6038fdc10ce8986fcfa60ee44691ad251a8",
+        "ch10/TEACHING-GUIDE.md": "fe6f0a2727d511af7488541d72760e418efa6e9a4933cee23abb9faeaf3e75f4",
+        "ch10/instructor/unit-a-v1.ipynb": "6457bc4003158869435e4f8f6b67d6ad08072d498aff7e17b09802ea103a0233",
+        "ch10/instructor/unit-a-v1.md": "eab30b45388849126b5101a37251ab13dcf6584a4162fe46b9b681c5ac5813ea",
+        "ch10/instructor/unit-b-v1.ipynb": "2152331576b71b6b39d2aa4cbb31ec93bb5c3eb4b476a221a8774c760d093f3a",
+        "ch10/instructor/unit-b-v1.md": "b6e77ae06bad7c2d4999847c08e50b9de0d98b34095cfec7872cd1c7a7f75ec4",
+        "ch10/student/unit-a-v1.ipynb": "a3fef4c6a797942c4defa8bc8880bfe85f68562d4a50ca6e8d9d0b709b64d92d",
+        "ch10/student/unit-a-v1.md": "e1b807faf7ce0307483afa3d8b5fad4cad2f63d8c80cc81c5278b69be971b4fc",
+        "ch10/student/unit-b-v1.ipynb": "98f7b0ed78b51623856d17e93fc34cd9b98b7be9e31407aabf906188eece0c01",
+        "ch10/student/unit-b-v1.md": "74a82e1ce5aa7d09f58bac50a48f2a0a6e1b6dd8997128bef3168c4ccb87b1db",
+        "ch11/TEACHING-GUIDE.md": "4a2e26c5be02dfc738c36303c7240c3e3f4c03dc4acdcccc3f679dbca244e6bd",
+        "ch11/instructor/unit-a-v1.ipynb": "04b8d0d967f6aad1ea85ff6d29888f18de4aad10f5f25255f0cf08895b32582e",
+        "ch11/instructor/unit-a-v1.md": "116695477dd08664e7d0fb494783e6ff69e88097fe3746cf52c1f3f7374a9613",
+        "ch11/instructor/unit-b-v1.ipynb": "86d2af24bbe1f20533259dbeeb510b6701000e636a63b1e2608da4fd760fdc2d",
+        "ch11/instructor/unit-b-v1.md": "f105abdbd0c0d77e01e51d0a991b2ff1d2842551adfb45e834eb26d240de01f6",
+        "ch11/student/unit-a-v1.ipynb": "166fd4310440b5052e78fb1677103cd0aaace09467ee7d13adc3c517cf0a75d4",
+        "ch11/student/unit-a-v1.md": "c49c1792d34ff040f5b83ca5ac29b000b7236f9424286f3380ddefda2ff12b8a",
+        "ch11/student/unit-b-v1.ipynb": "8caab9222404406869704303c2081c9e38660269ab854586e4082f15880dfb7d",
+        "ch11/student/unit-b-v1.md": "9e8d7376ee3acfa6606fc72a0f4a4af89290dc6f516469eb57085ac5182d2d2a",
+        "ch12/TEACHING-GUIDE.md": "2b6e946672dadadc294d06a8cc8a456e3b84f5464106d9f56aaa06e886ead0b3",
+        "ch12/instructor/unit-a-v1.ipynb": "ab572368f70f2eb07886fb97ffff65b9fe1bec02358f4bb55ec10862c7866ff4",
+        "ch12/instructor/unit-a-v1.md": "b1a9763b2308f298e87f8fa75bfb8f212b928aa7f48c9eee936da3272fd56de9",
+        "ch12/instructor/unit-b-v1.ipynb": "4aec58d15076015a88d1db93c6ec7cec33b5a37f658b728e431bac794d2d75e0",
+        "ch12/instructor/unit-b-v1.md": "15b7fd265b409722a1aa0ef4cf080448bcda599a3f09c3b96006db965c2e7445",
+        "ch12/student/unit-a-v1.ipynb": "9b6a3d5358bf9755cb1a51000c5a95756649a44e344a98f88b21b846854eee00",
+        "ch12/student/unit-a-v1.md": "35306aa50bca35d7df8f231b08d2e67243a5293d6eba10405a2b9876a30a55c4",
+        "ch12/student/unit-b-v1.ipynb": "585757a771b1c097d66579ce00993cb279cb5195f6aa58bcbd9fcd4f60cd564f",
+        "ch12/student/unit-b-v1.md": "3a515cc518f478392c986b23c431351568e084f14e1c53f9c0950d7cefe93e22",
+        "ch13/TEACHING-GUIDE.md": "328a19ef682f2202fbc9eb595aef96cc314dd3f08d598986dd5f0e78e7683993",
+        "ch13/instructor/unit-a-v1.ipynb": "a65e7fad13b602ba703b5ae9e026293c02cc3bd25d640c99e7f7b6e0ee1eed2a",
+        "ch13/instructor/unit-a-v1.md": "13e63cf8b4fde7f0920cf04a66bb4b2d93db5fbab2edb377e9bde8e4e9f1df5a",
+        "ch13/instructor/unit-b-v1.ipynb": "656791d41b4dfdfdc20ec2ed216e5c85b2a185549c7fef5834f06b3fba2faed5",
+        "ch13/instructor/unit-b-v1.md": "235b5a687eda6d0a71603d1a0e530dcd289ce966a86d24f1f963ae9329402da4",
+        "ch13/student/unit-a-v1.ipynb": "fd50efeb9419c2fcb59e515332218ccc310354cef6abb9b35727321ed8c49f89",
+        "ch13/student/unit-a-v1.md": "78910d0f0598c6fbd4e2e888e0678e9112a18613c216a8873cd2705cfc2fbdb6",
+        "ch13/student/unit-b-v1.ipynb": "193cf1b0addf2f6823ecc26f1021e7f4724a06e8b719d3588c94946281230e23",
+        "ch13/student/unit-b-v1.md": "deba91a8b36a7668ee8ae0ee003f8194f9aeee0dcf4507c46c7d286d160ea9b2",
+        "ch14/TEACHING-GUIDE.md": "5e30afa8618c2eff4d37b6d2d6d814aa9591d66018b0b28ee253b1b4baca291d",
+        "ch14/instructor/unit-a-v1.ipynb": "ba6dfc9d3ff05d4bbe724800b44ad69782aa73eadbe718482157c52c6bb90a56",
+        "ch14/instructor/unit-a-v1.md": "40f7c791b3737ea931040d7ba02aa3646f792f21c1d9fef47cbfdf77db131a7e",
+        "ch14/instructor/unit-b-v1.ipynb": "e5dff890abb76363a11480fa8fc8fc078676fd42991b83b1f49ad7219e2be81b",
+        "ch14/instructor/unit-b-v1.md": "17e03056619eeb05374ffa9d5b2ee77d21c110451720b26a2f5fbdf57dbc1bb4",
+        "ch14/student/unit-a-v1.ipynb": "4e4f438ba6248de4275b1414bb6c80a70c1c347a397606c30a9d2ba4fb36b63c",
+        "ch14/student/unit-a-v1.md": "9c41edf3de2e98150736e805fd1cb213847a5b7306c0d8d68b9630bbaf007084",
+        "ch14/student/unit-b-v1.ipynb": "b5248497dcffe88b240fd86c52eadcd337166f911c58e1a58579ead56778e504",
+        "ch14/student/unit-b-v1.md": "d40331d2e063d0b66b0d3b1a3e1b84a056f6bf2b95c6d4dbde33bf16dc38fc6b",
+        "ch15/TEACHING-GUIDE.md": "56f840404e72ca82f0d754edfcd7d7a121a156f0685ebb78a5801e0f835be549",
+        "ch15/instructor/unit-a-v1.ipynb": "d9cb6245d5b1490e6efbd51f97f1ab9c305c092902d9d93725c11adc9bdf5efb",
+        "ch15/instructor/unit-a-v1.md": "597415fbc7546006aca620216a1e9f112b51b5ed6d7cc99b8902c7718f081118",
+        "ch15/instructor/unit-b-v1.ipynb": "ef552d97e7b57b1c73a980a55e3761a60a4c02f051ae369c30bd043fb3232230",
+        "ch15/instructor/unit-b-v1.md": "f47a368b9c130165a64e99ed6796ceb3f2c3cb758a9b671d60739b2783c59947",
+        "ch15/student/unit-a-v1.ipynb": "7883658c9246d1bb78b64fe4e5d5c0d479083e2f49028127c576d972c4ff856e",
+        "ch15/student/unit-a-v1.md": "ee3217c25ffb70e79928833151c48c2f0425122395d9e4ef4953738211a41b80",
+        "ch15/student/unit-b-v1.ipynb": "391f2943d11871dc36ba10c8643ab8afb07385cf99ef6f061122a86e80b523a0",
+        "ch15/student/unit-b-v1.md": "31d681dac1fa4c1cee771105125dbd5f95cc45de86bc9cfe8dcd55ccd559d0ff",
+        "ch16/TEACHING-GUIDE.md": "fa14a0bc5d3779b5f3e2ae8e4b0aa1c78b8459caf87b739dc18c6cdbaa742b10",
+        "ch16/instructor/unit-a-v1.ipynb": "503c692babd00f6736dea3d25027edd9aadbd113fab3365587717547f18b7ff5",
+        "ch16/instructor/unit-a-v1.md": "f911dc679f6a95ff51ac27829308d839e74a2d888ffe535dfef99928f5fbec94",
+        "ch16/instructor/unit-b-v1.ipynb": "f85af44fb5d5ff0c429617701ed1f778e1a26e99587924ee22a523d9d02dc48c",
+        "ch16/instructor/unit-b-v1.md": "db906ba4bc68b7c146a0a41026faf5864971de57f237bac9a133ca0f45dd0520",
+        "ch16/student/unit-a-v1.ipynb": "446067c13790b67a2c051a2baed4223e5402bf6476e58825488fbcbcafa5aa5c",
+        "ch16/student/unit-a-v1.md": "abd400581b4b46f9ca1422b423b2f0fde3227e34a2de03c39e6854d51ebe8533",
+        "ch16/student/unit-b-v1.ipynb": "41a2f2e704080536e9c856b20ca59f7bfa2a001b1061c76f4e92d6ef73a8e34f",
+        "ch16/student/unit-b-v1.md": "ce9a06845494874b3352fdc14ec4bf26e2ba124d1478c896871075b9f05433aa"
+      }
+    },
+    {
+      "path": "ch01/ch01-instructor-pack-v1.zip",
+      "sha256": "ce958b34484f86f4f3a47183eb711c28fe4be2ce047d19c569ce4200e7a6978d",
+      "bytes": 1829409,
+      "members": {
+        "START-HERE.md": "1c0aad83841e36ab28537940a8a25929fe3d694a9ea9e4e39aa71e9579f0b1a5",
+        "ch01/TEACHING-GUIDE.md": "1b5647cbe51fdacaecc374d156d16dddcd0117365cba6f5d2f2e2df58cc871ac",
+        "ch01/instructor/unit-a-v1.ipynb": "7baa8fed4eeb674cb38ccbf51f4fd1181a7deac241b0666cfc178418673a9f82",
+        "ch01/instructor/unit-a-v1.md": "a1c69aa7dd2a89db740605b1832171b79655970562a6c78e9dc847783d83e56c",
+        "ch01/instructor/unit-b-v1.ipynb": "59afc9d79f1aeacabe90b72f9672469950a79a56ef79d6dae0c68d4b63b218fc",
+        "ch01/instructor/unit-b-v1.md": "40f87cc43c2e5234c48374ab96de8fb47f47610800f8d49d17a59226a6891e3b",
+        "ch01/student/unit-a-v1.ipynb": "0e10f0fec46d2642040910ef4b49443766be46df8003c0797f23af866d897aab",
+        "ch01/student/unit-a-v1.md": "00707fff6aabd5a3557e77badb8c063f55a372713b602eb8aab41802004dbc20",
+        "ch01/student/unit-b-v1.ipynb": "72ab15d565b7bab42b62edff7410a1b1e52e7109fef5e181302bacabd94d19a7",
+        "ch01/student/unit-b-v1.md": "4dae57f1aa57d7dfb593a983b30ab04f4350d4df84fce2888297cd945d981bb0"
+      }
+    },
+    {
+      "path": "ch02/ch02-instructor-pack-v1.zip",
+      "sha256": "b10f5404e1cc700c4ccb55c4004f2e0ffdf99bbb495e6843860dbb320e99811e",
+      "bytes": 1840691,
+      "members": {
+        "START-HERE.md": "31e1612d47751c4c3ff7890568fa3735de5f83d9de5d6aaff0ac7ebcd4912299",
+        "ch02/TEACHING-GUIDE.md": "d7bf3c76df4c2d4d3afd9de297ee182acfb02166aeaa699419da3b5c5068e9a6",
+        "ch02/instructor/unit-a-v1.ipynb": "3f01bd2d44149773ccdc73eb4d919b8660d92d0556cc3bfe48d055f0fd35f627",
+        "ch02/instructor/unit-a-v1.md": "a4409bc469d2f558644c0412c2b920b822e985c28ab75ced74936a8e70e27e2b",
+        "ch02/instructor/unit-b-v1.ipynb": "f79404469ff72b4d7ab7082c78552aba241261e8deef762e4ef36878796fc315",
+        "ch02/instructor/unit-b-v1.md": "6bc8b11128b6f77436e0907a2a37c08c0c4e2b49d9b971907548e45a23ea2563",
+        "ch02/student/unit-a-v1.ipynb": "0b83108c1fd2bd1812195760400394951d5a072897180cf0c13c96c2b527be8a",
+        "ch02/student/unit-a-v1.md": "b2779c0f1f5f76198eaf6cad99d663bb835898cc7df4ae7b661ba47f7d4bed16",
+        "ch02/student/unit-b-v1.ipynb": "e318fed0fbcf0e3054aec8c84e34d9ff0b5ca6b6b386fb7708ed845e42a1c366",
+        "ch02/student/unit-b-v1.md": "17c87d57086ab09876ccbc93375b35cb78c0d775e3d711db543357bca47255ab"
+      }
+    },
+    {
+      "path": "ch03/ch03-instructor-pack-v1.zip",
+      "sha256": "15bf4c54ee66d9ae27533a2700db7da14e26e2997c35cef58c69da24a1f54eb6",
+      "bytes": 1825884,
+      "members": {
+        "START-HERE.md": "ae004276b6fc125fd4016c32e7b086a02b31ab1964a55b20ea69b28d82b045a1",
+        "ch03/TEACHING-GUIDE.md": "4b325a0b17b7c4be89eea366cc7cc1b186971d1d646921000f088a0cabe15283",
+        "ch03/instructor/unit-a-v1.ipynb": "88b9cb5b0eca5d03a08dfc04861e4599dd7580ab4564213b593633afb75c756b",
+        "ch03/instructor/unit-a-v1.md": "3aba742b2252e6eb8006b8774b680bbeb636264e424df44ca896c788be2b60f8",
+        "ch03/instructor/unit-b-v1.ipynb": "63bac2681ed1dc6c22bc465741acc8ad2ba18e8fdf4b89df9d1989ce328ad0c4",
+        "ch03/instructor/unit-b-v1.md": "56628d5e9de1d23d4c1eeed1b5216b506f1af8d9fe68dd7a960e19837fca743d",
+        "ch03/student/unit-a-v1.ipynb": "985aad0bcfda513aaeaa71ed5f74fb5a69e6c090e1bc65303b761f73b6562406",
+        "ch03/student/unit-a-v1.md": "bf5fa0b92944c03a04334d833d1c3304312fb890d7ed65f221c8d32219d935c8",
+        "ch03/student/unit-b-v1.ipynb": "8f52ef9e9e6bf5cc9e5b22630c2d4c47c4ac88e5cca1df24158f4912c3bd700a",
+        "ch03/student/unit-b-v1.md": "e60d7095862c2dbe3cc1c22c6cf7dfb976e58fb57ead53c00ecf5c622e013ae8"
+      }
+    },
+    {
+      "path": "ch04/ch04-instructor-pack-v1.zip",
+      "sha256": "036fb98e03687e7194606e0ebf4da2cc74fcd5a1b1b660c81dcb1ad3864b6d2c",
+      "bytes": 1827204,
+      "members": {
+        "START-HERE.md": "58a78ad77ff6de64a3da6a1ee63ebb341a175834e4c1cd5c5a00c59890c5b10e",
+        "ch04/TEACHING-GUIDE.md": "384420903c2cde02c5fe04fb7ca41192e98c8cbab3a0a4f5f7d00bb47e76a55a",
+        "ch04/instructor/unit-a-v1.ipynb": "0c70dd1c4f06ae92a8c1c1475a9ecd53c7db70d3766fe6365adac40021071ea7",
+        "ch04/instructor/unit-a-v1.md": "3ad1a29830a1b4bbc23abcc4a82131dcf54737e4e3bb90f87813131aab072cc3",
+        "ch04/instructor/unit-b-v1.ipynb": "74b606062b437f090105a64d79e7a4163b36827e613e352172ab781e0e2f0a60",
+        "ch04/instructor/unit-b-v1.md": "b76bccefac0dd6b3fabce6e4bcf9ddd66be527429a198d079d9360628883b31e",
+        "ch04/student/unit-a-v1.ipynb": "ea2e946e3e66ba7fcf3fab6e2036eb35bae89d69f8b779a7d5d9feb7a3da0823",
+        "ch04/student/unit-a-v1.md": "f07bb552c92349d9e872f404c672ea324e34a66b9c67ccfce9fb014eda20ae7f",
+        "ch04/student/unit-b-v1.ipynb": "6990253e4990593ec52167e85a1499edee22009a4f994b5ba84e8c588cf1f269",
+        "ch04/student/unit-b-v1.md": "4e13dcf999b17f9be3901b56e9a1c4ab6bbb6366b6db51224bf6a3db9280b6db"
+      }
+    },
+    {
+      "path": "ch05/ch05-instructor-pack-v1.zip",
+      "sha256": "5190b4926255ce5ecbe7dd01ae20b39d3cc6a2099f542438d507ca63f8282ef8",
+      "bytes": 1828863,
+      "members": {
+        "START-HERE.md": "8c7d2461eef87c81530e0025f426160bbf57f094f0ddcab7f748a15e1ba954b6",
+        "ch05/TEACHING-GUIDE.md": "e49fa7b39c861c79c069ed054e887eab354ae688cf4929ad3e44616cccb21732",
+        "ch05/instructor/unit-a-v1.ipynb": "363baa85a846cf71691a7defd2372561dc8150ca0588dcf85eb9d5fc058b8c9c",
+        "ch05/instructor/unit-a-v1.md": "a9bb8d3598e8fe3cb93f2b368a68396ed115aad7b59f8c0b15a58653d01a6b1c",
+        "ch05/instructor/unit-b-v1.ipynb": "0ab37a7a5b6e50cc52d6389cc9d0685a7e3a97feaf742ab9be901127384bde44",
+        "ch05/instructor/unit-b-v1.md": "d938ede5903b0d27dd51b0159c9b87943a3b9ce32f9cccca77efbc24bb0cfb11",
+        "ch05/student/unit-a-v1.ipynb": "3d567a0decb3859e6865ca944fa791c7d77058e1e1f9ea8c6260e31ef99734a3",
+        "ch05/student/unit-a-v1.md": "4ff6e9f00d9e73877d28679e3ee88f82ceef94c0766da08a1b0fa7e4630b9c49",
+        "ch05/student/unit-b-v1.ipynb": "c79fac74add58fc15dddc4e1a93769d0073f95548c59f9b165a874eadb4f279b",
+        "ch05/student/unit-b-v1.md": "a02c7ac4ff17181635f84762e0960110de2b3fdbc0e7197f3888136c5d142eb6"
+      }
+    },
+    {
+      "path": "ch06/ch06-instructor-pack-v1.zip",
+      "sha256": "a0e52bc6ce61d31a681e4ac18e1d9562e3d0d68f690d97511bfb0391cfb7ed31",
+      "bytes": 1830606,
+      "members": {
+        "START-HERE.md": "2cb7c76f66486a598cda6bbc6ce63d12bcd9f93da7638ac62afaf6173a7da200",
+        "ch06/TEACHING-GUIDE.md": "01abeae0b9b63cc5922c82dfd95e9c6538d529cf38874766238d0231dbabaccf",
+        "ch06/instructor/unit-a-v1.ipynb": "61effbab4795b88c0799695982fa70b266089a597cef5fd158443050e6d242ea",
+        "ch06/instructor/unit-a-v1.md": "40c1d8ccccfeb6ec6651d71b756765601c4a9d113903ce7dbc1bacbe36e7cdcd",
+        "ch06/instructor/unit-b-v1.ipynb": "02e77954740e910ccfd2fd32313323ec3bc5f9593ced5a66eae5c75865086798",
+        "ch06/instructor/unit-b-v1.md": "4e765b9845ecdd9f5b6272b5146b8fb60a75138a569c35afe916448152d0c5df",
+        "ch06/student/unit-a-v1.ipynb": "56baad11aa1240af1d749da0343c59d690d78c7925bd9daa35b638ff5ce128b8",
+        "ch06/student/unit-a-v1.md": "e55ccc26cb7b2f1eaac28d0c5389168c5cd83385efb053835b4a2495a8758d44",
+        "ch06/student/unit-b-v1.ipynb": "822929f5cc8cc86143da2768939d5837d096813c785c4d7914c942c0f9e9db8e",
+        "ch06/student/unit-b-v1.md": "63fa498f9b4781f00e253acec9fb7e68c1d4db96b3374385c1d029a7309961bc"
+      }
+    },
+    {
+      "path": "ch07/ch07-instructor-pack-v1.zip",
+      "sha256": "f0455a81a24a12d928e974f8f2d6416a1de9fea9b5c263d7e377ecbc87ef3d8f",
+      "bytes": 1827743,
+      "members": {
+        "START-HERE.md": "d887fa9d77e3d334a04d23923976065e6ba8569747a2a555472118e35a718518",
+        "ch07/TEACHING-GUIDE.md": "ce1a25c98a966b06f5ac29fcc3a9779530fff61919b0a340310af25d064a3aac",
+        "ch07/instructor/unit-a-v1.ipynb": "6fb05ea2d1a51c6f1ca012267be0421350f5ba7a9f091d3d6b7f702f87a2049e",
+        "ch07/instructor/unit-a-v1.md": "f3a6e83490796b6762d8f96da17034b1fbf36a1d29bf5666d65f153683d760be",
+        "ch07/instructor/unit-b-v1.ipynb": "9ba213f68ed1622d60a44460a9035f4d9f8955a143d898e6332d8149dab1dec7",
+        "ch07/instructor/unit-b-v1.md": "ebb6a7d8ec4f4b9190ba95f4b32fc62933950f96b52473db392b2b2668b84f6a",
+        "ch07/student/unit-a-v1.ipynb": "99d142720c136684d3143a49b26697280f53df89d596c1a0e4f8d9455d6960da",
+        "ch07/student/unit-a-v1.md": "54c3321a2a17b124c24d13a4c061204ec3fecfccd46e7c10e23cca847652119e",
+        "ch07/student/unit-b-v1.ipynb": "f5e489ab1521ae49a10724b0d3d43fc19bd86bf79c9b2abee5d43f01bd5aee71",
+        "ch07/student/unit-b-v1.md": "0ad7fdc46ab31ebab832bb77f7017bc2e690e62c638af730f65e1d895a17ccba"
+      }
+    },
+    {
+      "path": "ch08/ch08-instructor-pack-v1.zip",
+      "sha256": "de0553bb9aa92495233ea574b9bee5c47c089fa0b01f154208aabdfb45d9c2a8",
+      "bytes": 1828460,
+      "members": {
+        "START-HERE.md": "6d340aab8fb98482db1e6960c388b175a206289039f0ba955c17a14e5ba3e822",
+        "ch08/TEACHING-GUIDE.md": "60ae71de395876bf4d8aec07620967a3c3dd3c0846718d844aca602c785464f6",
+        "ch08/instructor/unit-a-v1.ipynb": "642bd5fcce9d87d8a33a05aae4baedbb88f51308a09fabf46bc36c8a482c943c",
+        "ch08/instructor/unit-a-v1.md": "897ca26fa2d69a034e32bbbdb578e749d8b02dd7b4910d625c965321e7827400",
+        "ch08/instructor/unit-b-v1.ipynb": "ff680a955d853b37cee68d96af38de997a1b8cb7136f90779fbc0fdbe9bf4565",
+        "ch08/instructor/unit-b-v1.md": "3da2b1f64c284a0fda7ed47eacefc89fe9ae2da803f101810424e3d224012fcd",
+        "ch08/student/unit-a-v1.ipynb": "0c1f0c7fcf94eadb79d83fe7069fba74480c5f01732dba599aa5b61156903718",
+        "ch08/student/unit-a-v1.md": "428a3765259357d28541f23a502675e5ab61798a119e6b5cf098a1d8f7d6b3b6",
+        "ch08/student/unit-b-v1.ipynb": "197f93dae5e552f12ba5c8ccc3d350643f67a5e0df93c149df61746fdb2a2319",
+        "ch08/student/unit-b-v1.md": "871a7dcd5abd78ed77746f46383279086d52dc2f0fbf9b8a10cc8c938f1a7dfd"
+      }
+    },
+    {
+      "path": "ch09/ch09-instructor-pack-v1.zip",
+      "sha256": "a41fd0cef461e85bc996688153efb20a97f8d990d53dad2d20df05475dcaffb3",
+      "bytes": 1850744,
+      "members": {
+        "START-HERE.md": "8e31eddfedd36f1c71fb0a63f09f67a0c5d9826a4f1b165b06e1026e106ab485",
+        "ch09/TEACHING-GUIDE.md": "f8267ba10c226929450a310001c26ac819b1945313ed2e539d8bf4eeb9b61492",
+        "ch09/instructor/unit-a-v1.ipynb": "3de181be5125c38c1090b73d28be33b3e672bcbdcabb70d84adbd454143e606b",
+        "ch09/instructor/unit-a-v1.md": "382e3a3b725a61430c7f9f39f49b459b9288bd1e38111299f8f3fc830c54e70a",
+        "ch09/instructor/unit-b-v1.ipynb": "786c0a7af5a97f6be0d0e021107666ea4bf7c3574f3b683862536d9f86154bd9",
+        "ch09/instructor/unit-b-v1.md": "dcdb1a740a80dc49765edaf89e67b0a42f46c5df2a47ffef74cacec2bd018249",
+        "ch09/student/unit-a-v1.ipynb": "9bb6ba9cd8da9ba591b2ebd0e7eb6d1151c43aeebc307c346da162d8b3050bb2",
+        "ch09/student/unit-a-v1.md": "9621bbddbaa794f00c9e87f93fe38d858977a011a63c77128bf87c51eb228334",
+        "ch09/student/unit-b-v1.ipynb": "0c65ae7cb33fc79d89d37116b30787b3c03fd91971df0ee87bfe35eaa7b0365c",
+        "ch09/student/unit-b-v1.md": "5b6e46b138432546a6a1fe9c3d3bf6038fdc10ce8986fcfa60ee44691ad251a8"
+      }
+    },
+    {
+      "path": "ch10/ch10-instructor-pack-v1.zip",
+      "sha256": "f24c5111b6831e4ebcebf1b26b75febf025e210c874f8e49281575effa0823d5",
+      "bytes": 1827305,
+      "members": {
+        "START-HERE.md": "62b120eefaacaaa17177e7817f6f51233398be1529b3ae9543bc4798c39a9b63",
+        "ch10/TEACHING-GUIDE.md": "fe6f0a2727d511af7488541d72760e418efa6e9a4933cee23abb9faeaf3e75f4",
+        "ch10/instructor/unit-a-v1.ipynb": "6457bc4003158869435e4f8f6b67d6ad08072d498aff7e17b09802ea103a0233",
+        "ch10/instructor/unit-a-v1.md": "eab30b45388849126b5101a37251ab13dcf6584a4162fe46b9b681c5ac5813ea",
+        "ch10/instructor/unit-b-v1.ipynb": "2152331576b71b6b39d2aa4cbb31ec93bb5c3eb4b476a221a8774c760d093f3a",
+        "ch10/instructor/unit-b-v1.md": "b6e77ae06bad7c2d4999847c08e50b9de0d98b34095cfec7872cd1c7a7f75ec4",
+        "ch10/student/unit-a-v1.ipynb": "a3fef4c6a797942c4defa8bc8880bfe85f68562d4a50ca6e8d9d0b709b64d92d",
+        "ch10/student/unit-a-v1.md": "e1b807faf7ce0307483afa3d8b5fad4cad2f63d8c80cc81c5278b69be971b4fc",
+        "ch10/student/unit-b-v1.ipynb": "98f7b0ed78b51623856d17e93fc34cd9b98b7be9e31407aabf906188eece0c01",
+        "ch10/student/unit-b-v1.md": "74a82e1ce5aa7d09f58bac50a48f2a0a6e1b6dd8997128bef3168c4ccb87b1db"
+      }
+    },
+    {
+      "path": "ch11/ch11-instructor-pack-v1.zip",
+      "sha256": "f165784d3323db19e8d3f7281f442990c1f71080d6605c1337d6e706676c2dbf",
+      "bytes": 1811520,
+      "members": {
+        "START-HERE.md": "2def632c5d9b35546e90e97d63171c6016d29429d7584ed19a6369656c549290",
+        "ch11/TEACHING-GUIDE.md": "4a2e26c5be02dfc738c36303c7240c3e3f4c03dc4acdcccc3f679dbca244e6bd",
+        "ch11/instructor/unit-a-v1.ipynb": "04b8d0d967f6aad1ea85ff6d29888f18de4aad10f5f25255f0cf08895b32582e",
+        "ch11/instructor/unit-a-v1.md": "116695477dd08664e7d0fb494783e6ff69e88097fe3746cf52c1f3f7374a9613",
+        "ch11/instructor/unit-b-v1.ipynb": "86d2af24bbe1f20533259dbeeb510b6701000e636a63b1e2608da4fd760fdc2d",
+        "ch11/instructor/unit-b-v1.md": "f105abdbd0c0d77e01e51d0a991b2ff1d2842551adfb45e834eb26d240de01f6",
+        "ch11/student/unit-a-v1.ipynb": "166fd4310440b5052e78fb1677103cd0aaace09467ee7d13adc3c517cf0a75d4",
+        "ch11/student/unit-a-v1.md": "c49c1792d34ff040f5b83ca5ac29b000b7236f9424286f3380ddefda2ff12b8a",
+        "ch11/student/unit-b-v1.ipynb": "8caab9222404406869704303c2081c9e38660269ab854586e4082f15880dfb7d",
+        "ch11/student/unit-b-v1.md": "9e8d7376ee3acfa6606fc72a0f4a4af89290dc6f516469eb57085ac5182d2d2a"
+      }
+    },
+    {
+      "path": "ch12/ch12-instructor-pack-v1.zip",
+      "sha256": "3a59d7bb90cedb480433c5098fc08f4eb2defff8dd61ebca60245ba0f61398cc",
+      "bytes": 1825971,
+      "members": {
+        "START-HERE.md": "4201d0e7296cf990b15e4ed6684c35159571f7532aba6c3efd42ef719d1d3ba9",
+        "ch12/TEACHING-GUIDE.md": "2b6e946672dadadc294d06a8cc8a456e3b84f5464106d9f56aaa06e886ead0b3",
+        "ch12/instructor/unit-a-v1.ipynb": "ab572368f70f2eb07886fb97ffff65b9fe1bec02358f4bb55ec10862c7866ff4",
+        "ch12/instructor/unit-a-v1.md": "b1a9763b2308f298e87f8fa75bfb8f212b928aa7f48c9eee936da3272fd56de9",
+        "ch12/instructor/unit-b-v1.ipynb": "4aec58d15076015a88d1db93c6ec7cec33b5a37f658b728e431bac794d2d75e0",
+        "ch12/instructor/unit-b-v1.md": "15b7fd265b409722a1aa0ef4cf080448bcda599a3f09c3b96006db965c2e7445",
+        "ch12/student/unit-a-v1.ipynb": "9b6a3d5358bf9755cb1a51000c5a95756649a44e344a98f88b21b846854eee00",
+        "ch12/student/unit-a-v1.md": "35306aa50bca35d7df8f231b08d2e67243a5293d6eba10405a2b9876a30a55c4",
+        "ch12/student/unit-b-v1.ipynb": "585757a771b1c097d66579ce00993cb279cb5195f6aa58bcbd9fcd4f60cd564f",
+        "ch12/student/unit-b-v1.md": "3a515cc518f478392c986b23c431351568e084f14e1c53f9c0950d7cefe93e22"
+      }
+    },
+    {
+      "path": "ch13/ch13-instructor-pack-v1.zip",
+      "sha256": "d64758bb9301ca10012b32a62a1bbccec8b6ddfb8e61eb4bc8cffaca7c9d9f42",
+      "bytes": 1827151,
+      "members": {
+        "START-HERE.md": "22598ea788c0d10f57542c50bd405fb934f952e3a4e6a0f35c65b761ea6f72af",
+        "ch13/TEACHING-GUIDE.md": "328a19ef682f2202fbc9eb595aef96cc314dd3f08d598986dd5f0e78e7683993",
+        "ch13/instructor/unit-a-v1.ipynb": "a65e7fad13b602ba703b5ae9e026293c02cc3bd25d640c99e7f7b6e0ee1eed2a",
+        "ch13/instructor/unit-a-v1.md": "13e63cf8b4fde7f0920cf04a66bb4b2d93db5fbab2edb377e9bde8e4e9f1df5a",
+        "ch13/instructor/unit-b-v1.ipynb": "656791d41b4dfdfdc20ec2ed216e5c85b2a185549c7fef5834f06b3fba2faed5",
+        "ch13/instructor/unit-b-v1.md": "235b5a687eda6d0a71603d1a0e530dcd289ce966a86d24f1f963ae9329402da4",
+        "ch13/student/unit-a-v1.ipynb": "fd50efeb9419c2fcb59e515332218ccc310354cef6abb9b35727321ed8c49f89",
+        "ch13/student/unit-a-v1.md": "78910d0f0598c6fbd4e2e888e0678e9112a18613c216a8873cd2705cfc2fbdb6",
+        "ch13/student/unit-b-v1.ipynb": "193cf1b0addf2f6823ecc26f1021e7f4724a06e8b719d3588c94946281230e23",
+        "ch13/student/unit-b-v1.md": "deba91a8b36a7668ee8ae0ee003f8194f9aeee0dcf4507c46c7d286d160ea9b2"
+      }
+    },
+    {
+      "path": "ch14/ch14-instructor-pack-v1.zip",
+      "sha256": "a2a84c234163831a11b2f4c6d081ba5101ed14a8cdf90ebf5e401422a0259c68",
+      "bytes": 1825892,
+      "members": {
+        "START-HERE.md": "28b89a2ed299d58df67194632c6cfafb940ca8be67cf8f74f747a6991ab0583d",
+        "ch14/TEACHING-GUIDE.md": "5e30afa8618c2eff4d37b6d2d6d814aa9591d66018b0b28ee253b1b4baca291d",
+        "ch14/instructor/unit-a-v1.ipynb": "ba6dfc9d3ff05d4bbe724800b44ad69782aa73eadbe718482157c52c6bb90a56",
+        "ch14/instructor/unit-a-v1.md": "40f7c791b3737ea931040d7ba02aa3646f792f21c1d9fef47cbfdf77db131a7e",
+        "ch14/instructor/unit-b-v1.ipynb": "e5dff890abb76363a11480fa8fc8fc078676fd42991b83b1f49ad7219e2be81b",
+        "ch14/instructor/unit-b-v1.md": "17e03056619eeb05374ffa9d5b2ee77d21c110451720b26a2f5fbdf57dbc1bb4",
+        "ch14/student/unit-a-v1.ipynb": "4e4f438ba6248de4275b1414bb6c80a70c1c347a397606c30a9d2ba4fb36b63c",
+        "ch14/student/unit-a-v1.md": "9c41edf3de2e98150736e805fd1cb213847a5b7306c0d8d68b9630bbaf007084",
+        "ch14/student/unit-b-v1.ipynb": "b5248497dcffe88b240fd86c52eadcd337166f911c58e1a58579ead56778e504",
+        "ch14/student/unit-b-v1.md": "d40331d2e063d0b66b0d3b1a3e1b84a056f6bf2b95c6d4dbde33bf16dc38fc6b"
+      }
+    },
+    {
+      "path": "ch15/ch15-instructor-pack-v1.zip",
+      "sha256": "9c349c3a0ab796146a5fc1d348be27b6770b9ba118c28f135f363166e44c4e67",
+      "bytes": 1829079,
+      "members": {
+        "START-HERE.md": "54bed4aebb1d24bbc0d1404d6a6c7be4c4216f086d687748957d2c2c4e065b9f",
+        "ch15/TEACHING-GUIDE.md": "56f840404e72ca82f0d754edfcd7d7a121a156f0685ebb78a5801e0f835be549",
+        "ch15/instructor/unit-a-v1.ipynb": "d9cb6245d5b1490e6efbd51f97f1ab9c305c092902d9d93725c11adc9bdf5efb",
+        "ch15/instructor/unit-a-v1.md": "597415fbc7546006aca620216a1e9f112b51b5ed6d7cc99b8902c7718f081118",
+        "ch15/instructor/unit-b-v1.ipynb": "ef552d97e7b57b1c73a980a55e3761a60a4c02f051ae369c30bd043fb3232230",
+        "ch15/instructor/unit-b-v1.md": "f47a368b9c130165a64e99ed6796ceb3f2c3cb758a9b671d60739b2783c59947",
+        "ch15/student/unit-a-v1.ipynb": "7883658c9246d1bb78b64fe4e5d5c0d479083e2f49028127c576d972c4ff856e",
+        "ch15/student/unit-a-v1.md": "ee3217c25ffb70e79928833151c48c2f0425122395d9e4ef4953738211a41b80",
+        "ch15/student/unit-b-v1.ipynb": "391f2943d11871dc36ba10c8643ab8afb07385cf99ef6f061122a86e80b523a0",
+        "ch15/student/unit-b-v1.md": "31d681dac1fa4c1cee771105125dbd5f95cc45de86bc9cfe8dcd55ccd559d0ff"
+      }
+    },
+    {
+      "path": "ch16/ch16-instructor-pack-v1.zip",
+      "sha256": "aaea4b028d82bc13c4c5b75364559758bec694d7d9fe87926b854f7d773fe722",
+      "bytes": 1834294,
+      "members": {
+        "START-HERE.md": "87a53d4e065a1af17060a64981fcf475f6e832b4b5e43f78af38a19e7faa78dd",
+        "ch16/TEACHING-GUIDE.md": "fa14a0bc5d3779b5f3e2ae8e4b0aa1c78b8459caf87b739dc18c6cdbaa742b10",
+        "ch16/instructor/unit-a-v1.ipynb": "503c692babd00f6736dea3d25027edd9aadbd113fab3365587717547f18b7ff5",
+        "ch16/instructor/unit-a-v1.md": "f911dc679f6a95ff51ac27829308d839e74a2d888ffe535dfef99928f5fbec94",
+        "ch16/instructor/unit-b-v1.ipynb": "f85af44fb5d5ff0c429617701ed1f778e1a26e99587924ee22a523d9d02dc48c",
+        "ch16/instructor/unit-b-v1.md": "db906ba4bc68b7c146a0a41026faf5864971de57f237bac9a133ca0f45dd0520",
+        "ch16/student/unit-a-v1.ipynb": "446067c13790b67a2c051a2baed4223e5402bf6476e58825488fbcbcafa5aa5c",
+        "ch16/student/unit-a-v1.md": "abd400581b4b46f9ca1422b423b2f0fde3227e34a2de03c39e6854d51ebe8533",
+        "ch16/student/unit-b-v1.ipynb": "41a2f2e704080536e9c856b20ca59f7bfa2a001b1061c76f4e92d6ef73a8e34f",
+        "ch16/student/unit-b-v1.md": "ce9a06845494874b3352fdc14ec4bf26e2ba124d1478c896871075b9f05433aa"
+      }
+    }
+  ]
+}
