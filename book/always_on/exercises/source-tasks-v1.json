@@ -1,0 +1,162 @@
+{
+  "schema": 1,
+  "status": "DRAFT",
+  "chapters": [
+    {
+      "chapter": 2,
+      "function": "build_tools",
+      "title": "Typed shop tools",
+      "question": "A draft is a calculation, not a purchase",
+      "construct": "Construct the complete tool factory: reject duplicate product identities, isolate a copied stock snapshot, expose stock and supplier tools, and make draft quantity equal current need. Preserve strict Pydantic argument validation and GBP integer-pence arithmetic.",
+      "connect": "Compare schema refusal, business-rule refusal and successful calculation. Connect build_tools to the same Dispatcher used by the Chapter 3 loop.",
+      "diagnosis": "An integer quantity can be schema-valid and still over-order.",
+      "hint": "Use rows keyed by identity, closures over a deep copy, the existing argument models, and three ExecutableTool registrations.",
+      "transfer": "Try a changed stock snapshot, an empty catalog, duplicated identities and a True quantity. Record which boundary refuses each.",
+      "limit": "No supplier send exists in these tools."
+    },
+    {
+      "chapter": 4,
+      "function": "preferences",
+      "title": "Durable memory",
+      "question": "A correction must change the next model context",
+      "construct": "Build bounded retrieval from assistant_preferences. Select only this session and active revisions, rank case-insensitive word overlap, break ties by newest identity, and preserve provenance.",
+      "connect": "Remember, correct, close and reopen SQLite; invoke context and inspect the actual system message seen by the model.",
+      "diagnosis": "Putting the new preference first does not remove contradictory old guidance.",
+      "hint": "Use a parameterized query, set intersection for relevance, deterministic ties and a validated maximum.",
+      "transfer": "Correct twice, forget one key and introduce another session with the same preference name. Prove no stale or foreign value reaches context.",
+      "limit": "Forgetting future context is not secure erasure of backups or past provider requests."
+    },
+    {
+      "chapter": 5,
+      "function": "context",
+      "title": "Versioned skills",
+      "question": "Guidance cannot create capability",
+      "construct": "Construct context assembly from active eligible skills, explicit preferences and revision-matching completed history. Enforce the byte budget and retain provenance before adding the current user request.",
+      "connect": "Stage and activate a local skill through the existing API, then inspect context with and without its required tool capability.",
+      "diagnosis": "An active procedure may require a tool the current worker cannot call.",
+      "hint": "Read active rows; require the full requires set; append preferences and bounded matching history; admit items only within the JSON byte budget.",
+      "transfer": "Compare staged-only, active-empty-requirements, partially permitted and fully permitted skills. A prompt must never expand the dispatcher allowlist.",
+      "limit": "Eligibility and fixture activation checks do not prove live model quality."
+    },
+    {
+      "chapter": 6,
+      "function": "_poll_owned",
+      "title": "Private messaging",
+      "question": "A familiar sender does not make a group private",
+      "construct": "Implement the owned poll transaction: validate the bounded update batch and lease, admit only allowlisted human private messages with matching sender/chat identity, deduplicate origins, and advance the cursor after durable intake.",
+      "connect": "Use the real poll function and SQLite cursor with a fixture bot; reopen the database and replay an unordered batch.",
+      "diagnosis": "Checking only the sender allows a group message into a private session.",
+      "hint": "Inspect the lease before writes, validate identities by exact integer type, use the existing _enqueue helper, and persist the highest offset after the whole batch.",
+      "transfer": "Change account, actor, update order, chat kind and message length. A rejected batch must not partially move the cursor or create work.",
+      "limit": "Offline intake proves neither Telegram authentication nor phone delivery."
+    },
+    {
+      "chapter": 7,
+      "function": "tick",
+      "title": "Scheduling",
+      "question": "Missed wakeups should coalesce",
+      "construct": "Build the scheduler transaction: validate inputs, honor pause and enabled flags, order due jobs, admit bounded work, retain deferral, advance next_due past now and record skipped intervals.",
+      "connect": "Use schedule and tick against SQLite and inspect created work IDs, job time and events across repeated passes.",
+      "diagnosis": "Advancing by one interval replays every missed wakeup after downtime.",
+      "hint": "Calculate elapsed whole intervals, enqueue one occurrence, then advance by skipped plus one intervals in the same transaction.",
+      "transfer": "Use exact due time, fractional intervals, a very long absence and repeated same-time ticks. Separate coalescing from total queue capacity.",
+      "limit": "This does not guarantee a running host or a wakeup at an exact wall-clock time."
+    },
+    {
+      "chapter": 8,
+      "function": "approve",
+      "title": "Exact approval",
+      "question": "Small orders can exceed a cumulative ceiling",
+      "construct": "Construct approval of one exact digest: validate operator, expiry, current work and proposal state; preserve uncertain outcomes; reserve only a new draft amount; enforce both installed and supplied account ceilings.",
+      "connect": "Propose real orders, approve them and inspect retained reservations. Reapproval must not reserve twice and refusal must leave the transaction unchanged.",
+      "diagnosis": "Comparing only the next amount ignores money already reserved or spent.",
+      "hint": "Keep all authority and accounting checks in db.immediate; compute addition from prior state; compare spent plus reserved plus addition to the smaller ceiling.",
+      "transfer": "Test exact-limit acceptance, one-pence overflow, changed digest, stricter policy and repeated approval. Never call a real supplier.",
+      "limit": "An approval is bounded authority, not a supplier receipt."
+    },
+    {
+      "chapter": 10,
+      "function": "assert_current",
+      "title": "Worker recovery",
+      "question": "A surviving process may have lost authority",
+      "construct": "Reconstruct the full worker assertion: verify paused state and external authority marker, compare database and claim epochs, match the full running lease identity and enforce delegation deadline and parent cancellation.",
+      "connect": "Call observe through the real write path, then replace the epoch while keeping the same database and process.",
+      "diagnosis": "A matching worker name and lease generation cannot rescue an old restore epoch.",
+      "hint": "Read the control row and marker, reject any mismatch, query the complete claim identity with an unexpired lease, then check research-parent constraints.",
+      "transfer": "Keep a fresh claimant writable while refusing stale epoch, expired lease, missing marker and changed role. Count transcript rows after every attempt.",
+      "limit": "This local fence cannot recall an external request already admitted before replacement."
+    },
+    {
+      "chapter": 11,
+      "function": "invoke",
+      "title": "Tool isolation",
+      "question": "Registration is not permission",
+      "construct": "Build dispatch from registry lookup through allowlist, strict arguments, write guard and bounded JSON result. Refuse before invoking an unauthorized handler and keep raw validation inputs out of errors.",
+      "connect": "Install the method in the real Dispatcher and observe handler invocation counters, not just returned text.",
+      "diagnosis": "A known tool can still be unavailable to this particular worker.",
+      "hint": "Check membership before argument validation, require a guard for consequential tools, run it before the handler and enforce encoded output size.",
+      "transfer": "Use an unseen tool name, a valid allowed read, a denied registered read, a consequential call and oversized output.",
+      "limit": "Dispatcher admission is not OS or network containment; container execution remains a separate chapter experiment."
+    },
+    {
+      "chapter": 12,
+      "function": "baseline",
+      "title": "Evaluation",
+      "question": "The oracle must account for reserved stock",
+      "construct": "Construct the independent replenishment baseline over a Case: use physical minus reserved stock, include only actual deficits, retain product identity and avoid a model call.",
+      "connect": "Feed the same Case through evaluate with OfflineShopModel and compare authored expected quantities to both baseline and real tool observations.",
+      "diagnosis": "Ignoring reservations makes the supposedly simpler baseline wrong while the agent can still be right.",
+      "hint": "For each stock row compare available stock with threshold; calculate needed from the same quantities; do not read case.expected to produce an answer.",
+      "transfer": "Use an empty catalog, exact threshold, renamed products and high reservations. A visible-case lookup and an implementation returning case.expected must fail.",
+      "limit": "A passing finite scenario suite is not proof of arbitrary language faithfulness."
+    },
+    {
+      "chapter": 13,
+      "function": "activate_skill",
+      "title": "Controlled improvement",
+      "question": "A test result has a configuration boundary",
+      "construct": "Build activation of a staged immutable skill: require named positive cases, detect candidate mutation, compare the active configuration after evaluation and atomically activate the intended version.",
+      "connect": "Evaluate outside the write transaction, deliberately activate another skill inside the callback, then inspect the active snapshot.",
+      "diagnosis": "A passing callback can describe an obsolete configuration.",
+      "hint": "Capture a baseline and serialized candidate before evaluating; require exact True values; compare the snapshot inside db.immediate before swapping active rows.",
+      "transfer": "Try missing cases, False and integer one, candidate mutation, explicit stale state and a concurrent activation. Preserve the valid uncontended case.",
+      "limit": "Authored callbacks exercise state control; they are not a substitute for live regression evidence."
+    },
+    {
+      "chapter": 14,
+      "function": "quote",
+      "title": "Bounded delegation",
+      "question": "Eleven guests need two tubs",
+      "construct": "Build a deterministic catering quote from the catalog and a validated Inquiry. Round portions upward, validate the selling price and return an explicit draft with no stock reservation.",
+      "connect": "Invoke the actual quote tool used by the delegated research path and inspect product identity, total and unchanged stock.",
+      "diagnosis": "Floor division underquotes any partial tub.",
+      "hint": "Read the requested product record, validate positive integer price and use integer ceiling arithmetic for ten portions per tub.",
+      "transfer": "Try 1, 10, 17 and 200 guests, a changed product price and invalid Inquiry shapes. Explain why fixed arithmetic earns zero model calls.",
+      "limit": "A delegated draft neither reserves stock nor authorizes a purchase."
+    },
+    {
+      "chapter": 15,
+      "function": "restore",
+      "title": "Operating and restoring",
+      "question": "Restore must pause before resuming work",
+      "construct": "Construct restore from a separate compatible backup: verify integrity and schema, prepare a fresh epoch, clear old ownership, revoke approvals, pause, publish the authority marker and copy into the same database inode.",
+      "connect": "Back up real queued work, restore and attempt a claim through the normal worker API before and after an explicit reconciliation/resume decision.",
+      "diagnosis": "Pausing the old database is insufficient if the copied snapshot itself is unpaused.",
+      "hint": "Prepare changes in a temporary image; persist and atomically replace the epoch marker; use SQLite backup into the existing connection; leave the result paused.",
+      "transfer": "Retain backup hashes, repeat restore, compare authority epochs and test same-path or missing backups. A failed preflight must preserve live work.",
+      "limit": "No host reboot or external supplier reconciliation is proved by this local exercise."
+    },
+    {
+      "chapter": 16,
+      "function": "operating_report",
+      "title": "Acceptance",
+      "question": "A reassuring total can hide missing money",
+      "construct": "Construct the operating report from one read snapshot: independently query work, orders, ledger, stock, usage and delivery uncertainty; report disagreement and unknowns; preserve honest scope and bounded detail.",
+      "connect": "Create a real approval, corrupt a retained ledger amount, then call the actual report and inspect both structured evidence and displayed exception text.",
+      "diagnosis": "Forcing totals to match hides a real accounting discrepancy.",
+      "hint": "Read within one transaction and always release it; compare spent and reserved separately with order-state totals; preserve usage completeness and uncertainty in the report.",
+      "transfer": "Test an empty account, exact matching reservation, one-pence mismatch, paused operation and incomplete usage history. Treat observed_at as a run observation.",
+      "limit": "Local consistency is not an external account audit, daily cash profit or classroom learning evidence."
+    }
+  ]
+}

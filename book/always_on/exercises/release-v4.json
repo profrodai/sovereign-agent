@@ -1,0 +1,2117 @@
+{
+  "environmentLock": "uv.lock",
+  "environmentLockSha256": "955cea601c9ae719e8808277fb1ba9cc59461373a72974434ffb329f79a46475",
+  "executionLimitations": [
+    "trusted local course code; requires the pinned full repository checkout",
+    "per-cell timeout is not a whole-run deadline",
+    "captured output limit is checked after execution",
+    "process, network, and descendant isolation unavailable",
+    "starter execution and instructor holdouts do not establish learner mastery",
+    "Unit B instructor execution consumes the reference Unit A handoff"
+  ],
+  "instructorFiles": [
+    {
+      "path": "book/always_on/exercises/ch01/holdouts/unit-a-holdout-v2.py",
+      "sha256": "1631a31969854133504210520de052f956f7fdb231afd6c3c52e8f5946216691"
+    },
+    {
+      "path": "book/always_on/exercises/ch01/holdouts/unit-b-holdout-v1.py",
+      "sha256": "463f311ab3a42fc08e7b6c75a9b7ac39feba1af664818376fb22eaf1b3933c21"
+    },
+    {
+      "path": "book/always_on/exercises/ch01/solutions/unit-a-solution-v1.py",
+      "sha256": "497fa9ebfdc5febbc7a58f08be76aae8bf233916490122ecd2de6eb8783c5fb3"
+    },
+    {
+      "path": "book/always_on/exercises/ch01/solutions/unit-b-solution-v1.py",
+      "sha256": "373652503fda659c23ea727a1a39476b61f9f2a3c3637105fb328dc62c922f52"
+    },
+    {
+      "path": "book/always_on/exercises/ch02/holdouts/runtime-transfer-v1.py",
+      "sha256": "c89d25f83e5658fc391b7628afc954ad5115ce110026a70e85465b1c961a4300"
+    },
+    {
+      "path": "book/always_on/exercises/ch02/holdouts/unit-a-holdout-v1.py",
+      "sha256": "2bd994853c2b821cb50b1e77cdec1c2722b9914696ba33214c42ea71ad9d86fc"
+    },
+    {
+      "path": "book/always_on/exercises/ch02/holdouts/unit-b-holdout-v1.py",
+      "sha256": "99df4c96f9d498faa0c7c2d7b977db54cb807090d21030698b12980e87ffa2c0"
+    },
+    {
+      "path": "book/always_on/exercises/ch02/solutions/unit-a-solution-v1.py",
+      "sha256": "a5677ae24c635d1e6a822cdec43a8b00f1caea70d51b4b143c8226f4a322dd25"
+    },
+    {
+      "path": "book/always_on/exercises/ch02/solutions/unit-b-solution-v1.py",
+      "sha256": "c409cba3d674100f1bb09512fcdc9f801ca1e302b611eeb9bb025e00115e9ae5"
+    },
+    {
+      "path": "book/always_on/exercises/ch03/holdouts/unit-a-holdout-v1.py",
+      "sha256": "81241b26416a22d86f5ddb497bf3c3bb2e5b35c3d24a9e76b6e0a551c4ec6834"
+    },
+    {
+      "path": "book/always_on/exercises/ch03/holdouts/unit-b-holdout-v1.py",
+      "sha256": "a9248645d86607b74a116e3c749549b4f9b3d8b643a67c7107b8825d940edb75"
+    },
+    {
+      "path": "book/always_on/exercises/ch03/solutions/unit-a-solution-v1.py",
+      "sha256": "3712a91e78cb2dce82facf2912b46e4d585b688954087051b9f348d07ba7b15f"
+    },
+    {
+      "path": "book/always_on/exercises/ch03/solutions/unit-b-solution-v1.py",
+      "sha256": "01886a084394b935a61cff1571d1bd79b65115282ad6829d47464a8ffe74dc7d"
+    },
+    {
+      "path": "book/always_on/exercises/ch04/holdouts/runtime-transfer-v1.py",
+      "sha256": "d7a56c183af3a490e2daeab82de157387061a96ef994e29385718295f3bd4924"
+    },
+    {
+      "path": "book/always_on/exercises/ch04/holdouts/unit-a-holdout-v1.py",
+      "sha256": "fd3341d24d99f7aaefc8823163b51a76c41d3d9fb5204c18402398d25e385de4"
+    },
+    {
+      "path": "book/always_on/exercises/ch04/holdouts/unit-b-holdout-v1.py",
+      "sha256": "a3ddb26d411e7e4e58160406e6e7e144100faf410cc56d1162c00e87a139b0ff"
+    },
+    {
+      "path": "book/always_on/exercises/ch04/solutions/unit-a-solution-v1.py",
+      "sha256": "0baccecbe6511f82624197b393df63523f53fe32413c4d4b51e0c6053ce37bb3"
+    },
+    {
+      "path": "book/always_on/exercises/ch04/solutions/unit-b-solution-v1.py",
+      "sha256": "f8aef1c0deb9f2aea4a91464df6de43dd4e591be4f847727d2d2df90304a9646"
+    },
+    {
+      "path": "book/always_on/exercises/ch05/holdouts/runtime-transfer-v1.py",
+      "sha256": "0be8fc8790b05cc2c01954f0a6982af6268c88ebfcdc67ad626b0f9e3d35477b"
+    },
+    {
+      "path": "book/always_on/exercises/ch05/holdouts/unit-a-holdout-v1.py",
+      "sha256": "bb5cde3b3943caf0c44c9a6e3911eefefe86e0fd1ddf28e4f63fd8bbc8b37f54"
+    },
+    {
+      "path": "book/always_on/exercises/ch05/holdouts/unit-b-holdout-v1.py",
+      "sha256": "d0ad53ba211fd81b98ea112d84c530290b03e4843bf2e4a2ad63736b33d75097"
+    },
+    {
+      "path": "book/always_on/exercises/ch05/solutions/unit-a-solution-v1.py",
+      "sha256": "85dc44d49f89556919f9a5113d829bf11eb5f8017752d6d2f318d321d40c8200"
+    },
+    {
+      "path": "book/always_on/exercises/ch05/solutions/unit-b-solution-v1.py",
+      "sha256": "3753c5408329c6ac45d7eef6804aa56cd8d52c7f12e2ff1fd05bd0ccacdd2d71"
+    },
+    {
+      "path": "book/always_on/exercises/ch06/holdouts/runtime-transfer-v1.py",
+      "sha256": "37e726eb802098cfcc3aa1e64a5ee94d4cadf92271320751dc5a07c2d8c22e81"
+    },
+    {
+      "path": "book/always_on/exercises/ch06/holdouts/unit-a-holdout-v1.py",
+      "sha256": "4ce72bdb2e692e8bca18ee0adae5a07173f0aecfdb783116639ee07eb7341034"
+    },
+    {
+      "path": "book/always_on/exercises/ch06/holdouts/unit-b-holdout-v1.py",
+      "sha256": "84e8f379241ca2e1b697679345804a81c58bae080020e2edf09c217b89226012"
+    },
+    {
+      "path": "book/always_on/exercises/ch06/solutions/unit-a-solution-v1.py",
+      "sha256": "b556d654835166ab18dfcb3ad302b2ccdf1130517731d52d59e7d37afb1b7881"
+    },
+    {
+      "path": "book/always_on/exercises/ch06/solutions/unit-b-solution-v1.py",
+      "sha256": "08f52d01218d00b6d01f5584367fa09f20acd54aa4677d7b08d2992f035a944f"
+    },
+    {
+      "path": "book/always_on/exercises/ch07/holdouts/runtime-transfer-v1.py",
+      "sha256": "8f0aae85253ea9e6c039b01928fdee98747a3c5be562805ee70fb80a70c3d567"
+    },
+    {
+      "path": "book/always_on/exercises/ch07/holdouts/unit-a-holdout-v1.py",
+      "sha256": "b15fa05772f32761bc43581cc14ec2de4f5ebb07eca6b7f480f8c70ab79a7a73"
+    },
+    {
+      "path": "book/always_on/exercises/ch07/holdouts/unit-b-holdout-v1.py",
+      "sha256": "f204e7d819e5e58b8289d0040d707a5294a6fd392900a428775bd0148cf2befd"
+    },
+    {
+      "path": "book/always_on/exercises/ch07/solutions/unit-a-solution-v1.py",
+      "sha256": "42ac7501d73a1770e667765a6e2bc0ab725e5bd85060c7ed1983578468e52609"
+    },
+    {
+      "path": "book/always_on/exercises/ch07/solutions/unit-b-solution-v1.py",
+      "sha256": "714bd0aea329f232cc8cf535ad08d52d0c8c00e03afeea1e8770d595c856e8d8"
+    },
+    {
+      "path": "book/always_on/exercises/ch08/holdouts/runtime-transfer-v1.py",
+      "sha256": "942d0fd6d52592f7ca2f9cf082ffb18e0ef01de42fea63e6ad011f28568efdd6"
+    },
+    {
+      "path": "book/always_on/exercises/ch08/holdouts/unit-a-holdout-v1.py",
+      "sha256": "7a877838b1e28ee087b90a380a26a8f7632e29c862c0398832c2ce7fab9cde44"
+    },
+    {
+      "path": "book/always_on/exercises/ch08/holdouts/unit-b-holdout-v1.py",
+      "sha256": "2c2cbbf7f54f1f8da92a954967d9ade408d74fb6535d3dacc2555cf1cc920cff"
+    },
+    {
+      "path": "book/always_on/exercises/ch08/solutions/unit-a-solution-v1.py",
+      "sha256": "b574fbd0eac2b7219a445eb4524f40aa84320febcd2864e3b8188d9437d1cff6"
+    },
+    {
+      "path": "book/always_on/exercises/ch08/solutions/unit-b-solution-v1.py",
+      "sha256": "2cc63813c94d735d553790d5b00940da85d313919bc72fe7238176f4f4bf8339"
+    },
+    {
+      "path": "book/always_on/exercises/ch09/holdouts/unit-a-holdout-v1.py",
+      "sha256": "a1bfcac46ea526bf710733bbece4cc76b51ef27b1ba374eee4b557daa134a471"
+    },
+    {
+      "path": "book/always_on/exercises/ch09/holdouts/unit-b-holdout-v1.py",
+      "sha256": "56aa4d16367c1367d7f24ac9dd54e5b9166f0613cc195898534c66cec6591065"
+    },
+    {
+      "path": "book/always_on/exercises/ch09/solutions/unit-a-solution-v1.py",
+      "sha256": "253e2518096cdb75a653a0f08eaa4670f03a14715d92d34737b488d99c304215"
+    },
+    {
+      "path": "book/always_on/exercises/ch09/solutions/unit-b-solution-v1.py",
+      "sha256": "a0b64fb655a30b0c44f54804276db46c3eb2e5f52291c2d7660f4c5de27d8497"
+    },
+    {
+      "path": "book/always_on/exercises/ch10/holdouts/runtime-transfer-v1.py",
+      "sha256": "1490e4d43fd2abb99f7c65ba560c597a5e1d479a1716db7977e37c2d7a5ca161"
+    },
+    {
+      "path": "book/always_on/exercises/ch10/holdouts/unit-a-holdout-v1.py",
+      "sha256": "c17d660ad5621a77b4301a2f0cd848028a9792afbf38eebcedc7b2c1406abc72"
+    },
+    {
+      "path": "book/always_on/exercises/ch10/holdouts/unit-b-holdout-v1.py",
+      "sha256": "63d73579159b0c20a6684de09fdd2f3659186b90305d100ff1f3f6b48dfc6d35"
+    },
+    {
+      "path": "book/always_on/exercises/ch10/solutions/unit-a-solution-v1.py",
+      "sha256": "5f9899c0447bab0ecfa8c891582421ee276e09bcfddaf7f5810d035f49c527da"
+    },
+    {
+      "path": "book/always_on/exercises/ch10/solutions/unit-b-solution-v1.py",
+      "sha256": "3b98d78c68b7302b63d96c762082f9df7b50941321f63019aec3c792cfbc00f9"
+    },
+    {
+      "path": "book/always_on/exercises/ch11/holdouts/runtime-transfer-v1.py",
+      "sha256": "c073623e6daa7b93ff9a5ca64b79001484402596a33f60324472547e8fa7b21d"
+    },
+    {
+      "path": "book/always_on/exercises/ch11/holdouts/unit-a-holdout-v1.py",
+      "sha256": "f383931b3a71214ccad2a0b8426c2628e63948c1665cefb7a3768af4b351fb6d"
+    },
+    {
+      "path": "book/always_on/exercises/ch11/holdouts/unit-b-holdout-v1.py",
+      "sha256": "03ba92c4622e4bd7d19299b67fa26dfa9d5328d3abb2ea9732ea09e7fa13b757"
+    },
+    {
+      "path": "book/always_on/exercises/ch11/solutions/unit-a-solution-v1.py",
+      "sha256": "067c1458b1f2ecd6c3718f57e7e1d66af9928dd28afb76a49dffce73227eddfb"
+    },
+    {
+      "path": "book/always_on/exercises/ch11/solutions/unit-b-solution-v1.py",
+      "sha256": "e20e1b22fde92c1e1320e879c653397901aaab13314d82d898defebb33881a6b"
+    },
+    {
+      "path": "book/always_on/exercises/ch12/holdouts/runtime-transfer-v1.py",
+      "sha256": "ebb9ee5edca56fec2cf840319cabcdfdb1e0f4547926ce776c365d5aa4b14aa6"
+    },
+    {
+      "path": "book/always_on/exercises/ch12/holdouts/unit-a-holdout-v1.py",
+      "sha256": "ef7b80ef49b690cb043119ff8d1b2ed0b95e1a464ef5ad0799828053741b4d07"
+    },
+    {
+      "path": "book/always_on/exercises/ch12/holdouts/unit-b-holdout-v1.py",
+      "sha256": "171b289354a269b79f711b5fb0846db30ae49012383e56c3fd4d7d28a34a4622"
+    },
+    {
+      "path": "book/always_on/exercises/ch12/solutions/unit-a-solution-v1.py",
+      "sha256": "6c879fa335d1ccc8c9950003239bbac3f8cb4c22019cdec20e3a1b6dd2cff4f5"
+    },
+    {
+      "path": "book/always_on/exercises/ch12/solutions/unit-b-solution-v1.py",
+      "sha256": "70553204895cb06eae271db602b38eb4ac27fd5e6516e46f1f9d0fe8b26ea560"
+    },
+    {
+      "path": "book/always_on/exercises/ch13/holdouts/runtime-transfer-v1.py",
+      "sha256": "7b846685f7d6c4ef61c57235e0382f5d197ca6b51f2b75c8d2530493d8f88338"
+    },
+    {
+      "path": "book/always_on/exercises/ch13/holdouts/unit-a-holdout-v1.py",
+      "sha256": "dd962a4035fe065eadaa1063c1f7169646348bf749529525cb77570343c48693"
+    },
+    {
+      "path": "book/always_on/exercises/ch13/holdouts/unit-b-holdout-v1.py",
+      "sha256": "a571c02f329ec79124946cf33db4558303bc5180c74e93895b8ad79fe60c0ae1"
+    },
+    {
+      "path": "book/always_on/exercises/ch13/solutions/unit-a-solution-v1.py",
+      "sha256": "eec17fab5d94980c6082d032d1222e0648e1dfb655d32fecbe0e0c386a585183"
+    },
+    {
+      "path": "book/always_on/exercises/ch13/solutions/unit-b-solution-v1.py",
+      "sha256": "f47a79e7ecfea477aa9ddef69e192930ad23360b828046a0929041e96fa1ebca"
+    },
+    {
+      "path": "book/always_on/exercises/ch14/holdouts/runtime-transfer-v1.py",
+      "sha256": "078d20951cc39445509ca2c1954695cb77f65e6624506bd1847ad710bde44e64"
+    },
+    {
+      "path": "book/always_on/exercises/ch14/holdouts/unit-a-holdout-v1.py",
+      "sha256": "123e1affe307dabfd9092cca7d2d5f057520ec18f86435bf6695561242204cd5"
+    },
+    {
+      "path": "book/always_on/exercises/ch14/holdouts/unit-b-holdout-v1.py",
+      "sha256": "b256792ceeb1e87c9cef438a40d39365eb86e41692d3373a23d1ea644aca7f62"
+    },
+    {
+      "path": "book/always_on/exercises/ch14/solutions/unit-a-solution-v1.py",
+      "sha256": "4bb3ab1966dd45799667d5ccca23a6dd14ff475bd4a423a37bd9c5cb58f70090"
+    },
+    {
+      "path": "book/always_on/exercises/ch14/solutions/unit-b-solution-v1.py",
+      "sha256": "8017924beb8946e5336adbf0216f101880358d611da7cdff0f0582331605ea7d"
+    },
+    {
+      "path": "book/always_on/exercises/ch15/holdouts/runtime-transfer-v1.py",
+      "sha256": "40ecf4302b596af92bf16d705583434022b676a5def6525a58361b7c5a97316b"
+    },
+    {
+      "path": "book/always_on/exercises/ch15/holdouts/unit-a-holdout-v1.py",
+      "sha256": "95a7e011de7fcd939acc2add323c47c72ddd46db6fe0bd5d7fb0ee8977d68b8a"
+    },
+    {
+      "path": "book/always_on/exercises/ch15/holdouts/unit-b-holdout-v1.py",
+      "sha256": "f768f29e204cb66a547a31f417fbc65f9b121d56085835b19349a359f2083790"
+    },
+    {
+      "path": "book/always_on/exercises/ch15/solutions/unit-a-solution-v1.py",
+      "sha256": "96edefe60bbd6287210b78aa85923270fac151ef5958cbe7975f2ef9d7bb1da4"
+    },
+    {
+      "path": "book/always_on/exercises/ch15/solutions/unit-b-solution-v1.py",
+      "sha256": "e5803ff58f9b3951034acf09821d8fb4e28e64a4a1f75a08a6cedc352de15f0e"
+    },
+    {
+      "path": "book/always_on/exercises/ch16/holdouts/runtime-transfer-v1.py",
+      "sha256": "76c010172ed4d9da938d3920d33bb62e4606867c6928df3ddd6990e511629680"
+    },
+    {
+      "path": "book/always_on/exercises/ch16/holdouts/unit-a-holdout-v1.py",
+      "sha256": "c1d71b3df21f6a4003b389bae6c8f34143940715fddf0225ee01e048219605db"
+    },
+    {
+      "path": "book/always_on/exercises/ch16/holdouts/unit-b-holdout-v1.py",
+      "sha256": "945097621006a0c33957686b1cc81ce1bb92a3de7f5fda2d1c0c8e8ff9291f36"
+    },
+    {
+      "path": "book/always_on/exercises/ch16/solutions/unit-a-solution-v1.py",
+      "sha256": "c7afc7c2106adb12b731d1409414c78d8d4372ce5eafeb30479f42cb01e9f6af"
+    },
+    {
+      "path": "book/always_on/exercises/ch16/solutions/unit-b-solution-v1.py",
+      "sha256": "29043ed37afba69799f8e49875598aa74e660f34456e5c432e8deaf447baba74"
+    }
+  ],
+  "pedagogy": "UNREVIEWED",
+  "runtimeFiles": [
+    {
+      "path": "book/always_on/checkpoints/ch01.py",
+      "sha256": "04334ad79db975c1576ab4635a81033a01f323ec643b80fbf4e35d9670dada50"
+    },
+    {
+      "path": "book/always_on/checkpoints/ch02.py",
+      "sha256": "d5fc4f480494911ff70df299e1464b82290142ca2d81193c880be6f6a71f7ae8"
+    },
+    {
+      "path": "book/always_on/checkpoints/ch03.py",
+      "sha256": "ce8dfd2a8bf65998214b96eb0f33d1385997045dd6f36ab3f64f1d3cd8f032b5"
+    },
+    {
+      "path": "book/always_on/checkpoints/ch04.py",
+      "sha256": "9acb4fc3d28fdd76cccb02ab9d2129fbaa2d7fa9da4727cab1f8fc26cbb31e2b"
+    },
+    {
+      "path": "book/always_on/checkpoints/ch05.py",
+      "sha256": "e0f6a8a9228f5faf4f4b7a69dc4bb84f199d1e8e7f274b16922c8c9708bb3547"
+    },
+    {
+      "path": "book/always_on/checkpoints/ch06.py",
+      "sha256": "8495433688b6fd601f268d8e278660a1226c7b67436e4b7b6380c424effbb359"
+    },
+    {
+      "path": "book/always_on/checkpoints/ch07.py",
+      "sha256": "652947c8165a1810fea7860223e7372b83956af1e0fa5a2b9427d4c67d5147f9"
+    },
+    {
+      "path": "book/always_on/checkpoints/ch08.py",
+      "sha256": "09967c440089ed7378bb4b77ae6b5788a614c8387091db6a3079d5058b4ec95d"
+    },
+    {
+      "path": "book/always_on/checkpoints/ch09.py",
+      "sha256": "1993459a746158cb289821f5980d9c4e365fc93ea1665eb96fce66323f5bae96"
+    },
+    {
+      "path": "book/always_on/checkpoints/ch10.py",
+      "sha256": "f4fd29c6acba491b3348e71c9b95e9dc3c26d7f890dc9181c7bce74a840585ed"
+    },
+    {
+      "path": "book/always_on/checkpoints/ch11.py",
+      "sha256": "221667c46b529cbd7b887e748bfece648c44a50499c06981e6746663b5906619"
+    },
+    {
+      "path": "book/always_on/checkpoints/ch12.py",
+      "sha256": "06ee0abbab182ad7d2e9baddd54ebbe49d01f4641b33f85afc85d7377cb60481"
+    },
+    {
+      "path": "book/always_on/checkpoints/ch13.py",
+      "sha256": "02f340da68541a9b38062fb781c77290fb4cbf0a7c109bfcec88ae64c0e086cd"
+    },
+    {
+      "path": "book/always_on/checkpoints/ch14.py",
+      "sha256": "3e81e29727180f1c13a71058a457642759fc59afeb4426164c3d3d9be51f054f"
+    },
+    {
+      "path": "book/always_on/checkpoints/ch15.py",
+      "sha256": "8a81cfe5fa30542cd8cdb2f19e734ffff58b131a9c9ae0c33c5b623d46ab21ab"
+    },
+    {
+      "path": "book/always_on/checkpoints/ch16.py",
+      "sha256": "2145f13550a2c9d6a662355ab95f816c94a91d4aa104f773d1461f89093fa0aa"
+    },
+    {
+      "path": "book/always_on/educator/runtime-experiments-v1.json",
+      "sha256": "2c2729f4c321101b0e93720397474a2b477caaab33e50b7a6dff22892025bb19"
+    },
+    {
+      "path": "book/always_on/educator/runtime_labs_v1.py",
+      "sha256": "6ac20bc68e9e9e0576648a3625890df8c4087bd51970673ae3087b4748645de9"
+    },
+    {
+      "path": "book/always_on/learner/ch02.py",
+      "sha256": "3181d2709765f9ad27b024c0f38c5fa95b37a8293916b87c8831198e563c05ee"
+    },
+    {
+      "path": "book/always_on/learner/ch03.py",
+      "sha256": "e17b034dff63cfab77af872e408fe1aee860decde9b0263081db9831f02a0840"
+    },
+    {
+      "path": "book/always_on/skills/opening-check-v1.toml",
+      "sha256": "5296e9db27b4ea8e8803f79fc75f5c24c9dbab147161eb8509338f2f1863b7bc"
+    },
+    {
+      "path": "scripts/build_exercise_release_v3.py",
+      "sha256": "678714c1aaa38ae046b9760dab4c144a6fa851a920a4aac71d59a221730629a7"
+    },
+    {
+      "path": "scripts/build_exercise_release_v4.py",
+      "sha256": "3806d2cb6321f3afa785156d2b2b184f1165e49124c4d6bbab6bf8c3f1d990d9"
+    },
+    {
+      "path": "scripts/verify_exercise_release_v4.py",
+      "sha256": "6e8be1b57ac2fb51bd5c8786d5c5b13acd20e2df7438fb6d8829842aca05aff1"
+    },
+    {
+      "path": "src/reference_organizations/__init__.py",
+      "sha256": "73b9c53c0a0f8c0aaf45f7399fe105acdcbe14acce46b10bd243b00d3136dcc7"
+    },
+    {
+      "path": "src/reference_organizations/store/__init__.py",
+      "sha256": "118dc0cd7629c5a1b7943f7fb12dca56f98b7a635697fea1ef6c88f1d4670222"
+    },
+    {
+      "path": "src/reference_organizations/store/__main__.py",
+      "sha256": "83c38b28f1ed7c12c7ca7d2686ba4a380ef42637d649bb72168cd4eea8b28c6a"
+    },
+    {
+      "path": "src/reference_organizations/store/account_recovery.py",
+      "sha256": "fe50644e707bf3dbad768fe573136d2891f4ab2d17401db9dc9773b605ccab4a"
+    },
+    {
+      "path": "src/reference_organizations/store/advanced_demo.py",
+      "sha256": "01d11d9f9e8e0fbe474871377887a011cca595686391d3067cfcd4658d5e05d9"
+    },
+    {
+      "path": "src/reference_organizations/store/agent.py",
+      "sha256": "df8ec9aabaa6155de43c435e7e57c7f43c02d70e7c70f9f635437636c49ddb0a"
+    },
+    {
+      "path": "src/reference_organizations/store/assistant.py",
+      "sha256": "a4f244d2078e7da3d9eea5d300276243e4042f53df94b0645af9ee79980214b3"
+    },
+    {
+      "path": "src/reference_organizations/store/delegation.py",
+      "sha256": "ef99acc885bdc4a640c37c44b82f3f90baa59e9d886ac39343c7242c0d8a6174"
+    },
+    {
+      "path": "src/reference_organizations/store/demo.py",
+      "sha256": "effdedf30a59940af6280cc58922bb703628d6601654b31d16bd92b9bafd1bef"
+    },
+    {
+      "path": "src/reference_organizations/store/evaluation.py",
+      "sha256": "f7b51b6c2c0326f66a53fefa79e075b124225bb0b84c8d59278d7927438c3c76"
+    },
+    {
+      "path": "src/reference_organizations/store/extra_tools.py",
+      "sha256": "34fb59bba55159711bc206769eece6487d1184797e678441c5bfff0eb2c39918"
+    },
+    {
+      "path": "src/reference_organizations/store/improvement.py",
+      "sha256": "c4c76cf2d6da7c37fc7ff45174af13c27ec3ed13e24ed97a20ff7f7a72128e97"
+    },
+    {
+      "path": "src/reference_organizations/store/mcp_server.py",
+      "sha256": "72b47202fd84670c40cc53a39d6675787f87b82530ef5501731447a105069710"
+    },
+    {
+      "path": "src/reference_organizations/store/operating_report.py",
+      "sha256": "664af6a5a72c1f0eb18bb291dfdd656474201c2933c6517164be7f02222e0ba5"
+    },
+    {
+      "path": "src/reference_organizations/store/pilot.py",
+      "sha256": "50ff20dae6706f50a361a32524637edd949dbbd1e0ea911be9381bbe43cd3d50"
+    },
+    {
+      "path": "src/reference_organizations/store/pulse_gate.py",
+      "sha256": "8c4de533500b2aabd2502c41893c2015ce284940cae7e8230680df8031662c5d"
+    },
+    {
+      "path": "src/reference_organizations/store/stock_conditions.py",
+      "sha256": "78ccf648e45120ef2cb1e1f9577f702cecede60b61be35148204e20d0e1897a7"
+    },
+    {
+      "path": "src/reference_organizations/store/supplier.py",
+      "sha256": "c171c7132b2ad5a169373be45166ca59cc6b1a2edf3a7d5f7f01c483973f4eb2"
+    },
+    {
+      "path": "src/sovereign_agent/__init__.py",
+      "sha256": "79deedf0e7119d6005be675639ea59f27b8566258138485b12a8b57f2d56b458"
+    },
+    {
+      "path": "src/sovereign_agent/__main__.py",
+      "sha256": "027907d10553f668ca6630739216ff8a0d44279f3a8c6cd285e3cf448711d31a"
+    },
+    {
+      "path": "src/sovereign_agent/actors.py",
+      "sha256": "e7b2e2d7dcf60a69e6aa020126b71180a68bdc5bd645a8b19d5ff43c40c78469"
+    },
+    {
+      "path": "src/sovereign_agent/agent_loop.py",
+      "sha256": "d67619cee3fab3639882ffefd2daa1ce6494766f428134c97bad2dbfa9d2bd78"
+    },
+    {
+      "path": "src/sovereign_agent/assistant_cli.py",
+      "sha256": "adde47137d5df787014f4d85a4c10566921ea2993e4093f84caadc9e80072da8"
+    },
+    {
+      "path": "src/sovereign_agent/assistant_context.py",
+      "sha256": "848e5acaf9366c66c6f699d6d2790a1364af0113360985f726f48fa622518c49"
+    },
+    {
+      "path": "src/sovereign_agent/assistant_orders.py",
+      "sha256": "0c1c8d69a54bcd7de458658fcfa56a3a4bc15d228474eb8d6d414d4b1b9b2b99"
+    },
+    {
+      "path": "src/sovereign_agent/assistant_schema.py",
+      "sha256": "8fe977e857868584f93cf424f1a5e240a01fedef456c2afb8f3c6ab4da3aa86c"
+    },
+    {
+      "path": "src/sovereign_agent/assistant_service.py",
+      "sha256": "909180473cf321a19b0f40bb735ad8a19dbcf0aa77a34dbaa12ef8ddfc75ad01"
+    },
+    {
+      "path": "src/sovereign_agent/assistant_work.py",
+      "sha256": "b359e33e95ea475b492935f743cd7d6e59232d2b8507cc4b09806ab1572752e9"
+    },
+    {
+      "path": "src/sovereign_agent/automation.py",
+      "sha256": "208f46602e2ba1226f400198638d85461aa7bbe927dd8b3151aa424f5ba256a8"
+    },
+    {
+      "path": "src/sovereign_agent/checks.py",
+      "sha256": "adf647aa76d5cfd5fc8e91c240f41d03f67de6dd67053008d502c47bae7c51d3"
+    },
+    {
+      "path": "src/sovereign_agent/cli.py",
+      "sha256": "0af5a87f3f2bb587ff1d52b4af1cb899b68e28ae7ca977879ee5aa603b25c31a"
+    },
+    {
+      "path": "src/sovereign_agent/context.py",
+      "sha256": "f57e57ad9e7c45fbd5f3d9bc0bb3624eb1bfcbb505f14c42ce3dde07675b4aff"
+    },
+    {
+      "path": "src/sovereign_agent/coordination.py",
+      "sha256": "c9e75780b7a69915cc8cb0564b70af6bb7bf7de0ac8e645e55f3b39132b04fe7"
+    },
+    {
+      "path": "src/sovereign_agent/database.py",
+      "sha256": "020cda3c72e196fc605fcb9488a73cc938c6901aa71b5fd45fb9fd9df88b3e74"
+    },
+    {
+      "path": "src/sovereign_agent/errors.py",
+      "sha256": "0fd58f5c4a186a66d34ba8aa0c7c12f63e70b92f8e9069a263dfb2b7be455a2e"
+    },
+    {
+      "path": "src/sovereign_agent/events.py",
+      "sha256": "24bcd2a597e9a93d6e3b0b145c8ad4d317abf96781b9bc7f7eea2bbf16db0aab"
+    },
+    {
+      "path": "src/sovereign_agent/evidence.py",
+      "sha256": "c1999062f8d47ea98ba3d16592e9edc8e927d379657e45067979526f6cb7701d"
+    },
+    {
+      "path": "src/sovereign_agent/execution.py",
+      "sha256": "906c311f0e393b563c17936a5f08c04911a9a0cef2e4d88c833b8edbe6e03610"
+    },
+    {
+      "path": "src/sovereign_agent/fencing.py",
+      "sha256": "1e6e07f664ed7b166e1bb948538f961a53335ba66241998820714ab378eb229f"
+    },
+    {
+      "path": "src/sovereign_agent/files.py",
+      "sha256": "957508f05d198adb01ddfdcba4acec503533e33ff7e8bfeae41a4608dc9141dd"
+    },
+    {
+      "path": "src/sovereign_agent/governance.py",
+      "sha256": "58feddfbfb1f8d0682240e14a8d96c9169cfaf3ad5b19b694e83ad28b697bef0"
+    },
+    {
+      "path": "src/sovereign_agent/heartbeat.py",
+      "sha256": "188129b183a17078bc86bc3434ad8bc7f09b1f808bf101d0686eebfb123e21ec"
+    },
+    {
+      "path": "src/sovereign_agent/http_transport.py",
+      "sha256": "801aa27e6767aa13473e2273aabc30988371e018fd89d74c4dab7588613ca764"
+    },
+    {
+      "path": "src/sovereign_agent/ids.py",
+      "sha256": "7d24e727e98c42fc217cddc3b09ff6c7a9d5008f80c40e4cac79aa9ad2cc7e48"
+    },
+    {
+      "path": "src/sovereign_agent/isolation.py",
+      "sha256": "d162a2b26e72ef253f1fada0e7592609c9caf6aa8bef16d8b31e138db3c9a61c"
+    },
+    {
+      "path": "src/sovereign_agent/mcp_client.py",
+      "sha256": "3dbe1ed2237b5c7b0dfaf86714b58372295d7f87ec95e0d8994de6c8c123b63c"
+    },
+    {
+      "path": "src/sovereign_agent/memory.py",
+      "sha256": "69ff646b0415769aae6fd09380ae7b9a1b3247320535ea63fa116509ad90669f"
+    },
+    {
+      "path": "src/sovereign_agent/model_turn.py",
+      "sha256": "f109915d72988a0913bb5bf15975916afc79ceb9a08348788bf058fffa7fc43f"
+    },
+    {
+      "path": "src/sovereign_agent/models.py",
+      "sha256": "4828075d59767c83ffd20b810f7d1bee98196e742f2c1faf6712e3c4503b1443"
+    },
+    {
+      "path": "src/sovereign_agent/organization.py",
+      "sha256": "861ad4cc0c62c30040d114eb7f21bcd1767a828ddc42f1eca0b3298ec0f0ff81"
+    },
+    {
+      "path": "src/sovereign_agent/policy.py",
+      "sha256": "5d21e6c08062e3435910aa1e168daec1338ff2b09e9edbdd01904391e0305d15"
+    },
+    {
+      "path": "src/sovereign_agent/providers/__init__.py",
+      "sha256": "f1409f110456adcea2f508496661ab1604055ca3262063dcae366948dcfef7f6"
+    },
+    {
+      "path": "src/sovereign_agent/providers/base.py",
+      "sha256": "e899c2c6da693f3d7ae095f3d129393812e33a1e934e5096d9eef8455708f44c"
+    },
+    {
+      "path": "src/sovereign_agent/providers/claude.py",
+      "sha256": "2dcbab259af3fecc964200040ab3ba931e9fd2d1c4d70e56986db09520bfcf75"
+    },
+    {
+      "path": "src/sovereign_agent/providers/codex.py",
+      "sha256": "b4acc8bdd33598b1bc4a2393521928dff793ff2d7596c5c1e37dab765b0d619f"
+    },
+    {
+      "path": "src/sovereign_agent/providers/cursor.py",
+      "sha256": "fe90046cb97216dd4759c2100dd27074813ad1bbcaf73e42d348a7ac085be7e3"
+    },
+    {
+      "path": "src/sovereign_agent/providers/openai_compatible.py",
+      "sha256": "11bad566b847eb0f49206f9e3e44f69a0632e7a66b83058627dd41d06adea779"
+    },
+    {
+      "path": "src/sovereign_agent/providers/scripted.py",
+      "sha256": "daee58401cc8ed9ddd4edc02be413e2a955f95b99be42e540062d7d5a7bed464"
+    },
+    {
+      "path": "src/sovereign_agent/pulse.py",
+      "sha256": "2c7e6467a9a3a2ccb94fb8e67f24177cb86b76a0981c79b7a1ddbd2db7a655de"
+    },
+    {
+      "path": "src/sovereign_agent/relay.py",
+      "sha256": "49543255eaedfc9ad6d08981c8e19fdd59fd9c9f63cf9303058ebd0af2c84bcc"
+    },
+    {
+      "path": "src/sovereign_agent/sandbox_tool.py",
+      "sha256": "243bf6678baf4b8ed419f293030dac1fc5c3f579e92a3a6d636143413fd9a177"
+    },
+    {
+      "path": "src/sovereign_agent/supervisor.py",
+      "sha256": "e6ad35182ccbd522de6221740213f4621f0f5e2a74cf8631178d0cc7a1759e67"
+    },
+    {
+      "path": "src/sovereign_agent/telegram_channel.py",
+      "sha256": "677e5224959437264258c29a4ec3c51390b42559bebf9d2b4e53e804e0a939ef"
+    },
+    {
+      "path": "src/sovereign_agent/tool_dispatch.py",
+      "sha256": "02e289df4c3f913f1cf9a1fa6267cd53e8845aa55235164097e67f207fe49134"
+    },
+    {
+      "path": "src/sovereign_agent/tools.py",
+      "sha256": "e1d2ff2efe9935a5c695acdaee32829bb9ba74f668af915597e1291e08c0fbb5"
+    },
+    {
+      "path": "src/sovereign_agent/workspace.py",
+      "sha256": "ec32c3193c5d05ddc746f8470cd9cbae0b012c5eaa7d26a24484af7aca09d7ae"
+    },
+    {
+      "path": "tests/test_wave2_source_tasks_v1.py",
+      "sha256": "29a783dd1afa082150f7ea716c83052d5a861c0603c85c115f138353d108b36a"
+    }
+  ],
+  "schemaVersion": 3,
+  "sourceCommit": "7b9f37b805ef8bb01418afccbbd89af9ef919888",
+  "status": "DRAFT",
+  "studentFiles": [
+    {
+      "path": "book/always_on/exercises/ch01/unit-a-first-grounded-brief-v1.ipynb",
+      "sha256": "73e85dafad80f9ca7f95b6dc4a7a86a616b049db9a7281798c0aed42a3ea6fcb"
+    },
+    {
+      "path": "book/always_on/exercises/ch01/unit-a-first-grounded-brief-v1.md",
+      "sha256": "a8a07c7bb7da73ab5b8ffea210e163ced0e1cc3b557fd397674e26e33ed086f1"
+    },
+    {
+      "path": "book/always_on/exercises/ch01/unit-b-prompt-and-harness-v1.ipynb",
+      "sha256": "085bd5fb6dbcdddff41b91911a3aa4b3bbda91ecbcb9a4da008df9f4ed858961"
+    },
+    {
+      "path": "book/always_on/exercises/ch01/unit-b-prompt-and-harness-v1.md",
+      "sha256": "14da22ea89a30a0935afda775e2b2f4e97c3b25f9a3dd63a1e53f10f7394ec6a"
+    },
+    {
+      "path": "book/always_on/exercises/ch02/unit-a-build-connect-v1.ipynb",
+      "sha256": "93b578e03d00b279de62f6f26a92b6f95578328e360d56296b07b2ad1b9f0405"
+    },
+    {
+      "path": "book/always_on/exercises/ch02/unit-a-build-connect-v1.md",
+      "sha256": "ede56df39893ec8fa5657b624a04ece08be43b9cd7e13b632b46281787c4c291"
+    },
+    {
+      "path": "book/always_on/exercises/ch02/unit-b-repair-transfer-v1.ipynb",
+      "sha256": "5c19cfca148fcd820f25015acef4c18991c09a430a1f05c7b2db94b5adce153f"
+    },
+    {
+      "path": "book/always_on/exercises/ch02/unit-b-repair-transfer-v1.md",
+      "sha256": "cc684dfb9550d1cdc47c2e277733df734744e9ddb4491940b2d8d3ff9284cf7c"
+    },
+    {
+      "path": "book/always_on/exercises/ch03/unit-a-bounded-loop-v1.ipynb",
+      "sha256": "df387d0ffed79b6d91618a2b86f8257da201d18eba24cbf0ce9e5ff6341d3e46"
+    },
+    {
+      "path": "book/always_on/exercises/ch03/unit-a-bounded-loop-v1.md",
+      "sha256": "cf193e6f010324ed806a7230740d7b56e3f118857650c4a564c9df82e6549207"
+    },
+    {
+      "path": "book/always_on/exercises/ch03/unit-b-failure-accounting-v1.ipynb",
+      "sha256": "d8d295868191451509eaf7ef3d8a35b09e0de1d01bd4916fdb2fd0de4d6d20ba"
+    },
+    {
+      "path": "book/always_on/exercises/ch03/unit-b-failure-accounting-v1.md",
+      "sha256": "fe2fd54386e53cd457949a064cd73319bb61e1e6e00def176341148c0c1b2de4"
+    },
+    {
+      "path": "book/always_on/exercises/ch04/unit-a-build-connect-v1.ipynb",
+      "sha256": "184ea1c8514d034037fe8fe426ef857bd3b719a337e86f7e0c75e0a942aa1a22"
+    },
+    {
+      "path": "book/always_on/exercises/ch04/unit-a-build-connect-v1.md",
+      "sha256": "10a35a0d90dfdf2e15228e22e2f722656ef849f9a8de6c7cf1b11b3214a51c7e"
+    },
+    {
+      "path": "book/always_on/exercises/ch04/unit-b-repair-transfer-v1.ipynb",
+      "sha256": "f0d9eb292cb619d046674add34b4d24e3115c2dc3ea038e3fd261b65792385de"
+    },
+    {
+      "path": "book/always_on/exercises/ch04/unit-b-repair-transfer-v1.md",
+      "sha256": "c7ec1f5b4bdcba56b2aa26db42d2cf144ef142db3f49ba0ad3eca71dc9f63eb9"
+    },
+    {
+      "path": "book/always_on/exercises/ch05/unit-a-build-connect-v1.ipynb",
+      "sha256": "d0d99f674f76910ea942d6b4bb720acfedcef1deaf83ca2d68de7618784ccdf5"
+    },
+    {
+      "path": "book/always_on/exercises/ch05/unit-a-build-connect-v1.md",
+      "sha256": "3d54bb6854ebda96fa07f695482383d59a87a1fb10486368ead87eb5eb3dc05a"
+    },
+    {
+      "path": "book/always_on/exercises/ch05/unit-b-repair-transfer-v1.ipynb",
+      "sha256": "15e8cf81ba55deaf3413aec99b179f0e8b3840b98f774667e0700d1bee9b0947"
+    },
+    {
+      "path": "book/always_on/exercises/ch05/unit-b-repair-transfer-v1.md",
+      "sha256": "36c975ac627db249c316455dbbb8690891d385798bd6794a4507a6b1220e5bed"
+    },
+    {
+      "path": "book/always_on/exercises/ch06/unit-a-build-connect-v1.ipynb",
+      "sha256": "63cf2a123d4aadaadbfaa3875dbeb8f257122aa005bd8800dbbfd8fb6ca9d54e"
+    },
+    {
+      "path": "book/always_on/exercises/ch06/unit-a-build-connect-v1.md",
+      "sha256": "d9539f503fbf466a2329ff8ce039122d93d7e97d96e1b113a187128e9de5f936"
+    },
+    {
+      "path": "book/always_on/exercises/ch06/unit-b-repair-transfer-v1.ipynb",
+      "sha256": "a7be8eb1ede90239822db7449e6ab3e86f2f6b19e1f9d661c0ab51d831eb690f"
+    },
+    {
+      "path": "book/always_on/exercises/ch06/unit-b-repair-transfer-v1.md",
+      "sha256": "95678a6d46a6122501d764293fa41de83cf872fe4ef6960c7c28628626337f6e"
+    },
+    {
+      "path": "book/always_on/exercises/ch07/unit-a-build-connect-v1.ipynb",
+      "sha256": "5c9dc99be2fe3ddc590314678eb88d8973d055050d749d52dfd7c314c0dce654"
+    },
+    {
+      "path": "book/always_on/exercises/ch07/unit-a-build-connect-v1.md",
+      "sha256": "40fd856b148b0591b02f41773c71f5b3e042caf091a1d4c3b43fbc7ecc53ef61"
+    },
+    {
+      "path": "book/always_on/exercises/ch07/unit-b-repair-transfer-v1.ipynb",
+      "sha256": "031eed760c49df76cceaa7e5d83cb768fc3851a4454a42560481910081a1f778"
+    },
+    {
+      "path": "book/always_on/exercises/ch07/unit-b-repair-transfer-v1.md",
+      "sha256": "f93a1d9b261b3cc51899f11d2ec9737f3311ba2995f57436721c6de60d6e129f"
+    },
+    {
+      "path": "book/always_on/exercises/ch08/unit-a-build-connect-v1.ipynb",
+      "sha256": "1c6b6e5c81eb4c9cdca3f7a86845d8ca937e853f5322f857152ac6b9baa5e8f8"
+    },
+    {
+      "path": "book/always_on/exercises/ch08/unit-a-build-connect-v1.md",
+      "sha256": "563c6543a1056f11ec589e5f0524f0f18b605f5613aa2bce09a969d49cfc19ca"
+    },
+    {
+      "path": "book/always_on/exercises/ch08/unit-b-repair-transfer-v1.ipynb",
+      "sha256": "50871cb071a29f1046cef5f1de31643da5af13be20ce807469a52a940eaf7050"
+    },
+    {
+      "path": "book/always_on/exercises/ch08/unit-b-repair-transfer-v1.md",
+      "sha256": "a209c53858ce99b8d81a924c159a64fae3d6693818c051db2d8a643d92ab6fb2"
+    },
+    {
+      "path": "book/always_on/exercises/ch09/unit-a-durable-intent-v1.ipynb",
+      "sha256": "a1e46c8d84b59715c063b9526d46c64b57c954180b678318164157b33306c3bc"
+    },
+    {
+      "path": "book/always_on/exercises/ch09/unit-a-durable-intent-v1.md",
+      "sha256": "ba69a15b05a9e317331f01862a2f223fa3efe0527a86db1fcc684053d8808921"
+    },
+    {
+      "path": "book/always_on/exercises/ch09/unit-b-reconcile-unknown-v1.ipynb",
+      "sha256": "d6c0a6a314365079f90eabc5a2edf14f363293e0f266a5bf92f85e495179524e"
+    },
+    {
+      "path": "book/always_on/exercises/ch09/unit-b-reconcile-unknown-v1.md",
+      "sha256": "c8cc219cf323fcaf67f82f9a69f90ee5b881289f2a8d85d7d5f7d3f4cae0c0d3"
+    },
+    {
+      "path": "book/always_on/exercises/ch10/unit-a-build-connect-v1.ipynb",
+      "sha256": "10252ab15c484a6a4e81aeebd1dfebefc46308a1f47d126a162be606b64219f1"
+    },
+    {
+      "path": "book/always_on/exercises/ch10/unit-a-build-connect-v1.md",
+      "sha256": "9bce364e1f476709e3fc2098b504c0662e9a4f85aeeb3d47d55a7941c92bb148"
+    },
+    {
+      "path": "book/always_on/exercises/ch10/unit-b-repair-transfer-v1.ipynb",
+      "sha256": "a3fea2a3f48db08adeccd6aebcd755a51ff286b3ee519b06f5ea946a61ca6317"
+    },
+    {
+      "path": "book/always_on/exercises/ch10/unit-b-repair-transfer-v1.md",
+      "sha256": "cc6e2ac7af21fd3ac54188b6dd6847104cdfd503b9d4e4a7da5b3bbae3a8f0b1"
+    },
+    {
+      "path": "book/always_on/exercises/ch11/unit-a-build-connect-v1.ipynb",
+      "sha256": "a2ed462a40ace562e8c207513d061018416e283f906648673168fd47547e4912"
+    },
+    {
+      "path": "book/always_on/exercises/ch11/unit-a-build-connect-v1.md",
+      "sha256": "8fe52d57579b9ea66b0bf32bd7fd6e27d82ca2f7973b73589025240ead6cbc31"
+    },
+    {
+      "path": "book/always_on/exercises/ch11/unit-b-repair-transfer-v1.ipynb",
+      "sha256": "4e3b743732085d5b37519b4e0f6a56058fd8156cbac45bf3f1c55f045df81f61"
+    },
+    {
+      "path": "book/always_on/exercises/ch11/unit-b-repair-transfer-v1.md",
+      "sha256": "e1ec0dfe91fe9969a66187267edf4759b1764d1e354378d1cf172d6774a21a9c"
+    },
+    {
+      "path": "book/always_on/exercises/ch12/unit-a-build-connect-v1.ipynb",
+      "sha256": "f48bcd056bf8e82764225653aebcd2b5f7c71ae5615e22404f62a2323b5c2b13"
+    },
+    {
+      "path": "book/always_on/exercises/ch12/unit-a-build-connect-v1.md",
+      "sha256": "5469483f65f9a08573105361fa774cdcc3fcfecf8c406a254abf8e2cb4e8e7c3"
+    },
+    {
+      "path": "book/always_on/exercises/ch12/unit-b-repair-transfer-v1.ipynb",
+      "sha256": "0b2e251f27792bc8f4c8e7cb1a0a2be362c1286e020f05724e1548dd2ca9d6e1"
+    },
+    {
+      "path": "book/always_on/exercises/ch12/unit-b-repair-transfer-v1.md",
+      "sha256": "de5748493ffda94c453b9f71b75c4ca8c4d493199ef7d9d3732b2df63b6e70b4"
+    },
+    {
+      "path": "book/always_on/exercises/ch13/unit-a-build-connect-v1.ipynb",
+      "sha256": "eab0483ca5b217d8b0337ff2c238a4136050a946e50b96c0b1e294f186e1682c"
+    },
+    {
+      "path": "book/always_on/exercises/ch13/unit-a-build-connect-v1.md",
+      "sha256": "dd0df4f8dd39d33c992084ee15937038aa4398948ab4f484544f3a4b5eef3b12"
+    },
+    {
+      "path": "book/always_on/exercises/ch13/unit-b-repair-transfer-v1.ipynb",
+      "sha256": "d37af792fd98b164e221eebeb9e270ec7bb9aa9b465932b4aa7eb0f5ce2ff255"
+    },
+    {
+      "path": "book/always_on/exercises/ch13/unit-b-repair-transfer-v1.md",
+      "sha256": "50b743a9f26064f25c85896121e58212f88a058ce16c0343a1d735a8a689d842"
+    },
+    {
+      "path": "book/always_on/exercises/ch14/unit-a-build-connect-v1.ipynb",
+      "sha256": "2674e4c2a7f7a6f08318a7f5129ee42c429c24c3e08dc535f97db24f4b36ff7a"
+    },
+    {
+      "path": "book/always_on/exercises/ch14/unit-a-build-connect-v1.md",
+      "sha256": "9d1f2259cd44f01ec442febd133aa9e25e5471a179ab2888c2524cacfb00777c"
+    },
+    {
+      "path": "book/always_on/exercises/ch14/unit-b-repair-transfer-v1.ipynb",
+      "sha256": "e973f1a5e05e6c06af6c366352c64d3b32cac5f8320cae6cb32eca1b0015cfb0"
+    },
+    {
+      "path": "book/always_on/exercises/ch14/unit-b-repair-transfer-v1.md",
+      "sha256": "e9162872c7fca52aa8471b5673a7756be3807169835a97b3121d02f073c629d5"
+    },
+    {
+      "path": "book/always_on/exercises/ch15/unit-a-build-connect-v1.ipynb",
+      "sha256": "ee7672426e9e9853d8cad842a8228ed14ccadf0d21b9d66c68e80ef81d7309ee"
+    },
+    {
+      "path": "book/always_on/exercises/ch15/unit-a-build-connect-v1.md",
+      "sha256": "ba56e93a5ff0e6da4f7f2871290e986664003d45e2adabb73a11370b96ea8fbf"
+    },
+    {
+      "path": "book/always_on/exercises/ch15/unit-b-repair-transfer-v1.ipynb",
+      "sha256": "6ed0d2ff583af4230248db3a94e6d9f6f0456003d209f1c589fdf2a2a3870c67"
+    },
+    {
+      "path": "book/always_on/exercises/ch15/unit-b-repair-transfer-v1.md",
+      "sha256": "55397688a8c18c840c57390fcdbdcf5d9c389f321568178324205d0d3773d447"
+    },
+    {
+      "path": "book/always_on/exercises/ch16/unit-a-build-connect-v1.ipynb",
+      "sha256": "2231b1a4a4a3127184fb7de3b01d0c8db169c5a3a6980ceb2e55c66e0108bf02"
+    },
+    {
+      "path": "book/always_on/exercises/ch16/unit-a-build-connect-v1.md",
+      "sha256": "dcc461895558487ec0165ee0c303fefb6fe7b7137dcfc56939722e847a3d1142"
+    },
+    {
+      "path": "book/always_on/exercises/ch16/unit-b-repair-transfer-v1.ipynb",
+      "sha256": "ab17ba44219e2fb87b8e2694dd1f99dcd72a7c1ce66d5e37887bfa90f789791a"
+    },
+    {
+      "path": "book/always_on/exercises/ch16/unit-b-repair-transfer-v1.md",
+      "sha256": "4946e0c5ef57ab655b389ff48adfb6d36d5f37bf5d5ba8005de4def73513da21"
+    },
+    {
+      "path": "book/always_on/exercises/companion-index-v2.md",
+      "sha256": "89d8d39b78a973758e7a8f7748a7863102789d6dc444320770eddceebe23a1ca"
+    },
+    {
+      "path": "book/always_on/exercises/source-tasks-v1.json",
+      "sha256": "5cf82c5099424f6fd703c1c1bd28bc83f26e0fd63585befa40ea29d4bb1092af"
+    },
+    {
+      "path": "book/always_on/exercises/source_tasks_v1.py",
+      "sha256": "daa0b66198c4b61fdf3c4ecdb24f99d6ba08f1897b7a2602653d580305b3d59d"
+    }
+  ],
+  "units": [
+    {
+      "canonicalSha256": "a8a07c7bb7da73ab5b8ffea210e163ced0e1cc3b557fd397674e26e33ed086f1",
+      "canonicalSource": "book/always_on/exercises/ch01/unit-a-first-grounded-brief-v1.md",
+      "execution": {
+        "attempted": 8,
+        "capturedOutputBytes": 2711,
+        "completed": 8,
+        "exerciseReport": {
+          "attempted": 1,
+          "completed": 0,
+          "connection": "NOT_READY",
+          "failed": 1,
+          "handoff": "NOT_WRITTEN",
+          "skipped": 0,
+          "unit": "ch01-a"
+        },
+        "failed": 0,
+        "skipped": 0
+      },
+      "freshKernel": true,
+      "id": "ch01-a",
+      "instructorEvidence": {
+        "holdout": "book/always_on/exercises/ch01/holdouts/unit-a-holdout-v2.py",
+        "holdoutResult": {
+          "status": "PASSED",
+          "unit": "ch01-a"
+        },
+        "holdoutSha256": "1631a31969854133504210520de052f956f7fdb231afd6c3c52e8f5946216691",
+        "solution": "book/always_on/exercises/ch01/solutions/unit-a-solution-v1.py",
+        "solutionSha256": "497fa9ebfdc5febbc7a58f08be76aae8bf233916490122ecd2de6eb8783c5fb3"
+      },
+      "notebook": "book/always_on/exercises/ch01/unit-a-first-grounded-brief-v1.ipynb",
+      "notebookSha256": "73e85dafad80f9ca7f95b6dc4a7a86a616b049db9a7281798c0aed42a3ea6fcb",
+      "semanticDigestVersion": 1,
+      "semanticSha256": "9d3cd0e6bb3f0694c3c607741e3e15ad78c87417a810e69075ee14825902f52f"
+    },
+    {
+      "canonicalSha256": "14da22ea89a30a0935afda775e2b2f4e97c3b25f9a3dd63a1e53f10f7394ec6a",
+      "canonicalSource": "book/always_on/exercises/ch01/unit-b-prompt-and-harness-v1.md",
+      "execution": {
+        "attempted": 9,
+        "capturedOutputBytes": 5535,
+        "completed": 9,
+        "exerciseReport": {
+          "attempted": 2,
+          "completed": 0,
+          "connection": "NOT_READY",
+          "failed": 1,
+          "handoff": "VERIFIED",
+          "skipped": 1,
+          "transfer": "NOT_SUBMITTED",
+          "unit": "ch01-b"
+        },
+        "failed": 0,
+        "skipped": 0
+      },
+      "freshKernel": true,
+      "id": "ch01-b",
+      "instructorEvidence": {
+        "holdout": "book/always_on/exercises/ch01/holdouts/unit-b-holdout-v1.py",
+        "holdoutResult": {
+          "status": "PASSED",
+          "unit": "ch01-b"
+        },
+        "holdoutSha256": "463f311ab3a42fc08e7b6c75a9b7ac39feba1af664818376fb22eaf1b3933c21",
+        "solution": "book/always_on/exercises/ch01/solutions/unit-b-solution-v1.py",
+        "solutionSha256": "373652503fda659c23ea727a1a39476b61f9f2a3c3637105fb328dc62c922f52"
+      },
+      "notebook": "book/always_on/exercises/ch01/unit-b-prompt-and-harness-v1.ipynb",
+      "notebookSha256": "085bd5fb6dbcdddff41b91911a3aa4b3bbda91ecbcb9a4da008df9f4ed858961",
+      "semanticDigestVersion": 1,
+      "semanticSha256": "b5c8ccbc405b20338404da6853d4beafb2d9007b4bbdf659b2b0a19040d6c9cc"
+    },
+    {
+      "canonicalSha256": "ede56df39893ec8fa5657b624a04ece08be43b9cd7e13b632b46281787c4c291",
+      "canonicalSource": "book/always_on/exercises/ch02/unit-a-build-connect-v1.md",
+      "execution": {
+        "attempted": 4,
+        "capturedOutputBytes": 930,
+        "completed": 4,
+        "exerciseReport": {
+          "attempted": 1,
+          "completed": 0,
+          "connection": "FAILED",
+          "failed": 1,
+          "handoff": "NOT_READY",
+          "skipped": 0,
+          "unit": "ch02-a"
+        },
+        "failed": 0,
+        "skipped": 0
+      },
+      "freshKernel": true,
+      "id": "ch02-a",
+      "instructorEvidence": {
+        "holdout": "book/always_on/exercises/ch02/holdouts/unit-a-holdout-v1.py",
+        "holdoutResult": {
+          "status": "PASSED",
+          "unit": "ch02-a"
+        },
+        "holdoutSha256": "2bd994853c2b821cb50b1e77cdec1c2722b9914696ba33214c42ea71ad9d86fc",
+        "solution": "book/always_on/exercises/ch02/solutions/unit-a-solution-v1.py",
+        "solutionSha256": "a5677ae24c635d1e6a822cdec43a8b00f1caea70d51b4b143c8226f4a322dd25"
+      },
+      "notebook": "book/always_on/exercises/ch02/unit-a-build-connect-v1.ipynb",
+      "notebookSha256": "93b578e03d00b279de62f6f26a92b6f95578328e360d56296b07b2ad1b9f0405",
+      "semanticDigestVersion": 1,
+      "semanticSha256": "e2d5d6ae0d16d492a46966ff61ee5fe2a89733a2ee8ecc28087799da9f68ff13"
+    },
+    {
+      "canonicalSha256": "cc684dfb9550d1cdc47c2e277733df734744e9ddb4491940b2d8d3ff9284cf7c",
+      "canonicalSource": "book/always_on/exercises/ch02/unit-b-repair-transfer-v1.md",
+      "execution": {
+        "attempted": 5,
+        "capturedOutputBytes": 1653,
+        "completed": 5,
+        "exerciseReport": {
+          "attempted": 1,
+          "completed": 0,
+          "connection": "NOT_READY",
+          "failed": 1,
+          "handoff": "VERIFIED",
+          "skipped": 0,
+          "unit": "ch02-b"
+        },
+        "failed": 0,
+        "skipped": 0
+      },
+      "freshKernel": true,
+      "id": "ch02-b",
+      "instructorEvidence": {
+        "holdout": "book/always_on/exercises/ch02/holdouts/unit-b-holdout-v1.py",
+        "holdoutResult": {
+          "status": "PASSED",
+          "unit": "ch02-b"
+        },
+        "holdoutSha256": "99df4c96f9d498faa0c7c2d7b977db54cb807090d21030698b12980e87ffa2c0",
+        "solution": "book/always_on/exercises/ch02/solutions/unit-b-solution-v1.py",
+        "solutionSha256": "c409cba3d674100f1bb09512fcdc9f801ca1e302b611eeb9bb025e00115e9ae5"
+      },
+      "notebook": "book/always_on/exercises/ch02/unit-b-repair-transfer-v1.ipynb",
+      "notebookSha256": "5c19cfca148fcd820f25015acef4c18991c09a430a1f05c7b2db94b5adce153f",
+      "semanticDigestVersion": 1,
+      "semanticSha256": "13ab3c8c0ded5252a160c4ca885f782e7a0def37be911c20f2cdbe531732bc45"
+    },
+    {
+      "canonicalSha256": "cf193e6f010324ed806a7230740d7b56e3f118857650c4a564c9df82e6549207",
+      "canonicalSource": "book/always_on/exercises/ch03/unit-a-bounded-loop-v1.md",
+      "execution": {
+        "attempted": 7,
+        "capturedOutputBytes": 1093,
+        "completed": 7,
+        "exerciseReport": {
+          "attempted": 1,
+          "completed": 0,
+          "connection": "NOT_READY",
+          "failed": 1,
+          "handoff": "NOT_WRITTEN",
+          "skipped": 0,
+          "unit": "ch03-a"
+        },
+        "failed": 0,
+        "skipped": 0
+      },
+      "freshKernel": true,
+      "id": "ch03-a",
+      "instructorEvidence": {
+        "holdout": "book/always_on/exercises/ch03/holdouts/unit-a-holdout-v1.py",
+        "holdoutResult": {
+          "status": "PASSED",
+          "unit": "ch03-a"
+        },
+        "holdoutSha256": "81241b26416a22d86f5ddb497bf3c3bb2e5b35c3d24a9e76b6e0a551c4ec6834",
+        "solution": "book/always_on/exercises/ch03/solutions/unit-a-solution-v1.py",
+        "solutionSha256": "3712a91e78cb2dce82facf2912b46e4d585b688954087051b9f348d07ba7b15f"
+      },
+      "notebook": "book/always_on/exercises/ch03/unit-a-bounded-loop-v1.ipynb",
+      "notebookSha256": "df387d0ffed79b6d91618a2b86f8257da201d18eba24cbf0ce9e5ff6341d3e46",
+      "semanticDigestVersion": 1,
+      "semanticSha256": "311cfe10959a15ed1c132ea7896dca82872adf5918ec99c8f04349288a5d545c"
+    },
+    {
+      "canonicalSha256": "fe2fd54386e53cd457949a064cd73319bb61e1e6e00def176341148c0c1b2de4",
+      "canonicalSource": "book/always_on/exercises/ch03/unit-b-failure-accounting-v1.md",
+      "execution": {
+        "attempted": 6,
+        "capturedOutputBytes": 1309,
+        "completed": 6,
+        "exerciseReport": {
+          "attempted": 1,
+          "completed": 0,
+          "connection": "NOT_READY",
+          "failed": 1,
+          "handoff": "VERIFIED",
+          "skipped": 0,
+          "unit": "ch03-b"
+        },
+        "failed": 0,
+        "skipped": 0
+      },
+      "freshKernel": true,
+      "id": "ch03-b",
+      "instructorEvidence": {
+        "holdout": "book/always_on/exercises/ch03/holdouts/unit-b-holdout-v1.py",
+        "holdoutResult": {
+          "status": "PASSED",
+          "unit": "ch03-b"
+        },
+        "holdoutSha256": "a9248645d86607b74a116e3c749549b4f9b3d8b643a67c7107b8825d940edb75",
+        "solution": "book/always_on/exercises/ch03/solutions/unit-b-solution-v1.py",
+        "solutionSha256": "01886a084394b935a61cff1571d1bd79b65115282ad6829d47464a8ffe74dc7d"
+      },
+      "notebook": "book/always_on/exercises/ch03/unit-b-failure-accounting-v1.ipynb",
+      "notebookSha256": "d8d295868191451509eaf7ef3d8a35b09e0de1d01bd4916fdb2fd0de4d6d20ba",
+      "semanticDigestVersion": 1,
+      "semanticSha256": "bbb35f63f5aef18909689b89189544e84026c14bc47969edfc2bb7931045cc5f"
+    },
+    {
+      "canonicalSha256": "10a35a0d90dfdf2e15228e22e2f722656ef849f9a8de6c7cf1b11b3214a51c7e",
+      "canonicalSource": "book/always_on/exercises/ch04/unit-a-build-connect-v1.md",
+      "execution": {
+        "attempted": 4,
+        "capturedOutputBytes": 837,
+        "completed": 4,
+        "exerciseReport": {
+          "attempted": 1,
+          "completed": 0,
+          "connection": "FAILED",
+          "failed": 1,
+          "handoff": "NOT_READY",
+          "skipped": 0,
+          "unit": "ch04-a"
+        },
+        "failed": 0,
+        "skipped": 0
+      },
+      "freshKernel": true,
+      "id": "ch04-a",
+      "instructorEvidence": {
+        "holdout": "book/always_on/exercises/ch04/holdouts/unit-a-holdout-v1.py",
+        "holdoutResult": {
+          "status": "PASSED",
+          "unit": "ch04-a"
+        },
+        "holdoutSha256": "fd3341d24d99f7aaefc8823163b51a76c41d3d9fb5204c18402398d25e385de4",
+        "solution": "book/always_on/exercises/ch04/solutions/unit-a-solution-v1.py",
+        "solutionSha256": "0baccecbe6511f82624197b393df63523f53fe32413c4d4b51e0c6053ce37bb3"
+      },
+      "notebook": "book/always_on/exercises/ch04/unit-a-build-connect-v1.ipynb",
+      "notebookSha256": "184ea1c8514d034037fe8fe426ef857bd3b719a337e86f7e0c75e0a942aa1a22",
+      "semanticDigestVersion": 1,
+      "semanticSha256": "7d03ce9833d5a9bbbb558b75f0b63e8aab03bd03b862f92843e34dc8a8c53f57"
+    },
+    {
+      "canonicalSha256": "c7ec1f5b4bdcba56b2aa26db42d2cf144ef142db3f49ba0ad3eca71dc9f63eb9",
+      "canonicalSource": "book/always_on/exercises/ch04/unit-b-repair-transfer-v1.md",
+      "execution": {
+        "attempted": 5,
+        "capturedOutputBytes": 1609,
+        "completed": 5,
+        "exerciseReport": {
+          "attempted": 1,
+          "completed": 0,
+          "connection": "NOT_READY",
+          "failed": 1,
+          "handoff": "VERIFIED",
+          "skipped": 0,
+          "unit": "ch04-b"
+        },
+        "failed": 0,
+        "skipped": 0
+      },
+      "freshKernel": true,
+      "id": "ch04-b",
+      "instructorEvidence": {
+        "holdout": "book/always_on/exercises/ch04/holdouts/unit-b-holdout-v1.py",
+        "holdoutResult": {
+          "status": "PASSED",
+          "unit": "ch04-b"
+        },
+        "holdoutSha256": "a3ddb26d411e7e4e58160406e6e7e144100faf410cc56d1162c00e87a139b0ff",
+        "solution": "book/always_on/exercises/ch04/solutions/unit-b-solution-v1.py",
+        "solutionSha256": "f8aef1c0deb9f2aea4a91464df6de43dd4e591be4f847727d2d2df90304a9646"
+      },
+      "notebook": "book/always_on/exercises/ch04/unit-b-repair-transfer-v1.ipynb",
+      "notebookSha256": "f0d9eb292cb619d046674add34b4d24e3115c2dc3ea038e3fd261b65792385de",
+      "semanticDigestVersion": 1,
+      "semanticSha256": "8bc19fc864f49637ea8b02218f1be4b25fbc94414aa6434891efe82056818707"
+    },
+    {
+      "canonicalSha256": "3d54bb6854ebda96fa07f695482383d59a87a1fb10486368ead87eb5eb3dc05a",
+      "canonicalSource": "book/always_on/exercises/ch05/unit-a-build-connect-v1.md",
+      "execution": {
+        "attempted": 4,
+        "capturedOutputBytes": 883,
+        "completed": 4,
+        "exerciseReport": {
+          "attempted": 1,
+          "completed": 0,
+          "connection": "FAILED",
+          "failed": 1,
+          "handoff": "NOT_READY",
+          "skipped": 0,
+          "unit": "ch05-a"
+        },
+        "failed": 0,
+        "skipped": 0
+      },
+      "freshKernel": true,
+      "id": "ch05-a",
+      "instructorEvidence": {
+        "holdout": "book/always_on/exercises/ch05/holdouts/unit-a-holdout-v1.py",
+        "holdoutResult": {
+          "status": "PASSED",
+          "unit": "ch05-a"
+        },
+        "holdoutSha256": "bb5cde3b3943caf0c44c9a6e3911eefefe86e0fd1ddf28e4f63fd8bbc8b37f54",
+        "solution": "book/always_on/exercises/ch05/solutions/unit-a-solution-v1.py",
+        "solutionSha256": "85dc44d49f89556919f9a5113d829bf11eb5f8017752d6d2f318d321d40c8200"
+      },
+      "notebook": "book/always_on/exercises/ch05/unit-a-build-connect-v1.ipynb",
+      "notebookSha256": "d0d99f674f76910ea942d6b4bb720acfedcef1deaf83ca2d68de7618784ccdf5",
+      "semanticDigestVersion": 1,
+      "semanticSha256": "91bc97b35ecbd3fea43d7ccd66e6f6fd7267a1d1fbf8bc44de002cf019717563"
+    },
+    {
+      "canonicalSha256": "36c975ac627db249c316455dbbb8690891d385798bd6794a4507a6b1220e5bed",
+      "canonicalSource": "book/always_on/exercises/ch05/unit-b-repair-transfer-v1.md",
+      "execution": {
+        "attempted": 5,
+        "capturedOutputBytes": 4375,
+        "completed": 5,
+        "exerciseReport": {
+          "attempted": 1,
+          "completed": 0,
+          "connection": "NOT_READY",
+          "failed": 1,
+          "handoff": "VERIFIED",
+          "skipped": 0,
+          "unit": "ch05-b"
+        },
+        "failed": 0,
+        "skipped": 0
+      },
+      "freshKernel": true,
+      "id": "ch05-b",
+      "instructorEvidence": {
+        "holdout": "book/always_on/exercises/ch05/holdouts/unit-b-holdout-v1.py",
+        "holdoutResult": {
+          "status": "PASSED",
+          "unit": "ch05-b"
+        },
+        "holdoutSha256": "d0ad53ba211fd81b98ea112d84c530290b03e4843bf2e4a2ad63736b33d75097",
+        "solution": "book/always_on/exercises/ch05/solutions/unit-b-solution-v1.py",
+        "solutionSha256": "3753c5408329c6ac45d7eef6804aa56cd8d52c7f12e2ff1fd05bd0ccacdd2d71"
+      },
+      "notebook": "book/always_on/exercises/ch05/unit-b-repair-transfer-v1.ipynb",
+      "notebookSha256": "15e8cf81ba55deaf3413aec99b179f0e8b3840b98f774667e0700d1bee9b0947",
+      "semanticDigestVersion": 1,
+      "semanticSha256": "9714336b4c981606bba4b041cde5216d334d6cce17a73556114024b03c90765c"
+    },
+    {
+      "canonicalSha256": "d9539f503fbf466a2329ff8ce039122d93d7e97d96e1b113a187128e9de5f936",
+      "canonicalSource": "book/always_on/exercises/ch06/unit-a-build-connect-v1.md",
+      "execution": {
+        "attempted": 4,
+        "capturedOutputBytes": 1052,
+        "completed": 4,
+        "exerciseReport": {
+          "attempted": 1,
+          "completed": 0,
+          "connection": "FAILED",
+          "failed": 1,
+          "handoff": "NOT_READY",
+          "skipped": 0,
+          "unit": "ch06-a"
+        },
+        "failed": 0,
+        "skipped": 0
+      },
+      "freshKernel": true,
+      "id": "ch06-a",
+      "instructorEvidence": {
+        "holdout": "book/always_on/exercises/ch06/holdouts/unit-a-holdout-v1.py",
+        "holdoutResult": {
+          "status": "PASSED",
+          "unit": "ch06-a"
+        },
+        "holdoutSha256": "4ce72bdb2e692e8bca18ee0adae5a07173f0aecfdb783116639ee07eb7341034",
+        "solution": "book/always_on/exercises/ch06/solutions/unit-a-solution-v1.py",
+        "solutionSha256": "b556d654835166ab18dfcb3ad302b2ccdf1130517731d52d59e7d37afb1b7881"
+      },
+      "notebook": "book/always_on/exercises/ch06/unit-a-build-connect-v1.ipynb",
+      "notebookSha256": "63cf2a123d4aadaadbfaa3875dbeb8f257122aa005bd8800dbbfd8fb6ca9d54e",
+      "semanticDigestVersion": 1,
+      "semanticSha256": "20e807ec735ed5ec971c77c948ffb7430cecd7d07be2cffb599d573de616bd01"
+    },
+    {
+      "canonicalSha256": "95678a6d46a6122501d764293fa41de83cf872fe4ef6960c7c28628626337f6e",
+      "canonicalSource": "book/always_on/exercises/ch06/unit-b-repair-transfer-v1.md",
+      "execution": {
+        "attempted": 5,
+        "capturedOutputBytes": 831,
+        "completed": 5,
+        "exerciseReport": {
+          "attempted": 1,
+          "completed": 0,
+          "connection": "NOT_READY",
+          "failed": 1,
+          "handoff": "VERIFIED",
+          "skipped": 0,
+          "unit": "ch06-b"
+        },
+        "failed": 0,
+        "skipped": 0
+      },
+      "freshKernel": true,
+      "id": "ch06-b",
+      "instructorEvidence": {
+        "holdout": "book/always_on/exercises/ch06/holdouts/unit-b-holdout-v1.py",
+        "holdoutResult": {
+          "status": "PASSED",
+          "unit": "ch06-b"
+        },
+        "holdoutSha256": "84e8f379241ca2e1b697679345804a81c58bae080020e2edf09c217b89226012",
+        "solution": "book/always_on/exercises/ch06/solutions/unit-b-solution-v1.py",
+        "solutionSha256": "08f52d01218d00b6d01f5584367fa09f20acd54aa4677d7b08d2992f035a944f"
+      },
+      "notebook": "book/always_on/exercises/ch06/unit-b-repair-transfer-v1.ipynb",
+      "notebookSha256": "a7be8eb1ede90239822db7449e6ab3e86f2f6b19e1f9d661c0ab51d831eb690f",
+      "semanticDigestVersion": 1,
+      "semanticSha256": "5d88723d4bdb86d7cf4ec7d8498c0a3e9723ec57dfdb67ffd815498493bfd310"
+    },
+    {
+      "canonicalSha256": "40fd856b148b0591b02f41773c71f5b3e042caf091a1d4c3b43fbc7ecc53ef61",
+      "canonicalSource": "book/always_on/exercises/ch07/unit-a-build-connect-v1.md",
+      "execution": {
+        "attempted": 4,
+        "capturedOutputBytes": 881,
+        "completed": 4,
+        "exerciseReport": {
+          "attempted": 1,
+          "completed": 0,
+          "connection": "FAILED",
+          "failed": 1,
+          "handoff": "NOT_READY",
+          "skipped": 0,
+          "unit": "ch07-a"
+        },
+        "failed": 0,
+        "skipped": 0
+      },
+      "freshKernel": true,
+      "id": "ch07-a",
+      "instructorEvidence": {
+        "holdout": "book/always_on/exercises/ch07/holdouts/unit-a-holdout-v1.py",
+        "holdoutResult": {
+          "status": "PASSED",
+          "unit": "ch07-a"
+        },
+        "holdoutSha256": "b15fa05772f32761bc43581cc14ec2de4f5ebb07eca6b7f480f8c70ab79a7a73",
+        "solution": "book/always_on/exercises/ch07/solutions/unit-a-solution-v1.py",
+        "solutionSha256": "42ac7501d73a1770e667765a6e2bc0ab725e5bd85060c7ed1983578468e52609"
+      },
+      "notebook": "book/always_on/exercises/ch07/unit-a-build-connect-v1.ipynb",
+      "notebookSha256": "5c9dc99be2fe3ddc590314678eb88d8973d055050d749d52dfd7c314c0dce654",
+      "semanticDigestVersion": 1,
+      "semanticSha256": "b6435e827b5c9cd1898da094dc0401fceb5c373a0d102e8883826e1f6c4bcc29"
+    },
+    {
+      "canonicalSha256": "f93a1d9b261b3cc51899f11d2ec9737f3311ba2995f57436721c6de60d6e129f",
+      "canonicalSource": "book/always_on/exercises/ch07/unit-b-repair-transfer-v1.md",
+      "execution": {
+        "attempted": 5,
+        "capturedOutputBytes": 1005,
+        "completed": 5,
+        "exerciseReport": {
+          "attempted": 1,
+          "completed": 0,
+          "connection": "NOT_READY",
+          "failed": 1,
+          "handoff": "VERIFIED",
+          "skipped": 0,
+          "unit": "ch07-b"
+        },
+        "failed": 0,
+        "skipped": 0
+      },
+      "freshKernel": true,
+      "id": "ch07-b",
+      "instructorEvidence": {
+        "holdout": "book/always_on/exercises/ch07/holdouts/unit-b-holdout-v1.py",
+        "holdoutResult": {
+          "status": "PASSED",
+          "unit": "ch07-b"
+        },
+        "holdoutSha256": "f204e7d819e5e58b8289d0040d707a5294a6fd392900a428775bd0148cf2befd",
+        "solution": "book/always_on/exercises/ch07/solutions/unit-b-solution-v1.py",
+        "solutionSha256": "714bd0aea329f232cc8cf535ad08d52d0c8c00e03afeea1e8770d595c856e8d8"
+      },
+      "notebook": "book/always_on/exercises/ch07/unit-b-repair-transfer-v1.ipynb",
+      "notebookSha256": "031eed760c49df76cceaa7e5d83cb768fc3851a4454a42560481910081a1f778",
+      "semanticDigestVersion": 1,
+      "semanticSha256": "3cf45c2f0e0304cd01400b58a747f80d751d0cebcb0df53330fd8ff7e5ed1dc2"
+    },
+    {
+      "canonicalSha256": "563c6543a1056f11ec589e5f0524f0f18b605f5613aa2bce09a969d49cfc19ca",
+      "canonicalSource": "book/always_on/exercises/ch08/unit-a-build-connect-v1.md",
+      "execution": {
+        "attempted": 4,
+        "capturedOutputBytes": 1271,
+        "completed": 4,
+        "exerciseReport": {
+          "attempted": 1,
+          "completed": 0,
+          "connection": "FAILED",
+          "failed": 1,
+          "handoff": "NOT_READY",
+          "skipped": 0,
+          "unit": "ch08-a"
+        },
+        "failed": 0,
+        "skipped": 0
+      },
+      "freshKernel": true,
+      "id": "ch08-a",
+      "instructorEvidence": {
+        "holdout": "book/always_on/exercises/ch08/holdouts/unit-a-holdout-v1.py",
+        "holdoutResult": {
+          "status": "PASSED",
+          "unit": "ch08-a"
+        },
+        "holdoutSha256": "7a877838b1e28ee087b90a380a26a8f7632e29c862c0398832c2ce7fab9cde44",
+        "solution": "book/always_on/exercises/ch08/solutions/unit-a-solution-v1.py",
+        "solutionSha256": "b574fbd0eac2b7219a445eb4524f40aa84320febcd2864e3b8188d9437d1cff6"
+      },
+      "notebook": "book/always_on/exercises/ch08/unit-a-build-connect-v1.ipynb",
+      "notebookSha256": "1c6b6e5c81eb4c9cdca3f7a86845d8ca937e853f5322f857152ac6b9baa5e8f8",
+      "semanticDigestVersion": 1,
+      "semanticSha256": "938e98ff5f78e21a5909f794406b7cca1610553c9fe91faf7d7048d6b55462b9"
+    },
+    {
+      "canonicalSha256": "a209c53858ce99b8d81a924c159a64fae3d6693818c051db2d8a643d92ab6fb2",
+      "canonicalSource": "book/always_on/exercises/ch08/unit-b-repair-transfer-v1.md",
+      "execution": {
+        "attempted": 5,
+        "capturedOutputBytes": 1007,
+        "completed": 5,
+        "exerciseReport": {
+          "attempted": 1,
+          "completed": 0,
+          "connection": "NOT_READY",
+          "failed": 1,
+          "handoff": "VERIFIED",
+          "skipped": 0,
+          "unit": "ch08-b"
+        },
+        "failed": 0,
+        "skipped": 0
+      },
+      "freshKernel": true,
+      "id": "ch08-b",
+      "instructorEvidence": {
+        "holdout": "book/always_on/exercises/ch08/holdouts/unit-b-holdout-v1.py",
+        "holdoutResult": {
+          "status": "PASSED",
+          "unit": "ch08-b"
+        },
+        "holdoutSha256": "2c2cbbf7f54f1f8da92a954967d9ade408d74fb6535d3dacc2555cf1cc920cff",
+        "solution": "book/always_on/exercises/ch08/solutions/unit-b-solution-v1.py",
+        "solutionSha256": "2cc63813c94d735d553790d5b00940da85d313919bc72fe7238176f4f4bf8339"
+      },
+      "notebook": "book/always_on/exercises/ch08/unit-b-repair-transfer-v1.ipynb",
+      "notebookSha256": "50871cb071a29f1046cef5f1de31643da5af13be20ce807469a52a940eaf7050",
+      "semanticDigestVersion": 1,
+      "semanticSha256": "4477344a63b0395ef9c4da316cb7ceff82d2b4672fbac3a82716362506039e64"
+    },
+    {
+      "canonicalSha256": "ba69a15b05a9e317331f01862a2f223fa3efe0527a86db1fcc684053d8808921",
+      "canonicalSource": "book/always_on/exercises/ch09/unit-a-durable-intent-v1.md",
+      "execution": {
+        "attempted": 6,
+        "capturedOutputBytes": 498,
+        "completed": 6,
+        "exerciseReport": {
+          "attempted": 1,
+          "completed": 0,
+          "connection": "NOT_READY",
+          "failed": 1,
+          "handoff": "NOT_WRITTEN",
+          "skipped": 0,
+          "unit": "ch09-a"
+        },
+        "failed": 0,
+        "skipped": 0
+      },
+      "freshKernel": true,
+      "id": "ch09-a",
+      "instructorEvidence": {
+        "holdout": "book/always_on/exercises/ch09/holdouts/unit-a-holdout-v1.py",
+        "holdoutResult": {
+          "status": "PASSED",
+          "unit": "ch09-a"
+        },
+        "holdoutSha256": "a1bfcac46ea526bf710733bbece4cc76b51ef27b1ba374eee4b557daa134a471",
+        "solution": "book/always_on/exercises/ch09/solutions/unit-a-solution-v1.py",
+        "solutionSha256": "253e2518096cdb75a653a0f08eaa4670f03a14715d92d34737b488d99c304215"
+      },
+      "notebook": "book/always_on/exercises/ch09/unit-a-durable-intent-v1.ipynb",
+      "notebookSha256": "a1e46c8d84b59715c063b9526d46c64b57c954180b678318164157b33306c3bc",
+      "semanticDigestVersion": 1,
+      "semanticSha256": "1953d187493305483cbaaadff6c668fe8b0f7f734d0304443c2b7affe3fc15d5"
+    },
+    {
+      "canonicalSha256": "c8cc219cf323fcaf67f82f9a69f90ee5b881289f2a8d85d7d5f7d3f4cae0c0d3",
+      "canonicalSource": "book/always_on/exercises/ch09/unit-b-reconcile-unknown-v1.md",
+      "execution": {
+        "attempted": 8,
+        "capturedOutputBytes": 1555,
+        "completed": 8,
+        "exerciseReport": {
+          "attempted": 2,
+          "completed": 0,
+          "connection": "NOT_READY",
+          "failed": 2,
+          "handoff": "VERIFIED",
+          "skipped": 0,
+          "unit": "ch09-b"
+        },
+        "failed": 0,
+        "skipped": 0
+      },
+      "freshKernel": true,
+      "id": "ch09-b",
+      "instructorEvidence": {
+        "holdout": "book/always_on/exercises/ch09/holdouts/unit-b-holdout-v1.py",
+        "holdoutResult": {
+          "status": "PASSED",
+          "unit": "ch09-b"
+        },
+        "holdoutSha256": "56aa4d16367c1367d7f24ac9dd54e5b9166f0613cc195898534c66cec6591065",
+        "solution": "book/always_on/exercises/ch09/solutions/unit-b-solution-v1.py",
+        "solutionSha256": "a0b64fb655a30b0c44f54804276db46c3eb2e5f52291c2d7660f4c5de27d8497"
+      },
+      "notebook": "book/always_on/exercises/ch09/unit-b-reconcile-unknown-v1.ipynb",
+      "notebookSha256": "d6c0a6a314365079f90eabc5a2edf14f363293e0f266a5bf92f85e495179524e",
+      "semanticDigestVersion": 1,
+      "semanticSha256": "cc89eb55defa89fec46cf50240b6cfb1cde8be517e24eca987d1c908b0e07afc"
+    },
+    {
+      "canonicalSha256": "9bce364e1f476709e3fc2098b504c0662e9a4f85aeeb3d47d55a7941c92bb148",
+      "canonicalSource": "book/always_on/exercises/ch10/unit-a-build-connect-v1.md",
+      "execution": {
+        "attempted": 4,
+        "capturedOutputBytes": 1170,
+        "completed": 4,
+        "exerciseReport": {
+          "attempted": 1,
+          "completed": 0,
+          "connection": "FAILED",
+          "failed": 1,
+          "handoff": "NOT_READY",
+          "skipped": 0,
+          "unit": "ch10-a"
+        },
+        "failed": 0,
+        "skipped": 0
+      },
+      "freshKernel": true,
+      "id": "ch10-a",
+      "instructorEvidence": {
+        "holdout": "book/always_on/exercises/ch10/holdouts/unit-a-holdout-v1.py",
+        "holdoutResult": {
+          "status": "PASSED",
+          "unit": "ch10-a"
+        },
+        "holdoutSha256": "c17d660ad5621a77b4301a2f0cd848028a9792afbf38eebcedc7b2c1406abc72",
+        "solution": "book/always_on/exercises/ch10/solutions/unit-a-solution-v1.py",
+        "solutionSha256": "5f9899c0447bab0ecfa8c891582421ee276e09bcfddaf7f5810d035f49c527da"
+      },
+      "notebook": "book/always_on/exercises/ch10/unit-a-build-connect-v1.ipynb",
+      "notebookSha256": "10252ab15c484a6a4e81aeebd1dfebefc46308a1f47d126a162be606b64219f1",
+      "semanticDigestVersion": 1,
+      "semanticSha256": "70a635794992fc6ff213e282a4a3ef091da9abbbde05cad2c5f166d49f348230"
+    },
+    {
+      "canonicalSha256": "cc6e2ac7af21fd3ac54188b6dd6847104cdfd503b9d4e4a7da5b3bbae3a8f0b1",
+      "canonicalSource": "book/always_on/exercises/ch10/unit-b-repair-transfer-v1.md",
+      "execution": {
+        "attempted": 5,
+        "capturedOutputBytes": 893,
+        "completed": 5,
+        "exerciseReport": {
+          "attempted": 1,
+          "completed": 0,
+          "connection": "NOT_READY",
+          "failed": 1,
+          "handoff": "VERIFIED",
+          "skipped": 0,
+          "unit": "ch10-b"
+        },
+        "failed": 0,
+        "skipped": 0
+      },
+      "freshKernel": true,
+      "id": "ch10-b",
+      "instructorEvidence": {
+        "holdout": "book/always_on/exercises/ch10/holdouts/unit-b-holdout-v1.py",
+        "holdoutResult": {
+          "status": "PASSED",
+          "unit": "ch10-b"
+        },
+        "holdoutSha256": "63d73579159b0c20a6684de09fdd2f3659186b90305d100ff1f3f6b48dfc6d35",
+        "solution": "book/always_on/exercises/ch10/solutions/unit-b-solution-v1.py",
+        "solutionSha256": "3b98d78c68b7302b63d96c762082f9df7b50941321f63019aec3c792cfbc00f9"
+      },
+      "notebook": "book/always_on/exercises/ch10/unit-b-repair-transfer-v1.ipynb",
+      "notebookSha256": "a3fea2a3f48db08adeccd6aebcd755a51ff286b3ee519b06f5ea946a61ca6317",
+      "semanticDigestVersion": 1,
+      "semanticSha256": "f76d394670dc936b9a89549e32125fea08c19ea729b7e7dd2332dd2a02c590ad"
+    },
+    {
+      "canonicalSha256": "8fe52d57579b9ea66b0bf32bd7fd6e27d82ca2f7973b73589025240ead6cbc31",
+      "canonicalSource": "book/always_on/exercises/ch11/unit-a-build-connect-v1.md",
+      "execution": {
+        "attempted": 4,
+        "capturedOutputBytes": 885,
+        "completed": 4,
+        "exerciseReport": {
+          "attempted": 1,
+          "completed": 0,
+          "connection": "FAILED",
+          "failed": 1,
+          "handoff": "NOT_READY",
+          "skipped": 0,
+          "unit": "ch11-a"
+        },
+        "failed": 0,
+        "skipped": 0
+      },
+      "freshKernel": true,
+      "id": "ch11-a",
+      "instructorEvidence": {
+        "holdout": "book/always_on/exercises/ch11/holdouts/unit-a-holdout-v1.py",
+        "holdoutResult": {
+          "status": "PASSED",
+          "unit": "ch11-a"
+        },
+        "holdoutSha256": "f383931b3a71214ccad2a0b8426c2628e63948c1665cefb7a3768af4b351fb6d",
+        "solution": "book/always_on/exercises/ch11/solutions/unit-a-solution-v1.py",
+        "solutionSha256": "067c1458b1f2ecd6c3718f57e7e1d66af9928dd28afb76a49dffce73227eddfb"
+      },
+      "notebook": "book/always_on/exercises/ch11/unit-a-build-connect-v1.ipynb",
+      "notebookSha256": "a2ed462a40ace562e8c207513d061018416e283f906648673168fd47547e4912",
+      "semanticDigestVersion": 1,
+      "semanticSha256": "c17d92753d1047e308d750061c06cb44be77a840a7a75b148feb83669739d58c"
+    },
+    {
+      "canonicalSha256": "e1ec0dfe91fe9969a66187267edf4759b1764d1e354378d1cf172d6774a21a9c",
+      "canonicalSource": "book/always_on/exercises/ch11/unit-b-repair-transfer-v1.md",
+      "execution": {
+        "attempted": 5,
+        "capturedOutputBytes": 1233,
+        "completed": 5,
+        "exerciseReport": {
+          "attempted": 1,
+          "completed": 0,
+          "connection": "NOT_READY",
+          "failed": 1,
+          "handoff": "VERIFIED",
+          "skipped": 0,
+          "unit": "ch11-b"
+        },
+        "failed": 0,
+        "skipped": 0
+      },
+      "freshKernel": true,
+      "id": "ch11-b",
+      "instructorEvidence": {
+        "holdout": "book/always_on/exercises/ch11/holdouts/unit-b-holdout-v1.py",
+        "holdoutResult": {
+          "status": "PASSED",
+          "unit": "ch11-b"
+        },
+        "holdoutSha256": "03ba92c4622e4bd7d19299b67fa26dfa9d5328d3abb2ea9732ea09e7fa13b757",
+        "solution": "book/always_on/exercises/ch11/solutions/unit-b-solution-v1.py",
+        "solutionSha256": "e20e1b22fde92c1e1320e879c653397901aaab13314d82d898defebb33881a6b"
+      },
+      "notebook": "book/always_on/exercises/ch11/unit-b-repair-transfer-v1.ipynb",
+      "notebookSha256": "4e3b743732085d5b37519b4e0f6a56058fd8156cbac45bf3f1c55f045df81f61",
+      "semanticDigestVersion": 1,
+      "semanticSha256": "218fc7dc9330729a08eebcb36d3b842f4eff8e1fafe77aaf0e070724de63e292"
+    },
+    {
+      "canonicalSha256": "5469483f65f9a08573105361fa774cdcc3fcfecf8c406a254abf8e2cb4e8e7c3",
+      "canonicalSource": "book/always_on/exercises/ch12/unit-a-build-connect-v1.md",
+      "execution": {
+        "attempted": 4,
+        "capturedOutputBytes": 1053,
+        "completed": 4,
+        "exerciseReport": {
+          "attempted": 1,
+          "completed": 0,
+          "connection": "FAILED",
+          "failed": 1,
+          "handoff": "NOT_READY",
+          "skipped": 0,
+          "unit": "ch12-a"
+        },
+        "failed": 0,
+        "skipped": 0
+      },
+      "freshKernel": true,
+      "id": "ch12-a",
+      "instructorEvidence": {
+        "holdout": "book/always_on/exercises/ch12/holdouts/unit-a-holdout-v1.py",
+        "holdoutResult": {
+          "status": "PASSED",
+          "unit": "ch12-a"
+        },
+        "holdoutSha256": "ef7b80ef49b690cb043119ff8d1b2ed0b95e1a464ef5ad0799828053741b4d07",
+        "solution": "book/always_on/exercises/ch12/solutions/unit-a-solution-v1.py",
+        "solutionSha256": "6c879fa335d1ccc8c9950003239bbac3f8cb4c22019cdec20e3a1b6dd2cff4f5"
+      },
+      "notebook": "book/always_on/exercises/ch12/unit-a-build-connect-v1.ipynb",
+      "notebookSha256": "f48bcd056bf8e82764225653aebcd2b5f7c71ae5615e22404f62a2323b5c2b13",
+      "semanticDigestVersion": 1,
+      "semanticSha256": "23cce0e819ae50adb53471faf280c0b45dfd28a9ce1319821c76b9ee23c16a34"
+    },
+    {
+      "canonicalSha256": "de5748493ffda94c453b9f71b75c4ca8c4d493199ef7d9d3732b2df63b6e70b4",
+      "canonicalSource": "book/always_on/exercises/ch12/unit-b-repair-transfer-v1.md",
+      "execution": {
+        "attempted": 5,
+        "capturedOutputBytes": 1055,
+        "completed": 5,
+        "exerciseReport": {
+          "attempted": 1,
+          "completed": 0,
+          "connection": "NOT_READY",
+          "failed": 1,
+          "handoff": "VERIFIED",
+          "skipped": 0,
+          "unit": "ch12-b"
+        },
+        "failed": 0,
+        "skipped": 0
+      },
+      "freshKernel": true,
+      "id": "ch12-b",
+      "instructorEvidence": {
+        "holdout": "book/always_on/exercises/ch12/holdouts/unit-b-holdout-v1.py",
+        "holdoutResult": {
+          "status": "PASSED",
+          "unit": "ch12-b"
+        },
+        "holdoutSha256": "171b289354a269b79f711b5fb0846db30ae49012383e56c3fd4d7d28a34a4622",
+        "solution": "book/always_on/exercises/ch12/solutions/unit-b-solution-v1.py",
+        "solutionSha256": "70553204895cb06eae271db602b38eb4ac27fd5e6516e46f1f9d0fe8b26ea560"
+      },
+      "notebook": "book/always_on/exercises/ch12/unit-b-repair-transfer-v1.ipynb",
+      "notebookSha256": "0b2e251f27792bc8f4c8e7cb1a0a2be362c1286e020f05724e1548dd2ca9d6e1",
+      "semanticDigestVersion": 1,
+      "semanticSha256": "fcff9c74f58175a8a0185003875e153f5a76dfaff9b1370956c692f24cc7d312"
+    },
+    {
+      "canonicalSha256": "dd0df4f8dd39d33c992084ee15937038aa4398948ab4f484544f3a4b5eef3b12",
+      "canonicalSource": "book/always_on/exercises/ch13/unit-a-build-connect-v1.md",
+      "execution": {
+        "attempted": 4,
+        "capturedOutputBytes": 1004,
+        "completed": 4,
+        "exerciseReport": {
+          "attempted": 1,
+          "completed": 0,
+          "connection": "FAILED",
+          "failed": 1,
+          "handoff": "NOT_READY",
+          "skipped": 0,
+          "unit": "ch13-a"
+        },
+        "failed": 0,
+        "skipped": 0
+      },
+      "freshKernel": true,
+      "id": "ch13-a",
+      "instructorEvidence": {
+        "holdout": "book/always_on/exercises/ch13/holdouts/unit-a-holdout-v1.py",
+        "holdoutResult": {
+          "status": "PASSED",
+          "unit": "ch13-a"
+        },
+        "holdoutSha256": "dd962a4035fe065eadaa1063c1f7169646348bf749529525cb77570343c48693",
+        "solution": "book/always_on/exercises/ch13/solutions/unit-a-solution-v1.py",
+        "solutionSha256": "eec17fab5d94980c6082d032d1222e0648e1dfb655d32fecbe0e0c386a585183"
+      },
+      "notebook": "book/always_on/exercises/ch13/unit-a-build-connect-v1.ipynb",
+      "notebookSha256": "eab0483ca5b217d8b0337ff2c238a4136050a946e50b96c0b1e294f186e1682c",
+      "semanticDigestVersion": 1,
+      "semanticSha256": "dc2ff966851b72b835fe5ef399261a7731881bfe9013db4a2018f809777f5834"
+    },
+    {
+      "canonicalSha256": "50b743a9f26064f25c85896121e58212f88a058ce16c0343a1d735a8a689d842",
+      "canonicalSource": "book/always_on/exercises/ch13/unit-b-repair-transfer-v1.md",
+      "execution": {
+        "attempted": 5,
+        "capturedOutputBytes": 1049,
+        "completed": 5,
+        "exerciseReport": {
+          "attempted": 1,
+          "completed": 0,
+          "connection": "NOT_READY",
+          "failed": 1,
+          "handoff": "VERIFIED",
+          "skipped": 0,
+          "unit": "ch13-b"
+        },
+        "failed": 0,
+        "skipped": 0
+      },
+      "freshKernel": true,
+      "id": "ch13-b",
+      "instructorEvidence": {
+        "holdout": "book/always_on/exercises/ch13/holdouts/unit-b-holdout-v1.py",
+        "holdoutResult": {
+          "status": "PASSED",
+          "unit": "ch13-b"
+        },
+        "holdoutSha256": "a571c02f329ec79124946cf33db4558303bc5180c74e93895b8ad79fe60c0ae1",
+        "solution": "book/always_on/exercises/ch13/solutions/unit-b-solution-v1.py",
+        "solutionSha256": "f47a79e7ecfea477aa9ddef69e192930ad23360b828046a0929041e96fa1ebca"
+      },
+      "notebook": "book/always_on/exercises/ch13/unit-b-repair-transfer-v1.ipynb",
+      "notebookSha256": "d37af792fd98b164e221eebeb9e270ec7bb9aa9b465932b4aa7eb0f5ce2ff255",
+      "semanticDigestVersion": 1,
+      "semanticSha256": "64a80b79fe1518f9ec6708aa8cc7bbf10ac090553df2b172f301b72d56ee3f65"
+    },
+    {
+      "canonicalSha256": "9d1f2259cd44f01ec442febd133aa9e25e5471a179ab2888c2524cacfb00777c",
+      "canonicalSource": "book/always_on/exercises/ch14/unit-a-build-connect-v1.md",
+      "execution": {
+        "attempted": 4,
+        "capturedOutputBytes": 864,
+        "completed": 4,
+        "exerciseReport": {
+          "attempted": 1,
+          "completed": 0,
+          "connection": "FAILED",
+          "failed": 1,
+          "handoff": "NOT_READY",
+          "skipped": 0,
+          "unit": "ch14-a"
+        },
+        "failed": 0,
+        "skipped": 0
+      },
+      "freshKernel": true,
+      "id": "ch14-a",
+      "instructorEvidence": {
+        "holdout": "book/always_on/exercises/ch14/holdouts/unit-a-holdout-v1.py",
+        "holdoutResult": {
+          "status": "PASSED",
+          "unit": "ch14-a"
+        },
+        "holdoutSha256": "123e1affe307dabfd9092cca7d2d5f057520ec18f86435bf6695561242204cd5",
+        "solution": "book/always_on/exercises/ch14/solutions/unit-a-solution-v1.py",
+        "solutionSha256": "4bb3ab1966dd45799667d5ccca23a6dd14ff475bd4a423a37bd9c5cb58f70090"
+      },
+      "notebook": "book/always_on/exercises/ch14/unit-a-build-connect-v1.ipynb",
+      "notebookSha256": "2674e4c2a7f7a6f08318a7f5129ee42c429c24c3e08dc535f97db24f4b36ff7a",
+      "semanticDigestVersion": 1,
+      "semanticSha256": "40c9ff2efbc9b67e36ba772aa3c096a3d4616123af58a2eec47f3b5d0e4563c2"
+    },
+    {
+      "canonicalSha256": "e9162872c7fca52aa8471b5673a7756be3807169835a97b3121d02f073c629d5",
+      "canonicalSource": "book/always_on/exercises/ch14/unit-b-repair-transfer-v1.md",
+      "execution": {
+        "attempted": 5,
+        "capturedOutputBytes": 1055,
+        "completed": 5,
+        "exerciseReport": {
+          "attempted": 1,
+          "completed": 0,
+          "connection": "NOT_READY",
+          "failed": 1,
+          "handoff": "VERIFIED",
+          "skipped": 0,
+          "unit": "ch14-b"
+        },
+        "failed": 0,
+        "skipped": 0
+      },
+      "freshKernel": true,
+      "id": "ch14-b",
+      "instructorEvidence": {
+        "holdout": "book/always_on/exercises/ch14/holdouts/unit-b-holdout-v1.py",
+        "holdoutResult": {
+          "status": "PASSED",
+          "unit": "ch14-b"
+        },
+        "holdoutSha256": "b256792ceeb1e87c9cef438a40d39365eb86e41692d3373a23d1ea644aca7f62",
+        "solution": "book/always_on/exercises/ch14/solutions/unit-b-solution-v1.py",
+        "solutionSha256": "8017924beb8946e5336adbf0216f101880358d611da7cdff0f0582331605ea7d"
+      },
+      "notebook": "book/always_on/exercises/ch14/unit-b-repair-transfer-v1.ipynb",
+      "notebookSha256": "e973f1a5e05e6c06af6c366352c64d3b32cac5f8320cae6cb32eca1b0015cfb0",
+      "semanticDigestVersion": 1,
+      "semanticSha256": "a332f1504004d4e2be549c530985a6a13da788e79563a243faf378c21ad81309"
+    },
+    {
+      "canonicalSha256": "ba56e93a5ff0e6da4f7f2871290e986664003d45e2adabb73a11370b96ea8fbf",
+      "canonicalSource": "book/always_on/exercises/ch15/unit-a-build-connect-v1.md",
+      "execution": {
+        "attempted": 4,
+        "capturedOutputBytes": 850,
+        "completed": 4,
+        "exerciseReport": {
+          "attempted": 1,
+          "completed": 0,
+          "connection": "FAILED",
+          "failed": 1,
+          "handoff": "NOT_READY",
+          "skipped": 0,
+          "unit": "ch15-a"
+        },
+        "failed": 0,
+        "skipped": 0
+      },
+      "freshKernel": true,
+      "id": "ch15-a",
+      "instructorEvidence": {
+        "holdout": "book/always_on/exercises/ch15/holdouts/unit-a-holdout-v1.py",
+        "holdoutResult": {
+          "status": "PASSED",
+          "unit": "ch15-a"
+        },
+        "holdoutSha256": "95a7e011de7fcd939acc2add323c47c72ddd46db6fe0bd5d7fb0ee8977d68b8a",
+        "solution": "book/always_on/exercises/ch15/solutions/unit-a-solution-v1.py",
+        "solutionSha256": "96edefe60bbd6287210b78aa85923270fac151ef5958cbe7975f2ef9d7bb1da4"
+      },
+      "notebook": "book/always_on/exercises/ch15/unit-a-build-connect-v1.ipynb",
+      "notebookSha256": "ee7672426e9e9853d8cad842a8228ed14ccadf0d21b9d66c68e80ef81d7309ee",
+      "semanticDigestVersion": 1,
+      "semanticSha256": "ccb29b7c7f0d1c8a4fd999fb775d50e3e3b4bc1695abad1a2a19dcea71c56846"
+    },
+    {
+      "canonicalSha256": "55397688a8c18c840c57390fcdbdcf5d9c389f321568178324205d0d3773d447",
+      "canonicalSource": "book/always_on/exercises/ch15/unit-b-repair-transfer-v1.md",
+      "execution": {
+        "attempted": 5,
+        "capturedOutputBytes": 963,
+        "completed": 5,
+        "exerciseReport": {
+          "attempted": 1,
+          "completed": 0,
+          "connection": "NOT_READY",
+          "failed": 1,
+          "handoff": "VERIFIED",
+          "skipped": 0,
+          "unit": "ch15-b"
+        },
+        "failed": 0,
+        "skipped": 0
+      },
+      "freshKernel": true,
+      "id": "ch15-b",
+      "instructorEvidence": {
+        "holdout": "book/always_on/exercises/ch15/holdouts/unit-b-holdout-v1.py",
+        "holdoutResult": {
+          "status": "PASSED",
+          "unit": "ch15-b"
+        },
+        "holdoutSha256": "f768f29e204cb66a547a31f417fbc65f9b121d56085835b19349a359f2083790",
+        "solution": "book/always_on/exercises/ch15/solutions/unit-b-solution-v1.py",
+        "solutionSha256": "e5803ff58f9b3951034acf09821d8fb4e28e64a4a1f75a08a6cedc352de15f0e"
+      },
+      "notebook": "book/always_on/exercises/ch15/unit-b-repair-transfer-v1.ipynb",
+      "notebookSha256": "6ed0d2ff583af4230248db3a94e6d9f6f0456003d209f1c589fdf2a2a3870c67",
+      "semanticDigestVersion": 1,
+      "semanticSha256": "2a771cad2c3707c09d368011b441e7fc5caaeb8e6b50e481fd8a5f9f9f5a5e4d"
+    },
+    {
+      "canonicalSha256": "dcc461895558487ec0165ee0c303fefb6fe7b7137dcfc56939722e847a3d1142",
+      "canonicalSource": "book/always_on/exercises/ch16/unit-a-build-connect-v1.md",
+      "execution": {
+        "attempted": 4,
+        "capturedOutputBytes": 853,
+        "completed": 4,
+        "exerciseReport": {
+          "attempted": 1,
+          "completed": 0,
+          "connection": "FAILED",
+          "failed": 1,
+          "handoff": "NOT_READY",
+          "skipped": 0,
+          "unit": "ch16-a"
+        },
+        "failed": 0,
+        "skipped": 0
+      },
+      "freshKernel": true,
+      "id": "ch16-a",
+      "instructorEvidence": {
+        "holdout": "book/always_on/exercises/ch16/holdouts/unit-a-holdout-v1.py",
+        "holdoutResult": {
+          "status": "PASSED",
+          "unit": "ch16-a"
+        },
+        "holdoutSha256": "c1d71b3df21f6a4003b389bae6c8f34143940715fddf0225ee01e048219605db",
+        "solution": "book/always_on/exercises/ch16/solutions/unit-a-solution-v1.py",
+        "solutionSha256": "c7afc7c2106adb12b731d1409414c78d8d4372ce5eafeb30479f42cb01e9f6af"
+      },
+      "notebook": "book/always_on/exercises/ch16/unit-a-build-connect-v1.ipynb",
+      "notebookSha256": "2231b1a4a4a3127184fb7de3b01d0c8db169c5a3a6980ceb2e55c66e0108bf02",
+      "semanticDigestVersion": 1,
+      "semanticSha256": "9b1dfa8148f6c6a5e7168038255dda5729524e22fe8ed2c674ccc35c0e97524d"
+    },
+    {
+      "canonicalSha256": "4946e0c5ef57ab655b389ff48adfb6d36d5f37bf5d5ba8005de4def73513da21",
+      "canonicalSource": "book/always_on/exercises/ch16/unit-b-repair-transfer-v1.md",
+      "execution": {
+        "attempted": 5,
+        "capturedOutputBytes": 1107,
+        "completed": 5,
+        "exerciseReport": {
+          "attempted": 1,
+          "completed": 0,
+          "connection": "NOT_READY",
+          "failed": 1,
+          "handoff": "VERIFIED",
+          "skipped": 0,
+          "unit": "ch16-b"
+        },
+        "failed": 0,
+        "skipped": 0
+      },
+      "freshKernel": true,
+      "id": "ch16-b",
+      "instructorEvidence": {
+        "holdout": "book/always_on/exercises/ch16/holdouts/unit-b-holdout-v1.py",
+        "holdoutResult": {
+          "status": "PASSED",
+          "unit": "ch16-b"
+        },
+        "holdoutSha256": "945097621006a0c33957686b1cc81ce1bb92a3de7f5fda2d1c0c8e8ff9291f36",
+        "solution": "book/always_on/exercises/ch16/solutions/unit-b-solution-v1.py",
+        "solutionSha256": "29043ed37afba69799f8e49875598aa74e660f34456e5c432e8deaf447baba74"
+      },
+      "notebook": "book/always_on/exercises/ch16/unit-b-repair-transfer-v1.ipynb",
+      "notebookSha256": "ab17ba44219e2fb87b8e2694dd1f99dcd72a7c1ce66d5e37887bfa90f789791a",
+      "semanticDigestVersion": 1,
+      "semanticSha256": "95a7ffc415e2d4d8e1cfca1752f786da08d3f0ddc6eb90d60f1fa242bd1df3f1"
+    }
+  ]
+}

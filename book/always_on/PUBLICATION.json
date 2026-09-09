@@ -113,7 +113,7 @@
     {
       "slug": "always-on-exercises",
       "title": "Executable exercises companion",
-      "path": "exercises/README.md"
+      "path": "exercises/companion-index-v2.md"
     }
   ],
   "expectedFigures": 52,
