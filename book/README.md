@@ -1,94 +1,28 @@
-# Sovereign Agent: the executable textbook
+# Build Your Always-On AI Agent From Scratch
 
-The book grows with the implementation. Each chapter uses the production
-package; it does not copy or fork it.
+**One teaching book. Four companion assets. Nineteen chapters.**
 
-**New here? Start with the front matter:** [`PREFACE.md`](PREFACE.md) (who
-this book is for, prerequisites, setup, and the build-break-repair teaching
-method) and [`CONVENTIONS.md`](CONVENTIONS.md) (notation, recurring terms,
-and the chapter-to-lab map). Both are additive — the chapter sequence below
-is unchanged and remains the required reading path.
+Learn to build a Python agent for Lucy's ice cream shop: tools, memory, Telegram messaging, schedules, permissions and recovery. Start with the textbook, then use the matching chapter in the exercises book. Consult solutions after an attempt. Educators can prepare a class from the fourth asset alone.
 
-Read them in order. Each one takes apart something the previous chapter asked
-you to take on faith.
+| Asset | What you will find | Start here |
+|---|---|---|
+| **Textbook** | Explanations, worked examples, chapter code, checkpoints and appendices | [Read the textbook](textbook/README.md) |
+| **Exercises book** | Student notebooks and matching Markdown, with goals, introductions, hints and changed-case work | [Do the exercises](exercises/README.md) |
+| **Solutions book** | Worked notebooks, explanations and additional checks | [Study the solutions](solutions/README.md) |
+| **Educator materials** | Session guides, local student and worked copies, timing plans and assessment tools | [Prepare a class](educator/README.md) |
 
-Use the [companion labs](labs/README.md) alongside the chapters. Every lab gives
-you an intentionally incomplete starter, behavioral checks, adversarial
-mutations, and a verified reference solution. The checks grade observable
-invariants rather than requiring your code to look like the reference.
+Every asset uses the same chapter numbers. For example, `textbook/ch02`, `exercises/ch02`, `solutions/ch02` and `educator/ch02` all teach reliable shop tools and introduce Pydantic. You do not need to choose between differently named versions of the book.
 
-After Chapter 12, continue with [Advanced mechanisms](ADVANCED_MECHANISMS.md):
-six compact, production-shaped lessons in isolation, unattended schedules,
-context compaction, session incarnations, progressive tool discovery, and
-hybrid memory retrieval.
+## What is available now
 
-The chapters are organized into three parts:
+The nineteen-chapter edition is under construction. **Sixteen chapters have manuscript drafts and two ninety-minute practical units each. Chapters 4, 7 and 13 have detailed planned scopes; their new lessons and six practical units are not yet written.** The [textbook contents](textbook/README.md) marks each chapter's status explicitly.
 
-- [Part 1: Durable foundations](parts/part-1-durable-foundations.md), Chapters 0–3
-- [Part 2: Bounded autonomy](parts/part-2-bounded-autonomy.md), Chapters 4–7
-- [Part 3: Proof at scale](parts/part-3-proof-at-scale.md), Chapters 8–12
+There are currently 32 student units and 32 worked counterparts: 48 hours of planned student practice. The completed nineteen-chapter course will contain 38 student units: 57 hours. Every available notebook includes its own required setup, concepts and supplied teaching runtime. Its successful execution does not certify that the learner has built that entire runtime from scratch.
 
-- [Chapter 0: Lucy's first shift](ch00_first_shift/README.md) — run one
-  complete piece of work and learn that `ACCEPTED` is a proved claim
-- [Chapter 1: The organization remembers](ch01_organization_remembers/README.md) —
-  SQLite, transactions, append-only events, hybrid memory retrieval, and what
-  is canonical versus derived
-- [Chapter 2: Work needs governance](ch02_work_needs_governance/README.md) —
-  outcomes, SOWs, evidence, verification, review, and no-self-approval
-- [Chapter 3: The actor is not a model](ch03_actor_is_not_a_model/README.md) —
-  providers are probed CLIs; source-preserving context compaction; tool
-  discovery kept separate from authority
-- [Chapter 4: Work stays inside its boundary](ch04_work_stays_inside_its_boundary/README.md) —
-  a detectable workspace boundary, safe joins, reclaim, and five independently
-  qualified isolation planes
-- [Chapter 5: Authority needs a fence](ch05_authority_needs_a_fence/README.md) —
-  process identity, actor leases, execution-attempt fencing, and multi-host
-  session incarnations
-- [Chapter 6: The organization recovers](ch06_the_organization_recovers/README.md) —
-  a real hard-killed worker, and the supervisor that recovers it without
-  guessing success
-- [Chapter 7: The organization wakes itself](ch07_the_organization_wakes_itself/README.md) —
-  genuine Pulse: governed work created without a human prompt, with durable,
-  structured evidence; plus a distinct durable condition scheduler
-- [Chapter 8: The Store becomes a catalog](ch08_the_store_becomes_a_catalog/README.md) —
-  the single-product fixture becomes a genuine multi-SKU catalog
-- [Chapter 9: Each product has its own threshold](ch09_each_product_has_its_own_threshold/README.md) —
-  independent stock state and reorder decisions, per SKU
-- [Chapter 10: One signal wakes one need](ch10_one_signal_wakes_one_need/README.md) —
-  the wake gate binds each signal to its own SKU's own outcome, never another's
-- [Chapter 11: Replenishment scales without losing governance](ch11_replenishment_scales_without_losing_governance/README.md) —
-  multiple governed replenishment chains, idempotency and attribution intact
-- [Chapter 12: The pilot begins with a receipt](ch12_the_pilot_begins_with_a_receipt/README.md) —
-  the pilot-start mechanism, exercised against a disposable identity, and
-  what "started" does and does not mean
+Use Python 3.14. The exercises and solutions need Jupyter and Pydantic 2; their setup pages explain preparation. The textbook explains how to install the locked repository environment for chapter checkpoints. Core practical work runs offline after setup. Live Telegram, model, container and operating-system observations are identified separately from local fixtures.
 
-## Where the book goes
+## Keep your place
 
-Chapters 0–3 are manually dispatched because durable memory and governed work
-must exist before proactive execution can be honest. Chapters 4–6 add
-containment, fencing, and recovery. Chapter 7 is the first chapter in which a
-durable signal creates governed work without a human prompt. Chapters 8–12
-then add the second product, retries, causal attribution, and a pilot-start
-receipt that states exactly what has and has not been proven.
+Read a chapter, attempt Unit A, then investigate and transfer in Unit B. Save your predictions and code before reading a worked solution. Teachers should rehearse the local worked copy before distributing student files. Ninety minutes is a work plan, not a measured guarantee of completion or learning.
 
-After the main sequence, use the
-[field guide to the agent ecosystem](AGENT_ECOSYSTEM_MAP.md) to map the book's
-mechanisms to MCP, A2A, OpenTelemetry, OWASP agentic threats, and NIST AI risk
-practice. The map translates interfaces; it does not treat protocol support as
-proof of authority or outcome.
-
-## Every chapter contains
-
-- a concrete learning objective
-- a runnable exercise
-- expected observations
-- a learner verification command
-- an "explain it back" section
-- a `solution.py` that imports the production package
-
-Run `python scripts/verify_curriculum.py` to check that all of that is actually
-present and that the chapters' imports still work.
-
-Run `python scripts/verify_book_labs.py` to execute all companion reference
-solutions twice from fresh roots and compare their observations with the
-checked-in expected results.
+The previous thirteen-chapter curriculum, earlier classroom packs and superseded practical editions are [historical material](../docs/archive/README.md). They are preserved for existing references and verification, outside the current book. The [migration record](../docs/book-migration-20260909.md) maps old chapter numbers and paths to this edition.
