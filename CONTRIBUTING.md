@@ -36,9 +36,10 @@ default goal:
 make install   # uv sync --python 3.14 --group dev
 make lint      # ruff format --check, ruff check, mypy (src tests scripts book)
 make test      # pytest
-make verify    # lint, test, deps, budgets, four book gates, doctor, demo
+make verify    # runtime, active book, historical compatibility and clean onboarding
 make doctor    # the CLI's own environment check
-make labs      # execute every companion lab from a fresh root
+make labs      # execute archived companion labs from fresh roots
+make exercises # execute all active notebooks and verify the downloads
 ```
 
 `make lint` runs the identical target list to CI, so it cannot pass while CI
@@ -66,12 +67,12 @@ fixtures, or session artifacts.
 - Library code: `src/sovereign_agent/`
 - The reference organization: `src/reference_organizations/store/`
 - Deterministic tests: `tests/`
-- The executable textbook: `book/` — the source of truth for chapters. It is
-  rendered and published by `zeroemployeeorg/zeo-site`; this repository builds
-  no site of its own. See [`book/CONTENT-SOURCE.md`](book/CONTENT-SOURCE.md)
-  for the contract a renderer inherits, and
-  [the publication ruling](docs/rulings/2026-08-27-book-publication-destination.md)
-  for why the destination lives there rather than here.
+- The teaching collection: [`book/`](book/README.md) — one nineteen-chapter
+  sequence in four assets: textbook, exercises, solutions and educator materials.
+  The source registry is [`book/textbook/BOOK.json`](book/textbook/BOOK.json).
+  See the [migration and consumer contract](docs/book-migration-20260909.md)
+  before changing chapter paths or numbers. Website rendering is managed
+  separately; this repository builds no site of its own.
 - Verification scripts: `scripts/`
 - Rulings and reference notes: `docs/` — much of it documents the 0.x line and
   is labelled as historical.

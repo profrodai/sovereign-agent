@@ -7,7 +7,7 @@ body:
     attributes:
       label: Page or chapter
       description: Link to the file and heading, or give the repository path.
-      placeholder: "book/ch05_authority_needs_a_fence/README.md#..."
+      placeholder: "book/textbook/ch10/README.md#..."
     validations:
       required: true
   - type: textarea

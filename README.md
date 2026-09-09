@@ -13,17 +13,20 @@ scheduling, permissions, recovery and operating report. Python 3.14, SQLite and
 one direct runtime dependency keep the implementation inspectable. Zeocore is an
 optional tool integration; the teaching agent does not require it.
 
-The new [sixteen-chapter manuscript](book/always_on/README.md) is an **unreleased
-construction draft** with executable checkpoints. It is not yet publication-ready
-or available through the published PyPI version. The retained 1.x curriculum and
-release commands below remain available while the new edition is reviewed.
+[Start with the book](book/README.md): one nineteen-chapter teaching sequence,
+organized into [textbook](book/textbook/README.md), [exercises](book/exercises/README.md),
+[solutions](book/solutions/README.md) and [educator materials](book/educator/README.md).
+Sixteen manuscript drafts and 32 ninety-minute practical units are available.
+Chapters 4, 7 and 13 have documented scopes; their new lessons are still planned.
+The edition remains an unreleased construction draft. Use this checkout's locked
+runtime for its checkpoints; the published PyPI release is not an edition substitute.
 
 ## Run the constructed agent from this checkout
 
 After the development install below, run the final accelerated day:
 
 ```bash
-uv run --python 3.14 python book/always_on/checkpoints/ch16.py
+uv run --python 3.14 python book/textbook/checkpoints/ch19.py
 ```
 
 It runs a separate simulated supplier, loses replies, kills a worker and verifies
@@ -36,10 +39,10 @@ For an initialized shop directory, `sovereign-agent agent report --root PATH`
 prints the current ledger-derived report. Amounts come from structured records,
 with uncertain outcomes and accounting disagreements made explicit. Current
 retained totals are distinct from current-UTC-day model estimates and from a
-provider invoice. See [Chapter 16](book/always_on/ch16_acceptance/README.md).
+provider invoice. See [Chapter 19](book/textbook/ch19/README.md).
 
 Always-on means unattended work and explicit restart/recovery behavior while the
-host and dependencies are available. The [Linux deployment chapter](book/always_on/ch15_operation/README.md)
+host and dependencies are available. The [Linux deployment chapter](book/textbook/ch18/README.md)
 provides the one-host recipe. Maintained production organizations can graduate to
 [Zeocore](https://github.com/profrodai/zeocore).
 
@@ -93,13 +96,13 @@ Sovereign Agent doctor
 Ready for the offline curriculum. Live providers are optional.
 ```
 
-Chapter 0 is runnable as a **manually dispatched** store shift (no Pulse):
+The runtime also provides a **manually dispatched** store-shift demo (no Pulse):
 
 ```bash
 uv run sovereign-agent demo store --mode simulated
 ```
 
-After the core book, run the six advanced mechanisms with no provider,
+For additional runtime demonstrations, run the six advanced mechanisms with no provider,
 credential, or network:
 
 ```bash
@@ -109,10 +112,9 @@ uv run sovereign-agent mechanisms --root /tmp/sovereign-agent-mechanisms
 This demonstrates four-plane isolation policy, durable condition scheduling,
 recoverable context compaction, session-incarnation fencing, bounded tool
 discovery, and provenance-bearing hybrid memory. See
-[`book/ADVANCED_MECHANISMS.md`](book/ADVANCED_MECHANISMS.md).
-
-See [`book/ch00_first_shift`](book/ch00_first_shift/README.md) and
-[`book/ch03_actor_is_not_a_model`](book/ch03_actor_is_not_a_model/README.md).
+the [historical runtime lessons](docs/archive/README.md). These demonstrations
+remain supported; the current reading sequence starts at the
+[textbook contents](book/textbook/README.md).
 
 ## Product vocabulary
 
