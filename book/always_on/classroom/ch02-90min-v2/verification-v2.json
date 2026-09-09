@@ -1,0 +1,47 @@
+{
+  "created": "2026-09-09",
+  "python": "3.14.3",
+  "pydantic": "2.13.4",
+  "notebooks": [
+    {
+      "path": "instructor/01-typed-tools-and-trustworthy-drafts-v2.ipynb",
+      "sha256": "9d1ea0f9bd9d9a88a5032092eb0c97f21efe66793a156597de8ad152e583f124",
+      "cells": 44,
+      "fresh_kernel": "PASS",
+      "python310_grammar": "PASS",
+      "markdown_parity": "PASS",
+      "checkpoint": "PASS"
+    },
+    {
+      "path": "instructor/02-dispatch-permissions-and-transfer-v2.ipynb",
+      "sha256": "2961ff88719e2dfaaecf695e5d9e49343b6b58e594de2b510aa5527e44131c10",
+      "cells": 47,
+      "fresh_kernel": "PASS",
+      "python310_grammar": "PASS",
+      "markdown_parity": "PASS",
+      "checkpoint": "PASS"
+    },
+    {
+      "path": "student/01-typed-tools-and-trustworthy-drafts-v2.ipynb",
+      "sha256": "f299e3a4a20103736932f6105fd0b121a6caaec8b8822d7d5e908ac27e2f38c6",
+      "cells": 41,
+      "fresh_kernel": "PASS",
+      "python310_grammar": "PASS",
+      "markdown_parity": "PASS",
+      "checkpoint": "EXPECTED_NEEDS_WORK"
+    },
+    {
+      "path": "student/02-dispatch-permissions-and-transfer-v2.ipynb",
+      "sha256": "aa98ac6aa99216a6839ff2a1e52a8262767b3707fe4af1008a4a6dff36c9e82a",
+      "cells": 44,
+      "fresh_kernel": "PASS",
+      "python310_grammar": "PASS",
+      "markdown_parity": "PASS",
+      "checkpoint": "EXPECTED_NEEDS_WORK"
+    }
+  ],
+  "limits": [
+    "Execution tested locally with the recorded Python and Pydantic versions; Python 3.10 grammar checked but 3.10 runtime and Colab UI not tested.",
+    "Ninety minutes is a teaching plan; classroom outcomes and operator visual review are unobserved."
+  ]
+}
