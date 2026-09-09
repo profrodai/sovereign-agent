@@ -96,6 +96,11 @@
   ],
   "resources": [
     {
+      "slug": "always-on-practicals",
+      "title": "Thirty-two self-contained ninety-minute practicals",
+      "path": "practicals/ninety-minute-v1/START-HERE.md"
+    },
+    {
       "slug": "always-on-checkpoints",
       "title": "Chapter checkpoints",
       "path": "CHECKPOINTS.md"

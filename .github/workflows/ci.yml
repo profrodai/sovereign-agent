@@ -41,13 +41,17 @@ jobs:
       - name: Verify public repository structure
         run: python -m pytest -q tests/test_repository_hygiene.py
       - name: Verify the curriculum is runnable
-        run: python scripts/verify_curriculum.py
+        run: python scripts/verify_curriculum_v2.py
       - name: Verify the book's python snippets actually run
         run: python scripts/verify_book_snippets.py
       - name: Verify the book's depth-coverage manifest
         run: python scripts/verify_book_depth.py
       - name: Verify the new edition construction checkpoints
         run: python scripts/verify_always_on_v1.py
+      - name: Verify complete practical course evidence and downloads
+        run: |
+          python scripts/verify_practical_course_v1.py
+          python scripts/package_practical_course_v1.py --verify
       - name: Verify all companion labs from fresh roots
         run: python scripts/verify_book_labs.py
       - name: Verify offline commands

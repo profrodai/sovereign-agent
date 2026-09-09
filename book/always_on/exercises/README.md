@@ -1,6 +1,8 @@
 # Exercises companion
 
-**Created:** 2026-09-09 · **Status:** DRAFT
+**Created:** 2026-09-09 · **Updated:** 2026-09-09 · **Doctrinal basis:** CLAUDE.md Rev 17
+
+The current complete course is [Thirty-two ninety-minute practicals](../practicals/ninety-minute-v1/START-HERE.md): two self-contained units for every chapter, each with matching Markdown, a worked instructor edition and a dedicated ninety-minute plan. The earlier exercise editions below remain available.
 
 Each chapter companion uses canonical Jupytext Markdown and a generated notebook. The Markdown is readable on GitHub and on the existing Prof Rod book site; the notebook is the executable download. Learners do not need the authoring toolchain.
 

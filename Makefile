@@ -44,13 +44,15 @@ exercises:
 verify: lint test
 	$(UV) run --python 3.14 python scripts/verify_runtime_dependencies.py
 	$(UV) run --python 3.14 python scripts/verify_source_budget_v2.py
-	$(UV) run --python 3.14 python scripts/verify_curriculum.py
+	$(UV) run --python 3.14 python scripts/verify_curriculum_v2.py
 	$(UV) run --python 3.14 python scripts/verify_book_snippets.py
 	$(UV) run --python 3.14 python scripts/verify_book_depth.py
 	$(UV) run --python 3.14 python scripts/verify_book_structure_v1.py
 	$(UV) run --python 3.14 python scripts/verify_always_on_v1.py
 	$(UV) run --python 3.14 python scripts/verify_publication_v2.py
 	$(UV) run --python 3.14 python scripts/verify_exercise_release_v5.py
+	$(UV) run --python 3.14 python scripts/verify_practical_course_v1.py
+	$(UV) run --python 3.14 python scripts/package_practical_course_v1.py --verify
 	$(UV) run --python 3.14 python scripts/verify_book_labs.py
 	$(UV) run --python 3.14 sovereign-agent --help >/dev/null
 	$(UV) run --python 3.14 sovereign-agent doctor
