@@ -6,6 +6,8 @@ A tool gives the model that opportunity. The model generates a request such as �
 
 This chapter builds three tools: stock lookup, supplier lookup, and draft calculation. You will test them without a model before placing them inside an agent loop. By the end, a fabricated or malformed request will produce an inspectable refusal, while a valid draft request will return an exact quantity and amount in GBP pence.
 
+For dedicated practice, use [Unit A](../practicals/ninety-minute-v1/ch02/student/unit-a-v1.md) and [Unit B](../practicals/ninety-minute-v1/ch02/student/unit-b-v1.md), each with its own ninety-minute plan and matching notebook.
+
 ## Learning objectives
 
 Build and test typed stock, supplier, and draft tools; validate generated arguments before dispatch; and keep authoritative replenishment arithmetic in ordinary Python.
@@ -69,11 +71,216 @@ Prices are integer pence. Multiplication remains ordinary integer arithmetic, an
 
 We copy each product into the tool's fixture. That makes the checkpoint's ownership clear: changing a tool's local fixture does not mutate the original Chapter 1 dictionary. It is not a persistence mechanism. A process restart still discards in-memory changes, which is one reason we will later replace this boundary with SQLite.
 
-## Describe and validate arguments
+## Meet Pydantic one step at a time
 
-A tool schema tells the model which fields a request may contain. The schema is useful guidance, but it is not proof that a generated request obeys the schema. We validate again immediately before execution.
+Before we describe all three tools, we need a dependable way to read their arguments. Pydantic is a Python library that builds a validated object from input data. It can also describe the accepted data as JSON Schema. It supplies these ordinary programming operations; our code still decides which tool to call and whether its proposed action makes sense for Lucy. The book's environment already installs Pydantic 2. No prior Pydantic experience is needed for this section.
 
-Pydantic supplies the argument validator and JSON Schema generation. It is a building block, rather than an agent framework: it does not call the model, choose tools, create a work queue, or approve a purchase. These classes declare the input contract of each function.
+We will start with one quantity, deliberately send bad data, and add one rule at a time. Keep three objects separate as you read: the incoming dictionary, the class that describes acceptable data, and the instance created after validation. A Pydantic **model** here is a Python data class with validation behavior. It is unrelated to the language model choosing a tool.
+
+### A type annotation is not an input check
+
+The colon in `quantity: int` is a type annotation: it tells readers and type-checking tools what kind of value we intend. Ordinary Python does not automatically enforce a function's annotations when it runs. Predict what the following function returns before executing it:
+
+```python
+def echoed_quantity(quantity: int) -> int:
+    return quantity
+
+
+unchecked = echoed_quantity("6")
+print(unchecked, type(unchecked).__name__)
+```
+
+```text
+6 str
+```
+
+The quotes made the input a string, and the function returned that same string. Writing `int` in its signature did not convert or reject it. A static type checker can warn about this call before execution; data arriving from a model or HTTP request still needs a check at runtime. This matters because `"6" * 250` repeats characters, while `6 * 250` calculates a price.
+
+### Describe one field and create one instance
+
+`BaseModel` supplies Pydantic's validation machinery. In `class QuantityInput(BaseModel)`, the parentheses mean that our new class inherits that behavior. The indented annotation declares a field named `quantity`. There is no value after an equals sign, so this field is required.
+
+```python
+from pydantic import BaseModel
+
+
+class QuantityInput(BaseModel):
+    quantity: int
+
+
+incoming = {"quantity": 6}
+validated = QuantityInput.model_validate(incoming)
+print(validated.quantity, type(validated.quantity).__name__)
+print(type(incoming).__name__, type(validated).__name__)
+```
+
+```text
+6 int
+dict QuantityInput
+```
+
+`QuantityInput` describes the interface; `validated` is one instance of it. The class method `model_validate` accepts our dictionary, checks its fields and returns that instance. We read the field with `validated.quantity`, rather than dictionary indexing. The shorter constructor `QuantityInput(quantity=6)` also performs validation. We use `model_validate` when the input already arrives as a dictionary.
+
+An instance is not a receipt or an approval. At this point we have established an integer-shaped quantity. We have not checked its sign, its upper bound, or its agreement with current stock.
+
+### Observe conversion before choosing strictness
+
+By default, Pydantic can convert some compatible inputs. Try a string containing a number and compare the original dictionary with the result:
+
+```python
+numeric_text = {"quantity": "6"}
+converted = QuantityInput.model_validate(numeric_text)
+print(converted.quantity, type(converted.quantity).__name__)
+print(type(numeric_text["quantity"]).__name__)
+```
+
+```text
+6 int
+str
+```
+
+The instance contains an integer; the supplied dictionary still contains its string. Conversion can be useful when reading a form whose fields all arrive as text. For our generated tool arguments, we want a more exact interface. JSON distinguishes a number, a string and a Boolean, and our quantity should arrive as the intended number. We will turn on strict validation after seeing how a rejected input is reported.
+
+### Catch an error and locate the bad field
+
+An input Pydantic cannot validate raises `ValidationError`. An exception interrupts the ordinary path; the `except` block lets us handle the refusal without calling a tool with invalid arguments. Predict the failing field in each dictionary:
+
+```python
+from pydantic import ValidationError
+
+for supplied in ({}, {"quantity": "six tubs"}):
+    try:
+        QuantityInput.model_validate(supplied)
+    except ValidationError as error:
+        first = error.errors(include_input=False)[0]
+        print(first["loc"], first["type"])
+```
+
+```text
+('quantity',) missing
+('quantity',) int_parsing
+```
+
+`errors()` returns a list because several fields can fail at once. Each entry includes a location, an error kind and a message. `loc` is a tuple describing the path to the failing field; our flat model has only one field name in that path. The first request omitted it. The second supplied text that could not be parsed as an integer. We print stable locations and error kinds rather than depending on the formatting of a complete exception message.
+
+`include_input=False` keeps these diagnostics from echoing the submitted value. It does not make every possible application error safe to publish; our eventual dispatcher will choose what information to return. Do not catch the error and then proceed with the original unchecked dictionary.
+
+### Separate required fields, defaults and null
+
+A **default** supplies a value when a field is omitted. **Nullable** means that the field may explicitly contain `None`, represented as `null` in JSON. These are separate choices. The annotation `str | None` permits two kinds of value; the `= None` below is what allows omission.
+
+```python
+class DraftPreview(BaseModel):
+    sku: str
+    quantity: int
+    note: str | None = None
+
+
+preview = DraftPreview.model_validate({"sku": "SKU-VANILLA", "quantity": 6})
+print(preview.note)
+print(DraftPreview.model_json_schema()["required"])
+```
+
+```text
+None
+['sku', 'quantity']
+```
+
+The preview requires `sku` and `quantity`, and gives an omitted note the default `None`. If we wrote `note: str | None` without a default in Pydantic 2, the caller would still have to provide the field, although it could provide `None`. We briefly used `model_json_schema()` to inspect the required-field list; below we will explain what that description is for.
+
+### Add bounds, strict types and an explicit key set
+
+Now strengthen the interface. `Field` attaches constraints to one field: `gt=0` means strictly greater than zero, `le=1000` includes 1,000, and string lengths are bounded separately. `ConfigDict` describes model-wide behavior. We assign it to Pydantic's special `model_config` name; it is configuration, not a request field.
+
+```python
+from pydantic import ConfigDict, Field
+
+
+class CheckedDraft(BaseModel):
+    model_config = ConfigDict(extra="forbid", strict=True)
+    sku: str = Field(min_length=1, max_length=100)
+    quantity: int = Field(gt=0, le=1000)
+    note: str | None = None
+
+
+for value in (1, 1000, 0, 1001, "6", 6.0, True):
+    try:
+        CheckedDraft.model_validate({"sku": "SKU-VANILLA", "quantity": value})
+        print(repr(value), "accepted")
+    except ValidationError:
+        print(repr(value), "rejected")
+```
+
+```text
+1 accepted
+1000 accepted
+0 rejected
+1001 rejected
+'6' rejected
+6.0 rejected
+True rejected
+```
+
+Read the two endpoints carefully: one and one thousand are included; zero and one thousand and one are outside the interval. Strict integer validation also refuses the numeric string, the float and the Boolean. Although Python reports `isinstance(True, int)` as true, this interface requires an actual integer quantity. Strictness is what makes the distinction deliberate.
+
+`extra="forbid"` rejects unknown keys. Pydantic normally ignores extra input fields; here an unexpected key should expose a caller mistake instead of disappearing silently. Predict the result when a caller tries to include its own approval:
+
+```python
+try:
+    CheckedDraft.model_validate({"sku": "SKU-VANILLA", "quantity": 6, "approved": True})
+except ValidationError as error:
+    problem = error.errors(include_input=False)[0]
+    print(problem["loc"], problem["type"])
+```
+
+```text
+('approved',) extra_forbidden
+```
+
+Even declaring an `approved` field would only validate its representation. Authority must come from the application's trusted approval mechanism, which we construct later in the book.
+
+### Return data, or describe which data is accepted
+
+**Serialization** turns the instance into a representation suitable for storage or transmission. `model_dump()` returns Python data; `model_dump_json()` returns a JSON string. JSON Schema describes the interface itself, rather than containing one particular request.
+
+```python
+checked = CheckedDraft(sku="SKU-VANILLA", quantity=6)
+print(checked.model_dump())
+print(checked.model_dump_json())
+schema = CheckedDraft.model_json_schema()
+print(schema["required"])
+print(schema["properties"]["quantity"]["exclusiveMinimum"])
+print(schema["properties"]["quantity"]["maximum"])
+```
+
+```text
+{'sku': 'SKU-VANILLA', 'quantity': 6, 'note': None}
+{"sku":"SKU-VANILLA","quantity":6,"note":null}
+['sku', 'quantity']
+0
+1000
+```
+
+The schema can tell a language model which arguments a tool accepts. The model can still return an invalid request, so the dispatcher must validate the actual arguments before invocation. Nor does initial validation continually police a mutable instance: changing an attribute later is a separate operation. Keep this boundary explicit by validating incoming requests immediately before using them, as the dispatcher below does.
+
+| Operation | Input | Output or failure |
+| --- | --- | --- |
+| `model_validate` | Incoming Python data | A validated instance, or `ValidationError` |
+| `model_dump` | A model instance | Python data for an ordinary caller |
+| `model_dump_json` | A model instance | A JSON string for storage or transmission |
+| `model_json_schema` | A model class | A description of its accepted fields and constraints |
+
+### Predict where the remaining check belongs
+
+A request for five vanilla tubs now passes the type and range checks. In our current fixture, vanilla needs six. Before reading the tool implementation, identify which information is missing from the schema and which function should reject the request. The answer is the current stock and replenishment rule: those belong to the shop operation, where they can be checked against authoritative data.
+
+Try changing one input at a time: omit `quantity`, set `note=None`, use an empty SKU, add `approved`, then request five tubs. Name the responsible layer for each outcome. This distinguishes an interface error from a validly represented but incorrect business decision.
+
+The examples use Pydantic 2. Its [model documentation](https://docs.pydantic.dev/latest/concepts/models/), [field reference](https://docs.pydantic.dev/latest/concepts/fields/) and [strict-mode guide](https://docs.pydantic.dev/latest/concepts/strict_mode/) provide further details after this introduction.
+
+## Describe and validate the three tool interfaces
+
+We can now factor out the shared policy. `NoArguments` inherits Pydantic's behavior and declares no request fields; `extra="forbid"` makes `{}` its intended input. `ProductArguments` inherits that configuration and adds `sku`. `DraftArguments` inherits both the configuration and `sku`, then adds `quantity`. This is ordinary class inheritance used to keep the three interfaces consistent. We omit the preview's optional note because these tools do not use it.
 
 ```python
 from pydantic import BaseModel, ConfigDict, Field, ValidationError
@@ -409,7 +616,7 @@ This experiment explains why a saved recommendation is not a permanent authoriza
 
 ## Save the tool layer for Chapter 3
 
-Run all examples from the repository root. Create `book/always_on/learner/ch02.py`. Save the imports, class and function definitions shown in this chapter, together with the assignments to `SHOP`, `PRICES`, `products` and `tools`. Keep the print statements and failure experiments in your interactive session. The checked-in file is the completed version of exactly those definitions; it imports no agent runtime.
+Run all examples from the repository root. Create `book/always_on/learner/ch02.py`. Save the imports, class and function definitions from the shop fixture and tool-construction sections, together with the assignments to `SHOP`, `PRICES`, `products` and `tools`. Leave the entire “Meet Pydantic one step at a time” practice section in your interactive session: its preview models and annotation experiment teach the library but are not part of the shop module. The “Describe and validate the three tool interfaces” section repeats all Pydantic imports needed by the saved tools. Keep print statements and failure experiments in your interactive session as well. The checked-in file is the completed version of exactly those definitions; it imports no agent runtime.
 
 The functions above share one module-level product dictionary. Chapter 3 needs a fresh fixture for each experiment. The following factory moves the same calculations inside a function, where each handler closes over its own copied rows. It returns the dispatcher we already built; no hidden factory is supplied by the runtime.
 

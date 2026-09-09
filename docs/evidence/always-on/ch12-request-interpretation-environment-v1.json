@@ -1,0 +1,33 @@
+{
+  "observed_after_run": "2026-09-09",
+  "model_artifact": {
+    "name": "qwen3:latest",
+    "model": "qwen3:latest",
+    "modified_at": "2026-09-03T10:50:25.966606281+01:00",
+    "size": 5225388164,
+    "digest": "500a1f067a9f782620b40bee6f7b0c89e17ae61f686b92c24933e4ca4b2b8b41",
+    "details": {
+      "parent_model": "",
+      "format": "gguf",
+      "family": "qwen3",
+      "families": [
+        "qwen3"
+      ],
+      "parameter_size": "8.2B",
+      "quantization_level": "Q4_K_M",
+      "context_length": 40960,
+      "embedding_length": 4096
+    },
+    "capabilities": [
+      "completion",
+      "tools",
+      "thinking"
+    ]
+  },
+  "python": "3.14.6",
+  "platform": "macOS-26.6.2-arm64-arm-64bit-Mach-O",
+  "machine": "arm64",
+  "report_sha256": "669afcd915c0c180f70ff3038a5c3b91e292bbef57adf4740c424a93960cef4b",
+  "command": "uv run python book/always_on/experiments/ch12_request_eval_v1.py --live --output docs/evidence/always-on/ch12-request-interpretation-live-v1.json",
+  "limits": "Model tag observed immediately after execution, not cryptographically attested for each response. No runtime source changes or model downloads. Timing depends on this host and load."
+}
