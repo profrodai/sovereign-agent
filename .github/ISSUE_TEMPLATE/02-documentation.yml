@@ -7,7 +7,7 @@ body:
     attributes:
       label: Page or chapter
       description: Link to the file and heading, or give the repository path.
-      placeholder: "book/textbook/ch10/README.md#..."
+      placeholder: "book/textbook/ch10/profrod-sovereign-agent-ch10-spending-permissions-chapter.md#..."
     validations:
       required: true
   - type: textarea

@@ -1,0 +1,2980 @@
+{
+  "sourceCommit": "ab55e786914fc613f829854e1cf8ad49c3a53c0a",
+  "distributionVersion": "2026-09-10",
+  "files": [
+    {
+      "old": "book/README.md",
+      "new": "book/README.md",
+      "beforeSha256": "c33fe82cf2ba82f86f3a3bd610ab26eb3dc62f0899e28a9edceacffb8f5975df",
+      "beforeLines": 28,
+      "afterLines": 38
+    },
+    {
+      "old": "book/educator/CLASSROOM-OBSERVATIONS.md",
+      "new": "book/educator/profrod-sovereign-agent-educator-classroom-observations.md",
+      "beforeSha256": "ebb10133ddb12b5cfb91c1d04400abcb29ab4cd4cd2ec18f7892b99bc7480475",
+      "beforeLines": 20,
+      "afterLines": 30
+    },
+    {
+      "old": "book/educator/README.md",
+      "new": "book/educator/profrod-sovereign-agent-educator-start-here.md",
+      "beforeSha256": "fc01a3a7018755e7b44683f5d6916322415aafd32805f02105e61c2b4d7ba2b2",
+      "beforeLines": 37,
+      "afterLines": 47
+    },
+    {
+      "old": "book/educator/SETUP.md",
+      "new": "book/educator/profrod-sovereign-agent-educator-setup.md",
+      "beforeSha256": "57d741abaadc6fc1f1dd4628656823a3b37db027c2e6f73fb4238d087b4eb398",
+      "beforeLines": 58,
+      "afterLines": 68
+    },
+    {
+      "old": "book/educator/ch01/README.md",
+      "new": "book/educator/ch01/profrod-sovereign-agent-ch01-first-model-call-educator-guide.md",
+      "beforeSha256": "1101c25db041a38a17f62f8b84ceb16b3880cbfb168e668aa7882a2964b4df2c",
+      "beforeLines": 14,
+      "afterLines": 24
+    },
+    {
+      "old": "book/educator/ch01/TEACHING-GUIDE.md",
+      "new": "book/educator/ch01/profrod-sovereign-agent-ch01-first-model-call-teaching-guide.md",
+      "beforeSha256": "c6b7cb1e001c89b8c20524cd812dae73979ea5843c2e959a62d81be016f7427a",
+      "beforeLines": 117,
+      "afterLines": 127
+    },
+    {
+      "old": "book/educator/ch02/README.md",
+      "new": "book/educator/ch02/profrod-sovereign-agent-ch02-pydantic-shop-tools-educator-guide.md",
+      "beforeSha256": "2e135e90ac21a8831598fdf56c6abb61637658d53ec6057f070b05622c2eeef4",
+      "beforeLines": 14,
+      "afterLines": 24
+    },
+    {
+      "old": "book/educator/ch02/TEACHING-GUIDE.md",
+      "new": "book/educator/ch02/profrod-sovereign-agent-ch02-pydantic-shop-tools-teaching-guide.md",
+      "beforeSha256": "d27e899cbf089c96296d8129b2eeb801e6c0c6fde806b82e389fbeb733fc038d",
+      "beforeLines": 113,
+      "afterLines": 123
+    },
+    {
+      "old": "book/educator/ch03/README.md",
+      "new": "book/educator/ch03/profrod-sovereign-agent-ch03-agent-loop-educator-guide.md",
+      "beforeSha256": "f17109cbf7ec28129809c71f29bfeb85929a9087ba9e252aaab4206f66f3740e",
+      "beforeLines": 14,
+      "afterLines": 24
+    },
+    {
+      "old": "book/educator/ch03/TEACHING-GUIDE.md",
+      "new": "book/educator/ch03/profrod-sovereign-agent-ch03-agent-loop-teaching-guide.md",
+      "beforeSha256": "20f1d8d541fed1b04cecae653bebb273316b0a6a01469108da1d99a160dcc010",
+      "beforeLines": 113,
+      "afterLines": 123
+    },
+    {
+      "old": "book/educator/ch04/README.md",
+      "new": "book/educator/ch04/profrod-sovereign-agent-ch04-sqlite-state-educator-guide.md",
+      "beforeSha256": "3b6b147281f2bdf9e67c2351767995b9755a9c5f8b1f460e0e2134939bcb425d",
+      "beforeLines": 39,
+      "afterLines": 49
+    },
+    {
+      "old": "book/educator/ch05/README.md",
+      "new": "book/educator/ch05/profrod-sovereign-agent-ch05-durable-memory-educator-guide.md",
+      "beforeSha256": "ca154ad568d82e1115c9de2b37710d486cb6a0c7eecb0e52f8756c8bb17e104c",
+      "beforeLines": 14,
+      "afterLines": 24
+    },
+    {
+      "old": "book/educator/ch05/TEACHING-GUIDE.md",
+      "new": "book/educator/ch05/profrod-sovereign-agent-ch05-durable-memory-teaching-guide.md",
+      "beforeSha256": "b83fc693ff33a4cebc22903b3783040c60e017431820b69f48df775b72d2978f",
+      "beforeLines": 113,
+      "afterLines": 123
+    },
+    {
+      "old": "book/educator/ch06/README.md",
+      "new": "book/educator/ch06/profrod-sovereign-agent-ch06-versioned-skills-educator-guide.md",
+      "beforeSha256": "1cea6e7332587c5a2ff09138ebf504cfc31c7aa48309f71618e08ca5a2da4ded",
+      "beforeLines": 14,
+      "afterLines": 24
+    },
+    {
+      "old": "book/educator/ch06/TEACHING-GUIDE.md",
+      "new": "book/educator/ch06/profrod-sovereign-agent-ch06-versioned-skills-teaching-guide.md",
+      "beforeSha256": "7eed1877c05dc6427ff1bd4b6f62009fb62b1295f7993a653716d1f8897c8453",
+      "beforeLines": 113,
+      "afterLines": 123
+    },
+    {
+      "old": "book/educator/ch07/README.md",
+      "new": "book/educator/ch07/profrod-sovereign-agent-ch07-durable-inbox-outbox-educator-guide.md",
+      "beforeSha256": "50cc1d43f289f27edb5400c8763ec703be53b348ee246c41e2c2870757c7318d",
+      "beforeLines": 39,
+      "afterLines": 49
+    },
+    {
+      "old": "book/educator/ch08/README.md",
+      "new": "book/educator/ch08/profrod-sovereign-agent-ch08-telegram-messaging-educator-guide.md",
+      "beforeSha256": "20080b29847d0cd6119b289484f997f70a86b6c36a52eff20555f84760d06a38",
+      "beforeLines": 14,
+      "afterLines": 24
+    },
+    {
+      "old": "book/educator/ch08/TEACHING-GUIDE.md",
+      "new": "book/educator/ch08/profrod-sovereign-agent-ch08-telegram-messaging-teaching-guide.md",
+      "beforeSha256": "41a74db453d26a40691c4629243e0325af0ee0e417d0fca4947aa464df50017d",
+      "beforeLines": 113,
+      "afterLines": 123
+    },
+    {
+      "old": "book/educator/ch09/README.md",
+      "new": "book/educator/ch09/profrod-sovereign-agent-ch09-schedules-stock-events-educator-guide.md",
+      "beforeSha256": "26553095211e85efd91be0a330930aa4e8002a4a155c4a6cffdef1c793a1048a",
+      "beforeLines": 14,
+      "afterLines": 24
+    },
+    {
+      "old": "book/educator/ch09/TEACHING-GUIDE.md",
+      "new": "book/educator/ch09/profrod-sovereign-agent-ch09-schedules-stock-events-teaching-guide.md",
+      "beforeSha256": "c907d2d41daad65ae1f3156ca16ccdd79aadfc11e2d3498542a751e477cd5e26",
+      "beforeLines": 113,
+      "afterLines": 123
+    },
+    {
+      "old": "book/educator/ch10/README.md",
+      "new": "book/educator/ch10/profrod-sovereign-agent-ch10-spending-permissions-educator-guide.md",
+      "beforeSha256": "c4230a9b988f4ac1bde0e8c8d6833f795074ee093126c4cc0b9ca6c956910ea6",
+      "beforeLines": 14,
+      "afterLines": 24
+    },
+    {
+      "old": "book/educator/ch10/TEACHING-GUIDE.md",
+      "new": "book/educator/ch10/profrod-sovereign-agent-ch10-spending-permissions-teaching-guide.md",
+      "beforeSha256": "8eb539bc5c8d6c81130c28b19b0b744779bf2e579bf53e51d03eabecd72fa489",
+      "beforeLines": 113,
+      "afterLines": 123
+    },
+    {
+      "old": "book/educator/ch11/README.md",
+      "new": "book/educator/ch11/profrod-sovereign-agent-ch11-ambiguous-supplier-order-educator-guide.md",
+      "beforeSha256": "7c550a5b7eef91bb87600adf660f8279b5e02d4b1c131292f11f3a2e9cc2c6d9",
+      "beforeLines": 14,
+      "afterLines": 24
+    },
+    {
+      "old": "book/educator/ch11/TEACHING-GUIDE.md",
+      "new": "book/educator/ch11/profrod-sovereign-agent-ch11-ambiguous-supplier-order-teaching-guide.md",
+      "beforeSha256": "bbb4363a6ec98a451ea93b0c2b5cda07bc37d9f51611f94b7c2334cf4f68ad13",
+      "beforeLines": 113,
+      "afterLines": 123
+    },
+    {
+      "old": "book/educator/ch12/README.md",
+      "new": "book/educator/ch12/profrod-sovereign-agent-ch12-worker-recovery-educator-guide.md",
+      "beforeSha256": "c887c63127687e300e469db1901086f4274c2d5166faeae035d38523567514c2",
+      "beforeLines": 14,
+      "afterLines": 24
+    },
+    {
+      "old": "book/educator/ch12/TEACHING-GUIDE.md",
+      "new": "book/educator/ch12/profrod-sovereign-agent-ch12-worker-recovery-teaching-guide.md",
+      "beforeSha256": "b526373f3a101316a6f59b55b1205345bf7917760fa33ad9cd4d043593b253e2",
+      "beforeLines": 113,
+      "afterLines": 123
+    },
+    {
+      "old": "book/educator/ch13/README.md",
+      "new": "book/educator/ch13/profrod-sovereign-agent-ch13-mcp-tools-educator-guide.md",
+      "beforeSha256": "d9bd37f307600a9de7eeb86a4670a097195ee4fdfc0318c0ff4b3f47e96bc5a3",
+      "beforeLines": 39,
+      "afterLines": 49
+    },
+    {
+      "old": "book/educator/ch14/README.md",
+      "new": "book/educator/ch14/profrod-sovereign-agent-ch14-tool-isolation-educator-guide.md",
+      "beforeSha256": "19dd97be22bb53f08c1814f085d8ba781a1a5f733f828cbd1d393b6aa97a1e37",
+      "beforeLines": 14,
+      "afterLines": 24
+    },
+    {
+      "old": "book/educator/ch14/TEACHING-GUIDE.md",
+      "new": "book/educator/ch14/profrod-sovereign-agent-ch14-tool-isolation-teaching-guide.md",
+      "beforeSha256": "dba17c134e690720aefd58c20987e83575919f358060796d61271b8a92b3014d",
+      "beforeLines": 113,
+      "afterLines": 123
+    },
+    {
+      "old": "book/educator/ch15/README.md",
+      "new": "book/educator/ch15/profrod-sovereign-agent-ch15-agent-evaluation-educator-guide.md",
+      "beforeSha256": "2cebbe89de8d6d639e2da0692b0108a12e91c31a5d2f307dd8d72d4a9ee1eaaf",
+      "beforeLines": 14,
+      "afterLines": 24
+    },
+    {
+      "old": "book/educator/ch15/TEACHING-GUIDE.md",
+      "new": "book/educator/ch15/profrod-sovereign-agent-ch15-agent-evaluation-teaching-guide.md",
+      "beforeSha256": "53ba9f645b90d59effe9f241eaab51b540c72427882449b30a14caad911f7f56",
+      "beforeLines": 113,
+      "afterLines": 123
+    },
+    {
+      "old": "book/educator/ch16/README.md",
+      "new": "book/educator/ch16/profrod-sovereign-agent-ch16-controlled-improvement-educator-guide.md",
+      "beforeSha256": "b53ce17a44b2c5ed4ddee0c709d10a66623c72a5ed693abb53cd374cde35f865",
+      "beforeLines": 14,
+      "afterLines": 24
+    },
+    {
+      "old": "book/educator/ch16/TEACHING-GUIDE.md",
+      "new": "book/educator/ch16/profrod-sovereign-agent-ch16-controlled-improvement-teaching-guide.md",
+      "beforeSha256": "b0b1000a45e092398f97420e1872da719b945ee0e08fb503b9b48b13cf7ecf1e",
+      "beforeLines": 113,
+      "afterLines": 123
+    },
+    {
+      "old": "book/educator/ch17/README.md",
+      "new": "book/educator/ch17/profrod-sovereign-agent-ch17-bounded-delegation-educator-guide.md",
+      "beforeSha256": "0cb8d41ab239809f45ea9b1c8ad4660d69def9c335a5e804e4135732191e1fef",
+      "beforeLines": 14,
+      "afterLines": 24
+    },
+    {
+      "old": "book/educator/ch17/TEACHING-GUIDE.md",
+      "new": "book/educator/ch17/profrod-sovereign-agent-ch17-bounded-delegation-teaching-guide.md",
+      "beforeSha256": "5890d912a2b6bd9d4c73bdac511c3d35168f686c092cdd901b76a7ef64fb9008",
+      "beforeLines": 113,
+      "afterLines": 123
+    },
+    {
+      "old": "book/educator/ch18/README.md",
+      "new": "book/educator/ch18/profrod-sovereign-agent-ch18-deployment-restoration-educator-guide.md",
+      "beforeSha256": "70aeafe28b0019479a5773dd4e3ba2de02490dbda3b4eb6396b0995aab2c52fc",
+      "beforeLines": 14,
+      "afterLines": 24
+    },
+    {
+      "old": "book/educator/ch18/TEACHING-GUIDE.md",
+      "new": "book/educator/ch18/profrod-sovereign-agent-ch18-deployment-restoration-teaching-guide.md",
+      "beforeSha256": "118dee73984027a4bfdfb3bf0f7e37eb4cf02bb9f4dc3bc081a223b9c0fc6bb1",
+      "beforeLines": 113,
+      "afterLines": 123
+    },
+    {
+      "old": "book/educator/ch19/README.md",
+      "new": "book/educator/ch19/profrod-sovereign-agent-ch19-integrated-shop-day-educator-guide.md",
+      "beforeSha256": "522002dde195a07741cf9d3721c5e74f4e99d8b890f3837f74e70dee209aaa67",
+      "beforeLines": 14,
+      "afterLines": 24
+    },
+    {
+      "old": "book/educator/ch19/TEACHING-GUIDE.md",
+      "new": "book/educator/ch19/profrod-sovereign-agent-ch19-integrated-shop-day-teaching-guide.md",
+      "beforeSha256": "a75cb482c44cf9146f46f448e5587f791c9f59e2c5129f7e011fc1c7fbc8816b",
+      "beforeLines": 113,
+      "afterLines": 123
+    },
+    {
+      "old": "book/educator/download.zip",
+      "new": "book/educator/profrod-sovereign-agent-educator-2026-09-10.zip",
+      "beforeSha256": "8e31ec3b6441c71649ada96c130c2d0b885ab18d3feb6214c26a9b13a723da91",
+      "beforeLines": 199813,
+      "action": "rebuild-download"
+    },
+    {
+      "old": "book/exercises/README.md",
+      "new": "book/exercises/profrod-sovereign-agent-exercises-start-here.md",
+      "beforeSha256": "0ae95fa8a32ad66983be9c63180a300be2265bea10d3209898cc9385fa85df51",
+      "beforeLines": 37,
+      "afterLines": 47
+    },
+    {
+      "old": "book/exercises/SETUP.md",
+      "new": "book/exercises/profrod-sovereign-agent-exercises-setup.md",
+      "beforeSha256": "57d741abaadc6fc1f1dd4628656823a3b37db027c2e6f73fb4238d087b4eb398",
+      "beforeLines": 58,
+      "afterLines": 68
+    },
+    {
+      "old": "book/exercises/ch01/README.md",
+      "new": "book/exercises/ch01/profrod-sovereign-agent-ch01-first-model-call-exercise-guide.md",
+      "beforeSha256": "4661e4179ad313d4a22e18e9a9c380cff72dbed62b24d3bf2c04ae82c23d0f03",
+      "beforeLines": 16,
+      "afterLines": 26
+    },
+    {
+      "old": "book/exercises/ch01/unit-a.md",
+      "new": "book/exercises/ch01/profrod-sovereign-agent-ch01-a-grounded-morning-brief-exercise.md",
+      "beforeSha256": "719b40868f15e825ff5a1225663d333572e8892e3b2dc9389ffb095532eeb629",
+      "beforeLines": 3777,
+      "afterLines": 3798
+    },
+    {
+      "old": "book/exercises/ch01/unit-a.ipynb",
+      "new": "book/exercises/ch01/profrod-sovereign-agent-ch01-a-grounded-morning-brief-exercise.ipynb",
+      "beforeSha256": "a318ed2d6c501c4538e9b0be1317ffb76734e808ccd5727709a47bb8f1a8d6cd",
+      "beforeLines": 4128,
+      "codeCellsUnchanged": true,
+      "afterLines": 4159
+    },
+    {
+      "old": "book/exercises/ch01/unit-b.md",
+      "new": "book/exercises/ch01/profrod-sovereign-agent-ch01-b-prompt-harness-repair-exercise.md",
+      "beforeSha256": "0d44a201fc894ca061277215e0d93123e44a771a0cba643ea150b00474b87ae6",
+      "beforeLines": 3892,
+      "afterLines": 3913
+    },
+    {
+      "old": "book/exercises/ch01/unit-b.ipynb",
+      "new": "book/exercises/ch01/profrod-sovereign-agent-ch01-b-prompt-harness-repair-exercise.ipynb",
+      "beforeSha256": "3f64a954ddf17db251d5ff79e27b1511f22e02162a4369daf680abbc73db0ace",
+      "beforeLines": 4286,
+      "codeCellsUnchanged": true,
+      "afterLines": 4317
+    },
+    {
+      "old": "book/exercises/ch02/README.md",
+      "new": "book/exercises/ch02/profrod-sovereign-agent-ch02-pydantic-shop-tools-exercise-guide.md",
+      "beforeSha256": "494ee443efb90de98d1d79e6b9add250015f7f3e091a244cf31f7bc2bdc5ef3c",
+      "beforeLines": 16,
+      "afterLines": 26
+    },
+    {
+      "old": "book/exercises/ch02/unit-a.md",
+      "new": "book/exercises/ch02/profrod-sovereign-agent-ch02-a-pydantic-shop-tools-exercise.md",
+      "beforeSha256": "3595a9cdd7c922dbd6763e82d9dc9c2d4723d9500cd54d768bc9b14a6de892fa",
+      "beforeLines": 3907,
+      "afterLines": 3928
+    },
+    {
+      "old": "book/exercises/ch02/unit-a.ipynb",
+      "new": "book/exercises/ch02/profrod-sovereign-agent-ch02-a-pydantic-shop-tools-exercise.ipynb",
+      "beforeSha256": "3321e29f8348e4bf18cb34b6239b767285e5536c2af8a4a671669919c0b6726a",
+      "beforeLines": 4348,
+      "codeCellsUnchanged": true,
+      "afterLines": 4379
+    },
+    {
+      "old": "book/exercises/ch02/unit-b.md",
+      "new": "book/exercises/ch02/profrod-sovereign-agent-ch02-b-pydantic-validation-repair-exercise.md",
+      "beforeSha256": "94f1364716f27d59f9fe92843a093f929f369dde8cfa84e9f0ab26b950cd80d5",
+      "beforeLines": 3991,
+      "afterLines": 4012
+    },
+    {
+      "old": "book/exercises/ch02/unit-b.ipynb",
+      "new": "book/exercises/ch02/profrod-sovereign-agent-ch02-b-pydantic-validation-repair-exercise.ipynb",
+      "beforeSha256": "dfc5847aa0f154c99faf07a5efc76e15ae261521a1603b0fd7b2373d77aa42ab",
+      "beforeLines": 4485,
+      "codeCellsUnchanged": true,
+      "afterLines": 4516
+    },
+    {
+      "old": "book/exercises/ch03/README.md",
+      "new": "book/exercises/ch03/profrod-sovereign-agent-ch03-agent-loop-exercise-guide.md",
+      "beforeSha256": "8dcf78dc0aed5cb69bd94a821182af0f798231a3d5eaa579f0809e85d73fee64",
+      "beforeLines": 16,
+      "afterLines": 26
+    },
+    {
+      "old": "book/exercises/ch03/unit-a.md",
+      "new": "book/exercises/ch03/profrod-sovereign-agent-ch03-a-bounded-agent-loop-exercise.md",
+      "beforeSha256": "3a37d3eb442d3205a82f76e78606a4427c2865a1512230e3e26327343c1317c6",
+      "beforeLines": 3867,
+      "afterLines": 3888
+    },
+    {
+      "old": "book/exercises/ch03/unit-a.ipynb",
+      "new": "book/exercises/ch03/profrod-sovereign-agent-ch03-a-bounded-agent-loop-exercise.ipynb",
+      "beforeSha256": "6e93bee0bbbe0111c16d4345b9a06246da5d096608c480d03ded0ab64e987d5f",
+      "beforeLines": 4253,
+      "codeCellsUnchanged": true,
+      "afterLines": 4284
+    },
+    {
+      "old": "book/exercises/ch03/unit-b.md",
+      "new": "book/exercises/ch03/profrod-sovereign-agent-ch03-b-failed-call-accounting-exercise.md",
+      "beforeSha256": "dae04d2e4e261f0a03ee762bd22a8f50d8095648be051210ae0f5a6c205e0ad2",
+      "beforeLines": 3821,
+      "afterLines": 3842
+    },
+    {
+      "old": "book/exercises/ch03/unit-b.ipynb",
+      "new": "book/exercises/ch03/profrod-sovereign-agent-ch03-b-failed-call-accounting-exercise.ipynb",
+      "beforeSha256": "cf8b4c9caa793e6555ec456508de470cc54dda67fd3a88779050697cea658e34",
+      "beforeLines": 4227,
+      "codeCellsUnchanged": true,
+      "afterLines": 4258
+    },
+    {
+      "old": "book/exercises/ch04/README.md",
+      "new": "book/exercises/ch04/profrod-sovereign-agent-ch04-sqlite-state-exercise-guide.md",
+      "beforeSha256": "7e9919d9830db85c8d2b7268e948661a3979fbfcf14bcda22dddf948311b5f5c",
+      "beforeLines": 37,
+      "afterLines": 47
+    },
+    {
+      "old": "book/exercises/ch05/README.md",
+      "new": "book/exercises/ch05/profrod-sovereign-agent-ch05-durable-memory-exercise-guide.md",
+      "beforeSha256": "055099f00f181020261294dea4a594d47ad452eac58f632c1bfd594ed4beada1",
+      "beforeLines": 16,
+      "afterLines": 26
+    },
+    {
+      "old": "book/exercises/ch05/unit-a.md",
+      "new": "book/exercises/ch05/profrod-sovereign-agent-ch05-a-durable-memory-exercise.md",
+      "beforeSha256": "8ace137a1070ed03dc0907b0c2a918379aef98acd5a44a5073791ea43a51cba2",
+      "beforeLines": 3774,
+      "afterLines": 3795
+    },
+    {
+      "old": "book/exercises/ch05/unit-a.ipynb",
+      "new": "book/exercises/ch05/profrod-sovereign-agent-ch05-a-durable-memory-exercise.ipynb",
+      "beforeSha256": "ac67339d85d5fe81769200c50743c1bd9259d76558765bcac766a27844fcb092",
+      "beforeLines": 4149,
+      "codeCellsUnchanged": true,
+      "afterLines": 4180
+    },
+    {
+      "old": "book/exercises/ch05/unit-b.md",
+      "new": "book/exercises/ch05/profrod-sovereign-agent-ch05-b-memory-repair-transfer-exercise.md",
+      "beforeSha256": "9fe2377ad65d1ecba3615536c2e88195ba17bb3c5aea6586863d762b14fcf7c3",
+      "beforeLines": 3857,
+      "afterLines": 3878
+    },
+    {
+      "old": "book/exercises/ch05/unit-b.ipynb",
+      "new": "book/exercises/ch05/profrod-sovereign-agent-ch05-b-memory-repair-transfer-exercise.ipynb",
+      "beforeSha256": "00eee2e35e2343681fbb329fdabd6b192ccc02c7acb4da9846007cd68af9c3a2",
+      "beforeLines": 4285,
+      "codeCellsUnchanged": true,
+      "afterLines": 4316
+    },
+    {
+      "old": "book/exercises/ch06/README.md",
+      "new": "book/exercises/ch06/profrod-sovereign-agent-ch06-versioned-skills-exercise-guide.md",
+      "beforeSha256": "306381c36b0ccf9e08d80fbdc33c33abc1b2422f001e9d2c4e7ebd1dd63b3860",
+      "beforeLines": 16,
+      "afterLines": 26
+    },
+    {
+      "old": "book/exercises/ch06/unit-a.md",
+      "new": "book/exercises/ch06/profrod-sovereign-agent-ch06-a-versioned-skills-exercise.md",
+      "beforeSha256": "3ae1926e0fffa7fc5440ad2bccb1cf48d86c8469746adb62ffa15eaae292cbdc",
+      "beforeLines": 3776,
+      "afterLines": 3797
+    },
+    {
+      "old": "book/exercises/ch06/unit-a.ipynb",
+      "new": "book/exercises/ch06/profrod-sovereign-agent-ch06-a-versioned-skills-exercise.ipynb",
+      "beforeSha256": "746e0f04d123ea9ab1e574069773c2028057ecd217363c5da8782d9666d34566",
+      "beforeLines": 4151,
+      "codeCellsUnchanged": true,
+      "afterLines": 4182
+    },
+    {
+      "old": "book/exercises/ch06/unit-b.md",
+      "new": "book/exercises/ch06/profrod-sovereign-agent-ch06-b-skill-repair-transfer-exercise.md",
+      "beforeSha256": "1c33f6f45b5cf39203324a19acb2a05e6e784302f1b87048c0accc2ea958aaeb",
+      "beforeLines": 3858,
+      "afterLines": 3879
+    },
+    {
+      "old": "book/exercises/ch06/unit-b.ipynb",
+      "new": "book/exercises/ch06/profrod-sovereign-agent-ch06-b-skill-repair-transfer-exercise.ipynb",
+      "beforeSha256": "c6531101c409df0f99dae9c473fdef4506917d26be3ecd59bbcfa44e9e104206",
+      "beforeLines": 4286,
+      "codeCellsUnchanged": true,
+      "afterLines": 4317
+    },
+    {
+      "old": "book/exercises/ch07/README.md",
+      "new": "book/exercises/ch07/profrod-sovereign-agent-ch07-durable-inbox-outbox-exercise-guide.md",
+      "beforeSha256": "7e6b5a01547b4c79db60150bdaad05d63760b9f8d63ace17a591385ad8458b89",
+      "beforeLines": 37,
+      "afterLines": 47
+    },
+    {
+      "old": "book/exercises/ch08/README.md",
+      "new": "book/exercises/ch08/profrod-sovereign-agent-ch08-telegram-messaging-exercise-guide.md",
+      "beforeSha256": "778d84ad77e423d996491cfcbb77e629d22727845c2f9f9952a38275d0385c74",
+      "beforeLines": 16,
+      "afterLines": 26
+    },
+    {
+      "old": "book/exercises/ch08/unit-a.md",
+      "new": "book/exercises/ch08/profrod-sovereign-agent-ch08-a-private-telegram-messaging-exercise.md",
+      "beforeSha256": "25a79b545660c737184cec2c147e2d7f417dea417681b8542a4a9c535a4f0bb0",
+      "beforeLines": 3795,
+      "afterLines": 3816
+    },
+    {
+      "old": "book/exercises/ch08/unit-a.ipynb",
+      "new": "book/exercises/ch08/profrod-sovereign-agent-ch08-a-private-telegram-messaging-exercise.ipynb",
+      "beforeSha256": "191cff2af6d62eadb6e2e108c5693c52dbe74123e252b9b4618ad719dd22732e",
+      "beforeLines": 4170,
+      "codeCellsUnchanged": true,
+      "afterLines": 4201
+    },
+    {
+      "old": "book/exercises/ch08/unit-b.md",
+      "new": "book/exercises/ch08/profrod-sovereign-agent-ch08-b-messaging-repair-transfer-exercise.md",
+      "beforeSha256": "6cff1e4eb153885ffa8001e5a3dd4c761eebad2b6927792f4fe1cd91dad9421b",
+      "beforeLines": 3877,
+      "afterLines": 3898
+    },
+    {
+      "old": "book/exercises/ch08/unit-b.ipynb",
+      "new": "book/exercises/ch08/profrod-sovereign-agent-ch08-b-messaging-repair-transfer-exercise.ipynb",
+      "beforeSha256": "9af0b8291ac0471e60e0fadb7b747efb5286e2ee7f5726a18d4e89e531b344fd",
+      "beforeLines": 4305,
+      "codeCellsUnchanged": true,
+      "afterLines": 4336
+    },
+    {
+      "old": "book/exercises/ch09/README.md",
+      "new": "book/exercises/ch09/profrod-sovereign-agent-ch09-schedules-stock-events-exercise-guide.md",
+      "beforeSha256": "1c4d2f9564a09a616979e6895d2edf8d228cd114e96149e04ac7a24294cbf9de",
+      "beforeLines": 16,
+      "afterLines": 26
+    },
+    {
+      "old": "book/exercises/ch09/unit-a.md",
+      "new": "book/exercises/ch09/profrod-sovereign-agent-ch09-a-schedules-stock-events-exercise.md",
+      "beforeSha256": "2574dd0fb1003e3f63f4d38689d4dc698fce7edd62729dad24d0693fc5c69da8",
+      "beforeLines": 3755,
+      "afterLines": 3776
+    },
+    {
+      "old": "book/exercises/ch09/unit-a.ipynb",
+      "new": "book/exercises/ch09/profrod-sovereign-agent-ch09-a-schedules-stock-events-exercise.ipynb",
+      "beforeSha256": "b5ab5612646fc2a72aef392ced24db8a6a868ec597642b460ad98ac883ec65de",
+      "beforeLines": 4130,
+      "codeCellsUnchanged": true,
+      "afterLines": 4161
+    },
+    {
+      "old": "book/exercises/ch09/unit-b.md",
+      "new": "book/exercises/ch09/profrod-sovereign-agent-ch09-b-scheduling-repair-transfer-exercise.md",
+      "beforeSha256": "ffe053527539788a829a38f04318c68d95de2e5ed9acd22462dcaed5844575c8",
+      "beforeLines": 3839,
+      "afterLines": 3860
+    },
+    {
+      "old": "book/exercises/ch09/unit-b.ipynb",
+      "new": "book/exercises/ch09/profrod-sovereign-agent-ch09-b-scheduling-repair-transfer-exercise.ipynb",
+      "beforeSha256": "63cb2052f694d60f3453f212e3392c49be8409b941eb4477242ac45b9a8ff4d2",
+      "beforeLines": 4267,
+      "codeCellsUnchanged": true,
+      "afterLines": 4298
+    },
+    {
+      "old": "book/exercises/ch10/README.md",
+      "new": "book/exercises/ch10/profrod-sovereign-agent-ch10-spending-permissions-exercise-guide.md",
+      "beforeSha256": "44ea0ff89ca40b315f5caca8bd0996d0da0c3d5cd53e9f6f32f0ec4fda514e90",
+      "beforeLines": 16,
+      "afterLines": 26
+    },
+    {
+      "old": "book/exercises/ch10/unit-a.md",
+      "new": "book/exercises/ch10/profrod-sovereign-agent-ch10-a-exact-spending-approval-exercise.md",
+      "beforeSha256": "c73878ca3321ddb684314d77598994dfdcb91713176eff047db18aaa47216ab4",
+      "beforeLines": 3770,
+      "afterLines": 3791
+    },
+    {
+      "old": "book/exercises/ch10/unit-a.ipynb",
+      "new": "book/exercises/ch10/profrod-sovereign-agent-ch10-a-exact-spending-approval-exercise.ipynb",
+      "beforeSha256": "ffbece6e91a31b48ee60cfe0d7b7fb9c8f337b18512dff6a6870b46faa26678e",
+      "beforeLines": 4145,
+      "codeCellsUnchanged": true,
+      "afterLines": 4176
+    },
+    {
+      "old": "book/exercises/ch10/unit-b.md",
+      "new": "book/exercises/ch10/profrod-sovereign-agent-ch10-b-approval-repair-transfer-exercise.md",
+      "beforeSha256": "046c0365f0712040304ac7f630f41ba609c7bb35ed45c45604fd395b56419634",
+      "beforeLines": 3843,
+      "afterLines": 3864
+    },
+    {
+      "old": "book/exercises/ch10/unit-b.ipynb",
+      "new": "book/exercises/ch10/profrod-sovereign-agent-ch10-b-approval-repair-transfer-exercise.ipynb",
+      "beforeSha256": "28326caead40df11a3845c96d6b2c520c8013b6475e2a34355a2f5129aa4d260",
+      "beforeLines": 4271,
+      "codeCellsUnchanged": true,
+      "afterLines": 4302
+    },
+    {
+      "old": "book/exercises/ch11/README.md",
+      "new": "book/exercises/ch11/profrod-sovereign-agent-ch11-ambiguous-supplier-order-exercise-guide.md",
+      "beforeSha256": "a5c9e4627730c99deb1495edee94b535306e180c25470adffb0ad45eb82b65ab",
+      "beforeLines": 16,
+      "afterLines": 26
+    },
+    {
+      "old": "book/exercises/ch11/unit-a.md",
+      "new": "book/exercises/ch11/profrod-sovereign-agent-ch11-a-durable-order-evidence-exercise.md",
+      "beforeSha256": "150ee932e67e38d177cc9d73fc96cd1f6a9aab65d3b91b584359692543b60dea",
+      "beforeLines": 3905,
+      "afterLines": 3926
+    },
+    {
+      "old": "book/exercises/ch11/unit-a.ipynb",
+      "new": "book/exercises/ch11/profrod-sovereign-agent-ch11-a-durable-order-evidence-exercise.ipynb",
+      "beforeSha256": "121834e66d12fc7198e6ddc06a897097b8b141924aac0a2775147a1d6c48f164",
+      "beforeLines": 4330,
+      "codeCellsUnchanged": true,
+      "afterLines": 4361
+    },
+    {
+      "old": "book/exercises/ch11/unit-b.md",
+      "new": "book/exercises/ch11/profrod-sovereign-agent-ch11-b-ambiguous-order-recovery-exercise.md",
+      "beforeSha256": "89b5568dd173c6802c6917c9277fc2837a4be5876aaec49e5f1f2d6fefd99df2",
+      "beforeLines": 4034,
+      "afterLines": 4055
+    },
+    {
+      "old": "book/exercises/ch11/unit-b.ipynb",
+      "new": "book/exercises/ch11/profrod-sovereign-agent-ch11-b-ambiguous-order-recovery-exercise.ipynb",
+      "beforeSha256": "15835642690401da2a899fcd440526b76e2dc15a184c07d239631d2c7c58d974",
+      "beforeLines": 4516,
+      "codeCellsUnchanged": true,
+      "afterLines": 4547
+    },
+    {
+      "old": "book/exercises/ch12/README.md",
+      "new": "book/exercises/ch12/profrod-sovereign-agent-ch12-worker-recovery-exercise-guide.md",
+      "beforeSha256": "b1a60e05a56e9be6f6f59a296ab111c93126cd6f1abb347323728eee4fce1464",
+      "beforeLines": 16,
+      "afterLines": 26
+    },
+    {
+      "old": "book/exercises/ch12/unit-a.md",
+      "new": "book/exercises/ch12/profrod-sovereign-agent-ch12-a-worker-crash-recovery-exercise.md",
+      "beforeSha256": "50884c93ac6e0fdaa11d804ca21656bb28d12d98c00082b5cf136a4066462108",
+      "beforeLines": 3796,
+      "afterLines": 3817
+    },
+    {
+      "old": "book/exercises/ch12/unit-a.ipynb",
+      "new": "book/exercises/ch12/profrod-sovereign-agent-ch12-a-worker-crash-recovery-exercise.ipynb",
+      "beforeSha256": "2446b8d2836ce7b94a3b47a759192348c0f17ab9f9743f4a6ae2c4db2c77d813",
+      "beforeLines": 4171,
+      "codeCellsUnchanged": true,
+      "afterLines": 4202
+    },
+    {
+      "old": "book/exercises/ch12/unit-b.md",
+      "new": "book/exercises/ch12/profrod-sovereign-agent-ch12-b-recovery-repair-transfer-exercise.md",
+      "beforeSha256": "7d1d48db88e36d53ab1abd20fa0ad8ab092a2efc9522d0fe673412e7c8ee9d3b",
+      "beforeLines": 3880,
+      "afterLines": 3901
+    },
+    {
+      "old": "book/exercises/ch12/unit-b.ipynb",
+      "new": "book/exercises/ch12/profrod-sovereign-agent-ch12-b-recovery-repair-transfer-exercise.ipynb",
+      "beforeSha256": "945f7830698832d0456283ab9ebcecc423951fe0d4ee67ad8a57d27a98ca9fda",
+      "beforeLines": 4308,
+      "codeCellsUnchanged": true,
+      "afterLines": 4339
+    },
+    {
+      "old": "book/exercises/ch13/README.md",
+      "new": "book/exercises/ch13/profrod-sovereign-agent-ch13-mcp-tools-exercise-guide.md",
+      "beforeSha256": "3fac8cccc0ffb16316eee828f83c4893e0f3124f6ee3c908ab97c9c5e79ca9f1",
+      "beforeLines": 37,
+      "afterLines": 47
+    },
+    {
+      "old": "book/exercises/ch14/README.md",
+      "new": "book/exercises/ch14/profrod-sovereign-agent-ch14-tool-isolation-exercise-guide.md",
+      "beforeSha256": "dfb694c3c10129ec56b4b9ffa6ecdedff1619ce2780fa83bd7f6c5c33da587c9",
+      "beforeLines": 16,
+      "afterLines": 26
+    },
+    {
+      "old": "book/exercises/ch14/unit-a.md",
+      "new": "book/exercises/ch14/profrod-sovereign-agent-ch14-a-tool-isolation-exercise.md",
+      "beforeSha256": "c1f2183656f2e2064e7d2dc7c08084ec5a5b4b689b5eb4597e6fd2c200228bc4",
+      "beforeLines": 3685,
+      "afterLines": 3706
+    },
+    {
+      "old": "book/exercises/ch14/unit-a.ipynb",
+      "new": "book/exercises/ch14/profrod-sovereign-agent-ch14-a-tool-isolation-exercise.ipynb",
+      "beforeSha256": "7d2f21e410a17c659c6e6d73d1368cff4784f601dd75dad4fa4b1ce92a17445d",
+      "beforeLines": 4037,
+      "codeCellsUnchanged": true,
+      "afterLines": 4068
+    },
+    {
+      "old": "book/exercises/ch14/unit-b.md",
+      "new": "book/exercises/ch14/profrod-sovereign-agent-ch14-b-isolation-repair-transfer-exercise.md",
+      "beforeSha256": "7886aaae590e0746d25b07a4ccb3a9727a31b617e68016a282d96aa7a4435630",
+      "beforeLines": 3769,
+      "afterLines": 3790
+    },
+    {
+      "old": "book/exercises/ch14/unit-b.ipynb",
+      "new": "book/exercises/ch14/profrod-sovereign-agent-ch14-b-isolation-repair-transfer-exercise.ipynb",
+      "beforeSha256": "f9d4adfcfa63ef262cc4d01839342d0b64e62fd19d44409df703083e08ace012",
+      "beforeLines": 4174,
+      "codeCellsUnchanged": true,
+      "afterLines": 4205
+    },
+    {
+      "old": "book/exercises/ch15/README.md",
+      "new": "book/exercises/ch15/profrod-sovereign-agent-ch15-agent-evaluation-exercise-guide.md",
+      "beforeSha256": "33e96748d95a544a4b164df4929d72b2a4bfacd969d069a207d055075f8d7fb9",
+      "beforeLines": 16,
+      "afterLines": 26
+    },
+    {
+      "old": "book/exercises/ch15/unit-a.md",
+      "new": "book/exercises/ch15/profrod-sovereign-agent-ch15-a-agent-evaluation-exercise.md",
+      "beforeSha256": "4a2909692e8bb43d4ce827975497885b05649ebfdc6c86ee84bb79863148c227",
+      "beforeLines": 3764,
+      "afterLines": 3785
+    },
+    {
+      "old": "book/exercises/ch15/unit-a.ipynb",
+      "new": "book/exercises/ch15/profrod-sovereign-agent-ch15-a-agent-evaluation-exercise.ipynb",
+      "beforeSha256": "8ca514e156f31e5cf7753bfe4b7ac52644ea9852fdfd17331ceea6fce3965a8d",
+      "beforeLines": 4139,
+      "codeCellsUnchanged": true,
+      "afterLines": 4170
+    },
+    {
+      "old": "book/exercises/ch15/unit-b.md",
+      "new": "book/exercises/ch15/profrod-sovereign-agent-ch15-b-evaluation-repair-transfer-exercise.md",
+      "beforeSha256": "fc2168c9da9b9f095f21f32f5de701b3852661ceb4f5c52bfca4ed47b3b7e584",
+      "beforeLines": 3848,
+      "afterLines": 3869
+    },
+    {
+      "old": "book/exercises/ch15/unit-b.ipynb",
+      "new": "book/exercises/ch15/profrod-sovereign-agent-ch15-b-evaluation-repair-transfer-exercise.ipynb",
+      "beforeSha256": "aac04392c2d3d6f08261d2062d6513678476610c8313058b849d71d74b5904a5",
+      "beforeLines": 4276,
+      "codeCellsUnchanged": true,
+      "afterLines": 4307
+    },
+    {
+      "old": "book/exercises/ch16/README.md",
+      "new": "book/exercises/ch16/profrod-sovereign-agent-ch16-controlled-improvement-exercise-guide.md",
+      "beforeSha256": "514c2cae366f69bcb196518228f738dddea9cbf08a02ae8b8f481e523c26f709",
+      "beforeLines": 16,
+      "afterLines": 26
+    },
+    {
+      "old": "book/exercises/ch16/unit-a.md",
+      "new": "book/exercises/ch16/profrod-sovereign-agent-ch16-a-controlled-improvement-exercise.md",
+      "beforeSha256": "24712cca60e99326cc28438ea66c52d999e241d374b6da392b376f404f5add5e",
+      "beforeLines": 3777,
+      "afterLines": 3798
+    },
+    {
+      "old": "book/exercises/ch16/unit-a.ipynb",
+      "new": "book/exercises/ch16/profrod-sovereign-agent-ch16-a-controlled-improvement-exercise.ipynb",
+      "beforeSha256": "6fbb764a014ded08b323ff2884f92eeaae31fad35b256fdb3705fb44f242bc8d",
+      "beforeLines": 4152,
+      "codeCellsUnchanged": true,
+      "afterLines": 4183
+    },
+    {
+      "old": "book/exercises/ch16/unit-b.md",
+      "new": "book/exercises/ch16/profrod-sovereign-agent-ch16-b-improvement-repair-transfer-exercise.md",
+      "beforeSha256": "ef7da76021ffe9c58b36c4071a340a33a1da208601e831f476ab48faf0cb97e6",
+      "beforeLines": 3853,
+      "afterLines": 3874
+    },
+    {
+      "old": "book/exercises/ch16/unit-b.ipynb",
+      "new": "book/exercises/ch16/profrod-sovereign-agent-ch16-b-improvement-repair-transfer-exercise.ipynb",
+      "beforeSha256": "2a6bb4db94bf1836b173a5406fd8c11f64f6f8885abb6638e88f6b138a3690f6",
+      "beforeLines": 4281,
+      "codeCellsUnchanged": true,
+      "afterLines": 4312
+    },
+    {
+      "old": "book/exercises/ch17/README.md",
+      "new": "book/exercises/ch17/profrod-sovereign-agent-ch17-bounded-delegation-exercise-guide.md",
+      "beforeSha256": "f1b441f44656839b882ee5da22d581d936231b66e08a267715fc8de2c147b43c",
+      "beforeLines": 16,
+      "afterLines": 26
+    },
+    {
+      "old": "book/exercises/ch17/unit-a.md",
+      "new": "book/exercises/ch17/profrod-sovereign-agent-ch17-a-bounded-delegation-exercise.md",
+      "beforeSha256": "8d9f742bfe05cdd0638512f654a432ea24138112ed1ba02866a24f3cbc8cd9df",
+      "beforeLines": 3746,
+      "afterLines": 3767
+    },
+    {
+      "old": "book/exercises/ch17/unit-a.ipynb",
+      "new": "book/exercises/ch17/profrod-sovereign-agent-ch17-a-bounded-delegation-exercise.ipynb",
+      "beforeSha256": "b11bb4060a2756285430b6bcd79e2227e68557e1718a8d8f13e5d53927a79328",
+      "beforeLines": 4121,
+      "codeCellsUnchanged": true,
+      "afterLines": 4152
+    },
+    {
+      "old": "book/exercises/ch17/unit-b.md",
+      "new": "book/exercises/ch17/profrod-sovereign-agent-ch17-b-delegation-repair-transfer-exercise.md",
+      "beforeSha256": "490d4b6487a574047f79aba430c12b03cfa0e1bb1ba949dd53b679b5ac725abb",
+      "beforeLines": 3830,
+      "afterLines": 3851
+    },
+    {
+      "old": "book/exercises/ch17/unit-b.ipynb",
+      "new": "book/exercises/ch17/profrod-sovereign-agent-ch17-b-delegation-repair-transfer-exercise.ipynb",
+      "beforeSha256": "0685c4ec5ddf29537efc6df0ab55231ecff178137e5b4860383fd0616fe180c1",
+      "beforeLines": 4258,
+      "codeCellsUnchanged": true,
+      "afterLines": 4289
+    },
+    {
+      "old": "book/exercises/ch18/README.md",
+      "new": "book/exercises/ch18/profrod-sovereign-agent-ch18-deployment-restoration-exercise-guide.md",
+      "beforeSha256": "628035becaf2b4b8ee77b705f703cd6ca4c71cad14202148263a44f05fe0c0f2",
+      "beforeLines": 16,
+      "afterLines": 26
+    },
+    {
+      "old": "book/exercises/ch18/unit-a.md",
+      "new": "book/exercises/ch18/profrod-sovereign-agent-ch18-a-deployment-restoration-exercise.md",
+      "beforeSha256": "00ea1234f53bae5c0c8343972b7261eaa52b025fdb4e2d75e1f25a377b106df6",
+      "beforeLines": 3763,
+      "afterLines": 3784
+    },
+    {
+      "old": "book/exercises/ch18/unit-a.ipynb",
+      "new": "book/exercises/ch18/profrod-sovereign-agent-ch18-a-deployment-restoration-exercise.ipynb",
+      "beforeSha256": "d9765bd559b241eaf6f129141753260d47449dab993fb1e965951d1bce795c36",
+      "beforeLines": 4138,
+      "codeCellsUnchanged": true,
+      "afterLines": 4169
+    },
+    {
+      "old": "book/exercises/ch18/unit-b.md",
+      "new": "book/exercises/ch18/profrod-sovereign-agent-ch18-b-operations-repair-transfer-exercise.md",
+      "beforeSha256": "96e33fb523ec1a69b7532f64672e5d7a6204e6bf396f5a3df8cd056f3743bef3",
+      "beforeLines": 3847,
+      "afterLines": 3868
+    },
+    {
+      "old": "book/exercises/ch18/unit-b.ipynb",
+      "new": "book/exercises/ch18/profrod-sovereign-agent-ch18-b-operations-repair-transfer-exercise.ipynb",
+      "beforeSha256": "5c1fdf1a19380581f66983ad79e907c4973de5ab95e70924f335c4d179893515",
+      "beforeLines": 4275,
+      "codeCellsUnchanged": true,
+      "afterLines": 4306
+    },
+    {
+      "old": "book/exercises/ch19/README.md",
+      "new": "book/exercises/ch19/profrod-sovereign-agent-ch19-integrated-shop-day-exercise-guide.md",
+      "beforeSha256": "840d5810a59b5a7800f213beb647e0dfae1466f7ade94cf1936c028f60b7e648",
+      "beforeLines": 16,
+      "afterLines": 26
+    },
+    {
+      "old": "book/exercises/ch19/unit-a.md",
+      "new": "book/exercises/ch19/profrod-sovereign-agent-ch19-a-integrated-day-acceptance-exercise.md",
+      "beforeSha256": "8f5dfa675628ad41337ff899759e1b9ffcbd61cdc0ec8d4d436e488f1178d88d",
+      "beforeLines": 3787,
+      "afterLines": 3808
+    },
+    {
+      "old": "book/exercises/ch19/unit-a.ipynb",
+      "new": "book/exercises/ch19/profrod-sovereign-agent-ch19-a-integrated-day-acceptance-exercise.ipynb",
+      "beforeSha256": "14d29b2679ccf8ffbcc9e7a2f39b4e35b907562f4d1ea9e26dbfbec86b8d1f7e",
+      "beforeLines": 4162,
+      "codeCellsUnchanged": true,
+      "afterLines": 4193
+    },
+    {
+      "old": "book/exercises/ch19/unit-b.md",
+      "new": "book/exercises/ch19/profrod-sovereign-agent-ch19-b-acceptance-repair-transfer-exercise.md",
+      "beforeSha256": "3e606794f972ae60d9e4bc415013a66bd20f940066e7d58954929ebc92d8b4a8",
+      "beforeLines": 3871,
+      "afterLines": 3892
+    },
+    {
+      "old": "book/exercises/ch19/unit-b.ipynb",
+      "new": "book/exercises/ch19/profrod-sovereign-agent-ch19-b-acceptance-repair-transfer-exercise.ipynb",
+      "beforeSha256": "a43dc11d9a782ea9a8a20c1fb2c7a2e46907444ccf2db2b3a5c9294730875105",
+      "beforeLines": 4299,
+      "codeCellsUnchanged": true,
+      "afterLines": 4330
+    },
+    {
+      "old": "book/exercises/download.zip",
+      "new": "book/exercises/profrod-sovereign-agent-exercises-2026-09-10.zip",
+      "beforeSha256": "17ba05fabe33a526428451c8ac14654044e517a1b29a9985430f9848404cd2f5",
+      "beforeLines": 98551,
+      "action": "rebuild-download"
+    },
+    {
+      "old": "book/solutions/README.md",
+      "new": "book/solutions/profrod-sovereign-agent-solutions-start-here.md",
+      "beforeSha256": "635b82423a0af4ee0826566252cc12b87334642263ac8c979aa0fba3089bf5d9",
+      "beforeLines": 37,
+      "afterLines": 47
+    },
+    {
+      "old": "book/solutions/SETUP.md",
+      "new": "book/solutions/profrod-sovereign-agent-solutions-setup.md",
+      "beforeSha256": "57d741abaadc6fc1f1dd4628656823a3b37db027c2e6f73fb4238d087b4eb398",
+      "beforeLines": 58,
+      "afterLines": 68
+    },
+    {
+      "old": "book/solutions/ch01/README.md",
+      "new": "book/solutions/ch01/profrod-sovereign-agent-ch01-first-model-call-solutions-guide.md",
+      "beforeSha256": "0f63381b49cc5c6174694e1082f733a1671db42eb8580ad8e896c4c9bc26846b",
+      "beforeLines": 16,
+      "afterLines": 26
+    },
+    {
+      "old": "book/solutions/ch01/unit-a.md",
+      "new": "book/solutions/ch01/profrod-sovereign-agent-ch01-a-grounded-morning-brief-solution.md",
+      "beforeSha256": "24007454908a3bc67bfd14290daa4d8daf89b9f22ebd35dc0ed4a92b2c2f02d2",
+      "beforeLines": 3944,
+      "afterLines": 3965
+    },
+    {
+      "old": "book/solutions/ch01/unit-a.ipynb",
+      "new": "book/solutions/ch01/profrod-sovereign-agent-ch01-a-grounded-morning-brief-solution.ipynb",
+      "beforeSha256": "6092155ebb70786e87dacb17c1e3564ea6699cb1d4afd0b62892dc6605db5971",
+      "beforeLines": 4321,
+      "codeCellsUnchanged": true,
+      "afterLines": 4352
+    },
+    {
+      "old": "book/solutions/ch01/unit-b.md",
+      "new": "book/solutions/ch01/profrod-sovereign-agent-ch01-b-prompt-harness-repair-solution.md",
+      "beforeSha256": "73e547471563f75c3c73f239be8aeeb70eb83a4126229dfa88996474e05052c5",
+      "beforeLines": 4071,
+      "afterLines": 4092
+    },
+    {
+      "old": "book/solutions/ch01/unit-b.ipynb",
+      "new": "book/solutions/ch01/profrod-sovereign-agent-ch01-b-prompt-harness-repair-solution.ipynb",
+      "beforeSha256": "ce6c92b7310ea8705500e728b78f1d66a55736dd2b11decd1bbfe01507754514",
+      "beforeLines": 4491,
+      "codeCellsUnchanged": true,
+      "afterLines": 4522
+    },
+    {
+      "old": "book/solutions/ch02/README.md",
+      "new": "book/solutions/ch02/profrod-sovereign-agent-ch02-pydantic-shop-tools-solutions-guide.md",
+      "beforeSha256": "9a36dd6f4602a31c6ffe83d2330ae95511463ac98b1f64d865072676b0e328a1",
+      "beforeLines": 16,
+      "afterLines": 26
+    },
+    {
+      "old": "book/solutions/ch02/unit-a.md",
+      "new": "book/solutions/ch02/profrod-sovereign-agent-ch02-a-pydantic-shop-tools-solution.md",
+      "beforeSha256": "b6eff92a5f503950ca05c3fb15e2b9cc6f83d6d379e5ece51c8d592bf17f5729",
+      "beforeLines": 4040,
+      "afterLines": 4061
+    },
+    {
+      "old": "book/solutions/ch02/unit-a.ipynb",
+      "new": "book/solutions/ch02/profrod-sovereign-agent-ch02-a-pydantic-shop-tools-solution.ipynb",
+      "beforeSha256": "6837c8af6b6ce0ad8c5c056ff7c40d9f0c5415831d9b905f0d5479ba773d7877",
+      "beforeLines": 4507,
+      "codeCellsUnchanged": true,
+      "afterLines": 4538
+    },
+    {
+      "old": "book/solutions/ch02/unit-b.md",
+      "new": "book/solutions/ch02/profrod-sovereign-agent-ch02-b-pydantic-validation-repair-solution.md",
+      "beforeSha256": "cac3faadd8d0b6f50811985f96cec30b2f20b35670c959cd6276e0745d118246",
+      "beforeLines": 4088,
+      "afterLines": 4109
+    },
+    {
+      "old": "book/solutions/ch02/unit-b.ipynb",
+      "new": "book/solutions/ch02/profrod-sovereign-agent-ch02-b-pydantic-validation-repair-solution.ipynb",
+      "beforeSha256": "08d1660af8d4cc4568db0d14536d8147bd28dd023027d3f877d38b95c828a7e3",
+      "beforeLines": 4608,
+      "codeCellsUnchanged": true,
+      "afterLines": 4639
+    },
+    {
+      "old": "book/solutions/ch03/README.md",
+      "new": "book/solutions/ch03/profrod-sovereign-agent-ch03-agent-loop-solutions-guide.md",
+      "beforeSha256": "96abd06388c48a7a5c621bb3a01f457ad86852ede5bfda1affb947bc386048da",
+      "beforeLines": 16,
+      "afterLines": 26
+    },
+    {
+      "old": "book/solutions/ch03/unit-a.md",
+      "new": "book/solutions/ch03/profrod-sovereign-agent-ch03-a-bounded-agent-loop-solution.md",
+      "beforeSha256": "d45cee7a543386efb05bf447787a462ce8e82d40d1d1231ca206f45f9a201d25",
+      "beforeLines": 4009,
+      "afterLines": 4030
+    },
+    {
+      "old": "book/solutions/ch03/unit-a.ipynb",
+      "new": "book/solutions/ch03/profrod-sovereign-agent-ch03-a-bounded-agent-loop-solution.ipynb",
+      "beforeSha256": "dbca85a19e01cac538f21921977cf46bc30b22b903e66a90ccdda69cb4956373",
+      "beforeLines": 4421,
+      "codeCellsUnchanged": true,
+      "afterLines": 4452
+    },
+    {
+      "old": "book/solutions/ch03/unit-b.md",
+      "new": "book/solutions/ch03/profrod-sovereign-agent-ch03-b-failed-call-accounting-solution.md",
+      "beforeSha256": "ffcf000be974cdf7b461d7e2828b533ec846e4d20437a226b21f1c585d69dbaf",
+      "beforeLines": 3939,
+      "afterLines": 3960
+    },
+    {
+      "old": "book/solutions/ch03/unit-b.ipynb",
+      "new": "book/solutions/ch03/profrod-sovereign-agent-ch03-b-failed-call-accounting-solution.ipynb",
+      "beforeSha256": "9f3edd4d907a87185f134124507e82ca9391b69bedcb1e728bc23629220b1698",
+      "beforeLines": 4371,
+      "codeCellsUnchanged": true,
+      "afterLines": 4402
+    },
+    {
+      "old": "book/solutions/ch04/README.md",
+      "new": "book/solutions/ch04/profrod-sovereign-agent-ch04-sqlite-state-solutions-guide.md",
+      "beforeSha256": "84dc21e99f3857f7ad1d34d93fae0767f42d54278bd328d8913c9bd92e857af3",
+      "beforeLines": 39,
+      "afterLines": 49
+    },
+    {
+      "old": "book/solutions/ch05/README.md",
+      "new": "book/solutions/ch05/profrod-sovereign-agent-ch05-durable-memory-solutions-guide.md",
+      "beforeSha256": "75b4be01da038ba6e89b3e6ba0da2cfd80016f79a3a7926b316e707d1de55b88",
+      "beforeLines": 16,
+      "afterLines": 26
+    },
+    {
+      "old": "book/solutions/ch05/unit-a.md",
+      "new": "book/solutions/ch05/profrod-sovereign-agent-ch05-a-durable-memory-solution.md",
+      "beforeSha256": "0562c791fbcf6a7f1c7b470fb3c6472f47af62e73bb983d0b5b13ec7968fcce0",
+      "beforeLines": 3891,
+      "afterLines": 3912
+    },
+    {
+      "old": "book/solutions/ch05/unit-a.ipynb",
+      "new": "book/solutions/ch05/profrod-sovereign-agent-ch05-a-durable-memory-solution.ipynb",
+      "beforeSha256": "79374e0f04722ee5e9ef764af4103b143691a67d1f7f12f34d498427b0667488",
+      "beforeLines": 4292,
+      "codeCellsUnchanged": true,
+      "afterLines": 4323
+    },
+    {
+      "old": "book/solutions/ch05/unit-b.md",
+      "new": "book/solutions/ch05/profrod-sovereign-agent-ch05-b-memory-repair-transfer-solution.md",
+      "beforeSha256": "957836a0ecff32f44f9800ca7ad2b5a80c94e5a1971f63a9ad6cfc2d25aab562",
+      "beforeLines": 3963,
+      "afterLines": 3984
+    },
+    {
+      "old": "book/solutions/ch05/unit-b.ipynb",
+      "new": "book/solutions/ch05/profrod-sovereign-agent-ch05-b-memory-repair-transfer-solution.ipynb",
+      "beforeSha256": "29c0e846692f1e9f0bf9fd17af1c5bdce20f47983da09b037ba4f4d3173a15d4",
+      "beforeLines": 4417,
+      "codeCellsUnchanged": true,
+      "afterLines": 4448
+    },
+    {
+      "old": "book/solutions/ch06/README.md",
+      "new": "book/solutions/ch06/profrod-sovereign-agent-ch06-versioned-skills-solutions-guide.md",
+      "beforeSha256": "be205abc8e2cd846e15ce9501bab6cf7221c53f4a58aca44ee03ee5c6ea98702",
+      "beforeLines": 16,
+      "afterLines": 26
+    },
+    {
+      "old": "book/solutions/ch06/unit-a.md",
+      "new": "book/solutions/ch06/profrod-sovereign-agent-ch06-a-versioned-skills-solution.md",
+      "beforeSha256": "3044d088af8728820820a4f6f07b32097441c693253405dbf5e7279b7e3725ff",
+      "beforeLines": 3932,
+      "afterLines": 3953
+    },
+    {
+      "old": "book/solutions/ch06/unit-a.ipynb",
+      "new": "book/solutions/ch06/profrod-sovereign-agent-ch06-a-versioned-skills-solution.ipynb",
+      "beforeSha256": "a5c36722b8a3249dfcdcc3e4378d47bb6ec4a35990665ee227b04cfc788ac24f",
+      "beforeLines": 4333,
+      "codeCellsUnchanged": true,
+      "afterLines": 4364
+    },
+    {
+      "old": "book/solutions/ch06/unit-b.md",
+      "new": "book/solutions/ch06/profrod-sovereign-agent-ch06-b-skill-repair-transfer-solution.md",
+      "beforeSha256": "7f83fceb3aeb92e78e62d3cad95ad82898ff662d3c0ccf08719899f5d8582fb3",
+      "beforeLines": 3965,
+      "afterLines": 3986
+    },
+    {
+      "old": "book/solutions/ch06/unit-b.ipynb",
+      "new": "book/solutions/ch06/profrod-sovereign-agent-ch06-b-skill-repair-transfer-solution.ipynb",
+      "beforeSha256": "04d1dc8506d1be496bda70a3e637c3dc408a702e84a451b6f21052418d3c1fdd",
+      "beforeLines": 4419,
+      "codeCellsUnchanged": true,
+      "afterLines": 4450
+    },
+    {
+      "old": "book/solutions/ch07/README.md",
+      "new": "book/solutions/ch07/profrod-sovereign-agent-ch07-durable-inbox-outbox-solutions-guide.md",
+      "beforeSha256": "59807d710a22553e1418dfc45171bec94794ef45821063352c2a09543ff65c47",
+      "beforeLines": 39,
+      "afterLines": 49
+    },
+    {
+      "old": "book/solutions/ch08/README.md",
+      "new": "book/solutions/ch08/profrod-sovereign-agent-ch08-telegram-messaging-solutions-guide.md",
+      "beforeSha256": "35beddb43d818434e6ac80df1c90b61bfcf9972436f5fb368141a469b0abe901",
+      "beforeLines": 16,
+      "afterLines": 26
+    },
+    {
+      "old": "book/solutions/ch08/unit-a.md",
+      "new": "book/solutions/ch08/profrod-sovereign-agent-ch08-a-private-telegram-messaging-solution.md",
+      "beforeSha256": "a69c2306a4d06289f22d2ac62b636e06063c0c660c625409a5c6167902ae0cea",
+      "beforeLines": 3994,
+      "afterLines": 4015
+    },
+    {
+      "old": "book/solutions/ch08/unit-a.ipynb",
+      "new": "book/solutions/ch08/profrod-sovereign-agent-ch08-a-private-telegram-messaging-solution.ipynb",
+      "beforeSha256": "02ef742f07180db6a040ec8c8114a7fb854132fc4c62d331943e4b5a92b5699f",
+      "beforeLines": 4395,
+      "codeCellsUnchanged": true,
+      "afterLines": 4426
+    },
+    {
+      "old": "book/solutions/ch08/unit-b.md",
+      "new": "book/solutions/ch08/profrod-sovereign-agent-ch08-b-messaging-repair-transfer-solution.md",
+      "beforeSha256": "ffe268cce34beef939b5b6a02b39901fbc94074eec57599b6cad41f74541ac44",
+      "beforeLines": 4016,
+      "afterLines": 4037
+    },
+    {
+      "old": "book/solutions/ch08/unit-b.ipynb",
+      "new": "book/solutions/ch08/profrod-sovereign-agent-ch08-b-messaging-repair-transfer-solution.ipynb",
+      "beforeSha256": "2c4f9fa0130a09a90afef3961138edc3c707f1e11727d034fb024677e8ad72a6",
+      "beforeLines": 4470,
+      "codeCellsUnchanged": true,
+      "afterLines": 4501
+    },
+    {
+      "old": "book/solutions/ch09/README.md",
+      "new": "book/solutions/ch09/profrod-sovereign-agent-ch09-schedules-stock-events-solutions-guide.md",
+      "beforeSha256": "d325601542a8dc94284eee46381f27a3df8732d962d877fd04736e578e7d9c8f",
+      "beforeLines": 16,
+      "afterLines": 26
+    },
+    {
+      "old": "book/solutions/ch09/unit-a.md",
+      "new": "book/solutions/ch09/profrod-sovereign-agent-ch09-a-schedules-stock-events-solution.md",
+      "beforeSha256": "101f848411d688a695b29a9a79725b941ace4d7a1825acab5dca8e42e042be06",
+      "beforeLines": 3895,
+      "afterLines": 3916
+    },
+    {
+      "old": "book/solutions/ch09/unit-a.ipynb",
+      "new": "book/solutions/ch09/profrod-sovereign-agent-ch09-a-schedules-stock-events-solution.ipynb",
+      "beforeSha256": "02287b371a97af4da033f703aa5863ec5245a697905f444ca4021dc92f150cb3",
+      "beforeLines": 4296,
+      "codeCellsUnchanged": true,
+      "afterLines": 4327
+    },
+    {
+      "old": "book/solutions/ch09/unit-b.md",
+      "new": "book/solutions/ch09/profrod-sovereign-agent-ch09-b-scheduling-repair-transfer-solution.md",
+      "beforeSha256": "ded49e75080c307e32338cae1061865370193ba4f62fbdfb60b99c79ece3165d",
+      "beforeLines": 3939,
+      "afterLines": 3960
+    },
+    {
+      "old": "book/solutions/ch09/unit-b.ipynb",
+      "new": "book/solutions/ch09/profrod-sovereign-agent-ch09-b-scheduling-repair-transfer-solution.ipynb",
+      "beforeSha256": "2f8847419cc8bf20e7d5824bcfdc5d3be6617fab2766d1c34d409febfd32cc8c",
+      "beforeLines": 4393,
+      "codeCellsUnchanged": true,
+      "afterLines": 4424
+    },
+    {
+      "old": "book/solutions/ch10/README.md",
+      "new": "book/solutions/ch10/profrod-sovereign-agent-ch10-spending-permissions-solutions-guide.md",
+      "beforeSha256": "e808c8f1eca8d3c407e3bb88b95accf237493e76bc82def95ea6bfa9dc4ab961",
+      "beforeLines": 16,
+      "afterLines": 26
+    },
+    {
+      "old": "book/solutions/ch10/unit-a.md",
+      "new": "book/solutions/ch10/profrod-sovereign-agent-ch10-a-exact-spending-approval-solution.md",
+      "beforeSha256": "dd45a0555504049fcca4a7d6800c3db9cfa112576de1b001c422c47c69804cac",
+      "beforeLines": 3930,
+      "afterLines": 3951
+    },
+    {
+      "old": "book/solutions/ch10/unit-a.ipynb",
+      "new": "book/solutions/ch10/profrod-sovereign-agent-ch10-a-exact-spending-approval-solution.ipynb",
+      "beforeSha256": "447696f5d3627d6662cf8e9a8b0ea488c94ad93bcc5fe0b00ecaaf4659db14db",
+      "beforeLines": 4331,
+      "codeCellsUnchanged": true,
+      "afterLines": 4362
+    },
+    {
+      "old": "book/solutions/ch10/unit-b.md",
+      "new": "book/solutions/ch10/profrod-sovereign-agent-ch10-b-approval-repair-transfer-solution.md",
+      "beforeSha256": "191a7353f1010750915a4f82f6463c0a86ca4b921f624a1b7f396dd1f5bc7eba",
+      "beforeLines": 3944,
+      "afterLines": 3965
+    },
+    {
+      "old": "book/solutions/ch10/unit-b.ipynb",
+      "new": "book/solutions/ch10/profrod-sovereign-agent-ch10-b-approval-repair-transfer-solution.ipynb",
+      "beforeSha256": "7c2b2151a96c3556156a15380ec8f9734c39b936cd12f058ba27cc324f99932c",
+      "beforeLines": 4398,
+      "codeCellsUnchanged": true,
+      "afterLines": 4429
+    },
+    {
+      "old": "book/solutions/ch11/README.md",
+      "new": "book/solutions/ch11/profrod-sovereign-agent-ch11-ambiguous-supplier-order-solutions-guide.md",
+      "beforeSha256": "58265ee15dffa874e29f5572cb93be3361235c0f59811945eaa425084edfebbd",
+      "beforeLines": 16,
+      "afterLines": 26
+    },
+    {
+      "old": "book/solutions/ch11/unit-a.md",
+      "new": "book/solutions/ch11/profrod-sovereign-agent-ch11-a-durable-order-evidence-solution.md",
+      "beforeSha256": "cad987978bb2ac88e9f14807fe4857b39e5842bc3d10781fe96117f01a1b2c39",
+      "beforeLines": 4122,
+      "afterLines": 4143
+    },
+    {
+      "old": "book/solutions/ch11/unit-a.ipynb",
+      "new": "book/solutions/ch11/profrod-sovereign-agent-ch11-a-durable-order-evidence-solution.ipynb",
+      "beforeSha256": "cc4e93b7c5bf92ef879fcadbde0adcf71a789bc044a7e899a51c8d867fd65564",
+      "beforeLines": 4573,
+      "codeCellsUnchanged": true,
+      "afterLines": 4604
+    },
+    {
+      "old": "book/solutions/ch11/unit-b.md",
+      "new": "book/solutions/ch11/profrod-sovereign-agent-ch11-b-ambiguous-order-recovery-solution.md",
+      "beforeSha256": "fbeb183717d4cac5afe72dd5956af64f90a737e795d8f2d367f570d7788e6c7a",
+      "beforeLines": 4191,
+      "afterLines": 4212
+    },
+    {
+      "old": "book/solutions/ch11/unit-b.ipynb",
+      "new": "book/solutions/ch11/profrod-sovereign-agent-ch11-b-ambiguous-order-recovery-solution.ipynb",
+      "beforeSha256": "779298a136da52bb515e867445d3b84032ffcaf44c9785931ee389c5d2e023f9",
+      "beforeLines": 4699,
+      "codeCellsUnchanged": true,
+      "afterLines": 4730
+    },
+    {
+      "old": "book/solutions/ch12/README.md",
+      "new": "book/solutions/ch12/profrod-sovereign-agent-ch12-worker-recovery-solutions-guide.md",
+      "beforeSha256": "9b97f574c3cec977da95934737a57bbd32ff5e9ad00b722f0eb1b7918673082a",
+      "beforeLines": 16,
+      "afterLines": 26
+    },
+    {
+      "old": "book/solutions/ch12/unit-a.md",
+      "new": "book/solutions/ch12/profrod-sovereign-agent-ch12-a-worker-crash-recovery-solution.md",
+      "beforeSha256": "1ebbace829373a4be98e23b5a32db8d05d5491e368276089c024a03b90801598",
+      "beforeLines": 3963,
+      "afterLines": 3984
+    },
+    {
+      "old": "book/solutions/ch12/unit-a.ipynb",
+      "new": "book/solutions/ch12/profrod-sovereign-agent-ch12-a-worker-crash-recovery-solution.ipynb",
+      "beforeSha256": "45e3f801757b4af4ddcc6e49468a2b7423cae5727ea723edad430d8feba40964",
+      "beforeLines": 4364,
+      "codeCellsUnchanged": true,
+      "afterLines": 4395
+    },
+    {
+      "old": "book/solutions/ch12/unit-b.md",
+      "new": "book/solutions/ch12/profrod-sovereign-agent-ch12-b-recovery-repair-transfer-solution.md",
+      "beforeSha256": "18f16fca91c299ff9f0b0da44fca564a7894bb1915a9064cf01a7392414171f9",
+      "beforeLines": 4012,
+      "afterLines": 4033
+    },
+    {
+      "old": "book/solutions/ch12/unit-b.ipynb",
+      "new": "book/solutions/ch12/profrod-sovereign-agent-ch12-b-recovery-repair-transfer-solution.ipynb",
+      "beforeSha256": "d8ef0b7f9e765ec62ef89776360916801dd664467d974ad8e6f1b28935b1a627",
+      "beforeLines": 4466,
+      "codeCellsUnchanged": true,
+      "afterLines": 4497
+    },
+    {
+      "old": "book/solutions/ch13/README.md",
+      "new": "book/solutions/ch13/profrod-sovereign-agent-ch13-mcp-tools-solutions-guide.md",
+      "beforeSha256": "ceab03f5c01baceea45b32e0f963d8073fea87802c700456cb2463cb1ae5383d",
+      "beforeLines": 39,
+      "afterLines": 49
+    },
+    {
+      "old": "book/solutions/ch14/README.md",
+      "new": "book/solutions/ch14/profrod-sovereign-agent-ch14-tool-isolation-solutions-guide.md",
+      "beforeSha256": "f5989fe7334c477019ddc1eef3225fb5eee722db39e6512d7ea36df81572bd65",
+      "beforeLines": 16,
+      "afterLines": 26
+    },
+    {
+      "old": "book/solutions/ch14/unit-a.md",
+      "new": "book/solutions/ch14/profrod-sovereign-agent-ch14-a-tool-isolation-solution.md",
+      "beforeSha256": "0527502745fe197341f563167caa7fd186e93936d3b0235d64d08bb0138c7b31",
+      "beforeLines": 3800,
+      "afterLines": 3821
+    },
+    {
+      "old": "book/solutions/ch14/unit-a.ipynb",
+      "new": "book/solutions/ch14/profrod-sovereign-agent-ch14-a-tool-isolation-solution.ipynb",
+      "beforeSha256": "dfa893b7eaaab48e5e92f741e9cfa124d8b00abf995c3d992b1ba576aaafcbaa",
+      "beforeLines": 4178,
+      "codeCellsUnchanged": true,
+      "afterLines": 4209
+    },
+    {
+      "old": "book/solutions/ch14/unit-b.md",
+      "new": "book/solutions/ch14/profrod-sovereign-agent-ch14-b-isolation-repair-transfer-solution.md",
+      "beforeSha256": "50306eb04ac0dca0916c3c8f246aa0cabbcdec013425b82600326463171be785",
+      "beforeLines": 3866,
+      "afterLines": 3887
+    },
+    {
+      "old": "book/solutions/ch14/unit-b.ipynb",
+      "new": "book/solutions/ch14/profrod-sovereign-agent-ch14-b-isolation-repair-transfer-solution.ipynb",
+      "beforeSha256": "4db46588fac906db6d2d05603c1ee6bd7470b5f437bdb348e6cb44df05ef7fec",
+      "beforeLines": 4297,
+      "codeCellsUnchanged": true,
+      "afterLines": 4328
+    },
+    {
+      "old": "book/solutions/ch15/README.md",
+      "new": "book/solutions/ch15/profrod-sovereign-agent-ch15-agent-evaluation-solutions-guide.md",
+      "beforeSha256": "30ebcf4e97bc7a00c17f235da28a2042a52520435612cc7411884b91cc2751ea",
+      "beforeLines": 16,
+      "afterLines": 26
+    },
+    {
+      "old": "book/solutions/ch15/unit-a.md",
+      "new": "book/solutions/ch15/profrod-sovereign-agent-ch15-a-agent-evaluation-solution.md",
+      "beforeSha256": "94dc2eb9cc5501a003b10c45b0a19043528b0c19cc001c7447049977a9173c67",
+      "beforeLines": 3868,
+      "afterLines": 3889
+    },
+    {
+      "old": "book/solutions/ch15/unit-a.ipynb",
+      "new": "book/solutions/ch15/profrod-sovereign-agent-ch15-a-agent-evaluation-solution.ipynb",
+      "beforeSha256": "307a8b8d29c53f74d261427e7ba3e5481f42a6b7ca51f4ae0b2299a900fba7d6",
+      "beforeLines": 4269,
+      "codeCellsUnchanged": true,
+      "afterLines": 4300
+    },
+    {
+      "old": "book/solutions/ch15/unit-b.md",
+      "new": "book/solutions/ch15/profrod-sovereign-agent-ch15-b-evaluation-repair-transfer-solution.md",
+      "beforeSha256": "ff025ce8eb94a4629669219f641f044083e1ae6d2f03932ae3ab385072ea35f3",
+      "beforeLines": 3949,
+      "afterLines": 3970
+    },
+    {
+      "old": "book/solutions/ch15/unit-b.ipynb",
+      "new": "book/solutions/ch15/profrod-sovereign-agent-ch15-b-evaluation-repair-transfer-solution.ipynb",
+      "beforeSha256": "3f4b3604963577861ea28384f330662e9216659f2e865d6902913c8e22fa60b8",
+      "beforeLines": 4403,
+      "codeCellsUnchanged": true,
+      "afterLines": 4434
+    },
+    {
+      "old": "book/solutions/ch16/README.md",
+      "new": "book/solutions/ch16/profrod-sovereign-agent-ch16-controlled-improvement-solutions-guide.md",
+      "beforeSha256": "924ac96e57b228fda4fee443f9f6d6c10d47a74fbd98c829bb0170bf6d22d73e",
+      "beforeLines": 16,
+      "afterLines": 26
+    },
+    {
+      "old": "book/solutions/ch16/unit-a.md",
+      "new": "book/solutions/ch16/profrod-sovereign-agent-ch16-a-controlled-improvement-solution.md",
+      "beforeSha256": "a6ad9aecdf2d4cc0aa9ac9c30f5129fce08fe1db2d96a468d19ba8e23c048a9f",
+      "beforeLines": 3903,
+      "afterLines": 3924
+    },
+    {
+      "old": "book/solutions/ch16/unit-a.ipynb",
+      "new": "book/solutions/ch16/profrod-sovereign-agent-ch16-a-controlled-improvement-solution.ipynb",
+      "beforeSha256": "a642dc44bc95593b266408565247fdf1915db4140f329d064a93aa6b1e476815",
+      "beforeLines": 4304,
+      "codeCellsUnchanged": true,
+      "afterLines": 4335
+    },
+    {
+      "old": "book/solutions/ch16/unit-b.md",
+      "new": "book/solutions/ch16/profrod-sovereign-agent-ch16-b-improvement-repair-transfer-solution.md",
+      "beforeSha256": "6f2fe317f04456ae971686f5a6bfc2e428a0f6b0ce912ec591410c40821fb4cc",
+      "beforeLines": 3955,
+      "afterLines": 3976
+    },
+    {
+      "old": "book/solutions/ch16/unit-b.ipynb",
+      "new": "book/solutions/ch16/profrod-sovereign-agent-ch16-b-improvement-repair-transfer-solution.ipynb",
+      "beforeSha256": "40087db19488a8e5d94b4d1fb1002200bbcfa1fd782e9a878b10ba51c10ff214",
+      "beforeLines": 4409,
+      "codeCellsUnchanged": true,
+      "afterLines": 4440
+    },
+    {
+      "old": "book/solutions/ch17/README.md",
+      "new": "book/solutions/ch17/profrod-sovereign-agent-ch17-bounded-delegation-solutions-guide.md",
+      "beforeSha256": "e7326c071684cdff2951f838823ee94648b372b3ccaaeba2cb053142a6adc62c",
+      "beforeLines": 16,
+      "afterLines": 26
+    },
+    {
+      "old": "book/solutions/ch17/unit-a.md",
+      "new": "book/solutions/ch17/profrod-sovereign-agent-ch17-a-bounded-delegation-solution.md",
+      "beforeSha256": "fc0bed56c657cb2ed65081f1690c215601e9c89a85bbdc3f5b970d936a005baf",
+      "beforeLines": 3864,
+      "afterLines": 3885
+    },
+    {
+      "old": "book/solutions/ch17/unit-a.ipynb",
+      "new": "book/solutions/ch17/profrod-sovereign-agent-ch17-a-bounded-delegation-solution.ipynb",
+      "beforeSha256": "3225a01acebb62a259534eac36ff5a714d3038d5c694414e31e8540166861155",
+      "beforeLines": 4265,
+      "codeCellsUnchanged": true,
+      "afterLines": 4296
+    },
+    {
+      "old": "book/solutions/ch17/unit-b.md",
+      "new": "book/solutions/ch17/profrod-sovereign-agent-ch17-b-delegation-repair-transfer-solution.md",
+      "beforeSha256": "108b8924572735242ec52135d201347991e1972d0af434dda28b2372e1fab394",
+      "beforeLines": 3931,
+      "afterLines": 3952
+    },
+    {
+      "old": "book/solutions/ch17/unit-b.ipynb",
+      "new": "book/solutions/ch17/profrod-sovereign-agent-ch17-b-delegation-repair-transfer-solution.ipynb",
+      "beforeSha256": "507a231ddff4d500143d8e37cf206707494eaac010439e383671bedc49fe2ffd",
+      "beforeLines": 4385,
+      "codeCellsUnchanged": true,
+      "afterLines": 4416
+    },
+    {
+      "old": "book/solutions/ch18/README.md",
+      "new": "book/solutions/ch18/profrod-sovereign-agent-ch18-deployment-restoration-solutions-guide.md",
+      "beforeSha256": "89cba44937f0e8e3e66410b4a7175e1cd9817d3429f5fbd46e0fd516c1d21413",
+      "beforeLines": 16,
+      "afterLines": 26
+    },
+    {
+      "old": "book/solutions/ch18/unit-a.md",
+      "new": "book/solutions/ch18/profrod-sovereign-agent-ch18-a-deployment-restoration-solution.md",
+      "beforeSha256": "fb78709379a1a734b30f657eef043b1ec89b896d4f8d7914f63e0c646c9bf770",
+      "beforeLines": 3906,
+      "afterLines": 3927
+    },
+    {
+      "old": "book/solutions/ch18/unit-a.ipynb",
+      "new": "book/solutions/ch18/profrod-sovereign-agent-ch18-a-deployment-restoration-solution.ipynb",
+      "beforeSha256": "1daef57ccdf9b460bf8e5a64910c4e729d7734a38625ea6dd9c7141b378ba5cc",
+      "beforeLines": 4307,
+      "codeCellsUnchanged": true,
+      "afterLines": 4338
+    },
+    {
+      "old": "book/solutions/ch18/unit-b.md",
+      "new": "book/solutions/ch18/profrod-sovereign-agent-ch18-b-operations-repair-transfer-solution.md",
+      "beforeSha256": "4242fe0df2e9f1616248e927292adccf5d0864a80e36d69b48c7283951bb5db2",
+      "beforeLines": 3952,
+      "afterLines": 3973
+    },
+    {
+      "old": "book/solutions/ch18/unit-b.ipynb",
+      "new": "book/solutions/ch18/profrod-sovereign-agent-ch18-b-operations-repair-transfer-solution.ipynb",
+      "beforeSha256": "812652be2cb21d9f3f9c0bf5eaa81d48f707863c003a6cef673a761b34ea354b",
+      "beforeLines": 4406,
+      "codeCellsUnchanged": true,
+      "afterLines": 4437
+    },
+    {
+      "old": "book/solutions/ch19/README.md",
+      "new": "book/solutions/ch19/profrod-sovereign-agent-ch19-integrated-shop-day-solutions-guide.md",
+      "beforeSha256": "b66fdf843550d24fa248de103c92a58b3de910f32f1fc7745a6b76439acfda7d",
+      "beforeLines": 16,
+      "afterLines": 26
+    },
+    {
+      "old": "book/solutions/ch19/unit-a.md",
+      "new": "book/solutions/ch19/profrod-sovereign-agent-ch19-a-integrated-day-acceptance-solution.md",
+      "beforeSha256": "ac8debf1095416d40e6c7276e60cba793d24caf44a762f574116d8015f1aba69",
+      "beforeLines": 4067,
+      "afterLines": 4088
+    },
+    {
+      "old": "book/solutions/ch19/unit-a.ipynb",
+      "new": "book/solutions/ch19/profrod-sovereign-agent-ch19-a-integrated-day-acceptance-solution.ipynb",
+      "beforeSha256": "f47ff9bd91e99d2567e323db6287a8f4f0d68d66fbaa93e127c5841da95108c8",
+      "beforeLines": 4468,
+      "codeCellsUnchanged": true,
+      "afterLines": 4499
+    },
+    {
+      "old": "book/solutions/ch19/unit-b.md",
+      "new": "book/solutions/ch19/profrod-sovereign-agent-ch19-b-acceptance-repair-transfer-solution.md",
+      "beforeSha256": "dfc7c27af8ae02c25c5721738fe5de62c6aa46a8b4004a1a442a7e8a5e5f7578",
+      "beforeLines": 3993,
+      "afterLines": 4014
+    },
+    {
+      "old": "book/solutions/ch19/unit-b.ipynb",
+      "new": "book/solutions/ch19/profrod-sovereign-agent-ch19-b-acceptance-repair-transfer-solution.ipynb",
+      "beforeSha256": "6fc5652b8cfa102b9fc4485551e51fbf6b2c41867e239f372c3e43fc046bf707",
+      "beforeLines": 4447,
+      "codeCellsUnchanged": true,
+      "afterLines": 4478
+    },
+    {
+      "old": "book/solutions/download.zip",
+      "new": "book/solutions/profrod-sovereign-agent-solutions-2026-09-10.zip",
+      "beforeSha256": "e190e62deb4611e280f8612c2a1efcd1c4c961f90f6a0dee04f638effc025142",
+      "beforeLines": 100985,
+      "action": "rebuild-download"
+    },
+    {
+      "old": "book/textbook/BOOK.json",
+      "new": "book/textbook/BOOK.json",
+      "beforeSha256": "7f46a51873ebee122bb0dcc6880d835a80d1e919b6c33f6954b4e6b4a392494c",
+      "beforeLines": 163,
+      "afterLines": 170
+    },
+    {
+      "old": "book/textbook/CHECKPOINTS.md",
+      "new": "book/textbook/profrod-sovereign-agent-textbook-checkpoints.md",
+      "beforeSha256": "566d83117fa6e36b8271dc08956f72d926c97fe56cecba3df92fb7e112309521",
+      "beforeLines": 35,
+      "afterLines": 45
+    },
+    {
+      "old": "book/textbook/CONVENTIONS.md",
+      "new": "book/textbook/profrod-sovereign-agent-textbook-conventions.md",
+      "beforeSha256": "549c5594e158148e8c4f4bf3e6254ebdcde2545973449305bd26da54eab9e67a",
+      "beforeLines": 48,
+      "afterLines": 58
+    },
+    {
+      "old": "book/textbook/EXPANSION.md",
+      "new": "book/textbook/profrod-sovereign-agent-textbook-expansion.md",
+      "beforeSha256": "3a10b8eafe1e2a34c39520d0591bfca1c7edea32d9132c5eb99cc08516e10ed1",
+      "beforeLines": 97,
+      "afterLines": 107
+    },
+    {
+      "old": "book/textbook/OWNERSHIP.md",
+      "new": "book/textbook/profrod-sovereign-agent-textbook-ownership.md",
+      "beforeSha256": "0ff8c1dba040b0b2a4b7883be5ab81a8d9f416d578ca64f3dbc2a30ba0c5ca6e",
+      "beforeLines": 49,
+      "afterLines": 59
+    },
+    {
+      "old": "book/textbook/PREFACE.md",
+      "new": "book/textbook/profrod-sovereign-agent-textbook-preface.md",
+      "beforeSha256": "448d0b5c85d61bd259f79ec31194440f84d5175b95796c7e23dac12000792fc2",
+      "beforeLines": 45,
+      "afterLines": 55
+    },
+    {
+      "old": "book/textbook/README.md",
+      "new": "book/textbook/profrod-sovereign-agent-textbook-start-here.md",
+      "beforeSha256": "8faff373a462f450f9f62640cedb31422933f8f0ee43bd6a2c087241be5810c7",
+      "beforeLines": 45,
+      "afterLines": 55
+    },
+    {
+      "old": "book/textbook/appendices/linux-maintenance-v1.md",
+      "new": "book/textbook/appendices/profrod-sovereign-agent-textbook-linux-maintenance-v1.md",
+      "beforeSha256": "a1cf6418512d380eefc8b041b6c046722d3b4327430d639ee61889f4d2deda5e",
+      "beforeLines": 94,
+      "afterLines": 104
+    },
+    {
+      "old": "book/textbook/appendices/project-comparisons-v1.md",
+      "new": "book/textbook/appendices/profrod-sovereign-agent-textbook-project-comparisons-v1.md",
+      "beforeSha256": "7abdd1c0e333cde307163327d9f83b3cb96c5f1fa785a5987ca3d5f03eb978c8",
+      "beforeLines": 23,
+      "afterLines": 33
+    },
+    {
+      "old": "book/textbook/appendices/reproducibility-v1.md",
+      "new": "book/textbook/appendices/profrod-sovereign-agent-textbook-reproducibility-v1.md",
+      "beforeSha256": "454b2f6c03209dd828dd30d6213e202feb77f48de3f958cc5b334e99909e88d1",
+      "beforeLines": 29,
+      "afterLines": 39
+    },
+    {
+      "old": "book/textbook/appendices/telegram-setup.md",
+      "new": "book/textbook/appendices/profrod-sovereign-agent-textbook-telegram-setup.md",
+      "beforeSha256": "4cec73b6fec1644ea010d40a727069caac2e701316e6777f1e385772e04a7391",
+      "beforeLines": 15,
+      "afterLines": 25
+    },
+    {
+      "old": "book/textbook/appendices/telegram_identity_v1.py",
+      "new": "book/textbook/appendices/profrod_sovereign_agent_textbook_telegram_identity_v1.py",
+      "beforeSha256": "3cf56ad445d3371f246393055a617febdaec59637fd47df0579b11ad2cf81ad1",
+      "beforeLines": 71,
+      "afterLines": 76
+    },
+    {
+      "old": "book/textbook/appendices/zeocore-interop-v2.md",
+      "new": "book/textbook/appendices/profrod-sovereign-agent-textbook-zeocore-interop-v2.md",
+      "beforeSha256": "4b983eac412391009311659fb8b757182727a8bbae5338188a871e704ca95f73",
+      "beforeLines": 23,
+      "afterLines": 33
+    },
+    {
+      "old": "book/textbook/appendices/zeocore_server_v1.py",
+      "new": "book/textbook/appendices/profrod_sovereign_agent_textbook_zeocore_server_v1.py",
+      "beforeSha256": "7cacd2bc214d53a2428a993f1d6badc424f9df1d7d75e098f1227a22fd387719",
+      "beforeLines": 32,
+      "afterLines": 37
+    },
+    {
+      "old": "book/textbook/ch01/README.md",
+      "new": "book/textbook/ch01/profrod-sovereign-agent-ch01-first-model-call-chapter.md",
+      "beforeSha256": "b377e3f90fceb93f71755a3f09401b70b8797e601cd3b546b85cc45fa79ff6e3",
+      "beforeLines": 535,
+      "afterLines": 545
+    },
+    {
+      "old": "book/textbook/ch02/README.md",
+      "new": "book/textbook/ch02/profrod-sovereign-agent-ch02-pydantic-shop-tools-chapter.md",
+      "beforeSha256": "d7cbd447ede2241e57ac6a1140dfcdf0c6cf8018b7565a0727ef5ffafc8af95f",
+      "beforeLines": 805,
+      "afterLines": 815
+    },
+    {
+      "old": "book/textbook/ch03/README.md",
+      "new": "book/textbook/ch03/profrod-sovereign-agent-ch03-agent-loop-chapter.md",
+      "beforeSha256": "624fab265098f3ca875e5a2241b732d68822734b6145ccfa7da14adfd3cfaa06",
+      "beforeLines": 743,
+      "afterLines": 753
+    },
+    {
+      "old": "book/textbook/ch04/README.md",
+      "new": "book/textbook/ch04/profrod-sovereign-agent-ch04-sqlite-state-chapter.md",
+      "beforeSha256": "025c967e7844d8fbfaf83bc6fadea8d2cae6543b71252d40e67b77ce1fd7749b",
+      "beforeLines": 94,
+      "afterLines": 104
+    },
+    {
+      "old": "book/textbook/ch05/README.md",
+      "new": "book/textbook/ch05/profrod-sovereign-agent-ch05-durable-memory-chapter.md",
+      "beforeSha256": "573ed9d6a8991c26be99a2b3c2b3e4837b8bc5abc0a5729b56236ac1964936f8",
+      "beforeLines": 582,
+      "afterLines": 592
+    },
+    {
+      "old": "book/textbook/ch06/README.md",
+      "new": "book/textbook/ch06/profrod-sovereign-agent-ch06-versioned-skills-chapter.md",
+      "beforeSha256": "b160c9d63b338b439830e9ac20ad5cd2974ba2d5e35dee4858f63bf8c344a67b",
+      "beforeLines": 623,
+      "afterLines": 633
+    },
+    {
+      "old": "book/textbook/ch07/README.md",
+      "new": "book/textbook/ch07/profrod-sovereign-agent-ch07-durable-inbox-outbox-chapter.md",
+      "beforeSha256": "5a3b540b5ec1ec2b8747c57d142c62704d6571e1ed4cb13589e8814ae9415bfc",
+      "beforeLines": 97,
+      "afterLines": 107
+    },
+    {
+      "old": "book/textbook/ch08/README.md",
+      "new": "book/textbook/ch08/profrod-sovereign-agent-ch08-telegram-messaging-chapter.md",
+      "beforeSha256": "a588181d678567433c6229074fe3ffe8e9ebc59a844df32e9113c1788e2cd1ed",
+      "beforeLines": 882,
+      "afterLines": 892
+    },
+    {
+      "old": "book/textbook/ch09/README.md",
+      "new": "book/textbook/ch09/profrod-sovereign-agent-ch09-schedules-stock-events-chapter.md",
+      "beforeSha256": "a01e3012f79355a2777f64534160db65e72282a162b5a20c9fb2da9fad3b0262",
+      "beforeLines": 722,
+      "afterLines": 732
+    },
+    {
+      "old": "book/textbook/ch10/README.md",
+      "new": "book/textbook/ch10/profrod-sovereign-agent-ch10-spending-permissions-chapter.md",
+      "beforeSha256": "288c6acff496f6290e554a1241ef58c52d7eac94873f891c847685cb4f4a1aa7",
+      "beforeLines": 695,
+      "afterLines": 705
+    },
+    {
+      "old": "book/textbook/ch11/README.md",
+      "new": "book/textbook/ch11/profrod-sovereign-agent-ch11-ambiguous-supplier-order-chapter.md",
+      "beforeSha256": "558b6a58ca430cda46adc8c819339b669a3d49c054eb89e9852aea355bff66f3",
+      "beforeLines": 614,
+      "afterLines": 624
+    },
+    {
+      "old": "book/textbook/ch12/README.md",
+      "new": "book/textbook/ch12/profrod-sovereign-agent-ch12-worker-recovery-chapter.md",
+      "beforeSha256": "ea116ca49a5c898d94602cb8ead9b9db014e63d9800e93eec8ca15be77dd4e41",
+      "beforeLines": 533,
+      "afterLines": 543
+    },
+    {
+      "old": "book/textbook/ch13/README.md",
+      "new": "book/textbook/ch13/profrod-sovereign-agent-ch13-mcp-tools-chapter.md",
+      "beforeSha256": "a7082321b702477be7158d6e1c4c2d03a3595d26c3f336bf6299616b1df91404",
+      "beforeLines": 97,
+      "afterLines": 107
+    },
+    {
+      "old": "book/textbook/ch14/README.md",
+      "new": "book/textbook/ch14/profrod-sovereign-agent-ch14-tool-isolation-chapter.md",
+      "beforeSha256": "142df8922d9124517b1fbb4a41bbabfcd88d897e9a53354bfd1933dc9764cb79",
+      "beforeLines": 730,
+      "afterLines": 740
+    },
+    {
+      "old": "book/textbook/ch15/README.md",
+      "new": "book/textbook/ch15/profrod-sovereign-agent-ch15-agent-evaluation-chapter.md",
+      "beforeSha256": "454f17bf378149330612ac6fcd4b3f2a62fc62b9d8f347d57fb3b4d4e7fa206f",
+      "beforeLines": 749,
+      "afterLines": 759
+    },
+    {
+      "old": "book/textbook/ch16/README.md",
+      "new": "book/textbook/ch16/profrod-sovereign-agent-ch16-controlled-improvement-chapter.md",
+      "beforeSha256": "2777c627301786467ae3b77d10c0b07b30e17d03fa3543255b8d9d314a7d393d",
+      "beforeLines": 568,
+      "afterLines": 578
+    },
+    {
+      "old": "book/textbook/ch17/README.md",
+      "new": "book/textbook/ch17/profrod-sovereign-agent-ch17-bounded-delegation-chapter.md",
+      "beforeSha256": "c23fdb54459d9602d88f489ee34ce6561104a081b193528b09cdd4eb14addee4",
+      "beforeLines": 677,
+      "afterLines": 687
+    },
+    {
+      "old": "book/textbook/ch18/README.md",
+      "new": "book/textbook/ch18/profrod-sovereign-agent-ch18-deployment-restoration-chapter.md",
+      "beforeSha256": "fad1683a4e52e46fdb590433440e1a3cbd1220b229fedf0c5e5cd61fe7169fde",
+      "beforeLines": 514,
+      "afterLines": 524
+    },
+    {
+      "old": "book/textbook/ch19/README.md",
+      "new": "book/textbook/ch19/profrod-sovereign-agent-ch19-integrated-shop-day-chapter.md",
+      "beforeSha256": "2d132c27411beb5161fe2b591599e88c9a70daa51b0e3560481fb1a751c2cf97",
+      "beforeLines": 597,
+      "afterLines": 607
+    },
+    {
+      "old": "book/textbook/checkpoints/ch01.py",
+      "new": "book/textbook/checkpoints/profrod_sovereign_agent_ch01_first_model_call_checkpoint.py",
+      "beforeSha256": "04334ad79db975c1576ab4635a81033a01f323ec643b80fbf4e35d9670dada50",
+      "beforeLines": 163,
+      "afterLines": 168
+    },
+    {
+      "old": "book/textbook/checkpoints/ch02.py",
+      "new": "book/textbook/checkpoints/profrod_sovereign_agent_ch02_pydantic_shop_tools_checkpoint.py",
+      "beforeSha256": "d5fc4f480494911ff70df299e1464b82290142ca2d81193c880be6f6a71f7ae8",
+      "beforeLines": 101,
+      "afterLines": 106
+    },
+    {
+      "old": "book/textbook/checkpoints/ch03.py",
+      "new": "book/textbook/checkpoints/profrod_sovereign_agent_ch03_agent_loop_checkpoint.py",
+      "beforeSha256": "ce8dfd2a8bf65998214b96eb0f33d1385997045dd6f36ab3f64f1d3cd8f032b5",
+      "beforeLines": 108,
+      "afterLines": 113
+    },
+    {
+      "old": "book/textbook/checkpoints/ch05.py",
+      "new": "book/textbook/checkpoints/profrod_sovereign_agent_ch05_durable_memory_checkpoint.py",
+      "beforeSha256": "7d6fc86cae5434f9be787bdfc5c0b3e47ebb8e19aa9b536bc6888c5e1ade177a",
+      "beforeLines": 86,
+      "afterLines": 91
+    },
+    {
+      "old": "book/textbook/checkpoints/ch06.py",
+      "new": "book/textbook/checkpoints/profrod_sovereign_agent_ch06_versioned_skills_checkpoint.py",
+      "beforeSha256": "33e7b2ad8df42bbb1e06af513b49627c720d7388bccc0e613656fffd51b0bc97",
+      "beforeLines": 88,
+      "afterLines": 93
+    },
+    {
+      "old": "book/textbook/checkpoints/ch08.py",
+      "new": "book/textbook/checkpoints/profrod_sovereign_agent_ch08_telegram_messaging_checkpoint.py",
+      "beforeSha256": "4bade91a62debdaa1b0f6e6b320639e3045f61656acd6c4257d8b5d61dec911b",
+      "beforeLines": 239,
+      "afterLines": 244
+    },
+    {
+      "old": "book/textbook/checkpoints/ch09.py",
+      "new": "book/textbook/checkpoints/profrod_sovereign_agent_ch09_schedules_stock_events_checkpoint.py",
+      "beforeSha256": "a878adcf32531f1737833cda3bd198b5114d0ea5c55b84f1406ccfc23187e4b8",
+      "beforeLines": 194,
+      "afterLines": 199
+    },
+    {
+      "old": "book/textbook/checkpoints/ch10.py",
+      "new": "book/textbook/checkpoints/profrod_sovereign_agent_ch10_spending_permissions_checkpoint.py",
+      "beforeSha256": "fbd180a97ea0f0f2fc41ad098c75be8741eb53b104499457ff32c9ab958e3f45",
+      "beforeLines": 210,
+      "afterLines": 215
+    },
+    {
+      "old": "book/textbook/checkpoints/ch11.py",
+      "new": "book/textbook/checkpoints/profrod_sovereign_agent_ch11_ambiguous_supplier_order_checkpoint.py",
+      "beforeSha256": "27973c2a0f9ca229bc20e47536dcc9be55978e39e478855307fb858a2854a15e",
+      "beforeLines": 108,
+      "afterLines": 113
+    },
+    {
+      "old": "book/textbook/checkpoints/ch12.py",
+      "new": "book/textbook/checkpoints/profrod_sovereign_agent_ch12_worker_recovery_checkpoint.py",
+      "beforeSha256": "ba77375805c505f01da677a9702cabd89af9686af27dd9c94395a523a519785e",
+      "beforeLines": 194,
+      "afterLines": 199
+    },
+    {
+      "old": "book/textbook/checkpoints/ch14.py",
+      "new": "book/textbook/checkpoints/profrod_sovereign_agent_ch14_tool_isolation_checkpoint.py",
+      "beforeSha256": "12d7c7865e35f6d4b83a3bc5383829c24f4d402ce03eb8e5975bd1d9d935cbba",
+      "beforeLines": 133,
+      "afterLines": 138
+    },
+    {
+      "old": "book/textbook/checkpoints/ch15.py",
+      "new": "book/textbook/checkpoints/profrod_sovereign_agent_ch15_agent_evaluation_checkpoint.py",
+      "beforeSha256": "5887fd02d9fee8dec0af75b55258b897c6433c6d0002c893dbda9990a255905a",
+      "beforeLines": 86,
+      "afterLines": 91
+    },
+    {
+      "old": "book/textbook/checkpoints/ch16.py",
+      "new": "book/textbook/checkpoints/profrod_sovereign_agent_ch16_controlled_improvement_checkpoint.py",
+      "beforeSha256": "02f340da68541a9b38062fb781c77290fb4cbf0a7c109bfcec88ae64c0e086cd",
+      "beforeLines": 141,
+      "afterLines": 146
+    },
+    {
+      "old": "book/textbook/checkpoints/ch17.py",
+      "new": "book/textbook/checkpoints/profrod_sovereign_agent_ch17_bounded_delegation_checkpoint.py",
+      "beforeSha256": "3e81e29727180f1c13a71058a457642759fc59afeb4426164c3d3d9be51f054f",
+      "beforeLines": 247,
+      "afterLines": 252
+    },
+    {
+      "old": "book/textbook/checkpoints/ch18.py",
+      "new": "book/textbook/checkpoints/profrod_sovereign_agent_ch18_deployment_restoration_checkpoint.py",
+      "beforeSha256": "268e2061b068e5693d853d8f2231eda12fd1134ccd3b20c3cf143823397befd0",
+      "beforeLines": 196,
+      "afterLines": 201
+    },
+    {
+      "old": "book/textbook/checkpoints/ch19.py",
+      "new": "book/textbook/checkpoints/profrod_sovereign_agent_ch19_integrated_shop_day_checkpoint.py",
+      "beforeSha256": "8871152ad85ea062a51c41ac6add2e2c43bf8e79f543a3e2acbf525d6e21fb37",
+      "beforeLines": 349,
+      "afterLines": 354
+    },
+    {
+      "old": "book/textbook/experiments/ch15_request_eval_v1.py",
+      "new": "book/textbook/experiments/profrod_sovereign_agent_textbook_ch15_request_eval_v1.py",
+      "beforeSha256": "729f1028b907c150103424077810f012eb683287e380d267c788871fa03a7329",
+      "beforeLines": 346,
+      "afterLines": 351
+    },
+    {
+      "old": "book/textbook/learner/README.md",
+      "new": "book/textbook/learner/profrod-sovereign-agent-textbook-learner-guide.md",
+      "beforeSha256": "550cda268f6ae8a33de143c73632ebf6929e9fb7547136852db1877c46b72d7c",
+      "beforeLines": 5,
+      "afterLines": 15
+    },
+    {
+      "old": "book/textbook/learner/ch02.py",
+      "new": "book/textbook/learner/profrod_sovereign_agent_ch02_pydantic_shop_tools_learner.py",
+      "beforeSha256": "c2133fc104245ef0f458278a31d2105c9c227d97a82d17e6bf626c363c973743",
+      "beforeLines": 177,
+      "afterLines": 182
+    },
+    {
+      "old": "book/textbook/learner/ch03.py",
+      "new": "book/textbook/learner/profrod_sovereign_agent_ch03_agent_loop_learner.py",
+      "beforeSha256": "fc502bb509178a7a71c24a7fad718418ba592cdab21f286d65ac038b0db66682",
+      "beforeLines": 283,
+      "afterLines": 288
+    },
+    {
+      "old": "book/textbook/skills/opening-check-v1.toml",
+      "new": "book/textbook/skills/profrod_sovereign_agent_textbook_opening_check_v1.toml",
+      "beforeSha256": "5296e9db27b4ea8e8803f79fc75f5c24c9dbab147161eb8509338f2f1863b7bc",
+      "beforeLines": 12,
+      "afterLines": 17
+    },
+    {
+      "old": "book/educator/ch01/solutions/unit-a.ipynb",
+      "new": "book/educator/ch01/solutions/profrod-sovereign-agent-ch01-a-grounded-morning-brief-educator-solution.ipynb",
+      "beforeSha256": "6092155ebb70786e87dacb17c1e3564ea6699cb1d4afd0b62892dc6605db5971",
+      "beforeLines": 4321,
+      "afterLines": 4352,
+      "identicalCanonicalTeachingCopy": true
+    },
+    {
+      "old": "book/educator/ch01/solutions/unit-a.md",
+      "new": "book/educator/ch01/solutions/profrod-sovereign-agent-ch01-a-grounded-morning-brief-educator-solution.md",
+      "beforeSha256": "24007454908a3bc67bfd14290daa4d8daf89b9f22ebd35dc0ed4a92b2c2f02d2",
+      "beforeLines": 3944,
+      "afterLines": 3965,
+      "identicalCanonicalTeachingCopy": true
+    },
+    {
+      "old": "book/educator/ch01/solutions/unit-b.ipynb",
+      "new": "book/educator/ch01/solutions/profrod-sovereign-agent-ch01-b-prompt-harness-repair-educator-solution.ipynb",
+      "beforeSha256": "ce6c92b7310ea8705500e728b78f1d66a55736dd2b11decd1bbfe01507754514",
+      "beforeLines": 4491,
+      "afterLines": 4522,
+      "identicalCanonicalTeachingCopy": true
+    },
+    {
+      "old": "book/educator/ch01/solutions/unit-b.md",
+      "new": "book/educator/ch01/solutions/profrod-sovereign-agent-ch01-b-prompt-harness-repair-educator-solution.md",
+      "beforeSha256": "73e547471563f75c3c73f239be8aeeb70eb83a4126229dfa88996474e05052c5",
+      "beforeLines": 4071,
+      "afterLines": 4092,
+      "identicalCanonicalTeachingCopy": true
+    },
+    {
+      "old": "book/educator/ch01/student/unit-a.ipynb",
+      "new": "book/educator/ch01/student/profrod-sovereign-agent-ch01-a-grounded-morning-brief-educator-exercise.ipynb",
+      "beforeSha256": "a318ed2d6c501c4538e9b0be1317ffb76734e808ccd5727709a47bb8f1a8d6cd",
+      "beforeLines": 4128,
+      "afterLines": 4159,
+      "identicalCanonicalTeachingCopy": true
+    },
+    {
+      "old": "book/educator/ch01/student/unit-a.md",
+      "new": "book/educator/ch01/student/profrod-sovereign-agent-ch01-a-grounded-morning-brief-educator-exercise.md",
+      "beforeSha256": "719b40868f15e825ff5a1225663d333572e8892e3b2dc9389ffb095532eeb629",
+      "beforeLines": 3777,
+      "afterLines": 3798,
+      "identicalCanonicalTeachingCopy": true
+    },
+    {
+      "old": "book/educator/ch01/student/unit-b.ipynb",
+      "new": "book/educator/ch01/student/profrod-sovereign-agent-ch01-b-prompt-harness-repair-educator-exercise.ipynb",
+      "beforeSha256": "3f64a954ddf17db251d5ff79e27b1511f22e02162a4369daf680abbc73db0ace",
+      "beforeLines": 4286,
+      "afterLines": 4317,
+      "identicalCanonicalTeachingCopy": true
+    },
+    {
+      "old": "book/educator/ch01/student/unit-b.md",
+      "new": "book/educator/ch01/student/profrod-sovereign-agent-ch01-b-prompt-harness-repair-educator-exercise.md",
+      "beforeSha256": "0d44a201fc894ca061277215e0d93123e44a771a0cba643ea150b00474b87ae6",
+      "beforeLines": 3892,
+      "afterLines": 3913,
+      "identicalCanonicalTeachingCopy": true
+    },
+    {
+      "old": "book/educator/ch02/solutions/unit-a.ipynb",
+      "new": "book/educator/ch02/solutions/profrod-sovereign-agent-ch02-a-pydantic-shop-tools-educator-solution.ipynb",
+      "beforeSha256": "6837c8af6b6ce0ad8c5c056ff7c40d9f0c5415831d9b905f0d5479ba773d7877",
+      "beforeLines": 4507,
+      "afterLines": 4538,
+      "identicalCanonicalTeachingCopy": true
+    },
+    {
+      "old": "book/educator/ch02/solutions/unit-a.md",
+      "new": "book/educator/ch02/solutions/profrod-sovereign-agent-ch02-a-pydantic-shop-tools-educator-solution.md",
+      "beforeSha256": "b6eff92a5f503950ca05c3fb15e2b9cc6f83d6d379e5ece51c8d592bf17f5729",
+      "beforeLines": 4040,
+      "afterLines": 4061,
+      "identicalCanonicalTeachingCopy": true
+    },
+    {
+      "old": "book/educator/ch02/solutions/unit-b.ipynb",
+      "new": "book/educator/ch02/solutions/profrod-sovereign-agent-ch02-b-pydantic-validation-repair-educator-solution.ipynb",
+      "beforeSha256": "08d1660af8d4cc4568db0d14536d8147bd28dd023027d3f877d38b95c828a7e3",
+      "beforeLines": 4608,
+      "afterLines": 4639,
+      "identicalCanonicalTeachingCopy": true
+    },
+    {
+      "old": "book/educator/ch02/solutions/unit-b.md",
+      "new": "book/educator/ch02/solutions/profrod-sovereign-agent-ch02-b-pydantic-validation-repair-educator-solution.md",
+      "beforeSha256": "cac3faadd8d0b6f50811985f96cec30b2f20b35670c959cd6276e0745d118246",
+      "beforeLines": 4088,
+      "afterLines": 4109,
+      "identicalCanonicalTeachingCopy": true
+    },
+    {
+      "old": "book/educator/ch02/student/unit-a.ipynb",
+      "new": "book/educator/ch02/student/profrod-sovereign-agent-ch02-a-pydantic-shop-tools-educator-exercise.ipynb",
+      "beforeSha256": "3321e29f8348e4bf18cb34b6239b767285e5536c2af8a4a671669919c0b6726a",
+      "beforeLines": 4348,
+      "afterLines": 4379,
+      "identicalCanonicalTeachingCopy": true
+    },
+    {
+      "old": "book/educator/ch02/student/unit-a.md",
+      "new": "book/educator/ch02/student/profrod-sovereign-agent-ch02-a-pydantic-shop-tools-educator-exercise.md",
+      "beforeSha256": "3595a9cdd7c922dbd6763e82d9dc9c2d4723d9500cd54d768bc9b14a6de892fa",
+      "beforeLines": 3907,
+      "afterLines": 3928,
+      "identicalCanonicalTeachingCopy": true
+    },
+    {
+      "old": "book/educator/ch02/student/unit-b.ipynb",
+      "new": "book/educator/ch02/student/profrod-sovereign-agent-ch02-b-pydantic-validation-repair-educator-exercise.ipynb",
+      "beforeSha256": "dfc5847aa0f154c99faf07a5efc76e15ae261521a1603b0fd7b2373d77aa42ab",
+      "beforeLines": 4485,
+      "afterLines": 4516,
+      "identicalCanonicalTeachingCopy": true
+    },
+    {
+      "old": "book/educator/ch02/student/unit-b.md",
+      "new": "book/educator/ch02/student/profrod-sovereign-agent-ch02-b-pydantic-validation-repair-educator-exercise.md",
+      "beforeSha256": "94f1364716f27d59f9fe92843a093f929f369dde8cfa84e9f0ab26b950cd80d5",
+      "beforeLines": 3991,
+      "afterLines": 4012,
+      "identicalCanonicalTeachingCopy": true
+    },
+    {
+      "old": "book/educator/ch03/solutions/unit-a.ipynb",
+      "new": "book/educator/ch03/solutions/profrod-sovereign-agent-ch03-a-bounded-agent-loop-educator-solution.ipynb",
+      "beforeSha256": "dbca85a19e01cac538f21921977cf46bc30b22b903e66a90ccdda69cb4956373",
+      "beforeLines": 4421,
+      "afterLines": 4452,
+      "identicalCanonicalTeachingCopy": true
+    },
+    {
+      "old": "book/educator/ch03/solutions/unit-a.md",
+      "new": "book/educator/ch03/solutions/profrod-sovereign-agent-ch03-a-bounded-agent-loop-educator-solution.md",
+      "beforeSha256": "d45cee7a543386efb05bf447787a462ce8e82d40d1d1231ca206f45f9a201d25",
+      "beforeLines": 4009,
+      "afterLines": 4030,
+      "identicalCanonicalTeachingCopy": true
+    },
+    {
+      "old": "book/educator/ch03/solutions/unit-b.ipynb",
+      "new": "book/educator/ch03/solutions/profrod-sovereign-agent-ch03-b-failed-call-accounting-educator-solution.ipynb",
+      "beforeSha256": "9f3edd4d907a87185f134124507e82ca9391b69bedcb1e728bc23629220b1698",
+      "beforeLines": 4371,
+      "afterLines": 4402,
+      "identicalCanonicalTeachingCopy": true
+    },
+    {
+      "old": "book/educator/ch03/solutions/unit-b.md",
+      "new": "book/educator/ch03/solutions/profrod-sovereign-agent-ch03-b-failed-call-accounting-educator-solution.md",
+      "beforeSha256": "ffcf000be974cdf7b461d7e2828b533ec846e4d20437a226b21f1c585d69dbaf",
+      "beforeLines": 3939,
+      "afterLines": 3960,
+      "identicalCanonicalTeachingCopy": true
+    },
+    {
+      "old": "book/educator/ch03/student/unit-a.ipynb",
+      "new": "book/educator/ch03/student/profrod-sovereign-agent-ch03-a-bounded-agent-loop-educator-exercise.ipynb",
+      "beforeSha256": "6e93bee0bbbe0111c16d4345b9a06246da5d096608c480d03ded0ab64e987d5f",
+      "beforeLines": 4253,
+      "afterLines": 4284,
+      "identicalCanonicalTeachingCopy": true
+    },
+    {
+      "old": "book/educator/ch03/student/unit-a.md",
+      "new": "book/educator/ch03/student/profrod-sovereign-agent-ch03-a-bounded-agent-loop-educator-exercise.md",
+      "beforeSha256": "3a37d3eb442d3205a82f76e78606a4427c2865a1512230e3e26327343c1317c6",
+      "beforeLines": 3867,
+      "afterLines": 3888,
+      "identicalCanonicalTeachingCopy": true
+    },
+    {
+      "old": "book/educator/ch03/student/unit-b.ipynb",
+      "new": "book/educator/ch03/student/profrod-sovereign-agent-ch03-b-failed-call-accounting-educator-exercise.ipynb",
+      "beforeSha256": "cf8b4c9caa793e6555ec456508de470cc54dda67fd3a88779050697cea658e34",
+      "beforeLines": 4227,
+      "afterLines": 4258,
+      "identicalCanonicalTeachingCopy": true
+    },
+    {
+      "old": "book/educator/ch03/student/unit-b.md",
+      "new": "book/educator/ch03/student/profrod-sovereign-agent-ch03-b-failed-call-accounting-educator-exercise.md",
+      "beforeSha256": "dae04d2e4e261f0a03ee762bd22a8f50d8095648be051210ae0f5a6c205e0ad2",
+      "beforeLines": 3821,
+      "afterLines": 3842,
+      "identicalCanonicalTeachingCopy": true
+    },
+    {
+      "old": "book/educator/ch05/solutions/unit-a.ipynb",
+      "new": "book/educator/ch05/solutions/profrod-sovereign-agent-ch05-a-durable-memory-educator-solution.ipynb",
+      "beforeSha256": "79374e0f04722ee5e9ef764af4103b143691a67d1f7f12f34d498427b0667488",
+      "beforeLines": 4292,
+      "afterLines": 4323,
+      "identicalCanonicalTeachingCopy": true
+    },
+    {
+      "old": "book/educator/ch05/solutions/unit-a.md",
+      "new": "book/educator/ch05/solutions/profrod-sovereign-agent-ch05-a-durable-memory-educator-solution.md",
+      "beforeSha256": "0562c791fbcf6a7f1c7b470fb3c6472f47af62e73bb983d0b5b13ec7968fcce0",
+      "beforeLines": 3891,
+      "afterLines": 3912,
+      "identicalCanonicalTeachingCopy": true
+    },
+    {
+      "old": "book/educator/ch05/solutions/unit-b.ipynb",
+      "new": "book/educator/ch05/solutions/profrod-sovereign-agent-ch05-b-memory-repair-transfer-educator-solution.ipynb",
+      "beforeSha256": "29c0e846692f1e9f0bf9fd17af1c5bdce20f47983da09b037ba4f4d3173a15d4",
+      "beforeLines": 4417,
+      "afterLines": 4448,
+      "identicalCanonicalTeachingCopy": true
+    },
+    {
+      "old": "book/educator/ch05/solutions/unit-b.md",
+      "new": "book/educator/ch05/solutions/profrod-sovereign-agent-ch05-b-memory-repair-transfer-educator-solution.md",
+      "beforeSha256": "957836a0ecff32f44f9800ca7ad2b5a80c94e5a1971f63a9ad6cfc2d25aab562",
+      "beforeLines": 3963,
+      "afterLines": 3984,
+      "identicalCanonicalTeachingCopy": true
+    },
+    {
+      "old": "book/educator/ch05/student/unit-a.ipynb",
+      "new": "book/educator/ch05/student/profrod-sovereign-agent-ch05-a-durable-memory-educator-exercise.ipynb",
+      "beforeSha256": "ac67339d85d5fe81769200c50743c1bd9259d76558765bcac766a27844fcb092",
+      "beforeLines": 4149,
+      "afterLines": 4180,
+      "identicalCanonicalTeachingCopy": true
+    },
+    {
+      "old": "book/educator/ch05/student/unit-a.md",
+      "new": "book/educator/ch05/student/profrod-sovereign-agent-ch05-a-durable-memory-educator-exercise.md",
+      "beforeSha256": "8ace137a1070ed03dc0907b0c2a918379aef98acd5a44a5073791ea43a51cba2",
+      "beforeLines": 3774,
+      "afterLines": 3795,
+      "identicalCanonicalTeachingCopy": true
+    },
+    {
+      "old": "book/educator/ch05/student/unit-b.ipynb",
+      "new": "book/educator/ch05/student/profrod-sovereign-agent-ch05-b-memory-repair-transfer-educator-exercise.ipynb",
+      "beforeSha256": "00eee2e35e2343681fbb329fdabd6b192ccc02c7acb4da9846007cd68af9c3a2",
+      "beforeLines": 4285,
+      "afterLines": 4316,
+      "identicalCanonicalTeachingCopy": true
+    },
+    {
+      "old": "book/educator/ch05/student/unit-b.md",
+      "new": "book/educator/ch05/student/profrod-sovereign-agent-ch05-b-memory-repair-transfer-educator-exercise.md",
+      "beforeSha256": "9fe2377ad65d1ecba3615536c2e88195ba17bb3c5aea6586863d762b14fcf7c3",
+      "beforeLines": 3857,
+      "afterLines": 3878,
+      "identicalCanonicalTeachingCopy": true
+    },
+    {
+      "old": "book/educator/ch06/solutions/unit-a.ipynb",
+      "new": "book/educator/ch06/solutions/profrod-sovereign-agent-ch06-a-versioned-skills-educator-solution.ipynb",
+      "beforeSha256": "a5c36722b8a3249dfcdcc3e4378d47bb6ec4a35990665ee227b04cfc788ac24f",
+      "beforeLines": 4333,
+      "afterLines": 4364,
+      "identicalCanonicalTeachingCopy": true
+    },
+    {
+      "old": "book/educator/ch06/solutions/unit-a.md",
+      "new": "book/educator/ch06/solutions/profrod-sovereign-agent-ch06-a-versioned-skills-educator-solution.md",
+      "beforeSha256": "3044d088af8728820820a4f6f07b32097441c693253405dbf5e7279b7e3725ff",
+      "beforeLines": 3932,
+      "afterLines": 3953,
+      "identicalCanonicalTeachingCopy": true
+    },
+    {
+      "old": "book/educator/ch06/solutions/unit-b.ipynb",
+      "new": "book/educator/ch06/solutions/profrod-sovereign-agent-ch06-b-skill-repair-transfer-educator-solution.ipynb",
+      "beforeSha256": "04d1dc8506d1be496bda70a3e637c3dc408a702e84a451b6f21052418d3c1fdd",
+      "beforeLines": 4419,
+      "afterLines": 4450,
+      "identicalCanonicalTeachingCopy": true
+    },
+    {
+      "old": "book/educator/ch06/solutions/unit-b.md",
+      "new": "book/educator/ch06/solutions/profrod-sovereign-agent-ch06-b-skill-repair-transfer-educator-solution.md",
+      "beforeSha256": "7f83fceb3aeb92e78e62d3cad95ad82898ff662d3c0ccf08719899f5d8582fb3",
+      "beforeLines": 3965,
+      "afterLines": 3986,
+      "identicalCanonicalTeachingCopy": true
+    },
+    {
+      "old": "book/educator/ch06/student/unit-a.ipynb",
+      "new": "book/educator/ch06/student/profrod-sovereign-agent-ch06-a-versioned-skills-educator-exercise.ipynb",
+      "beforeSha256": "746e0f04d123ea9ab1e574069773c2028057ecd217363c5da8782d9666d34566",
+      "beforeLines": 4151,
+      "afterLines": 4182,
+      "identicalCanonicalTeachingCopy": true
+    },
+    {
+      "old": "book/educator/ch06/student/unit-a.md",
+      "new": "book/educator/ch06/student/profrod-sovereign-agent-ch06-a-versioned-skills-educator-exercise.md",
+      "beforeSha256": "3ae1926e0fffa7fc5440ad2bccb1cf48d86c8469746adb62ffa15eaae292cbdc",
+      "beforeLines": 3776,
+      "afterLines": 3797,
+      "identicalCanonicalTeachingCopy": true
+    },
+    {
+      "old": "book/educator/ch06/student/unit-b.ipynb",
+      "new": "book/educator/ch06/student/profrod-sovereign-agent-ch06-b-skill-repair-transfer-educator-exercise.ipynb",
+      "beforeSha256": "c6531101c409df0f99dae9c473fdef4506917d26be3ecd59bbcfa44e9e104206",
+      "beforeLines": 4286,
+      "afterLines": 4317,
+      "identicalCanonicalTeachingCopy": true
+    },
+    {
+      "old": "book/educator/ch06/student/unit-b.md",
+      "new": "book/educator/ch06/student/profrod-sovereign-agent-ch06-b-skill-repair-transfer-educator-exercise.md",
+      "beforeSha256": "1c33f6f45b5cf39203324a19acb2a05e6e784302f1b87048c0accc2ea958aaeb",
+      "beforeLines": 3858,
+      "afterLines": 3879,
+      "identicalCanonicalTeachingCopy": true
+    },
+    {
+      "old": "book/educator/ch08/solutions/unit-a.ipynb",
+      "new": "book/educator/ch08/solutions/profrod-sovereign-agent-ch08-a-private-telegram-messaging-educator-solution.ipynb",
+      "beforeSha256": "02ef742f07180db6a040ec8c8114a7fb854132fc4c62d331943e4b5a92b5699f",
+      "beforeLines": 4395,
+      "afterLines": 4426,
+      "identicalCanonicalTeachingCopy": true
+    },
+    {
+      "old": "book/educator/ch08/solutions/unit-a.md",
+      "new": "book/educator/ch08/solutions/profrod-sovereign-agent-ch08-a-private-telegram-messaging-educator-solution.md",
+      "beforeSha256": "a69c2306a4d06289f22d2ac62b636e06063c0c660c625409a5c6167902ae0cea",
+      "beforeLines": 3994,
+      "afterLines": 4015,
+      "identicalCanonicalTeachingCopy": true
+    },
+    {
+      "old": "book/educator/ch08/solutions/unit-b.ipynb",
+      "new": "book/educator/ch08/solutions/profrod-sovereign-agent-ch08-b-messaging-repair-transfer-educator-solution.ipynb",
+      "beforeSha256": "2c4f9fa0130a09a90afef3961138edc3c707f1e11727d034fb024677e8ad72a6",
+      "beforeLines": 4470,
+      "afterLines": 4501,
+      "identicalCanonicalTeachingCopy": true
+    },
+    {
+      "old": "book/educator/ch08/solutions/unit-b.md",
+      "new": "book/educator/ch08/solutions/profrod-sovereign-agent-ch08-b-messaging-repair-transfer-educator-solution.md",
+      "beforeSha256": "ffe268cce34beef939b5b6a02b39901fbc94074eec57599b6cad41f74541ac44",
+      "beforeLines": 4016,
+      "afterLines": 4037,
+      "identicalCanonicalTeachingCopy": true
+    },
+    {
+      "old": "book/educator/ch08/student/unit-a.ipynb",
+      "new": "book/educator/ch08/student/profrod-sovereign-agent-ch08-a-private-telegram-messaging-educator-exercise.ipynb",
+      "beforeSha256": "191cff2af6d62eadb6e2e108c5693c52dbe74123e252b9b4618ad719dd22732e",
+      "beforeLines": 4170,
+      "afterLines": 4201,
+      "identicalCanonicalTeachingCopy": true
+    },
+    {
+      "old": "book/educator/ch08/student/unit-a.md",
+      "new": "book/educator/ch08/student/profrod-sovereign-agent-ch08-a-private-telegram-messaging-educator-exercise.md",
+      "beforeSha256": "25a79b545660c737184cec2c147e2d7f417dea417681b8542a4a9c535a4f0bb0",
+      "beforeLines": 3795,
+      "afterLines": 3816,
+      "identicalCanonicalTeachingCopy": true
+    },
+    {
+      "old": "book/educator/ch08/student/unit-b.ipynb",
+      "new": "book/educator/ch08/student/profrod-sovereign-agent-ch08-b-messaging-repair-transfer-educator-exercise.ipynb",
+      "beforeSha256": "9af0b8291ac0471e60e0fadb7b747efb5286e2ee7f5726a18d4e89e531b344fd",
+      "beforeLines": 4305,
+      "afterLines": 4336,
+      "identicalCanonicalTeachingCopy": true
+    },
+    {
+      "old": "book/educator/ch08/student/unit-b.md",
+      "new": "book/educator/ch08/student/profrod-sovereign-agent-ch08-b-messaging-repair-transfer-educator-exercise.md",
+      "beforeSha256": "6cff1e4eb153885ffa8001e5a3dd4c761eebad2b6927792f4fe1cd91dad9421b",
+      "beforeLines": 3877,
+      "afterLines": 3898,
+      "identicalCanonicalTeachingCopy": true
+    },
+    {
+      "old": "book/educator/ch09/solutions/unit-a.ipynb",
+      "new": "book/educator/ch09/solutions/profrod-sovereign-agent-ch09-a-schedules-stock-events-educator-solution.ipynb",
+      "beforeSha256": "02287b371a97af4da033f703aa5863ec5245a697905f444ca4021dc92f150cb3",
+      "beforeLines": 4296,
+      "afterLines": 4327,
+      "identicalCanonicalTeachingCopy": true
+    },
+    {
+      "old": "book/educator/ch09/solutions/unit-a.md",
+      "new": "book/educator/ch09/solutions/profrod-sovereign-agent-ch09-a-schedules-stock-events-educator-solution.md",
+      "beforeSha256": "101f848411d688a695b29a9a79725b941ace4d7a1825acab5dca8e42e042be06",
+      "beforeLines": 3895,
+      "afterLines": 3916,
+      "identicalCanonicalTeachingCopy": true
+    },
+    {
+      "old": "book/educator/ch09/solutions/unit-b.ipynb",
+      "new": "book/educator/ch09/solutions/profrod-sovereign-agent-ch09-b-scheduling-repair-transfer-educator-solution.ipynb",
+      "beforeSha256": "2f8847419cc8bf20e7d5824bcfdc5d3be6617fab2766d1c34d409febfd32cc8c",
+      "beforeLines": 4393,
+      "afterLines": 4424,
+      "identicalCanonicalTeachingCopy": true
+    },
+    {
+      "old": "book/educator/ch09/solutions/unit-b.md",
+      "new": "book/educator/ch09/solutions/profrod-sovereign-agent-ch09-b-scheduling-repair-transfer-educator-solution.md",
+      "beforeSha256": "ded49e75080c307e32338cae1061865370193ba4f62fbdfb60b99c79ece3165d",
+      "beforeLines": 3939,
+      "afterLines": 3960,
+      "identicalCanonicalTeachingCopy": true
+    },
+    {
+      "old": "book/educator/ch09/student/unit-a.ipynb",
+      "new": "book/educator/ch09/student/profrod-sovereign-agent-ch09-a-schedules-stock-events-educator-exercise.ipynb",
+      "beforeSha256": "b5ab5612646fc2a72aef392ced24db8a6a868ec597642b460ad98ac883ec65de",
+      "beforeLines": 4130,
+      "afterLines": 4161,
+      "identicalCanonicalTeachingCopy": true
+    },
+    {
+      "old": "book/educator/ch09/student/unit-a.md",
+      "new": "book/educator/ch09/student/profrod-sovereign-agent-ch09-a-schedules-stock-events-educator-exercise.md",
+      "beforeSha256": "2574dd0fb1003e3f63f4d38689d4dc698fce7edd62729dad24d0693fc5c69da8",
+      "beforeLines": 3755,
+      "afterLines": 3776,
+      "identicalCanonicalTeachingCopy": true
+    },
+    {
+      "old": "book/educator/ch09/student/unit-b.ipynb",
+      "new": "book/educator/ch09/student/profrod-sovereign-agent-ch09-b-scheduling-repair-transfer-educator-exercise.ipynb",
+      "beforeSha256": "63cb2052f694d60f3453f212e3392c49be8409b941eb4477242ac45b9a8ff4d2",
+      "beforeLines": 4267,
+      "afterLines": 4298,
+      "identicalCanonicalTeachingCopy": true
+    },
+    {
+      "old": "book/educator/ch09/student/unit-b.md",
+      "new": "book/educator/ch09/student/profrod-sovereign-agent-ch09-b-scheduling-repair-transfer-educator-exercise.md",
+      "beforeSha256": "ffe053527539788a829a38f04318c68d95de2e5ed9acd22462dcaed5844575c8",
+      "beforeLines": 3839,
+      "afterLines": 3860,
+      "identicalCanonicalTeachingCopy": true
+    },
+    {
+      "old": "book/educator/ch10/solutions/unit-a.ipynb",
+      "new": "book/educator/ch10/solutions/profrod-sovereign-agent-ch10-a-exact-spending-approval-educator-solution.ipynb",
+      "beforeSha256": "447696f5d3627d6662cf8e9a8b0ea488c94ad93bcc5fe0b00ecaaf4659db14db",
+      "beforeLines": 4331,
+      "afterLines": 4362,
+      "identicalCanonicalTeachingCopy": true
+    },
+    {
+      "old": "book/educator/ch10/solutions/unit-a.md",
+      "new": "book/educator/ch10/solutions/profrod-sovereign-agent-ch10-a-exact-spending-approval-educator-solution.md",
+      "beforeSha256": "dd45a0555504049fcca4a7d6800c3db9cfa112576de1b001c422c47c69804cac",
+      "beforeLines": 3930,
+      "afterLines": 3951,
+      "identicalCanonicalTeachingCopy": true
+    },
+    {
+      "old": "book/educator/ch10/solutions/unit-b.ipynb",
+      "new": "book/educator/ch10/solutions/profrod-sovereign-agent-ch10-b-approval-repair-transfer-educator-solution.ipynb",
+      "beforeSha256": "7c2b2151a96c3556156a15380ec8f9734c39b936cd12f058ba27cc324f99932c",
+      "beforeLines": 4398,
+      "afterLines": 4429,
+      "identicalCanonicalTeachingCopy": true
+    },
+    {
+      "old": "book/educator/ch10/solutions/unit-b.md",
+      "new": "book/educator/ch10/solutions/profrod-sovereign-agent-ch10-b-approval-repair-transfer-educator-solution.md",
+      "beforeSha256": "191a7353f1010750915a4f82f6463c0a86ca4b921f624a1b7f396dd1f5bc7eba",
+      "beforeLines": 3944,
+      "afterLines": 3965,
+      "identicalCanonicalTeachingCopy": true
+    },
+    {
+      "old": "book/educator/ch10/student/unit-a.ipynb",
+      "new": "book/educator/ch10/student/profrod-sovereign-agent-ch10-a-exact-spending-approval-educator-exercise.ipynb",
+      "beforeSha256": "ffbece6e91a31b48ee60cfe0d7b7fb9c8f337b18512dff6a6870b46faa26678e",
+      "beforeLines": 4145,
+      "afterLines": 4176,
+      "identicalCanonicalTeachingCopy": true
+    },
+    {
+      "old": "book/educator/ch10/student/unit-a.md",
+      "new": "book/educator/ch10/student/profrod-sovereign-agent-ch10-a-exact-spending-approval-educator-exercise.md",
+      "beforeSha256": "c73878ca3321ddb684314d77598994dfdcb91713176eff047db18aaa47216ab4",
+      "beforeLines": 3770,
+      "afterLines": 3791,
+      "identicalCanonicalTeachingCopy": true
+    },
+    {
+      "old": "book/educator/ch10/student/unit-b.ipynb",
+      "new": "book/educator/ch10/student/profrod-sovereign-agent-ch10-b-approval-repair-transfer-educator-exercise.ipynb",
+      "beforeSha256": "28326caead40df11a3845c96d6b2c520c8013b6475e2a34355a2f5129aa4d260",
+      "beforeLines": 4271,
+      "afterLines": 4302,
+      "identicalCanonicalTeachingCopy": true
+    },
+    {
+      "old": "book/educator/ch10/student/unit-b.md",
+      "new": "book/educator/ch10/student/profrod-sovereign-agent-ch10-b-approval-repair-transfer-educator-exercise.md",
+      "beforeSha256": "046c0365f0712040304ac7f630f41ba609c7bb35ed45c45604fd395b56419634",
+      "beforeLines": 3843,
+      "afterLines": 3864,
+      "identicalCanonicalTeachingCopy": true
+    },
+    {
+      "old": "book/educator/ch11/solutions/unit-a.ipynb",
+      "new": "book/educator/ch11/solutions/profrod-sovereign-agent-ch11-a-durable-order-evidence-educator-solution.ipynb",
+      "beforeSha256": "cc4e93b7c5bf92ef879fcadbde0adcf71a789bc044a7e899a51c8d867fd65564",
+      "beforeLines": 4573,
+      "afterLines": 4604,
+      "identicalCanonicalTeachingCopy": true
+    },
+    {
+      "old": "book/educator/ch11/solutions/unit-a.md",
+      "new": "book/educator/ch11/solutions/profrod-sovereign-agent-ch11-a-durable-order-evidence-educator-solution.md",
+      "beforeSha256": "cad987978bb2ac88e9f14807fe4857b39e5842bc3d10781fe96117f01a1b2c39",
+      "beforeLines": 4122,
+      "afterLines": 4143,
+      "identicalCanonicalTeachingCopy": true
+    },
+    {
+      "old": "book/educator/ch11/solutions/unit-b.ipynb",
+      "new": "book/educator/ch11/solutions/profrod-sovereign-agent-ch11-b-ambiguous-order-recovery-educator-solution.ipynb",
+      "beforeSha256": "779298a136da52bb515e867445d3b84032ffcaf44c9785931ee389c5d2e023f9",
+      "beforeLines": 4699,
+      "afterLines": 4730,
+      "identicalCanonicalTeachingCopy": true
+    },
+    {
+      "old": "book/educator/ch11/solutions/unit-b.md",
+      "new": "book/educator/ch11/solutions/profrod-sovereign-agent-ch11-b-ambiguous-order-recovery-educator-solution.md",
+      "beforeSha256": "fbeb183717d4cac5afe72dd5956af64f90a737e795d8f2d367f570d7788e6c7a",
+      "beforeLines": 4191,
+      "afterLines": 4212,
+      "identicalCanonicalTeachingCopy": true
+    },
+    {
+      "old": "book/educator/ch11/student/unit-a.ipynb",
+      "new": "book/educator/ch11/student/profrod-sovereign-agent-ch11-a-durable-order-evidence-educator-exercise.ipynb",
+      "beforeSha256": "121834e66d12fc7198e6ddc06a897097b8b141924aac0a2775147a1d6c48f164",
+      "beforeLines": 4330,
+      "afterLines": 4361,
+      "identicalCanonicalTeachingCopy": true
+    },
+    {
+      "old": "book/educator/ch11/student/unit-a.md",
+      "new": "book/educator/ch11/student/profrod-sovereign-agent-ch11-a-durable-order-evidence-educator-exercise.md",
+      "beforeSha256": "150ee932e67e38d177cc9d73fc96cd1f6a9aab65d3b91b584359692543b60dea",
+      "beforeLines": 3905,
+      "afterLines": 3926,
+      "identicalCanonicalTeachingCopy": true
+    },
+    {
+      "old": "book/educator/ch11/student/unit-b.ipynb",
+      "new": "book/educator/ch11/student/profrod-sovereign-agent-ch11-b-ambiguous-order-recovery-educator-exercise.ipynb",
+      "beforeSha256": "15835642690401da2a899fcd440526b76e2dc15a184c07d239631d2c7c58d974",
+      "beforeLines": 4516,
+      "afterLines": 4547,
+      "identicalCanonicalTeachingCopy": true
+    },
+    {
+      "old": "book/educator/ch11/student/unit-b.md",
+      "new": "book/educator/ch11/student/profrod-sovereign-agent-ch11-b-ambiguous-order-recovery-educator-exercise.md",
+      "beforeSha256": "89b5568dd173c6802c6917c9277fc2837a4be5876aaec49e5f1f2d6fefd99df2",
+      "beforeLines": 4034,
+      "afterLines": 4055,
+      "identicalCanonicalTeachingCopy": true
+    },
+    {
+      "old": "book/educator/ch12/solutions/unit-a.ipynb",
+      "new": "book/educator/ch12/solutions/profrod-sovereign-agent-ch12-a-worker-crash-recovery-educator-solution.ipynb",
+      "beforeSha256": "45e3f801757b4af4ddcc6e49468a2b7423cae5727ea723edad430d8feba40964",
+      "beforeLines": 4364,
+      "afterLines": 4395,
+      "identicalCanonicalTeachingCopy": true
+    },
+    {
+      "old": "book/educator/ch12/solutions/unit-a.md",
+      "new": "book/educator/ch12/solutions/profrod-sovereign-agent-ch12-a-worker-crash-recovery-educator-solution.md",
+      "beforeSha256": "1ebbace829373a4be98e23b5a32db8d05d5491e368276089c024a03b90801598",
+      "beforeLines": 3963,
+      "afterLines": 3984,
+      "identicalCanonicalTeachingCopy": true
+    },
+    {
+      "old": "book/educator/ch12/solutions/unit-b.ipynb",
+      "new": "book/educator/ch12/solutions/profrod-sovereign-agent-ch12-b-recovery-repair-transfer-educator-solution.ipynb",
+      "beforeSha256": "d8ef0b7f9e765ec62ef89776360916801dd664467d974ad8e6f1b28935b1a627",
+      "beforeLines": 4466,
+      "afterLines": 4497,
+      "identicalCanonicalTeachingCopy": true
+    },
+    {
+      "old": "book/educator/ch12/solutions/unit-b.md",
+      "new": "book/educator/ch12/solutions/profrod-sovereign-agent-ch12-b-recovery-repair-transfer-educator-solution.md",
+      "beforeSha256": "18f16fca91c299ff9f0b0da44fca564a7894bb1915a9064cf01a7392414171f9",
+      "beforeLines": 4012,
+      "afterLines": 4033,
+      "identicalCanonicalTeachingCopy": true
+    },
+    {
+      "old": "book/educator/ch12/student/unit-a.ipynb",
+      "new": "book/educator/ch12/student/profrod-sovereign-agent-ch12-a-worker-crash-recovery-educator-exercise.ipynb",
+      "beforeSha256": "2446b8d2836ce7b94a3b47a759192348c0f17ab9f9743f4a6ae2c4db2c77d813",
+      "beforeLines": 4171,
+      "afterLines": 4202,
+      "identicalCanonicalTeachingCopy": true
+    },
+    {
+      "old": "book/educator/ch12/student/unit-a.md",
+      "new": "book/educator/ch12/student/profrod-sovereign-agent-ch12-a-worker-crash-recovery-educator-exercise.md",
+      "beforeSha256": "50884c93ac6e0fdaa11d804ca21656bb28d12d98c00082b5cf136a4066462108",
+      "beforeLines": 3796,
+      "afterLines": 3817,
+      "identicalCanonicalTeachingCopy": true
+    },
+    {
+      "old": "book/educator/ch12/student/unit-b.ipynb",
+      "new": "book/educator/ch12/student/profrod-sovereign-agent-ch12-b-recovery-repair-transfer-educator-exercise.ipynb",
+      "beforeSha256": "945f7830698832d0456283ab9ebcecc423951fe0d4ee67ad8a57d27a98ca9fda",
+      "beforeLines": 4308,
+      "afterLines": 4339,
+      "identicalCanonicalTeachingCopy": true
+    },
+    {
+      "old": "book/educator/ch12/student/unit-b.md",
+      "new": "book/educator/ch12/student/profrod-sovereign-agent-ch12-b-recovery-repair-transfer-educator-exercise.md",
+      "beforeSha256": "7d1d48db88e36d53ab1abd20fa0ad8ab092a2efc9522d0fe673412e7c8ee9d3b",
+      "beforeLines": 3880,
+      "afterLines": 3901,
+      "identicalCanonicalTeachingCopy": true
+    },
+    {
+      "old": "book/educator/ch14/solutions/unit-a.ipynb",
+      "new": "book/educator/ch14/solutions/profrod-sovereign-agent-ch14-a-tool-isolation-educator-solution.ipynb",
+      "beforeSha256": "dfa893b7eaaab48e5e92f741e9cfa124d8b00abf995c3d992b1ba576aaafcbaa",
+      "beforeLines": 4178,
+      "afterLines": 4209,
+      "identicalCanonicalTeachingCopy": true
+    },
+    {
+      "old": "book/educator/ch14/solutions/unit-a.md",
+      "new": "book/educator/ch14/solutions/profrod-sovereign-agent-ch14-a-tool-isolation-educator-solution.md",
+      "beforeSha256": "0527502745fe197341f563167caa7fd186e93936d3b0235d64d08bb0138c7b31",
+      "beforeLines": 3800,
+      "afterLines": 3821,
+      "identicalCanonicalTeachingCopy": true
+    },
+    {
+      "old": "book/educator/ch14/solutions/unit-b.ipynb",
+      "new": "book/educator/ch14/solutions/profrod-sovereign-agent-ch14-b-isolation-repair-transfer-educator-solution.ipynb",
+      "beforeSha256": "4db46588fac906db6d2d05603c1ee6bd7470b5f437bdb348e6cb44df05ef7fec",
+      "beforeLines": 4297,
+      "afterLines": 4328,
+      "identicalCanonicalTeachingCopy": true
+    },
+    {
+      "old": "book/educator/ch14/solutions/unit-b.md",
+      "new": "book/educator/ch14/solutions/profrod-sovereign-agent-ch14-b-isolation-repair-transfer-educator-solution.md",
+      "beforeSha256": "50306eb04ac0dca0916c3c8f246aa0cabbcdec013425b82600326463171be785",
+      "beforeLines": 3866,
+      "afterLines": 3887,
+      "identicalCanonicalTeachingCopy": true
+    },
+    {
+      "old": "book/educator/ch14/student/unit-a.ipynb",
+      "new": "book/educator/ch14/student/profrod-sovereign-agent-ch14-a-tool-isolation-educator-exercise.ipynb",
+      "beforeSha256": "7d2f21e410a17c659c6e6d73d1368cff4784f601dd75dad4fa4b1ce92a17445d",
+      "beforeLines": 4037,
+      "afterLines": 4068,
+      "identicalCanonicalTeachingCopy": true
+    },
+    {
+      "old": "book/educator/ch14/student/unit-a.md",
+      "new": "book/educator/ch14/student/profrod-sovereign-agent-ch14-a-tool-isolation-educator-exercise.md",
+      "beforeSha256": "c1f2183656f2e2064e7d2dc7c08084ec5a5b4b689b5eb4597e6fd2c200228bc4",
+      "beforeLines": 3685,
+      "afterLines": 3706,
+      "identicalCanonicalTeachingCopy": true
+    },
+    {
+      "old": "book/educator/ch14/student/unit-b.ipynb",
+      "new": "book/educator/ch14/student/profrod-sovereign-agent-ch14-b-isolation-repair-transfer-educator-exercise.ipynb",
+      "beforeSha256": "f9d4adfcfa63ef262cc4d01839342d0b64e62fd19d44409df703083e08ace012",
+      "beforeLines": 4174,
+      "afterLines": 4205,
+      "identicalCanonicalTeachingCopy": true
+    },
+    {
+      "old": "book/educator/ch14/student/unit-b.md",
+      "new": "book/educator/ch14/student/profrod-sovereign-agent-ch14-b-isolation-repair-transfer-educator-exercise.md",
+      "beforeSha256": "7886aaae590e0746d25b07a4ccb3a9727a31b617e68016a282d96aa7a4435630",
+      "beforeLines": 3769,
+      "afterLines": 3790,
+      "identicalCanonicalTeachingCopy": true
+    },
+    {
+      "old": "book/educator/ch15/solutions/unit-a.ipynb",
+      "new": "book/educator/ch15/solutions/profrod-sovereign-agent-ch15-a-agent-evaluation-educator-solution.ipynb",
+      "beforeSha256": "307a8b8d29c53f74d261427e7ba3e5481f42a6b7ca51f4ae0b2299a900fba7d6",
+      "beforeLines": 4269,
+      "afterLines": 4300,
+      "identicalCanonicalTeachingCopy": true
+    },
+    {
+      "old": "book/educator/ch15/solutions/unit-a.md",
+      "new": "book/educator/ch15/solutions/profrod-sovereign-agent-ch15-a-agent-evaluation-educator-solution.md",
+      "beforeSha256": "94dc2eb9cc5501a003b10c45b0a19043528b0c19cc001c7447049977a9173c67",
+      "beforeLines": 3868,
+      "afterLines": 3889,
+      "identicalCanonicalTeachingCopy": true
+    },
+    {
+      "old": "book/educator/ch15/solutions/unit-b.ipynb",
+      "new": "book/educator/ch15/solutions/profrod-sovereign-agent-ch15-b-evaluation-repair-transfer-educator-solution.ipynb",
+      "beforeSha256": "3f4b3604963577861ea28384f330662e9216659f2e865d6902913c8e22fa60b8",
+      "beforeLines": 4403,
+      "afterLines": 4434,
+      "identicalCanonicalTeachingCopy": true
+    },
+    {
+      "old": "book/educator/ch15/solutions/unit-b.md",
+      "new": "book/educator/ch15/solutions/profrod-sovereign-agent-ch15-b-evaluation-repair-transfer-educator-solution.md",
+      "beforeSha256": "ff025ce8eb94a4629669219f641f044083e1ae6d2f03932ae3ab385072ea35f3",
+      "beforeLines": 3949,
+      "afterLines": 3970,
+      "identicalCanonicalTeachingCopy": true
+    },
+    {
+      "old": "book/educator/ch15/student/unit-a.ipynb",
+      "new": "book/educator/ch15/student/profrod-sovereign-agent-ch15-a-agent-evaluation-educator-exercise.ipynb",
+      "beforeSha256": "8ca514e156f31e5cf7753bfe4b7ac52644ea9852fdfd17331ceea6fce3965a8d",
+      "beforeLines": 4139,
+      "afterLines": 4170,
+      "identicalCanonicalTeachingCopy": true
+    },
+    {
+      "old": "book/educator/ch15/student/unit-a.md",
+      "new": "book/educator/ch15/student/profrod-sovereign-agent-ch15-a-agent-evaluation-educator-exercise.md",
+      "beforeSha256": "4a2909692e8bb43d4ce827975497885b05649ebfdc6c86ee84bb79863148c227",
+      "beforeLines": 3764,
+      "afterLines": 3785,
+      "identicalCanonicalTeachingCopy": true
+    },
+    {
+      "old": "book/educator/ch15/student/unit-b.ipynb",
+      "new": "book/educator/ch15/student/profrod-sovereign-agent-ch15-b-evaluation-repair-transfer-educator-exercise.ipynb",
+      "beforeSha256": "aac04392c2d3d6f08261d2062d6513678476610c8313058b849d71d74b5904a5",
+      "beforeLines": 4276,
+      "afterLines": 4307,
+      "identicalCanonicalTeachingCopy": true
+    },
+    {
+      "old": "book/educator/ch15/student/unit-b.md",
+      "new": "book/educator/ch15/student/profrod-sovereign-agent-ch15-b-evaluation-repair-transfer-educator-exercise.md",
+      "beforeSha256": "fc2168c9da9b9f095f21f32f5de701b3852661ceb4f5c52bfca4ed47b3b7e584",
+      "beforeLines": 3848,
+      "afterLines": 3869,
+      "identicalCanonicalTeachingCopy": true
+    },
+    {
+      "old": "book/educator/ch16/solutions/unit-a.ipynb",
+      "new": "book/educator/ch16/solutions/profrod-sovereign-agent-ch16-a-controlled-improvement-educator-solution.ipynb",
+      "beforeSha256": "a642dc44bc95593b266408565247fdf1915db4140f329d064a93aa6b1e476815",
+      "beforeLines": 4304,
+      "afterLines": 4335,
+      "identicalCanonicalTeachingCopy": true
+    },
+    {
+      "old": "book/educator/ch16/solutions/unit-a.md",
+      "new": "book/educator/ch16/solutions/profrod-sovereign-agent-ch16-a-controlled-improvement-educator-solution.md",
+      "beforeSha256": "a6ad9aecdf2d4cc0aa9ac9c30f5129fce08fe1db2d96a468d19ba8e23c048a9f",
+      "beforeLines": 3903,
+      "afterLines": 3924,
+      "identicalCanonicalTeachingCopy": true
+    },
+    {
+      "old": "book/educator/ch16/solutions/unit-b.ipynb",
+      "new": "book/educator/ch16/solutions/profrod-sovereign-agent-ch16-b-improvement-repair-transfer-educator-solution.ipynb",
+      "beforeSha256": "40087db19488a8e5d94b4d1fb1002200bbcfa1fd782e9a878b10ba51c10ff214",
+      "beforeLines": 4409,
+      "afterLines": 4440,
+      "identicalCanonicalTeachingCopy": true
+    },
+    {
+      "old": "book/educator/ch16/solutions/unit-b.md",
+      "new": "book/educator/ch16/solutions/profrod-sovereign-agent-ch16-b-improvement-repair-transfer-educator-solution.md",
+      "beforeSha256": "6f2fe317f04456ae971686f5a6bfc2e428a0f6b0ce912ec591410c40821fb4cc",
+      "beforeLines": 3955,
+      "afterLines": 3976,
+      "identicalCanonicalTeachingCopy": true
+    },
+    {
+      "old": "book/educator/ch16/student/unit-a.ipynb",
+      "new": "book/educator/ch16/student/profrod-sovereign-agent-ch16-a-controlled-improvement-educator-exercise.ipynb",
+      "beforeSha256": "6fbb764a014ded08b323ff2884f92eeaae31fad35b256fdb3705fb44f242bc8d",
+      "beforeLines": 4152,
+      "afterLines": 4183,
+      "identicalCanonicalTeachingCopy": true
+    },
+    {
+      "old": "book/educator/ch16/student/unit-a.md",
+      "new": "book/educator/ch16/student/profrod-sovereign-agent-ch16-a-controlled-improvement-educator-exercise.md",
+      "beforeSha256": "24712cca60e99326cc28438ea66c52d999e241d374b6da392b376f404f5add5e",
+      "beforeLines": 3777,
+      "afterLines": 3798,
+      "identicalCanonicalTeachingCopy": true
+    },
+    {
+      "old": "book/educator/ch16/student/unit-b.ipynb",
+      "new": "book/educator/ch16/student/profrod-sovereign-agent-ch16-b-improvement-repair-transfer-educator-exercise.ipynb",
+      "beforeSha256": "2a6bb4db94bf1836b173a5406fd8c11f64f6f8885abb6638e88f6b138a3690f6",
+      "beforeLines": 4281,
+      "afterLines": 4312,
+      "identicalCanonicalTeachingCopy": true
+    },
+    {
+      "old": "book/educator/ch16/student/unit-b.md",
+      "new": "book/educator/ch16/student/profrod-sovereign-agent-ch16-b-improvement-repair-transfer-educator-exercise.md",
+      "beforeSha256": "ef7da76021ffe9c58b36c4071a340a33a1da208601e831f476ab48faf0cb97e6",
+      "beforeLines": 3853,
+      "afterLines": 3874,
+      "identicalCanonicalTeachingCopy": true
+    },
+    {
+      "old": "book/educator/ch17/solutions/unit-a.ipynb",
+      "new": "book/educator/ch17/solutions/profrod-sovereign-agent-ch17-a-bounded-delegation-educator-solution.ipynb",
+      "beforeSha256": "3225a01acebb62a259534eac36ff5a714d3038d5c694414e31e8540166861155",
+      "beforeLines": 4265,
+      "afterLines": 4296,
+      "identicalCanonicalTeachingCopy": true
+    },
+    {
+      "old": "book/educator/ch17/solutions/unit-a.md",
+      "new": "book/educator/ch17/solutions/profrod-sovereign-agent-ch17-a-bounded-delegation-educator-solution.md",
+      "beforeSha256": "fc0bed56c657cb2ed65081f1690c215601e9c89a85bbdc3f5b970d936a005baf",
+      "beforeLines": 3864,
+      "afterLines": 3885,
+      "identicalCanonicalTeachingCopy": true
+    },
+    {
+      "old": "book/educator/ch17/solutions/unit-b.ipynb",
+      "new": "book/educator/ch17/solutions/profrod-sovereign-agent-ch17-b-delegation-repair-transfer-educator-solution.ipynb",
+      "beforeSha256": "507a231ddff4d500143d8e37cf206707494eaac010439e383671bedc49fe2ffd",
+      "beforeLines": 4385,
+      "afterLines": 4416,
+      "identicalCanonicalTeachingCopy": true
+    },
+    {
+      "old": "book/educator/ch17/solutions/unit-b.md",
+      "new": "book/educator/ch17/solutions/profrod-sovereign-agent-ch17-b-delegation-repair-transfer-educator-solution.md",
+      "beforeSha256": "108b8924572735242ec52135d201347991e1972d0af434dda28b2372e1fab394",
+      "beforeLines": 3931,
+      "afterLines": 3952,
+      "identicalCanonicalTeachingCopy": true
+    },
+    {
+      "old": "book/educator/ch17/student/unit-a.ipynb",
+      "new": "book/educator/ch17/student/profrod-sovereign-agent-ch17-a-bounded-delegation-educator-exercise.ipynb",
+      "beforeSha256": "b11bb4060a2756285430b6bcd79e2227e68557e1718a8d8f13e5d53927a79328",
+      "beforeLines": 4121,
+      "afterLines": 4152,
+      "identicalCanonicalTeachingCopy": true
+    },
+    {
+      "old": "book/educator/ch17/student/unit-a.md",
+      "new": "book/educator/ch17/student/profrod-sovereign-agent-ch17-a-bounded-delegation-educator-exercise.md",
+      "beforeSha256": "8d9f742bfe05cdd0638512f654a432ea24138112ed1ba02866a24f3cbc8cd9df",
+      "beforeLines": 3746,
+      "afterLines": 3767,
+      "identicalCanonicalTeachingCopy": true
+    },
+    {
+      "old": "book/educator/ch17/student/unit-b.ipynb",
+      "new": "book/educator/ch17/student/profrod-sovereign-agent-ch17-b-delegation-repair-transfer-educator-exercise.ipynb",
+      "beforeSha256": "0685c4ec5ddf29537efc6df0ab55231ecff178137e5b4860383fd0616fe180c1",
+      "beforeLines": 4258,
+      "afterLines": 4289,
+      "identicalCanonicalTeachingCopy": true
+    },
+    {
+      "old": "book/educator/ch17/student/unit-b.md",
+      "new": "book/educator/ch17/student/profrod-sovereign-agent-ch17-b-delegation-repair-transfer-educator-exercise.md",
+      "beforeSha256": "490d4b6487a574047f79aba430c12b03cfa0e1bb1ba949dd53b679b5ac725abb",
+      "beforeLines": 3830,
+      "afterLines": 3851,
+      "identicalCanonicalTeachingCopy": true
+    },
+    {
+      "old": "book/educator/ch18/solutions/unit-a.ipynb",
+      "new": "book/educator/ch18/solutions/profrod-sovereign-agent-ch18-a-deployment-restoration-educator-solution.ipynb",
+      "beforeSha256": "1daef57ccdf9b460bf8e5a64910c4e729d7734a38625ea6dd9c7141b378ba5cc",
+      "beforeLines": 4307,
+      "afterLines": 4338,
+      "identicalCanonicalTeachingCopy": true
+    },
+    {
+      "old": "book/educator/ch18/solutions/unit-a.md",
+      "new": "book/educator/ch18/solutions/profrod-sovereign-agent-ch18-a-deployment-restoration-educator-solution.md",
+      "beforeSha256": "fb78709379a1a734b30f657eef043b1ec89b896d4f8d7914f63e0c646c9bf770",
+      "beforeLines": 3906,
+      "afterLines": 3927,
+      "identicalCanonicalTeachingCopy": true
+    },
+    {
+      "old": "book/educator/ch18/solutions/unit-b.ipynb",
+      "new": "book/educator/ch18/solutions/profrod-sovereign-agent-ch18-b-operations-repair-transfer-educator-solution.ipynb",
+      "beforeSha256": "812652be2cb21d9f3f9c0bf5eaa81d48f707863c003a6cef673a761b34ea354b",
+      "beforeLines": 4406,
+      "afterLines": 4437,
+      "identicalCanonicalTeachingCopy": true
+    },
+    {
+      "old": "book/educator/ch18/solutions/unit-b.md",
+      "new": "book/educator/ch18/solutions/profrod-sovereign-agent-ch18-b-operations-repair-transfer-educator-solution.md",
+      "beforeSha256": "4242fe0df2e9f1616248e927292adccf5d0864a80e36d69b48c7283951bb5db2",
+      "beforeLines": 3952,
+      "afterLines": 3973,
+      "identicalCanonicalTeachingCopy": true
+    },
+    {
+      "old": "book/educator/ch18/student/unit-a.ipynb",
+      "new": "book/educator/ch18/student/profrod-sovereign-agent-ch18-a-deployment-restoration-educator-exercise.ipynb",
+      "beforeSha256": "d9765bd559b241eaf6f129141753260d47449dab993fb1e965951d1bce795c36",
+      "beforeLines": 4138,
+      "afterLines": 4169,
+      "identicalCanonicalTeachingCopy": true
+    },
+    {
+      "old": "book/educator/ch18/student/unit-a.md",
+      "new": "book/educator/ch18/student/profrod-sovereign-agent-ch18-a-deployment-restoration-educator-exercise.md",
+      "beforeSha256": "00ea1234f53bae5c0c8343972b7261eaa52b025fdb4e2d75e1f25a377b106df6",
+      "beforeLines": 3763,
+      "afterLines": 3784,
+      "identicalCanonicalTeachingCopy": true
+    },
+    {
+      "old": "book/educator/ch18/student/unit-b.ipynb",
+      "new": "book/educator/ch18/student/profrod-sovereign-agent-ch18-b-operations-repair-transfer-educator-exercise.ipynb",
+      "beforeSha256": "5c1fdf1a19380581f66983ad79e907c4973de5ab95e70924f335c4d179893515",
+      "beforeLines": 4275,
+      "afterLines": 4306,
+      "identicalCanonicalTeachingCopy": true
+    },
+    {
+      "old": "book/educator/ch18/student/unit-b.md",
+      "new": "book/educator/ch18/student/profrod-sovereign-agent-ch18-b-operations-repair-transfer-educator-exercise.md",
+      "beforeSha256": "96e33fb523ec1a69b7532f64672e5d7a6204e6bf396f5a3df8cd056f3743bef3",
+      "beforeLines": 3847,
+      "afterLines": 3868,
+      "identicalCanonicalTeachingCopy": true
+    },
+    {
+      "old": "book/educator/ch19/solutions/unit-a.ipynb",
+      "new": "book/educator/ch19/solutions/profrod-sovereign-agent-ch19-a-integrated-day-acceptance-educator-solution.ipynb",
+      "beforeSha256": "f47ff9bd91e99d2567e323db6287a8f4f0d68d66fbaa93e127c5841da95108c8",
+      "beforeLines": 4468,
+      "afterLines": 4499,
+      "identicalCanonicalTeachingCopy": true
+    },
+    {
+      "old": "book/educator/ch19/solutions/unit-a.md",
+      "new": "book/educator/ch19/solutions/profrod-sovereign-agent-ch19-a-integrated-day-acceptance-educator-solution.md",
+      "beforeSha256": "ac8debf1095416d40e6c7276e60cba793d24caf44a762f574116d8015f1aba69",
+      "beforeLines": 4067,
+      "afterLines": 4088,
+      "identicalCanonicalTeachingCopy": true
+    },
+    {
+      "old": "book/educator/ch19/solutions/unit-b.ipynb",
+      "new": "book/educator/ch19/solutions/profrod-sovereign-agent-ch19-b-acceptance-repair-transfer-educator-solution.ipynb",
+      "beforeSha256": "6fc5652b8cfa102b9fc4485551e51fbf6b2c41867e239f372c3e43fc046bf707",
+      "beforeLines": 4447,
+      "afterLines": 4478,
+      "identicalCanonicalTeachingCopy": true
+    },
+    {
+      "old": "book/educator/ch19/solutions/unit-b.md",
+      "new": "book/educator/ch19/solutions/profrod-sovereign-agent-ch19-b-acceptance-repair-transfer-educator-solution.md",
+      "beforeSha256": "dfc7c27af8ae02c25c5721738fe5de62c6aa46a8b4004a1a442a7e8a5e5f7578",
+      "beforeLines": 3993,
+      "afterLines": 4014,
+      "identicalCanonicalTeachingCopy": true
+    },
+    {
+      "old": "book/educator/ch19/student/unit-a.ipynb",
+      "new": "book/educator/ch19/student/profrod-sovereign-agent-ch19-a-integrated-day-acceptance-educator-exercise.ipynb",
+      "beforeSha256": "14d29b2679ccf8ffbcc9e7a2f39b4e35b907562f4d1ea9e26dbfbec86b8d1f7e",
+      "beforeLines": 4162,
+      "afterLines": 4193,
+      "identicalCanonicalTeachingCopy": true
+    },
+    {
+      "old": "book/educator/ch19/student/unit-a.md",
+      "new": "book/educator/ch19/student/profrod-sovereign-agent-ch19-a-integrated-day-acceptance-educator-exercise.md",
+      "beforeSha256": "8f5dfa675628ad41337ff899759e1b9ffcbd61cdc0ec8d4d436e488f1178d88d",
+      "beforeLines": 3787,
+      "afterLines": 3808,
+      "identicalCanonicalTeachingCopy": true
+    },
+    {
+      "old": "book/educator/ch19/student/unit-b.ipynb",
+      "new": "book/educator/ch19/student/profrod-sovereign-agent-ch19-b-acceptance-repair-transfer-educator-exercise.ipynb",
+      "beforeSha256": "a43dc11d9a782ea9a8a20c1fb2c7a2e46907444ccf2db2b3a5c9294730875105",
+      "beforeLines": 4299,
+      "afterLines": 4330,
+      "identicalCanonicalTeachingCopy": true
+    },
+    {
+      "old": "book/educator/ch19/student/unit-b.md",
+      "new": "book/educator/ch19/student/profrod-sovereign-agent-ch19-b-acceptance-repair-transfer-educator-exercise.md",
+      "beforeSha256": "3e606794f972ae60d9e4bc415013a66bd20f940066e7d58954929ebc92d8b4a8",
+      "beforeLines": 3871,
+      "afterLines": 3892,
+      "identicalCanonicalTeachingCopy": true
+    },
+    {
+      "old": "README.md",
+      "new": "README.md",
+      "beforeLines": 162,
+      "afterLines": 172
+    },
+    {
+      "old": "CONTRIBUTING.md",
+      "new": "CONTRIBUTING.md",
+      "beforeLines": 113,
+      "afterLines": 113
+    },
+    {
+      "old": "Makefile",
+      "new": "Makefile",
+      "beforeLines": 54,
+      "afterLines": 54
+    },
+    {
+      "old": ".github/workflows/ci.yml",
+      "new": ".github/workflows/ci.yml",
+      "beforeLines": 209,
+      "afterLines": 209
+    }
+  ]
+}

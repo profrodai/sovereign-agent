@@ -43,11 +43,11 @@ jobs:
       - name: Verify historical edition compatibility in isolation
         run: python scripts/book_archive_support_v1.py gates
       - name: Verify active textbook examples and construction checkpoints
-        run: python scripts/verify_book_assets_v1.py --textbook
+        run: python scripts/verify_book_assets_v2.py --textbook
       - name: Execute active companion notebooks and verify separate downloads
         run: |
-          python scripts/verify_book_assets_v1.py --check-execution
-          python scripts/package_book_assets_v1.py --verify
+          python scripts/verify_book_assets_v2.py --check-execution
+          python scripts/package_book_assets_v2.py --verify
       - name: Verify offline commands
         run: |
           sovereign-agent --help
