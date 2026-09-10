@@ -2,6 +2,8 @@
 
 **Created:** 2026-09-09 · **Status:** implementation of the operator's four-asset structure; added chapters remain planned
 
+**Historical record — 2026-09-10:** Filename conventions are superseded by the [distribution update](book-distribution-20260910.md). Chapter links below now pin the original published revision so this record remains navigable; its numbering and historical descriptions are preserved.
+
 The reader-facing publication is `book/README.md`. It routes to exactly four directories: `textbook`, `exercises`, `solutions` and `educator`. The canonical chapter registry is `book/textbook/BOOK.json`, with nineteen ordered entries, stable lesson IDs and explicit DRAFT or PLANNED status. The same numbers identify topics in all four assets.
 
 ## Which material is current
@@ -22,22 +24,22 @@ No archived file is deleted or silently rewritten. The entire source snapshot co
 
 | Previous chapter | Current chapter | Topic |
 |---|---|---|
-| 1 | [1](../book/textbook/ch01/README.md) | Make the first model call for Lucy |
-| 2 | [2](../book/textbook/ch02/README.md) | Give the agent reliable shop tools |
-| 3 | [3](../book/textbook/ch03/README.md) | Build the model and tool loop |
-| 4 | [5](../book/textbook/ch05/README.md) | Remember across conversations |
-| 5 | [6](../book/textbook/ch06/README.md) | Reuse a tested opening procedure |
-| 6 | [8](../book/textbook/ch08/README.md) | Talk to the agent from your phone |
-| 7 | [9](../book/textbook/ch09/README.md) | Wake up for schedules and stock events |
-| 8 | [10](../book/textbook/ch10/README.md) | Ask permission before spending |
-| 9 | [11](../book/textbook/ch11/README.md) | Survive the ambiguous supplier order |
-| 10 | [12](../book/textbook/ch12/README.md) | Recover work after a process crash |
-| 11 | [14](../book/textbook/ch14/README.md) | Isolate tools and untrusted content |
-| 12 | [15](../book/textbook/ch15/README.md) | Measure whether the agent helps |
-| 13 | [16](../book/textbook/ch16/README.md) | Improve behavior with evaluated changes |
-| 14 | [17](../book/textbook/ch17/README.md) | Delegate one bounded task |
-| 15 | [18](../book/textbook/ch18/README.md) | Deploy and maintain the agent |
-| 16 | [19](../book/textbook/ch19/README.md) | Lucy leaves the shop for a day |
+| 1 | [1](https://github.com/profrodai/sovereign-agent/blob/b4a0c56df9c74ace40f2b9e89b0fd659849087bc/book/textbook/ch01/README.md) | Make the first model call for Lucy |
+| 2 | [2](https://github.com/profrodai/sovereign-agent/blob/b4a0c56df9c74ace40f2b9e89b0fd659849087bc/book/textbook/ch02/README.md) | Give the agent reliable shop tools |
+| 3 | [3](https://github.com/profrodai/sovereign-agent/blob/b4a0c56df9c74ace40f2b9e89b0fd659849087bc/book/textbook/ch03/README.md) | Build the model and tool loop |
+| 4 | [5](https://github.com/profrodai/sovereign-agent/blob/b4a0c56df9c74ace40f2b9e89b0fd659849087bc/book/textbook/ch05/README.md) | Remember across conversations |
+| 5 | [6](https://github.com/profrodai/sovereign-agent/blob/b4a0c56df9c74ace40f2b9e89b0fd659849087bc/book/textbook/ch06/README.md) | Reuse a tested opening procedure |
+| 6 | [8](https://github.com/profrodai/sovereign-agent/blob/b4a0c56df9c74ace40f2b9e89b0fd659849087bc/book/textbook/ch08/README.md) | Talk to the agent from your phone |
+| 7 | [9](https://github.com/profrodai/sovereign-agent/blob/b4a0c56df9c74ace40f2b9e89b0fd659849087bc/book/textbook/ch09/README.md) | Wake up for schedules and stock events |
+| 8 | [10](https://github.com/profrodai/sovereign-agent/blob/b4a0c56df9c74ace40f2b9e89b0fd659849087bc/book/textbook/ch10/README.md) | Ask permission before spending |
+| 9 | [11](https://github.com/profrodai/sovereign-agent/blob/b4a0c56df9c74ace40f2b9e89b0fd659849087bc/book/textbook/ch11/README.md) | Survive the ambiguous supplier order |
+| 10 | [12](https://github.com/profrodai/sovereign-agent/blob/b4a0c56df9c74ace40f2b9e89b0fd659849087bc/book/textbook/ch12/README.md) | Recover work after a process crash |
+| 11 | [14](https://github.com/profrodai/sovereign-agent/blob/b4a0c56df9c74ace40f2b9e89b0fd659849087bc/book/textbook/ch14/README.md) | Isolate tools and untrusted content |
+| 12 | [15](https://github.com/profrodai/sovereign-agent/blob/b4a0c56df9c74ace40f2b9e89b0fd659849087bc/book/textbook/ch15/README.md) | Measure whether the agent helps |
+| 13 | [16](https://github.com/profrodai/sovereign-agent/blob/b4a0c56df9c74ace40f2b9e89b0fd659849087bc/book/textbook/ch16/README.md) | Improve behavior with evaluated changes |
+| 14 | [17](https://github.com/profrodai/sovereign-agent/blob/b4a0c56df9c74ace40f2b9e89b0fd659849087bc/book/textbook/ch17/README.md) | Delegate one bounded task |
+| 15 | [18](https://github.com/profrodai/sovereign-agent/blob/b4a0c56df9c74ace40f2b9e89b0fd659849087bc/book/textbook/ch18/README.md) | Deploy and maintain the agent |
+| 16 | [19](https://github.com/profrodai/sovereign-agent/blob/b4a0c56df9c74ace40f2b9e89b0fd659849087bc/book/textbook/ch19/README.md) | Lucy leaves the shop for a day |
 
 New Chapter 4 teaches durable SQLite state, Chapter 7 builds the work inbox and report outbox, and Chapter 13 builds MCP protocol integration separately from containment. Each has a detailed scope in the textbook and a clearly labelled planned entry in every companion. No empty notebook represents completed work. Existing isolation material still contains its MCP introduction until the new standalone chapter is authored; the construction brief states that extraction work explicitly.
 

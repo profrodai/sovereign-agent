@@ -37,17 +37,17 @@ labs:
 
 .PHONY: exercises
 exercises:
-	$(UV) run --python 3.14 --group authoring python scripts/verify_book_assets_v1.py --check-execution
-	$(UV) run --python 3.14 python scripts/package_book_assets_v1.py --verify
+	$(UV) run --python 3.14 --group authoring python scripts/verify_book_assets_v2.py --check-execution
+	$(UV) run --python 3.14 python scripts/package_book_assets_v2.py --verify
 
 .PHONY: verify
 verify: lint test
 	$(UV) run --python 3.14 python scripts/verify_runtime_dependencies.py
 	$(UV) run --python 3.14 python scripts/verify_source_budget_v2.py
 	$(UV) run --python 3.14 python scripts/book_archive_support_v1.py gates
-	$(UV) run --python 3.14 python scripts/verify_book_assets_v1.py --textbook
-	$(UV) run --python 3.14 python scripts/verify_book_assets_v1.py
-	$(UV) run --python 3.14 python scripts/package_book_assets_v1.py --verify
+	$(UV) run --python 3.14 python scripts/verify_book_assets_v2.py --textbook
+	$(UV) run --python 3.14 python scripts/verify_book_assets_v2.py
+	$(UV) run --python 3.14 python scripts/package_book_assets_v2.py --verify
 	$(UV) run --python 3.14 sovereign-agent --help >/dev/null
 	$(UV) run --python 3.14 sovereign-agent doctor
 	$(UV) run --python 3.14 sovereign-agent demo store --mode simulated --root /tmp/sovereign-agent-demo

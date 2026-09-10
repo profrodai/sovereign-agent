@@ -9,31 +9,31 @@
       "number": 1,
       "lessonId": "first-model-call",
       "title": "Make the first model call for Lucy",
-      "path": "ch01/README.md",
-      "checkpoint": "checkpoints/ch01.py",
+      "path": "ch01/profrod-sovereign-agent-ch01-first-model-call-chapter.md",
+      "checkpoint": "checkpoints/profrod_sovereign_agent_ch01_first_model_call_checkpoint.py",
       "status": "DRAFT"
     },
     {
       "number": 2,
       "lessonId": "shop-tools",
       "title": "Give the agent reliable shop tools",
-      "path": "ch02/README.md",
-      "checkpoint": "checkpoints/ch02.py",
+      "path": "ch02/profrod-sovereign-agent-ch02-pydantic-shop-tools-chapter.md",
+      "checkpoint": "checkpoints/profrod_sovereign_agent_ch02_pydantic_shop_tools_checkpoint.py",
       "status": "DRAFT"
     },
     {
       "number": 3,
       "lessonId": "agent-loop",
       "title": "Build the model and tool loop",
-      "path": "ch03/README.md",
-      "checkpoint": "checkpoints/ch03.py",
+      "path": "ch03/profrod-sovereign-agent-ch03-agent-loop-chapter.md",
+      "checkpoint": "checkpoints/profrod_sovereign_agent_ch03_agent_loop_checkpoint.py",
       "status": "DRAFT"
     },
     {
       "number": 4,
       "lessonId": "durable-state",
       "title": "Build durable state with SQLite",
-      "path": "ch04/README.md",
+      "path": "ch04/profrod-sovereign-agent-ch04-sqlite-state-chapter.md",
       "checkpoint": null,
       "status": "PLANNED"
     },
@@ -41,23 +41,23 @@
       "number": 5,
       "lessonId": "memory",
       "title": "Remember across conversations",
-      "path": "ch05/README.md",
-      "checkpoint": "checkpoints/ch05.py",
+      "path": "ch05/profrod-sovereign-agent-ch05-durable-memory-chapter.md",
+      "checkpoint": "checkpoints/profrod_sovereign_agent_ch05_durable_memory_checkpoint.py",
       "status": "DRAFT"
     },
     {
       "number": 6,
       "lessonId": "skills",
       "title": "Reuse a tested opening procedure",
-      "path": "ch06/README.md",
-      "checkpoint": "checkpoints/ch06.py",
+      "path": "ch06/profrod-sovereign-agent-ch06-versioned-skills-chapter.md",
+      "checkpoint": "checkpoints/profrod_sovereign_agent_ch06_versioned_skills_checkpoint.py",
       "status": "DRAFT"
     },
     {
       "number": 7,
       "lessonId": "durable-work",
       "title": "Build a durable work inbox and report outbox",
-      "path": "ch07/README.md",
+      "path": "ch07/profrod-sovereign-agent-ch07-durable-inbox-outbox-chapter.md",
       "checkpoint": null,
       "status": "PLANNED"
     },
@@ -65,47 +65,47 @@
       "number": 8,
       "lessonId": "messaging",
       "title": "Talk to the agent from your phone",
-      "path": "ch08/README.md",
-      "checkpoint": "checkpoints/ch08.py",
+      "path": "ch08/profrod-sovereign-agent-ch08-telegram-messaging-chapter.md",
+      "checkpoint": "checkpoints/profrod_sovereign_agent_ch08_telegram_messaging_checkpoint.py",
       "status": "DRAFT"
     },
     {
       "number": 9,
       "lessonId": "scheduling",
       "title": "Wake up for schedules and stock events",
-      "path": "ch09/README.md",
-      "checkpoint": "checkpoints/ch09.py",
+      "path": "ch09/profrod-sovereign-agent-ch09-schedules-stock-events-chapter.md",
+      "checkpoint": "checkpoints/profrod_sovereign_agent_ch09_schedules_stock_events_checkpoint.py",
       "status": "DRAFT"
     },
     {
       "number": 10,
       "lessonId": "approval",
       "title": "Ask permission before spending",
-      "path": "ch10/README.md",
-      "checkpoint": "checkpoints/ch10.py",
+      "path": "ch10/profrod-sovereign-agent-ch10-spending-permissions-chapter.md",
+      "checkpoint": "checkpoints/profrod_sovereign_agent_ch10_spending_permissions_checkpoint.py",
       "status": "DRAFT"
     },
     {
       "number": 11,
       "lessonId": "ambiguous-order",
       "title": "Survive the ambiguous supplier order",
-      "path": "ch11/README.md",
-      "checkpoint": "checkpoints/ch11.py",
+      "path": "ch11/profrod-sovereign-agent-ch11-ambiguous-supplier-order-chapter.md",
+      "checkpoint": "checkpoints/profrod_sovereign_agent_ch11_ambiguous_supplier_order_checkpoint.py",
       "status": "DRAFT"
     },
     {
       "number": 12,
       "lessonId": "worker-recovery",
       "title": "Recover work after a process crash",
-      "path": "ch12/README.md",
-      "checkpoint": "checkpoints/ch12.py",
+      "path": "ch12/profrod-sovereign-agent-ch12-worker-recovery-chapter.md",
+      "checkpoint": "checkpoints/profrod_sovereign_agent_ch12_worker_recovery_checkpoint.py",
       "status": "DRAFT"
     },
     {
       "number": 13,
       "lessonId": "mcp",
       "title": "Connect an external tool with MCP",
-      "path": "ch13/README.md",
+      "path": "ch13/profrod-sovereign-agent-ch13-mcp-tools-chapter.md",
       "checkpoint": null,
       "status": "PLANNED"
     },
@@ -113,51 +113,58 @@
       "number": 14,
       "lessonId": "isolation",
       "title": "Isolate tools and untrusted content",
-      "path": "ch14/README.md",
-      "checkpoint": "checkpoints/ch14.py",
+      "path": "ch14/profrod-sovereign-agent-ch14-tool-isolation-chapter.md",
+      "checkpoint": "checkpoints/profrod_sovereign_agent_ch14_tool_isolation_checkpoint.py",
       "status": "DRAFT"
     },
     {
       "number": 15,
       "lessonId": "evaluation",
       "title": "Measure whether the agent helps",
-      "path": "ch15/README.md",
-      "checkpoint": "checkpoints/ch15.py",
+      "path": "ch15/profrod-sovereign-agent-ch15-agent-evaluation-chapter.md",
+      "checkpoint": "checkpoints/profrod_sovereign_agent_ch15_agent_evaluation_checkpoint.py",
       "status": "DRAFT"
     },
     {
       "number": 16,
       "lessonId": "improvement",
       "title": "Improve behavior with evaluated changes",
-      "path": "ch16/README.md",
-      "checkpoint": "checkpoints/ch16.py",
+      "path": "ch16/profrod-sovereign-agent-ch16-controlled-improvement-chapter.md",
+      "checkpoint": "checkpoints/profrod_sovereign_agent_ch16_controlled_improvement_checkpoint.py",
       "status": "DRAFT"
     },
     {
       "number": 17,
       "lessonId": "delegation",
       "title": "Delegate one bounded task",
-      "path": "ch17/README.md",
-      "checkpoint": "checkpoints/ch17.py",
+      "path": "ch17/profrod-sovereign-agent-ch17-bounded-delegation-chapter.md",
+      "checkpoint": "checkpoints/profrod_sovereign_agent_ch17_bounded_delegation_checkpoint.py",
       "status": "DRAFT"
     },
     {
       "number": 18,
       "lessonId": "operation",
       "title": "Deploy and maintain the agent",
-      "path": "ch18/README.md",
-      "checkpoint": "checkpoints/ch18.py",
+      "path": "ch18/profrod-sovereign-agent-ch18-deployment-restoration-chapter.md",
+      "checkpoint": "checkpoints/profrod_sovereign_agent_ch18_deployment_restoration_checkpoint.py",
       "status": "DRAFT"
     },
     {
       "number": 19,
       "lessonId": "acceptance",
       "title": "Lucy leaves the shop for a day",
-      "path": "ch19/README.md",
-      "checkpoint": "checkpoints/ch19.py",
+      "path": "ch19/profrod-sovereign-agent-ch19-integrated-shop-day-chapter.md",
+      "checkpoint": "checkpoints/profrod_sovereign_agent_ch19_integrated_shop_day_checkpoint.py",
       "status": "DRAFT"
     }
   ],
   "edition": "nineteen-chapter-construction",
-  "updated": "2026-09-09"
+  "updated": "2026-09-10",
+  "distribution": {
+    "version": "2026-09-10",
+    "bookUrl": "https://profrod.ai/book",
+    "communityUrl": "https://profrod.ai/community",
+    "sourceUrl": "https://github.com/profrodai/sovereign-agent",
+    "filenamePrefix": "profrod-sovereign-agent"
+  }
 }

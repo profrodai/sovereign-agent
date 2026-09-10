@@ -1,21 +1,27 @@
 # Build Your Always-On AI Agent From Scratch
 
+> **Learn with Prof Rod** — *Build Your Always-On AI Agent From Scratch*.
+> **Read the full book and get the latest learning materials:** [https://profrod.ai/book](https://profrod.ai/book).
+> **Join the Prof Rod learner community:** [https://profrod.ai/community](https://profrod.ai/community)
+> — bring your questions, compare experiments and share what you build.
+> **Original source and updates:** [profrodai/sovereign-agent](https://github.com/profrodai/sovereign-agent).
+
 **One teaching book. Four companion assets. Nineteen chapters.**
 
 Learn to build a Python agent for Lucy's ice cream shop: tools, memory, Telegram messaging, schedules, permissions and recovery. Start with the textbook, then use the matching chapter in the exercises book. Consult solutions after an attempt. Educators can prepare a class from the fourth asset alone.
 
 | Asset | What you will find | Start here |
 |---|---|---|
-| **Textbook** | Explanations, worked examples, chapter code, checkpoints and appendices | [Read the textbook](textbook/README.md) |
-| **Exercises book** | Student notebooks and matching Markdown, with goals, introductions, hints and changed-case work | [Do the exercises](exercises/README.md) |
-| **Solutions book** | Worked notebooks, explanations and additional checks | [Study the solutions](solutions/README.md) |
-| **Educator materials** | Session guides, local student and worked copies, timing plans and assessment tools | [Prepare a class](educator/README.md) |
+| **Textbook** | Explanations, worked examples, chapter code, checkpoints and appendices | [Read the textbook](textbook/profrod-sovereign-agent-textbook-start-here.md) |
+| **Exercises book** | Student notebooks and matching Markdown, with goals, introductions, hints and changed-case work | [Do the exercises](exercises/profrod-sovereign-agent-exercises-start-here.md) |
+| **Solutions book** | Worked notebooks, explanations and additional checks | [Study the solutions](solutions/profrod-sovereign-agent-solutions-start-here.md) |
+| **Educator materials** | Session guides, local student and worked copies, timing plans and assessment tools | [Prepare a class](educator/profrod-sovereign-agent-educator-start-here.md) |
 
 Every asset uses the same chapter numbers. For example, `textbook/ch02`, `exercises/ch02`, `solutions/ch02` and `educator/ch02` all teach reliable shop tools and introduce Pydantic. You do not need to choose between differently named versions of the book.
 
 ## What is available now
 
-The nineteen-chapter edition is under construction. **Sixteen chapters have manuscript drafts and two ninety-minute practical units each. Chapters 4, 7 and 13 have detailed planned scopes; their new lessons and six practical units are not yet written.** The [textbook contents](textbook/README.md) marks each chapter's status explicitly.
+The nineteen-chapter edition is under construction. **Sixteen chapters have manuscript drafts and two ninety-minute practical units each. Chapters 4, 7 and 13 have detailed planned scopes; their new lessons and six practical units are not yet written.** The [textbook contents](textbook/profrod-sovereign-agent-textbook-start-here.md) marks each chapter's status explicitly.
 
 There are currently 32 student units and 32 worked counterparts: 48 hours of planned student practice. The completed nineteen-chapter course will contain 38 student units: 57 hours. Every available notebook includes its own required setup, concepts and supplied teaching runtime. Its successful execution does not certify that the learner has built that entire runtime from scratch.
 
@@ -25,4 +31,8 @@ Use Python 3.14. The exercises and solutions need Jupyter and Pydantic 2; their 
 
 Read a chapter, attempt Unit A, then investigate and transfer in Unit B. Save your predictions and code before reading a worked solution. Teachers should rehearse the local worked copy before distributing student files. Ninety minutes is a work plan, not a measured guarantee of completion or learning.
 
-The previous thirteen-chapter curriculum, earlier classroom packs and superseded practical editions are [historical material](../docs/archive/README.md). They are preserved for existing references and verification, outside the current book. The [migration record](../docs/book-migration-20260909.md) maps old chapter numbers and paths to this edition.
+The previous thirteen-chapter curriculum, earlier classroom packs and superseded practical editions are [historical material](../docs/archive/README.md). They are preserved for existing references and verification, outside the current book. The [migration record](../docs/book-migration-20260909.md) maps old chapter numbers and paths to this edition. The [distribution update](../docs/book-distribution-20260910.md) explains the descriptive filenames and maps each renamed file.
+
+## Keep building with Prof Rod
+
+Found this material through a colleague, classroom or shared download? [Get the complete book at profrod.ai/book](https://profrod.ai/book) and [join the Prof Rod learner community](https://profrod.ai/community). Bring one result, one question or one failure you learned from. Share this resource with another learner and keep its source links with it so they can find the full course and future updates.

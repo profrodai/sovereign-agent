@@ -1,5 +1,11 @@
 # Sovereign Agent
 
+> **Learn with Prof Rod** — *Build Your Always-On AI Agent From Scratch*.
+> **Read the full book and get the latest learning materials:** [https://profrod.ai/book](https://profrod.ai/book).
+> **Join the Prof Rod learner community:** [https://profrod.ai/community](https://profrod.ai/community)
+> — bring your questions, compare experiments and share what you build.
+> **Original source and updates:** [profrodai/sovereign-agent](https://github.com/profrodai/sovereign-agent).
+
 **Build Your Always-On AI Agent From Scratch — in Python.**
 
 [![CI](https://github.com/profrodai/sovereign-agent/actions/workflows/ci.yml/badge.svg)](https://github.com/profrodai/sovereign-agent/actions/workflows/ci.yml)
@@ -14,8 +20,8 @@ one direct runtime dependency keep the implementation inspectable. Zeocore is an
 optional tool integration; the teaching agent does not require it.
 
 [Start with the book](book/README.md): one nineteen-chapter teaching sequence,
-organized into [textbook](book/textbook/README.md), [exercises](book/exercises/README.md),
-[solutions](book/solutions/README.md) and [educator materials](book/educator/README.md).
+organized into [textbook](book/textbook/profrod-sovereign-agent-textbook-start-here.md), [exercises](book/exercises/profrod-sovereign-agent-exercises-start-here.md),
+[solutions](book/solutions/profrod-sovereign-agent-solutions-start-here.md) and [educator materials](book/educator/profrod-sovereign-agent-educator-start-here.md).
 Sixteen manuscript drafts and 32 ninety-minute practical units are available.
 Chapters 4, 7 and 13 have documented scopes; their new lessons are still planned.
 The edition remains an unreleased construction draft. Use this checkout's locked
@@ -26,7 +32,7 @@ runtime for its checkpoints; the published PyPI release is not an edition substi
 After the development install below, run the final accelerated day:
 
 ```bash
-uv run --python 3.14 python book/textbook/checkpoints/ch19.py
+uv run --python 3.14 python book/textbook/checkpoints/profrod_sovereign_agent_ch19_integrated_shop_day_checkpoint.py
 ```
 
 It runs a separate simulated supplier, loses replies, kills a worker and verifies
@@ -39,10 +45,10 @@ For an initialized shop directory, `sovereign-agent agent report --root PATH`
 prints the current ledger-derived report. Amounts come from structured records,
 with uncertain outcomes and accounting disagreements made explicit. Current
 retained totals are distinct from current-UTC-day model estimates and from a
-provider invoice. See [Chapter 19](book/textbook/ch19/README.md).
+provider invoice. See [Chapter 19](book/textbook/ch19/profrod-sovereign-agent-ch19-integrated-shop-day-chapter.md).
 
 Always-on means unattended work and explicit restart/recovery behavior while the
-host and dependencies are available. The [Linux deployment chapter](book/textbook/ch18/README.md)
+host and dependencies are available. The [Linux deployment chapter](book/textbook/ch18/profrod-sovereign-agent-ch18-deployment-restoration-chapter.md)
 provides the one-host recipe. Maintained production organizations can graduate to
 [Zeocore](https://github.com/profrodai/zeocore).
 
@@ -114,7 +120,7 @@ recoverable context compaction, session-incarnation fencing, bounded tool
 discovery, and provenance-bearing hybrid memory. See
 the [historical runtime lessons](docs/archive/README.md). These demonstrations
 remain supported; the current reading sequence starts at the
-[textbook contents](book/textbook/README.md).
+[textbook contents](book/textbook/profrod-sovereign-agent-textbook-start-here.md).
 
 ## Product vocabulary
 
@@ -160,3 +166,7 @@ and [v0.7 migration guide](docs/migration-v0.7-to-v1.md).
 - [Support](SUPPORT.md) and [security policy](SECURITY.md)
 - [Code of Conduct](CODE_OF_CONDUCT.md)
 - [Changelog](CHANGELOG.md)
+
+## Keep building with Prof Rod
+
+Found this material through a colleague, classroom or shared download? [Get the complete book at profrod.ai/book](https://profrod.ai/book) and [join the Prof Rod learner community](https://profrod.ai/community). Bring one result, one question or one failure you learned from. Share this resource with another learner and keep its source links with it so they can find the full course and future updates.
