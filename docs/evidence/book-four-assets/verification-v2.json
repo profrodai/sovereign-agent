@@ -165,9 +165,9 @@
       "id": "ch05-a",
       "markdown": "exercises/ch05/profrod-sovereign-agent-ch05-a-durable-memory-exercise.md",
       "markdownParity": "PASS",
-      "markdownSha256": "49635a0ec7d537e391e460301363a7c6765eeb52477771eef6fa4f75997f2e85",
+      "markdownSha256": "1a0faf381ececca39d9a3a8b72bb4c2bc7dd9575d4539c35c823b1bb87657037",
       "notebook": "exercises/ch05/profrod-sovereign-agent-ch05-a-durable-memory-exercise.ipynb",
-      "notebookSha256": "738c8bc1eef4e3d56a3c5ebee374d6a1a55376cfa1a23afcf156382874267dd1",
+      "notebookSha256": "77325db1b8d73ee8a52ec9c8f9a524e4842accb4f4231420f5125c206020f718",
       "sameKernelReplay": "PASS",
       "transfer": "EXPECTED_UNFINISHED"
     },
@@ -179,9 +179,9 @@
       "id": "ch05-b",
       "markdown": "exercises/ch05/profrod-sovereign-agent-ch05-b-memory-repair-transfer-exercise.md",
       "markdownParity": "PASS",
-      "markdownSha256": "5067ce0236a51b6f9e0dca9df6c47fbc0a83dc41cf86f911be0f3f6c3bf5a0b4",
+      "markdownSha256": "24be4b896d43e0be3b51aab20aa244df0de63e10074aa5de0da98c6c216ef38f",
       "notebook": "exercises/ch05/profrod-sovereign-agent-ch05-b-memory-repair-transfer-exercise.ipynb",
-      "notebookSha256": "204893924c72ef41f094e4c23c9163b255fea9e8f7ab36a662da85b404ce3dfc",
+      "notebookSha256": "14626251adaba03f622ac7d14b88b2458f8ce953c818103eca7424674b84cc43",
       "sameKernelReplay": "PASS",
       "transfer": "EXPECTED_UNFINISHED"
     },
