@@ -68,6 +68,11 @@ target-version = "py314"
 [tool.ruff.lint]
 select = ["E", "F", "W", "I", "N", "UP", "B"]
 
+[tool.ruff.lint.isort]
+# Teaching notebooks embed modules that exist only inside their archive; keep the
+# whole namespace first-party so an import block never sorts by what src/ happens to hold.
+known-first-party = ["sovereign_agent", "reference_organizations"]
+
 [tool.mypy]
 python_version = "3.14"
 strict = true
