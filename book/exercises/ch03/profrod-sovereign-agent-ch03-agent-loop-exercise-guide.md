@@ -15,7 +15,7 @@ Attempt the student work before consulting the solutions. Untouched exercises in
 | A · 90 minutes | [A: bounded agent loop](profrod-sovereign-agent-ch03-a-bounded-agent-loop-exercise.ipynb) | [Markdown](profrod-sovereign-agent-ch03-a-bounded-agent-loop-exercise.md) | Construct, connect and explain |
 | B · 90 minutes | [B: failed call accounting](profrod-sovereign-agent-ch03-b-failed-call-accounting-exercise.ipynb) | [Markdown](profrod-sovereign-agent-ch03-b-failed-call-accounting-exercise.md) | Diagnose, repair and transfer |
 
-Each notebook includes its own setup, first-principles introductions and supplied teaching runtime. Use a Python 3.14 Jupyter kernel and Pydantic 2. No repository checkout, previous notebook kernel or live account is needed. Unit B can use an explicitly selected successful Unit A handoff; an invalid selected file refuses rather than substituting an answer.
+Each notebook includes its own setup, first-principles introductions and supplied teaching runtime. Open either notebook in Google Colab with its badge, or use a local Python 3.12+ Jupyter kernel with Pydantic 2. No repository checkout, previous notebook kernel or live account is needed. Each unit closes with an extension that puts a language model behind the chapter's own tools: a recorded transcript runs everywhere, and an OpenAI key in Colab's Secrets pane switches the same loop to a live `gpt-5.1` run. Unit B can use an explicitly selected successful Unit A handoff; an invalid selected file refuses rather than substituting an answer.
 
 Ninety minutes is the planned work allowance per unit, excluding installation. Actual completion time and understanding require classroom observation.
 
