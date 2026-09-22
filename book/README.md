@@ -25,7 +25,7 @@ The nineteen-chapter edition is under construction. **Sixteen chapters have manu
 
 There are currently 32 student units and 32 worked counterparts: 48 hours of planned student practice. The completed nineteen-chapter course will contain 38 student units: 57 hours. Every available notebook includes its own required setup, concepts and supplied teaching runtime. Its successful execution does not certify that the learner has built that entire runtime from scratch.
 
-Use Python 3.14. The exercises and solutions need Jupyter and Pydantic 2; their setup pages explain preparation. The textbook explains how to install the locked repository environment for chapter checkpoints. Core practical work runs offline after setup. Live Telegram, model, container and operating-system observations are identified separately from local fixtures.
+The exercises run on Google Colab or any Python 3.12+ kernel; the solutions use Python 3.14. Both need Jupyter and Pydantic 2; their setup pages explain preparation. The textbook explains how to install the locked repository environment for chapter checkpoints. Core practical work runs offline after setup. Live Telegram, model, container and operating-system observations are identified separately from local fixtures.
 
 ## Keep your place
 

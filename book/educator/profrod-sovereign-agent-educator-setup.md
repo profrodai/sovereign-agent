@@ -6,7 +6,7 @@
 > — bring your questions, compare experiments and share what you build.
 > **Original source and updates:** [profrodai/sovereign-agent](https://github.com/profrodai/sovereign-agent).
 
-Use Python 3.14 and a Jupyter kernel that selects that interpreter. The notebooks use Python 3.14 syntax; an older kernel can fail before the lesson begins. Basic functions, loops, lists and dictionaries are prerequisites. Pydantic, SQLite and specialized concepts are introduced inside each unit before use.
+The student notebooks in this asset run on **Google Colab** (each carries an *Open in Colab* badge) or any local Python 3.12+ kernel, and close with an optional live-model extension keyed by an `OPENAI_API_KEY` secret. The solutions notebooks still use Python 3.14 syntax; an older kernel fails at their setup cell before the lesson begins. Use Python 3.14 locally to run everything in this asset. Basic functions, loops, lists and dictionaries are prerequisites. Pydantic, SQLite and specialized concepts are introduced inside each unit before use.
 
 If you already have Jupyter, select a Python 3.14 kernel. Install the exact Pydantic version in that kernel once:
 

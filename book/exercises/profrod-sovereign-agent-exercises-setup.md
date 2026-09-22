@@ -6,9 +6,11 @@
 > — bring your questions, compare experiments and share what you build.
 > **Original source and updates:** [profrodai/sovereign-agent](https://github.com/profrodai/sovereign-agent).
 
-Use Python 3.14 and a Jupyter kernel that selects that interpreter. The notebooks use Python 3.14 syntax; an older kernel can fail before the lesson begins. Basic functions, loops, lists and dictionaries are prerequisites. Pydantic, SQLite and specialized concepts are introduced inside each unit before use.
+The fastest path is **Google Colab**: every exercise notebook carries an *Open in Colab* badge under its title, and Colab's interpreter (Python 3.12 today) runs the whole lesson with no installation. Locally, use Python 3.12 or newer and a Jupyter kernel that selects that interpreter; an older kernel fails at the setup cell before the lesson begins. Basic functions, loops, lists and dictionaries are prerequisites. Pydantic, SQLite and specialized concepts are introduced inside each unit before use.
 
-If you already have Jupyter, select a Python 3.14 kernel. Install the exact Pydantic version in that kernel once:
+Each unit closes with an optional extension that puts a language model behind the chapter's own tools. It replays a recorded transcript by default. To run it live, add a secret named `OPENAI_API_KEY` in Colab's Secrets pane (the key icon in the left sidebar) and switch on notebook access for it, or export that variable before starting a local kernel and run `%pip install openai` once. The notebooks never print the key.
+
+If you already have Jupyter, select a Python 3.12 or newer kernel. Install the exact Pydantic version in that kernel once:
 
 ```python
 %pip install "pydantic==2.13.4"
@@ -25,7 +27,7 @@ Install uv using its [official installation instructions](https://docs.astral.sh
 On macOS or Linux:
 
 ```bash
-uv venv --python 3.14 --seed .venv
+uv venv --python 3.12 --seed .venv
 uv pip install --python .venv/bin/python "jupyterlab==4.6.3" "ipykernel==7.3.0" "pydantic==2.13.4"
 .venv/bin/python -m jupyterlab
 ```
@@ -33,12 +35,12 @@ uv pip install --python .venv/bin/python "jupyterlab==4.6.3" "ipykernel==7.3.0" 
 On Windows PowerShell:
 
 ```powershell
-uv venv --python 3.14 --seed .venv
+uv venv --python 3.12 --seed .venv
 uv pip install --python .venv/Scripts/python.exe "jupyterlab==4.6.3" "ipykernel==7.3.0" "pydantic==2.13.4"
 .venv/Scripts/python.exe -m jupyterlab
 ```
 
-The first command obtains Python 3.14 if necessary and creates `.venv`; `--seed` supplies pip for notebook `%pip` commands. The second installs the notebook interface, kernel and lesson dependency. The third starts JupyterLab using this environment's Python. Keep the terminal open while working. JupyterLab opens a local browser page; if it does not, use the local URL printed by the command. Do not share that session URL.
+The first command obtains Python 3.12 if necessary and creates `.venv`; `--seed` supplies pip for notebook `%pip` commands. The second installs the notebook interface, kernel and lesson dependency. The third starts JupyterLab using this environment's Python. Keep the terminal open while working. JupyterLab opens a local browser page; if it does not, use the local URL printed by the command. Do not share that session URL.
 
 In JupyterLab's file browser open the selected chapter folder and its descriptively named A notebook, such as `profrod-sovereign-agent-ch02-a-pydantic-shop-tools-exercise.ipynb`. Educators choose the local `student` or `solutions` folder. The filename identifies the chapter, topic, practice letter and exercise/solution role. Select its Python 3 kernel, then run this cell to verify which interpreter is actually running:
 
@@ -49,13 +51,13 @@ import pydantic
 print(sys.executable)
 print(sys.version)
 print(pydantic.__version__)
-assert sys.version_info[:2] == (3, 14)
+assert sys.version_info[:2] >= (3, 12)
 assert pydantic.__version__ == "2.13.4"
 ```
 
-Expect the executable inside your extracted asset's `.venv`, Python 3.14.x and Pydantic 2.13.4. If the assertions fail, select the local environment kernel before beginning; reinstalling packages into an unrelated terminal interpreter will not fix a wrong kernel. Save with Ctrl+S or Command+S. Stop the server with Ctrl+C in its terminal when finished.
+Expect the executable inside your extracted asset's `.venv`, Python 3.12 or newer and Pydantic 2.13.4. If the assertions fail, select the local environment kernel before beginning; reinstalling packages into an unrelated terminal interpreter will not fix a wrong kernel. Save with Ctrl+S or Command+S. Stop the server with Ctrl+C in its terminal when finished.
 
-These commands follow the official [environment](https://docs.astral.sh/uv/pip/environments/), [JupyterLab installation](https://jupyterlab.readthedocs.io/en/stable/getting_started/installation.html) and [startup](https://jupyterlab.readthedocs.io/en/stable/getting_started/starting.html) documentation. The package set resolved for Python 3.14 during preparation. This migration's notebook checks execute kernels; a graphical JupyterLab session and Windows setup have not been observed in this change.
+These commands follow the official [environment](https://docs.astral.sh/uv/pip/environments/), [JupyterLab installation](https://jupyterlab.readthedocs.io/en/stable/getting_started/installation.html) and [startup](https://jupyterlab.readthedocs.io/en/stable/getting_started/starting.html) documentation. The package set resolved for Python 3.12 and 3.14 during preparation. This migration's notebook checks execute kernels; a graphical JupyterLab session and Windows setup have not been observed in this change.
 
 Environment setup is separate from the ninety-minute work plan. A notebook that reports NEEDS_WORK is running as intended: you must complete the exercise functions before it can report successful work.
 
