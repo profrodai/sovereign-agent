@@ -42,8 +42,8 @@ make labs      # execute archived companion labs from fresh roots
 make exercises # execute all active notebooks and verify the downloads
 ```
 
-`make lint` runs the identical target list to CI, so it cannot pass while CI
-fails on a path the Makefile forgot.
+The repository has no GitHub Actions workflows: CI does not run on GitHub
+(operator direction of 2026-09-25, under R-36), so the local gate below is the gate.
 
 Before opening a pull request, run the same full local gate and check that
 dependency metadata is locked:

@@ -128,7 +128,7 @@ def _block_timeout(seconds: int):  # type: ignore[no-untyped-def]
 
     Trade-off, stated plainly: `signal.alarm` is POSIX-only (no Windows) and
     only fires on the main thread. This script runs as a CI/maintainer gate
-    on Linux (see .github/workflows/ci.yml: ubuntu-latest) invoked from the
+    on Linux invoked from the
     main thread, so that trade-off costs nothing in this tool's actual
     environment. If this script is ever run on Windows or off the main
     thread, this guard degrades to a no-op timeout (the alarm is simply not
