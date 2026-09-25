@@ -1,4 +1,4 @@
-# canon: zeo.yml v2.2 (org issue #276; byte-identical adoption mandatory)
+# canon: zeo.yml v2.3 (org issue #276; byte-identical adoption mandatory)
 name: zeo
 
 on:
@@ -7,6 +7,9 @@ on:
     branches: [main]
   schedule:
     - cron: "17 3 * * *"
+
+permissions:
+  contents: read
 
 concurrency:
   group: zeo-${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
@@ -22,18 +25,18 @@ jobs:
       NO_COLOR: "1"
     steps:
       - name: Checkout
-        uses: actions/checkout@v7
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
         with:
           fetch-depth: 0
 
       - name: Install uv
-        uses: astral-sh/setup-uv@v5
+        uses: astral-sh/setup-uv@d4b2f3b6ecc6e67c4457f6d3e41ec42d3d0fcb86 # v5
         with:
           enable-cache: true
 
       - name: Install Go (only when the repo has a Go module)
         if: ${{ hashFiles('go.mod') != '' }}
-        uses: actions/setup-go@v5
+        uses: actions/setup-go@40f1582b2485089dde7abd97c1529aa768e1baff # v5
         with:
           go-version-file: go.mod
           cache: true
@@ -98,16 +101,16 @@ jobs:
       NO_COLOR: "1"
     steps:
       - name: Checkout
-        uses: actions/checkout@v7
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
         with:
           fetch-depth: 0
       - name: Install uv
-        uses: astral-sh/setup-uv@v5
+        uses: astral-sh/setup-uv@d4b2f3b6ecc6e67c4457f6d3e41ec42d3d0fcb86 # v5
         with:
           enable-cache: true
       - name: Install Go (only when the repo has a Go module)
         if: ${{ hashFiles('go.mod') != '' }}
-        uses: actions/setup-go@v5
+        uses: actions/setup-go@40f1582b2485089dde7abd97c1529aa768e1baff # v5
         with:
           go-version-file: go.mod
           cache: true
