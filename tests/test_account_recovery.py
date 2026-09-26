@@ -97,7 +97,7 @@ def observed_plan(db, client, vanilla, strawberry):
         vanilla: {"received": True, "reference": "delivery-A"},
         strawberry: {"received": False, "reference": ""},
     }
-    plan["model_grants"] = {"lucy": {"calls": 5, "estimated_pence": 100}}
+    plan["model_grants"] = {"lucy": {"calls": 5, "estimated_cents": 100}}
     return plan
 
 
@@ -113,11 +113,11 @@ def test_old_snapshot_imports_new_orders_and_delivery_without_double_stock_or_sp
     assert db.connection.execute("SELECT count(*) FROM assistant_orders").fetchone()[0] == 1
     plan = observed_plan(db, old, vanilla, strawberry)
     result = apply(db, old, plan)
-    assert result == {"status": "ACTIVE", "duplicate": False, "orders": 2, "spent_pence": 2600}
+    assert result == {"status": "ACTIVE", "duplicate": False, "orders": 2, "spent_cents": 2600}
     assert apply(db, old, plan)["duplicate"] is True
     assert tuple(
         db.connection.execute(
-            "SELECT reserved_pence,spent_pence FROM assistant_spending"
+            "SELECT reserved_cents,spent_cents FROM assistant_spending"
         ).fetchone()
     ) == (0, 2600)
     assert dict(db.connection.execute("SELECT id,status FROM assistant_orders")) == {
@@ -177,7 +177,7 @@ def test_incomplete_or_stale_plan_cannot_resume(tmp_path, supplier, mutation):
     elif mutation == "wrong_epoch":
         plan["authority_epoch"] = "f" * 32
     else:
-        plan["model_grants"]["invented"] = {"calls": 100, "estimated_pence": 1000}
+        plan["model_grants"]["invented"] = {"calls": 100, "estimated_cents": 1000}
     with pytest.raises((ValueError, PermissionError)):
         apply(db, client, plan)
     assert db.connection.execute("SELECT paused FROM assistant_control").fetchone()[0] == 1
@@ -216,7 +216,7 @@ def test_local_recovery_rolls_back_but_retries_same_remote_fence(tmp_path, suppl
         db.connection.execute("SELECT on_hand FROM inventory WHERE sku='SKU-VANILLA'").fetchone()[0]
         == 2
     )
-    assert apply(db, client, plan)["spent_pence"] == 2600
+    assert apply(db, client, plan)["spent_cents"] == 2600
     assert db.connection.execute("SELECT epoch FROM assistant_supplier_bindings").fetchone()[0] == 1
     db.close()
 
@@ -356,15 +356,15 @@ def test_old_request_accepted_after_local_restore_is_included_before_fence(tmp_p
     proposal = {
         "sku": "SKU-CHOCOLATE",
         "quantity": 1,
-        "unit_cost_pence": 300,
+        "unit_cost_cents": 300,
         "supplier": "lucy-local",
-        "currency": "GBP",
+        "currency": "USD",
     }
     assert old.order(late, proposal)["status"] == "ACCEPTED"
     plan = observed_plan(db, old, vanilla, strawberry)
     plan["deliveries"][late] = {"received": False, "reference": ""}
     result = apply(db, old, plan)
-    assert result["orders"] == 3 and result["spent_pence"] == 2900
+    assert result["orders"] == 3 and result["spent_cents"] == 2900
     assert (
         db.connection.execute("SELECT status FROM assistant_orders WHERE id=?", (late,)).fetchone()[
             0
@@ -390,7 +390,7 @@ def test_absent_old_approval_is_closed_without_a_send(tmp_path, supplier):
         "SKU-CHOCOLATE": {"on_hand": 12, "reserved": 0},
         "SKU-STRAWBERRY": {"on_hand": 1, "reserved": 0},
     }
-    assert apply(db, client, plan)["spent_pence"] == 0
+    assert apply(db, client, plan)["spent_cents"] == 0
     assert (
         db.connection.execute(
             "SELECT status FROM assistant_orders WHERE id=?", (operation,)
@@ -407,7 +407,7 @@ def test_absent_old_approval_is_closed_without_a_send(tmp_path, supplier):
 def test_replaying_recovery_does_not_renew_fresh_model_grant(tmp_path, supplier):
     db, client, _, vanilla, strawberry = restored(tmp_path, supplier)
     plan = observed_plan(db, client, vanilla, strawberry)
-    plan["model_grants"]["lucy"] = {"calls": 1, "estimated_pence": 0}
+    plan["model_grants"]["lucy"] = {"calls": 1, "estimated_cents": 0}
     apply(db, client, plan)
     work.enqueue(db, "fresh", "lucy", "brief")
     owner = work.claim(db, "fresh")

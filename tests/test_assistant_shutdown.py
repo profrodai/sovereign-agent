@@ -72,7 +72,7 @@ def test_process_stops_after_supplier_commit_and_recovers_before_new_work(tmp_pa
             str(root),
             "--supplier",
             "http://127.0.0.1:" + ready.read_text(),
-            "--automatic-pence",
+            "--automatic-cents",
             "2000",
         ]
         environment = {
@@ -92,7 +92,7 @@ def test_process_stops_after_supplier_commit_and_recovers_before_new_work(tmp_pa
         assert row["id"] == operation
         assert row["status"] == ("SENDING" if hard_kill else "UNKNOWN")
         assert (
-            db.connection.execute("SELECT reserved_pence FROM assistant_spending").fetchone()[0]
+            db.connection.execute("SELECT reserved_cents FROM assistant_spending").fetchone()[0]
             == 1500
         )
         if not hard_kill:
@@ -133,7 +133,7 @@ def test_process_stops_after_supplier_commit_and_recovers_before_new_work(tmp_pa
             assert independent.execute("SELECT operation FROM orders").fetchall() == [(operation,)]
         assert tuple(
             db.connection.execute(
-                "SELECT reserved_pence,spent_pence FROM assistant_spending"
+                "SELECT reserved_cents,spent_cents FROM assistant_spending"
             ).fetchone()
         ) == (0, 1500)
     finally:

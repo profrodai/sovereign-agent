@@ -23,7 +23,12 @@ class OutcomeState(StrEnum):
     ACCEPTED = "ACCEPTED"
     BLOCKED = "BLOCKED"
     FAILED = "FAILED"
-    CANCELLED = "CANCELLED"
+    CANCELED = "CANCELED"
+
+    @classmethod
+    def _missing_(cls, value: object) -> OutcomeState | None:
+        # Records written before migration 27 spelled it CANCELLED.
+        return cls.CANCELED if value == "CANCELLED" else None
 
 
 class SowState(StrEnum):
@@ -228,7 +233,7 @@ class Verification(StrictModel):
 
 
 class Review(StrictModel):
-    """An independent actor's durable judgement of one SOW.
+    """An independent actor's durable judgment of one SOW.
 
     Bound to the evidence it read and the state it read them against, so a later
     reader can ask what the reviewer actually saw rather than trusting that a

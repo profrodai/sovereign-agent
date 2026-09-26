@@ -85,8 +85,8 @@ def shop_dispatcher(db: Database, *, subject: str = "") -> Dispatcher:
         return {
             "supplier": "lucy-local",
             "sku": args.sku,
-            "unit_cost_pence": json.loads(row["record"])["unit_cost_cents"],
-            "currency": "GBP",
+            "unit_cost_cents": json.loads(row["record"])["unit_cost_cents"],
+            "currency": "USD",
         }
 
     def draft(args: DraftArguments) -> dict[str, Any]:
@@ -97,7 +97,7 @@ def shop_dispatcher(db: Database, *, subject: str = "") -> Dispatcher:
         return {
             **quote,
             "quantity": args.quantity,
-            "total_pence": args.quantity * quote["unit_cost_pence"],
+            "total_cents": args.quantity * quote["unit_cost_cents"],
             "status": "DRAFT",
         }
 
@@ -110,7 +110,7 @@ def shop_dispatcher(db: Database, *, subject: str = "") -> Dispatcher:
         ),
         ExecutableTool(
             "supplier",
-            "Look up a product's supplier and unit cost in GBP pence.",
+            "Look up a product's supplier and unit cost in USD cents.",
             StockArguments,
             supplier,
         ),
@@ -139,7 +139,7 @@ def draft_report(messages: list[Message]) -> str | None:
         if observation.get("ok") is not True:
             continue
         value = observation["value"]
-        sku, quantity, amount = value.get("sku"), value.get("quantity"), value.get("total_pence")
+        sku, quantity, amount = value.get("sku"), value.get("quantity"), value.get("total_cents")
         if (
             not isinstance(sku, str)
             or not 1 <= len(sku) <= 100
@@ -147,9 +147,9 @@ def draft_report(messages: list[Message]) -> str | None:
             or quantity <= 0
             or type(amount) is not int
             or amount < 0
-            or value.get("currency") != "GBP"
+            or value.get("currency") != "USD"
         ):
-            raise ValueError("draft observation lacks validated quantity or GBP amount")
+            raise ValueError("draft observation lacks validated quantity or USD amount")
         # Recalculating a draft is not creating another purchase. Display only
         # the latest estimate for each SKU; supplier workflows render their ledger.
         latest[sku] = (quantity, amount)
@@ -158,9 +158,9 @@ def draft_report(messages: list[Message]) -> str | None:
     lines = ["Draft estimates:"]
     for sku, (quantity, amount) in sorted(latest.items()):
         label = json.dumps(sku, ensure_ascii=False)
-        lines.append(f"- {label}: {quantity} tubs, £{amount // 100}.{amount % 100:02d} GBP.")
+        lines.append(f"- {label}: {quantity} tubs, ${amount // 100}.{amount % 100:02d} USD.")
     total = sum(amount for _, amount in latest.values())
-    lines.append(f"Total: £{total // 100}.{total % 100:02d} GBP.")
+    lines.append(f"Total: ${total // 100}.{total % 100:02d} USD.")
     return "\n".join(lines)
 
 
@@ -210,5 +210,5 @@ class OfflineShopModel:
         drafts = [o["value"] for o in observations[1:] if o.get("ok")]
         if not drafts:
             return ModelTurn("I could not prepare the draft; inspect the tool errors.")
-        lines = [f"{d['sku']}: {d['quantity']} units, {d['total_pence']} pence GBP" for d in drafts]
+        lines = [f"{d['sku']}: {d['quantity']} units, {d['total_cents']} cents USD" for d in drafts]
         return ModelTurn("Replenishment draft:\n" + "\n".join(lines) + "\nNo purchases made.")

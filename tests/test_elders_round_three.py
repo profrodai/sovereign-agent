@@ -177,20 +177,20 @@ def test_expired_unknown_can_renew_same_identity_without_double_reserving(
         == uncertain_state
     )
     assert (
-        db.connection.execute("SELECT reserved_pence FROM assistant_spending").fetchone()[0] == 1500
+        db.connection.execute("SELECT reserved_cents FROM assistant_spending").fetchone()[0] == 1500
     )
     supplier.available = True
     assert orders.execute(db, owner, row["id"], supplier, policy=policy)["status"] == "ACCEPTED"
     assert supplier.calls == 2
     assert tuple(
         db.connection.execute(
-            "SELECT reserved_pence,spent_pence FROM assistant_spending"
+            "SELECT reserved_cents,spent_cents FROM assistant_spending"
         ).fetchone()
     ) == (0, 1500)
 
 
 @pytest.mark.parametrize(
-    "mutation", ["non_idempotent", "target", "revoked", "cancelled", "automatic"]
+    "mutation", ["non_idempotent", "target", "revoked", "canceled", "automatic"]
 )
 def test_unknown_renewal_cannot_expand_authority(tmp_path, mutation):
     db, owner, row, policy, supplier = uncertain(tmp_path)
@@ -200,7 +200,7 @@ def test_unknown_renewal_cannot_expand_authority(tmp_path, mutation):
         supplier.identity = "other"
     elif mutation == "revoked":
         orders.revoke(db, row["id"], actor="lucy", policy=policy)
-    elif mutation == "cancelled":
+    elif mutation == "canceled":
         work.cancel(db, owner.id)
     with pytest.raises(PermissionError):
         orders.approve(
@@ -214,12 +214,12 @@ def test_unknown_renewal_cannot_expand_authority(tmp_path, mutation):
             automatic=mutation == "automatic",
         )
     assert (
-        db.connection.execute("SELECT reserved_pence FROM assistant_spending").fetchone()[0] == 1500
+        db.connection.execute("SELECT reserved_cents FROM assistant_spending").fetchone()[0] == 1500
     )
 
 
 @pytest.mark.parametrize("outcome", ["ACCEPTED", "REJECTED"])
-def test_operator_exact_receipt_resolves_cancelled_unknown_once(tmp_path, outcome):
+def test_operator_exact_receipt_resolves_canceled_unknown_once(tmp_path, outcome):
     db, owner, row, policy, supplier = uncertain(tmp_path)
     work.cancel(db, owner.id)
     receipt = {"operation": row["id"], "proposal": json.loads(row["proposal"]), "status": outcome}
@@ -233,7 +233,7 @@ def test_operator_exact_receipt_resolves_cancelled_unknown_once(tmp_path, outcom
         assert orders.resolve(db, row["id"], row["digest"], receipt, **kwargs) == receipt
     assert tuple(
         db.connection.execute(
-            "SELECT reserved_pence,spent_pence FROM assistant_spending"
+            "SELECT reserved_cents,spent_cents FROM assistant_spending"
         ).fetchone()
     ) == (0, 1500 if outcome == "ACCEPTED" else 0)
     for kind in ("assistant.order.resolved", "assistant.order.reconciled"):
@@ -273,7 +273,7 @@ def test_operator_resolution_refuses_mismatched_or_inconclusive_evidence(tmp_pat
     with pytest.raises((ValueError, PermissionError)):
         orders.resolve(db, row["id"], digest, receipt, **kwargs)
     assert (
-        db.connection.execute("SELECT reserved_pence FROM assistant_spending").fetchone()[0] == 1500
+        db.connection.execute("SELECT reserved_cents FROM assistant_spending").fetchone()[0] == 1500
     )
 
 

@@ -1,8 +1,13 @@
 """Run preserved edition contracts in an isolated, explicit historical topology.
 
 The archive is copied unchanged; no compatibility directory is created in book/.
-Current source and tests are copied, so this also catches runtime regressions that
-would break readers of the historical editions. Active edition checks are separate.
+Its source, scripts and tests come from HISTORICAL_RUNTIME, the last commit before the American
+edition. That edition deliberately moved money to U.S. dollars in integer cents and words to
+U.S. spelling, renaming columns and strings (operator ruling on org-profrodai#135, 2026-09-26),
+so the current runtime no longer serves the archived British text. Historical editions therefore
+run on the runtime they were written for, in their own environment synced from that commit's
+lockfile, so child processes (which drop PYTHONPATH) import it too rather than this checkout's
+editable install. Active edition checks are separate.
 """
 
 from __future__ import annotations
@@ -13,12 +18,13 @@ import json
 import os
 import shutil
 import subprocess
-import sys
+import tarfile
 import tempfile
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
 ARCHIVE = ROOT / "docs/archive/book-20260909"
+HISTORICAL_RUNTIME = "34e439f8e2124d205bc6d8c06de6033539267512"
 HISTORICAL_TESTS = (
     "test_always_on_book.py",
     "test_book_snippets_verifier.py",
@@ -117,15 +123,28 @@ def projection():
         root = Path(temporary)
         ignore = shutil.ignore_patterns("__pycache__", ".pytest_cache", "*.pyc")
         shutil.copytree(ARCHIVE, root / "book", ignore=ignore)
-        for name in ("src", "scripts", "tests"):
-            shutil.copytree(ROOT / name, root / name, ignore=ignore)
-        shutil.copytree(
-            ROOT / "docs",
-            root / "docs",
-            ignore=shutil.ignore_patterns("archive", "__pycache__", "*.pyc"),
+        snapshot = root / "historical-runtime.tar"
+        subprocess.run(
+            ["git", "archive", "--format=tar", "-o", str(snapshot), HISTORICAL_RUNTIME, "--"]
+            + ["src", "scripts", "tests", "docs", "pyproject.toml", "uv.lock", "README.md"],
+            cwd=ROOT,
+            check=True,
         )
-        for name in ("pyproject.toml", "uv.lock", "README.md"):
-            shutil.copy2(ROOT / name, root / name)
+        with tarfile.open(snapshot) as archive:
+            archive.extractall(root, filter="data")
+        snapshot.unlink()
+        shutil.rmtree(root / "docs" / "archive")
+        uv = shutil.which("uv")
+        if uv is None:
+            raise FileNotFoundError("uv is required to build the historical runtime environment")
+        sync_env = {k: v for k, v in os.environ.items() if not k.startswith("VIRTUAL_ENV")}
+        sync_env.pop("UV_PROJECT_ENVIRONMENT", None)
+        subprocess.run(
+            [uv, "sync", "--frozen", "--all-groups", "--python", "3.14", "--quiet"],
+            cwd=root,
+            env=sync_env,
+            check=True,
+        )
         if (ROOT / ".git").exists():
             git_dir = subprocess.run(
                 ["git", "rev-parse", "--absolute-git-dir"],
@@ -137,23 +156,23 @@ def projection():
             # Historical receipt gates only read pinned Git objects. They do not
             # stage, commit or mutate this checkout's repository metadata.
             (root / ".git").write_text(f"gitdir: {git_dir}\n")
-        env = dict(os.environ)
+        env = {k: v for k, v in os.environ.items() if not k.startswith("VIRTUAL_ENV")}
         env["PYTHONPATH"] = os.pathsep.join((str(root / "src"), str(root)))
+        env["PATH"] = os.pathsep.join((str(root / ".venv" / "bin"), env.get("PATH", "")))
         yield root, env
 
 
 def run(mode: str) -> None:
     with projection() as (root, env):
+        python = str(root / ".venv" / "bin" / "python")
         if mode == "tests":
-            commands = [
-                [sys.executable, "-m", "pytest", "-q", *[f"tests/{p}" for p in HISTORICAL_TESTS]]
-            ]
+            commands = [[python, "-m", "pytest", "-q", *[f"tests/{p}" for p in HISTORICAL_TESTS]]]
         elif mode == "labs":
-            commands = [[sys.executable, "scripts/verify_book_labs.py"]]
+            commands = [[python, "scripts/verify_book_labs.py"]]
         elif mode == "gates":
             commands = [
                 [
-                    sys.executable,
+                    python,
                     f"scripts/{name}",
                     *(["--verify"] if name.startswith("package_") else []),
                 ]

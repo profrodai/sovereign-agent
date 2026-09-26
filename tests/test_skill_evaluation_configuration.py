@@ -18,7 +18,7 @@ from sovereign_agent.cli import main
 from sovereign_agent.database import Database
 
 
-def stage(db, root, name, version="1", instructions="Read stock and draft in GBP."):
+def stage(db, root, name, version="1", instructions="Read stock and draft in USD."):
     path = root / f"{name}-{version}.toml"
     path.write_text(
         f"name={json.dumps(name)}\nversion={json.dumps(version)}\n"

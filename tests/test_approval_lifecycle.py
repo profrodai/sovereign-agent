@@ -54,7 +54,7 @@ def grant(db, operation, *, automatic=False, policy=None):
         operation,
         digest,
         actor="lucy",
-        policy=policy or SpendingPolicy(frozenset({"lucy"}), automatic_order_pence=2000),
+        policy=policy or SpendingPolicy(frozenset({"lucy"}), automatic_order_cents=2000),
         expires=time.time() + 60,
         automatic=automatic,
     )
@@ -63,7 +63,7 @@ def grant(db, operation, *, automatic=False, policy=None):
 def balances(db):
     return tuple(
         db.connection.execute(
-            "SELECT reserved_pence,spent_pence FROM assistant_spending"
+            "SELECT reserved_cents,spent_cents FROM assistant_spending"
         ).fetchone()
     )
 
@@ -74,7 +74,7 @@ def test_reduced_automatic_limit_requires_operator_approval_even_after_restart(t
     db.close()
     db = Database(tmp_path / "agent.sqlite")
     supplier = Supplier()
-    policy = SpendingPolicy(frozenset({"lucy"}), automatic_order_pence=0)
+    policy = SpendingPolicy(frozenset({"lucy"}), automatic_order_cents=0)
     with pytest.raises(PermissionError, match="current spending authority"):
         execute(db, work, operation, supplier, policy=policy)
     assert supplier.calls == 0 and balances(db) == (1500, 0)
@@ -93,9 +93,9 @@ def test_reduced_authority_allows_discovery_but_never_an_unapproved_retransmissi
     db, work, operation = setup(tmp_path)
     grant(db, operation, automatic=True)
     supplier = Supplier(lose_response=True, discover=discover)
-    allowed = SpendingPolicy(frozenset({"lucy"}), automatic_order_pence=2000)
+    allowed = SpendingPolicy(frozenset({"lucy"}), automatic_order_cents=2000)
     assert execute(db, work, operation, supplier, policy=allowed)["status"] == "UNKNOWN"
-    reduced = SpendingPolicy(frozenset({"lucy"}), automatic_order_pence=0)
+    reduced = SpendingPolicy(frozenset({"lucy"}), automatic_order_cents=0)
     if discover:
         assert execute(db, work, operation, supplier, policy=reduced)["status"] == "ACCEPTED"
         assert balances(db) == (0, 1500)
@@ -119,6 +119,7 @@ def test_unknown_historical_approval_needs_reapproval_without_reserving_twice(
                 "UPDATE assistant_orders SET status='APPROVED',approved_by='lucy',approved_until=?",
                 (time.time() + 60,),
             )
+            # This file is at migration 24, before migration 27 renamed the money columns.
             connection.execute(
                 "INSERT INTO assistant_spending(id,limit_pence,reserved_pence) "
                 "VALUES (1,20000,1500)"

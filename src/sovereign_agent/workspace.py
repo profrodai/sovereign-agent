@@ -210,7 +210,7 @@ def reclaim_workspace(workspace: Path, policy: str) -> bool:
     inspectable. An unrecognized policy fails closed rather than guessing.
 
     Two symlink shapes are handled deliberately, not by accident of
-    `shutil.rmtree`'s own behaviour:
+    `shutil.rmtree`'s own behavior:
 
     - `workspace` itself being a symlink is REFUSED outright, before any
       removal is attempted. `workspace` is supposed to be an organization-

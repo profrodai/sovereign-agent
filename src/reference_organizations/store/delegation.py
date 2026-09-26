@@ -42,8 +42,8 @@ def quote(db: Database, inquiry: Inquiry) -> dict[str, Any]:
         "guests": inquiry.guests,
         "portions_per_tub": 10,
         "tubs": tubs,
-        "total_pence": tubs * price,
-        "currency": "GBP",
+        "total_cents": tubs * price,
+        "currency": "USD",
         "status": "DRAFT_QUOTE",
         "stock_reserved": False,
     }
@@ -56,18 +56,18 @@ def delegate(
     *,
     deadline: float,
     model_calls: int = 4,
-    estimated_call_pence: int = 0,
-    budget_pence: int = 100,
+    estimated_call_cents: int = 0,
+    budget_cents: int = 100,
 ) -> str:
     if (
         not math.isfinite(deadline)
         or not time.time() < deadline <= time.time() + 3600
         or type(model_calls) is not int
         or not 1 <= model_calls <= 8
-        or type(estimated_call_pence) is not int
-        or estimated_call_pence < 0
-        or type(budget_pence) is not int
-        or not 1 <= budget_pence <= 1000
+        or type(estimated_call_cents) is not int
+        or estimated_call_cents < 0
+        or type(budget_cents) is not int
+        or not 1 <= budget_cents <= 1000
     ):
         raise ValueError("bounded delegation contract required")
     encoded = inquiry.model_dump_json()
@@ -76,7 +76,7 @@ def delegate(
         if (
             source is None
             or source["role"] != "shop"
-            or source["cancelled"]
+            or source["canceled"]
             or source["status"] == "REJECTED"
             or connection.execute("SELECT paused FROM assistant_control").fetchone()[0]
         ):
@@ -92,9 +92,9 @@ def delegate(
                 existing["prompt"],
                 existing["deadline"],
                 existing["model_calls_limit"],
-                existing["estimated_call_pence"],
-                existing["budget_pence"],
-            ) != (encoded, deadline, model_calls, estimated_call_pence, budget_pence):
+                existing["estimated_call_cents"],
+                existing["budget_cents"],
+            ) != (encoded, deadline, model_calls, estimated_call_cents, budget_cents):
                 raise ValueError("parent already has a different immutable assignment")
             return str(existing["work_id"])
         child = work_records._enqueue(
@@ -111,8 +111,8 @@ def delegate(
         )
         connection.execute(
             "INSERT INTO assistant_delegations(work_id,parent_id,deadline,model_calls_limit,"
-            "estimated_call_pence,budget_pence) VALUES (?,?,?,?,?,?)",
-            (child, parent, deadline, model_calls, estimated_call_pence, budget_pence),
+            "estimated_call_cents,budget_cents) VALUES (?,?,?,?,?,?)",
+            (child, parent, deadline, model_calls, estimated_call_cents, budget_cents),
         )
         append_event(db, "assistant.delegation.created", {"parent": parent, "child": child})
         return child
@@ -124,13 +124,13 @@ def expire(db: Database) -> None:
         rows = connection.execute(
             "SELECT w.id FROM assistant_work w JOIN assistant_delegations d ON d.work_id=w.id "
             "JOIN assistant_work p ON p.id=d.parent_id WHERE "
-            "w.status IN ('READY','RUNNING','BLOCKED') AND (d.deadline<=? OR p.cancelled=1)",
+            "w.status IN ('READY','RUNNING','BLOCKED') AND (d.deadline<=? OR p.canceled=1)",
             (time.time(),),
         ).fetchall()
         for row in rows:
             connection.execute(
-                "UPDATE assistant_work SET status='CANCELLED',cancelled=1,"
-                "generation=generation+1,result='Delegation expired or parent cancelled.' "
+                "UPDATE assistant_work SET status='CANCELED',canceled=1,"
+                "generation=generation+1,result='Delegation expired or parent canceled.' "
                 "WHERE id=?",
                 (row[0],),
             )
@@ -221,12 +221,12 @@ def run_once(
                 model_calls=contract["model_calls_limit"],
                 tool_calls=4,
                 seconds=min(60, remaining),
-                estimated_call_pence=contract["estimated_call_pence"],
-                model_budget_pence=contract["budget_pence"],
+                estimated_call_cents=contract["estimated_call_cents"],
+                model_budget_cents=contract["budget_cents"],
             ),
             check_current=lambda: work_records.assert_current(db.connection, work),
             reserve_call=lambda: work_records.reserve_model_call(
-                db, work, contract["estimated_call_pence"]
+                db, work, contract["estimated_call_cents"]
             ),
             observe=lambda message: work_records.observe(db, work, message),
             should_stop=should_stop,
@@ -252,7 +252,7 @@ def run_once(
             "decision": "Retain the function for this fixed calculation; model prose is ungraded.",
             "assignment_usage": dict(
                 db.connection.execute(
-                    "SELECT d.model_calls,w.estimated_cost_pence FROM assistant_delegations d "
+                    "SELECT d.model_calls,w.estimated_cost_cents FROM assistant_delegations d "
                     "JOIN assistant_work w ON w.id=d.work_id WHERE d.work_id=?",
                     (work.id,),
                 ).fetchone()
@@ -263,7 +263,7 @@ def run_once(
         answer = (
             (
                 f"Catering draft: {baseline['tubs']} tubs for {inquiry.guests} guests, "
-                f"GBP {baseline['total_pence'] / 100:.2f}. No stock reserved."
+                f"USD {baseline['total_cents'] / 100:.2f}. No stock reserved."
             )
             if passed
             else ("Catering research did not produce verified quote evidence.")
