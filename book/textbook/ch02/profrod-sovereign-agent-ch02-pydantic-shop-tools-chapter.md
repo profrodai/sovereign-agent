@@ -14,7 +14,7 @@ A tool gives the model that opportunity. The model generates a request such as â
 
 Part A starts with what the model's side of that exchange can guarantee. A tool request is sampled text, and constrained decoding can force it to parse, but not to be right; the part derives both facts and measures them on a real model. Part B then builds three tools: stock lookup, supplier lookup, and draft calculation. You will test them without a model before placing them inside an agent loop. By the end, a fabricated or malformed request will produce an inspectable refusal, while a valid draft request will return an exact quantity and amount in USD cents.
 
-For dedicated practice, use [Unit A](../../exercises/ch02/profrod-sovereign-agent-ch02-a-pydantic-shop-tools-exercise.md) and [Unit B](../../exercises/ch02/profrod-sovereign-agent-ch02-b-pydantic-validation-repair-exercise.md), each with its own ninety-minute plan and matching notebook.
+For dedicated practice, use [Unit A](../../exercises/ch02/profrod-sovereign-agent-ch02-a-pydantic-shop-tools-exercise.md), which builds typed tools that refuse malformed requests, and [Unit B](../../exercises/ch02/profrod-sovereign-agent-ch02-b-constrained-decoding-exercise.md), which builds token-by-token constrained decoding and measures how far it is from the model conditioned on validity. Each has a ninety-minute plan and matching notebook.
 
 ## Learning objectives
 
