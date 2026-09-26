@@ -84,6 +84,18 @@ Two things this does *not* do. It does not decide who is allowed to ask: knowing
 
 An inbox that accepts everything will, on a bad morning, accept more than the worker can do. Each admitted request is a promise, and a promise the shop cannot keep is worse than a refusal it can explain. So admission is **bounded**: when the number of open items (pending or running) reaches a capacity $C$, a new request is refused before anything is stored and before any model runs.
 
+```mermaid
+flowchart TD
+    R[Request: source s, session and text] --> K{Is s already admitted?}
+    K -->|Yes, same session and text| D[Duplicate: nothing new stored]
+    K -->|Yes, other content| X[Conflict: refused]
+    K -->|No| F{Open items below capacity C?}
+    F -->|No| N[Refused: no row, no model call]
+    F -->|Yes| A[Accepted as pending]
+```
+
+**Figure:** Admission asks about identity before capacity, so a repeat is answered even when the inbox is full, and refused work leaves no row behind.
+
 How large should $C$ be? Let $L$ be the average number of open items, $\lambda$ the average rate at which requests are accepted, and $W$ the average time from admission to finish. **Little's law** says
 
 $$
@@ -241,6 +253,30 @@ The report now sits in the outbox, committed. Sending it means calling a service
 
 So the outbox moves each report through its own small state machine. `send_one` picks the oldest pending report, marks it **sending**, and commits *before* calling the service. When the call returns a receipt, it marks the report **confirmed**. When the call fails in a way that means "the service may have accepted this", it marks the report **unknown**. An unknown report is never picked up again by `send_one`.
 
+```mermaid
+stateDiagram-v2
+    [*] --> pending: finish commits the report
+    pending --> sending: committed before the call
+    sending --> confirmed: a receipt arrives
+    sending --> unknown: the reply is lost
+    confirmed --> [*]
+```
+
+**Figure:** Each report moves through its own states, and `sending` is on disk before the network is touched, so a crash during the call is visible afterwards.
+
+```mermaid
+sequenceDiagram
+    participant O as Outbox
+    participant S as Messaging service
+    O->>O: mark r2.1 sending and commit
+    O->>S: send r2.1
+    S->>S: accept r2.1
+    S--xO: the reply is lost
+    O->>O: mark r2.1 unknown and commit
+```
+
+**Figure:** The service holds the report while the shop has heard nothing, so the outbox records what it knows, unknown, instead of guessing.
+
 **Listing:** One confirmed send, then a send whose reply is lost.
 
 ```python
@@ -293,6 +329,8 @@ and $P(\text{two or more}) = 1 - \ell^{k} - P(\text{exactly one})$.
 
 **Resend, and the receiver drops repeated report identities.** Delivery is as good as resending, $1 - \ell^{k}$, and copies never exceed one.
 
+### Run the experiment
+
 The experiment sends 100,000 reports under each policy with $\ell = 0.02$ and $p = 0.05$:
 
 ```bash
@@ -329,21 +367,59 @@ This chapter's worker is deliberately single. If it crashes while an item is run
 
 Chapter 8's Telegram adapter becomes a *producer* for this inbox. It admits each authenticated message under the service's message identifier, and it acknowledges the message to the service only after `admit` has committed, so a crash between the two causes a duplicate, never a loss. Chapter 9's clock and stock producers admit their work the same way, naming each occurrence by its schedule. None of them runs the model directly. They all put work in one inbox, drained by one worker running your loop.
 
+## Expected observations
+
+Run the checkpoint from the repository root:
+
+```bash
+uv run python book/textbook/checkpoints/profrod_sovereign_agent_ch07_durable_inbox_outbox_checkpoint.py
+```
+
+It prints fifteen `ok` lines and ends with `Chapter 7 checkpoint: work is admitted once, finished with its report, and sent honestly.` Read these five closely:
+
+- `s1 again, same content: duplicate`, and `s1 with other text: conflict`.
+- `capacity 3: s3 accepted, s4 refused`, followed by `the refused request was never stored`.
+- `s1 ran through the Chapter 3 loop and has one pending report`. The report's body is your loop's answer, not a fixed string.
+- `failure between finish and report: neither committed`.
+- `send r2.1, reply lost: unknown`, then `no pending report left; unknown is never resent`.
+
+The last line is a negative control. The checkpoint plants finished work without a report and requires the invariant query to find it. If that line fails, the fault is in the check, and every green line above it is in doubt.
+
+The experiment's receipt should show each policy's measured delivery, copies and duplicate rate within a few thousandths of the model over 100,000 reports, and $L$ equal to $\lambda W$ on every Little's-law row to the precision the run's edges allow.
+
+## Learner verification
+
+Check the queue from outside it. After your program has closed the file, open it with a separate connection and run the two outbox invariants as queries:
+
+```sql
+-- R1: finished work with no report. Must return no rows.
+SELECT work_id FROM work
+WHERE state = 'finished' AND work_id NOT IN (SELECT work_id FROM reports);
+
+-- R2: a report whose work is not finished. Must return no rows.
+SELECT report_id FROM reports JOIN work USING (work_id)
+WHERE state != 'finished';
+```
+
+Then make each query fail on purpose, as Exercise 1 does for R1. A check that has never returned a row has not yet shown that it can.
+
+Finally, list what an operator would need to decide by hand: every item still `running`, and every report left `unknown`. Both must be visible to that query, and neither may change by itself when the program restarts.
+
 ## Exercises that change the decision
 
-### Exercise 1 — Find the finished work nobody will hear about
+### Exercise 1: Find the finished work nobody will hear about
 
 Change `finish` to insert the report in a second, separate transaction. Use the `between` hook to stop after the first. Show with an independent query that R1 is broken, then restore the single transaction and show it holds.
 
-### Exercise 2 — Resend when it is safe
+### Exercise 2: Resend when it is safe
 
 Add `retry_unknown(transport)` that resends one unknown report, but only if the transport declares that it drops repeated report identities. Show with `FakeService(idempotent=True)` that a report sent twice is accepted once, and with the default service that `retry_unknown` refuses to send.
 
-### Exercise 3 — Choose a capacity
+### Exercise 3: Choose a capacity
 
 Lucy's worker takes 4 minutes per brief, and on busy mornings requests arrive at 0.2 per minute. Predict $L$ and $W$ for an unbounded inbox. Then use the experiment's `little` function to measure them, and pick the smallest capacity for which accepted requests wait under 8 minutes on average. Report the refusal rate you pay for it.
 
-### Exercise 4 — A duplicate that is not a duplicate
+### Exercise 4: A duplicate that is not a duplicate
 
 The till sends `("t1", "till", "Count vanilla")` and, an hour later after a restart that reset its counter, `("t1", "till", "Count chocolate")`. What does the queue answer, and why is that the right answer even though the till is not misbehaving? Propose a source identity the till could use instead.
 
