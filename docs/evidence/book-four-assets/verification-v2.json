@@ -719,9 +719,9 @@
       "id": "ch05-b",
       "markdown": "solutions/ch05/profrod-sovereign-agent-ch05-b-retrieval-and-recall-solution.md",
       "markdownParity": "PASS",
-      "markdownSha256": "b6ae73fa86d9e861a9f89d796567f59e2526b03b6f409d512fc2bbb1c1e3b195",
+      "markdownSha256": "544ace0c37dc974755806bb21bc61860ba7d1828184afac28703cc1926d50cf1",
       "notebook": "solutions/ch05/profrod-sovereign-agent-ch05-b-retrieval-and-recall-solution.ipynb",
-      "notebookSha256": "54f3a560b90621ab8e9c30c15b60b52c547bf5ed3848b4d8b224006821fcd27a",
+      "notebookSha256": "6619ec84aeb778dc5f4584f499ac0c1b69417488ca89c22cb1bf38116098a605",
       "sameKernelReplay": "PASS",
       "transfer": "PASS"
     },

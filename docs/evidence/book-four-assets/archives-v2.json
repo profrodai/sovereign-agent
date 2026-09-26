@@ -106,7 +106,7 @@
     {
       "asset": "solutions",
       "path": "solutions/profrod-sovereign-agent-solutions-2026-09-10.zip",
-      "sha256": "377ef784ad99f88ef85a8119e0fae03a71f8320dc7ac32364cf1ac40bfb9de10",
+      "sha256": "d3ca18af6f6cb159b297746088ebd3735586b382460d14ba3d2656a48ae8eee5",
       "sourceStartSha256": "2f69e4c2c51aaa2e8d5b555d3117b783d63b7767f477d22d41651496bb1895e0",
       "startTransform": "replace-named-download-link-with-extracted-notice-v2",
       "members": {
@@ -132,8 +132,8 @@
         "ch04/profrod-sovereign-agent-ch04-sqlite-state-solutions-guide.md": "d4a053bd23edcf8bcf98789651adea921cd058557a1516ce126af3930e72de26",
         "ch05/profrod-sovereign-agent-ch05-a-durable-memory-solution.ipynb": "b742e30d0ae4a1d40e7f54d95a2cfb740391a78c19a37ece5accef6253582cac",
         "ch05/profrod-sovereign-agent-ch05-a-durable-memory-solution.md": "6e7efb7b55f14a1a9e28249217430ef51cb3031e8cee787c51c3291820d9f813",
-        "ch05/profrod-sovereign-agent-ch05-b-retrieval-and-recall-solution.ipynb": "54f3a560b90621ab8e9c30c15b60b52c547bf5ed3848b4d8b224006821fcd27a",
-        "ch05/profrod-sovereign-agent-ch05-b-retrieval-and-recall-solution.md": "b6ae73fa86d9e861a9f89d796567f59e2526b03b6f409d512fc2bbb1c1e3b195",
+        "ch05/profrod-sovereign-agent-ch05-b-retrieval-and-recall-solution.ipynb": "6619ec84aeb778dc5f4584f499ac0c1b69417488ca89c22cb1bf38116098a605",
+        "ch05/profrod-sovereign-agent-ch05-b-retrieval-and-recall-solution.md": "544ace0c37dc974755806bb21bc61860ba7d1828184afac28703cc1926d50cf1",
         "ch05/profrod-sovereign-agent-ch05-durable-memory-solutions-guide.md": "2b1eee055c52ef846cd76840812f8d50b74f8c358ccb8a5cffed338e48f94e3a",
         "ch06/profrod-sovereign-agent-ch06-a-versioned-skills-solution.ipynb": "c470d36e65a33ed5aa9ecae6a324344072b425e8ad80c627fd23bcf851cf2f01",
         "ch06/profrod-sovereign-agent-ch06-a-versioned-skills-solution.md": "683b0ed94352ba54f68b62787a36f069916756fdec34100f82832abf26888e17",
@@ -208,7 +208,7 @@
     {
       "asset": "educator",
       "path": "educator/profrod-sovereign-agent-educator-2026-09-10.zip",
-      "sha256": "321562dc871c8e373b6a0b00a14887bdbbdb6f0bb9fc44aa5ef752d4d29406df",
+      "sha256": "bf3cfffb365ff4b99a598826176a9691d50931ca40e67fa47a55d0d2949952d4",
       "sourceStartSha256": "dccc00ccf8d88077464da4a9e03523f06694b3a441201659efe536e5a481bb09",
       "startTransform": "replace-named-download-link-with-extracted-notice-v2",
       "members": {
@@ -256,8 +256,8 @@
         "ch05/profrod-sovereign-agent-ch05-durable-memory-teaching-guide.md": "199eae3ae3bfda138e821be484f018cd56636b70a19ca849e639d31bf4a15167",
         "ch05/solutions/profrod-sovereign-agent-ch05-a-durable-memory-educator-solution.ipynb": "b742e30d0ae4a1d40e7f54d95a2cfb740391a78c19a37ece5accef6253582cac",
         "ch05/solutions/profrod-sovereign-agent-ch05-a-durable-memory-educator-solution.md": "6e7efb7b55f14a1a9e28249217430ef51cb3031e8cee787c51c3291820d9f813",
-        "ch05/solutions/profrod-sovereign-agent-ch05-b-retrieval-and-recall-educator-solution.ipynb": "54f3a560b90621ab8e9c30c15b60b52c547bf5ed3848b4d8b224006821fcd27a",
-        "ch05/solutions/profrod-sovereign-agent-ch05-b-retrieval-and-recall-educator-solution.md": "b6ae73fa86d9e861a9f89d796567f59e2526b03b6f409d512fc2bbb1c1e3b195",
+        "ch05/solutions/profrod-sovereign-agent-ch05-b-retrieval-and-recall-educator-solution.ipynb": "6619ec84aeb778dc5f4584f499ac0c1b69417488ca89c22cb1bf38116098a605",
+        "ch05/solutions/profrod-sovereign-agent-ch05-b-retrieval-and-recall-educator-solution.md": "544ace0c37dc974755806bb21bc61860ba7d1828184afac28703cc1926d50cf1",
         "ch05/student/profrod-sovereign-agent-ch05-a-durable-memory-educator-exercise.ipynb": "19c4a07c16430d0a9a5b35494d58830723c8c8bcba97336cf5c34e906bc355eb",
         "ch05/student/profrod-sovereign-agent-ch05-a-durable-memory-educator-exercise.md": "3af3856b9a2d6bf9777b0e67944827e35999c5422d30fb0b46913959e892e508",
         "ch05/student/profrod-sovereign-agent-ch05-b-retrieval-and-recall-educator-exercise.ipynb": "9635f5d3336ea7780ae3fb9ff045b00cb98e73854faacd8f20d71195068b09c2",

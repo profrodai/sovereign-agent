@@ -1933,5 +1933,5 @@
     }
   ],
   "seconds": 30.1,
-  "regraded": "retained answers scored again by graded(); the model was not called"
+  "regraded": "retained answers scored again by graded(), and the offline rankers recomputed; the model was not called"
 }
