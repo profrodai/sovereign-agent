@@ -14,7 +14,7 @@ Part A starts with what any evaluation score is: an estimate from a sample of ca
 
 The central experiment attacks the evaluator itself. We will make a model produce correct tool calls and a wildly incorrect amount in its final answer. The initial automated checks pass that case. Rather than hide the blind spot, the report will identify what it checked and what still needs review. A passing instrument must not quietly become an acceptance decision it cannot support.
 
-For dedicated practice, use [Unit A](../../exercises/ch15/profrod-sovereign-agent-ch15-a-agent-evaluation-exercise.md) and [Unit B](../../exercises/ch15/profrod-sovereign-agent-ch15-b-evaluation-repair-transfer-exercise.md), each with a ninety-minute plan and matching notebook.
+For dedicated practice, use [Unit A](../../exercises/ch15/profrod-sovereign-agent-ch15-a-agent-evaluation-exercise.md), which constructs the baseline inside the harness, and [Unit B](../../exercises/ch15/profrod-sovereign-agent-ch15-b-evaluation-statistics-exercise.md), which puts error bars on an evaluation: Wilson intervals checked by exact coverage, and McNemar's paired test. Each has a ninety-minute plan and matching notebook.
 
 ## Learning objectives
 

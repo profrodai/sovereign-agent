@@ -46,7 +46,7 @@ UNIT_TOPICS = {
     11: ("durable-order-evidence", "ambiguous-order-recovery"),
     12: ("worker-crash-recovery", "recovery-repair-transfer"),
     14: ("tool-isolation", "isolation-repair-transfer"),
-    15: ("agent-evaluation", "evaluation-repair-transfer"),
+    15: ("agent-evaluation", "evaluation-statistics"),
     16: ("controlled-improvement", "improvement-repair-transfer"),
     17: ("bounded-delegation", "delegation-repair-transfer"),
     18: ("deployment-restoration", "operations-repair-transfer"),
