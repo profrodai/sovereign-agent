@@ -1,4 +1,4 @@
-# Chapter 2 — Give the agent reliable shop tools
+# Chapter 2 — Structured output and typed tools: what a schema guarantees
 
 > **Learn with Prof Rod** — *Build Your Always-On AI Agent From Scratch*.
 > **Read the full book and get the latest learning materials:** [https://profrod.ai/book](https://profrod.ai/book).
@@ -12,15 +12,226 @@ Lucy receives a morning brief just as a delivery arrives. The brief says vanilla
 
 A tool gives the model that opportunity. The model generates a request such as “call `list_stock`.” Your program validates the request, calls a specific Python function, and returns the result. The function reads the data. The model does not become the database, and its requested function name does not become permission to execute arbitrary Python.
 
-This chapter builds three tools: stock lookup, supplier lookup, and draft calculation. You will test them without a model before placing them inside an agent loop. By the end, a fabricated or malformed request will produce an inspectable refusal, while a valid draft request will return an exact quantity and amount in USD cents.
+Part A starts with what the model's side of that exchange can guarantee. A tool request is sampled text, and constrained decoding can force it to parse, but not to be right; the part derives both facts and measures them on a real model. Part B then builds three tools: stock lookup, supplier lookup, and draft calculation. You will test them without a model before placing them inside an agent loop. By the end, a fabricated or malformed request will produce an inspectable refusal, while a valid draft request will return an exact quantity and amount in USD cents.
 
 For dedicated practice, use [Unit A](../../exercises/ch02/profrod-sovereign-agent-ch02-a-pydantic-shop-tools-exercise.md) and [Unit B](../../exercises/ch02/profrod-sovereign-agent-ch02-b-pydantic-validation-repair-exercise.md), each with its own ninety-minute plan and matching notebook.
 
 ## Learning objectives
 
-Build and test typed stock, supplier, and draft tools; validate generated arguments before dispatch; and keep authoritative replenishment arithmetic in ordinary Python.
+Part A treats structured output as sampling under a grammar. After it you should be able to:
+
+- estimate how often an unconstrained structured answer stays valid, and why it falls with length;
+- explain constrained decoding as masking logits to the tokens a grammar allows;
+- show, on a model small enough to enumerate, that masking is not the same as conditioning on validity;
+- separate parsing, schema validity and correctness when measuring a model's structured output.
+
+Part B builds the tools. After it you should be able to:
+
+- build and test typed stock, supplier, and draft tools; validate generated arguments before dispatch; and keep authoritative replenishment arithmetic in ordinary Python.
 
 The observable result is a replenishment draft for six vanilla tubs costing 1,500 cents. The physical stock must remain two, and no supplier purchase may occur. You will also demonstrate that a Boolean quantity, an unknown tool name, and a quantity inconsistent with the shop's rule do not pass as valid requests.
+
+## Part A: structured output, from sampled text to valid data
+
+A tool call is text that a program must parse. The model does not know it is writing JSON: it samples one token at a time, as [Chapter 1](../ch01/profrod-sovereign-agent-ch01-first-model-call-chapter.md) derived, and nothing in sampling forces the result to be well formed. This part asks three questions:
+
+- How likely is a long structured answer to stay valid?
+- How do servers guarantee validity by masking logits?
+- What does that guarantee not buy?
+
+The functions live in [the chapter's learner file](../learner/profrod_sovereign_agent_ch02_constrained_decoding_learner.py).
+
+```python
+import json
+import runpy
+
+decode = runpy.run_path(
+    "book/textbook/learner/profrod_sovereign_agent_ch02_constrained_decoding_learner.py"
+)
+structured_lab = runpy.run_path(
+    "book/textbook/experiments/profrod_sovereign_agent_textbook_ch02_structured_v1.py"
+)
+measured = json.loads(open("docs/evidence/book-ch02/ch02-structured-receipt-v1.json").read())
+```
+
+### Validity compounds, like reliability
+
+Suppose each generated token has a small probability $\epsilon$ of breaking the format: a stray quote, a missing brace, prose before the object. If tokens err independently, an answer of $n$ tokens stays valid with probability
+
+$
+P(\text{valid}) = (1 - \epsilon)^{n}.
+$
+
+This is [Chapter 3](../ch03/profrod-sovereign-agent-ch03-agent-loop-chapter.md)'s compounding again, with tokens instead of steps.
+
+**Listing:** A one-in-a-hundred token error, over answers of growing length.
+
+```python
+for tokens in (20, 100, 500):
+    print(tokens, "tokens:", round(decode["stays_valid"](0.01, tokens), 4))
+```
+
+```text
+20 tokens: 0.8179
+100 tokens: 0.366
+500 tokens: 0.0066
+```
+
+A short tool call usually survives; a long structured document usually does not. Retrying on failure helps only as much as Chapter 3's retries do.
+
+### Constrained decoding: mask the logits
+
+The server can instead make invalid tokens impossible. At each step, a parser tracks where the partial answer is in the grammar: for example, "inside a string" or "expecting a comma or a closing brace". It computes which next tokens could still lead to a valid answer. Every other logit is set to $-\infty$ before softmax, so those tokens get probability zero:
+
+$
+q_i = \frac{e^{z_i}\,\mathbf{1}[i \in A]}{\sum_{j \in A} e^{z_j}},
+$
+
+where $A$ is the allowed set. The allowed tokens keep their relative odds, renormalized. A JSON schema compiles to such a grammar, so a server that enforces it returns only answers that parse and fit the schema.
+
+**Listing:** Masking two of four tokens.
+
+```python
+logits = [2.0, 1.0, 0.5, -1.0]
+print([round(p, 4) for p in decode["softmax"](logits)])
+print([round(p, 4) for p in decode["softmax"](decode["mask"](logits, {1, 3}))])
+```
+
+```text
+[0.6095, 0.2242, 0.136, 0.0303]
+[0.0, 0.8808, 0.0, 0.1192]
+```
+
+### Masking is not conditioning
+
+It is tempting to think a constrained model samples from "the model's distribution, restricted to valid answers": $p(x \mid x \text{ valid}) = p(x)\,\mathbf{1}[x \text{ valid}] / P(\text{valid})$. It does not. Masking decides one token at a time, from the model's local preferences. It cannot see that a likely first token leads mostly to invalid continuations.
+
+A toy model makes this exact. It writes "a" first 90% of the time, but after "a" it almost always writes "x", which is invalid. After "b" it always writes the valid "y". The valid answers are "ay" and "by".
+
+**Listing:** The toy model, conditioned on validity and masked token by token.
+
+```python
+toy = structured_lab["toy_comparison"]()
+print("unconstrained P(valid):", toy["p_valid_unconstrained"])
+print("conditioned:", toy["conditioned"])
+print("masked:     ", toy["masked"])
+print("total variation distance:", toy["total_variation"])
+```
+
+```text
+unconstrained P(valid): 0.109
+conditioned: {'ay': 0.0826, 'by': 0.9174}
+masked:      {'ay': 0.9, 'by': 0.1}
+total variation distance: 0.8174
+```
+
+```mermaid
+xychart-beta
+    title "Probability of each valid answer in the toy model"
+    x-axis ["ay", "by"]
+    y-axis "Probability" 0 --> 1
+    bar [0.0826, 0.9174]
+    line [0.9, 0.1]
+```
+
+**Figure:** Bars are the model conditioned on validity; the line is what token-by-token masking produces. Masking follows the likely first token into its one valid ending.
+
+Conditioning says "ay" is rare: the model almost never completes "a" validly, so valid answers mostly begin with "b". Masking commits to "a" nine times in ten and then forces the one valid continuation. The two distributions are 0.82 apart in total variation, which is the largest possible gap in probability for any event. **Constrained decoding changes what the model says, not only whether it parses.** Exact conditioning would need lookahead over whole continuations. Sampling repeatedly and keeping only valid answers achieves it, at a cost that grows as $1/P(\text{valid})$.
+
+### Measured: a schema on a real model
+
+The experiment asked `qwen2.5:0.5b` and `qwen2.5:1.5b` to turn twelve of Lucy's requests into `{"sku", "quantity"}`, five samples each at temperature 0.7. Each answer was requested twice: once with JSON asked for only in the prompt, and once with the schema enforced by the server's constrained decoding. Every answer was scored on three levels.
+
+```bash
+uv run python book/textbook/experiments/profrod_sovereign_agent_textbook_ch02_structured_v1.py \
+    --out ch02-structured-receipt.json --live
+```
+
+**Listing:** Parse, schema and correctness rates.
+
+```python
+for row in measured["structured_output"]:
+    mode = "schema enforced" if row["constrained"] else "prompt only    "
+    print(
+        f"{row['model']:13} {mode}  parses {row['parses']}  schema {row['schema']}  correct {row['correct']}"
+    )
+```
+
+```text
+qwen2.5:0.5b  prompt only      parses 48/60  schema 40/60  correct 32/60
+qwen2.5:0.5b  schema enforced  parses 60/60  schema 60/60  correct 44/60
+qwen2.5:1.5b  prompt only      parses 42/60  schema 42/60  correct 41/60
+qwen2.5:1.5b  schema enforced  parses 60/60  schema 60/60  correct 58/60
+```
+
+```mermaid
+xychart-beta
+    title "qwen2.5:0.5b, sixty answers each way"
+    x-axis ["Parses", "Fits the schema", "Right order"]
+    y-axis "Answers" 0 --> 60
+    bar [60, 60, 44]
+    line [48, 40, 32]
+```
+
+**Figure:** Bars are with the schema enforced; the line is JSON asked for in the prompt only. The schema closes the first two gaps completely, and the third only partly.
+
+The schema did what it promises: every constrained answer parsed and fitted. Read the failures before crediting it with more.
+
+**Listing:** What the prompt-only answers that failed to parse contained.
+
+```python
+unparsed = [r for r in measured["runs"] if not r["constrained"] and not r["parses"]]
+fenced = [r for r in unparsed if r["answer"].strip().startswith("```")]
+print(len(unparsed), "unparsed;", len(fenced), "wrapped in a Markdown code fence")
+recovered = 0
+for r in fenced:
+    body = r["answer"].strip().strip("`").removeprefix("json").strip()
+    expected = dict(structured_lab["REQUESTS"])[r["request"]]
+    recovered += structured_lab["score"](body, expected)["correct"]
+print(recovered, "of those are the right order once the fence is removed")
+```
+
+```text
+30 unparsed; 30 wrapped in a Markdown code fence
+26 of those are the right order once the fence is removed
+```
+
+Every prompt-only parse failure was the model wrapping good JSON in a code fence, as it would for a person reading Markdown. Most of the correctness the schema appears to add is formatting. **What the schema cannot add is meaning.** With the schema enforced, the smaller model still read "mango" as chocolate or pistachio, "vanilla" as strawberry, and "7 tubs" as 1. The larger model read "half a dozen" as 3 in one of five samples without the schema, and in two of five with it. Each of those answers is valid JSON with a valid SKU and a positive integer.
+
+The measurement also shows masking changing an answer, as the toy model predicts. Asked for "half a dozen pistachio" without a schema, the smaller model answered a quantity of 0.5 four times in five: it read "half". With the schema enforcing an integer, 0.5 was impossible, and its five answers became 12, 6, 1, 1 and 12. The model's first choice was blocked, and the grammar sent it somewhere else.
+
+**Listing:** Valid, schema-conforming and wrong.
+
+```python
+wrong = {}
+for r in measured["runs"]:
+    if r["constrained"] and r["schema"] and not r["correct"]:
+        wrong.setdefault((r["model"], r["request"]), set()).add(
+            r["answer"].replace(" ", "").replace("\n", "")
+        )
+for (model, request), answers in sorted(wrong.items()):
+    print(f"{model:13} {request:46} {' '.join(sorted(answers))}")
+```
+
+```text
+qwen2.5:0.5b  A dozen vanilla tubs for the weekend.          {"sku":"C","quantity":12} {"sku":"S","quantity":12}
+qwen2.5:0.5b  Could you draft 7 tubs of the chocolate one?   {"sku":"C","quantity":1}
+qwen2.5:0.5b  Half a dozen pistachio.                        {"sku":"M","quantity":12} {"sku":"P","quantity":12} {"sku":"P","quantity":1}
+qwen2.5:0.5b  Mango: 3 tubs, please.                         {"sku":"C","quantity":3} {"sku":"P","quantity":3}
+qwen2.5:0.5b  Order vanilla, eight tubs.                     {"sku":"S","quantity":8}
+qwen2.5:0.5b  Reorder strawberry: we need 9.                 {"sku":"S","quantity":1}
+qwen2.5:1.5b  Half a dozen pistachio.                        {"sku":"P","quantity":3}
+```
+
+Three rules follow, and Part B builds on them:
+
+- **Use constrained decoding when the server offers it.** It removes a whole class of failures for free.
+- **Validate anyway.** A schema says a quantity is an integer. Only the program can say that it matches the shop's need, is within the supplier's limits, or refers to the product Lucy meant. That is why the dispatcher below checks every request before it runs.
+- **Evaluate the meaning, not the form.** Valid-but-wrong answers pass every structural check. Only a comparison with an authored expected answer, as in [Chapter 15](../ch15/profrod-sovereign-agent-ch15-agent-evaluation-chapter.md), catches them.
+
+## Part B: give the agent reliable shop tools
+
+Part A showed what a model's structured output can and cannot guarantee. This part builds the tools, and the validation, that stand between a generated request and Lucy's shop.
 
 ## Decide what the model should choose
 
@@ -766,6 +977,8 @@ uv run python scripts/verify_book_assets_v2.py --textbook
 The first command prints the following output:
 
 ```text
+ok   masking renormalizes the allowed tokens and zeroes the rest
+ok   rejection sampling gives P(ay) 0.083; masked sampling 0.897
 [('SKU-CHOCOLATE', 0), ('SKU-STRAWBERRY', 4), ('SKU-VANILLA', 6)]
 {"ok": true, "value": {"currency": "USD", "quantity": 6, "sku": "SKU-VANILLA", "status": "DRAFT", "supplier": "lucy-local", "total_cents": 1500, "unit_cost_cents": 250}}
 {"error": "invalid_arguments", "ok": false}
@@ -800,13 +1013,25 @@ The exercise intentionally requires changing both calculation sites. After provi
 
 Register a harmless probe alongside the shop tools but omit it from the allowlist. Verify both that its schema is absent and that a manually constructed request cannot invoke it. Then duplicate an existing tool name in the registry. Construction must fail rather than silently choosing one handler. These are different failures: the first concerns caller authority, and the second concerns an ambiguous program configuration.
 
+### Exercise 4 — Rejection sampling against masking
+
+Implement rejection sampling for the toy model: sample complete sequences from the unconstrained model and keep only valid ones. Estimate the distribution from ten thousand kept samples, compare it with the exact conditioned and masked distributions, and report how many samples you drew per kept one. Relate that number to $1 / P(\text{valid})$.
+
+### Exercise 5 — A schema that encodes more of the rule
+
+Add a maximum quantity to the experiment's schema, and a second field for a unit ("tub" only). Predict which of the measured failures the stricter schema prevents, and which it cannot. Then name a check that no JSON schema can express, and put it in the dispatcher.
+
 ## Active recall and vocabulary
+
+Without rereading, write the masked softmax, and explain in two sentences why masking one token at a time differs from conditioning a whole answer on validity. Why did most of the correctness a schema appeared to add turn out to be formatting? Then:
 
 Before continuing, answer these questions without rerunning the examples. Where is the supplier price obtained? Why is `quantity=True` refused? Which check catches a valid integer that exceeds the actual need? Can an oversized-result error prove that the handler never ran? What additional evidence would a purchasing tool need before claiming that an order succeeded?
 
-The **schema** describes a tool's accepted arguments. A **handler** is the particular Python function implementing the operation. The **registry** binds a public name to that implementation. The **allowlist** selects which registered operations this caller may use. A **dispatcher** checks a request and invokes the selected handler. An **observation** is the structured result returned to the model. A **draft** describes a proposed order without claiming purchase or delivery.
+**Constrained decoding** masks, at each step, the tokens a grammar does not allow. **Total variation distance** is the largest difference two distributions assign to any event. The **schema** describes a tool's accepted arguments. A **handler** is the particular Python function implementing the operation. The **registry** binds a public name to that implementation. The **allowlist** selects which registered operations this caller may use. A **dispatcher** checks a request and invokes the selected handler. An **observation** is the structured result returned to the model. A **draft** describes a proposed order without claiming purchase or delivery.
 
 ## Summary
+
+A model writes structured output one sampled token at a time, so a long answer's validity compounds like Chapter 3's reliability. Constrained decoding masks invalid tokens and guarantees an answer that parses and fits the schema. It also changes what the model says, because it cannot look ahead, and it cannot make a valid answer the right one. On a real model the schema turned every answer valid; the wrong SKUs and quantities that remained are what Part B's validation and Chapter 15's evaluation exist for.
 
 You built three typed tools, an explicit registry, and a dispatcher whose checks precede invocation. Deterministic code calculates Lucy's replenishment quantities and USD amounts. Malformed arguments, unavailable operations, missing authority, and inconsistent business requests produce tested refusals. The failure experiments also established a limit: a refused result does not necessarily mean a handler had no effect.
 

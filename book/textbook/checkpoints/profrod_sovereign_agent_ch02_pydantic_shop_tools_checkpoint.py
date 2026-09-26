@@ -7,6 +7,8 @@
 
 import copy
 import json
+import math
+import random
 import runpy
 from pathlib import Path
 
@@ -90,7 +92,57 @@ def build_tools(shop):
     return Dispatcher(tools, allowed=frozenset(tool.name for tool in tools))
 
 
+BOOK = Path(__file__).resolve().parents[1]
+DECODE = runpy.run_path(
+    str(BOOK / "learner/profrod_sovereign_agent_ch02_constrained_decoding_learner.py")
+)
+
+
+def structured():
+    """Part A's decoding functions, each checked against an independent computation."""
+    assert math.isclose(DECODE["stays_valid"](0.01, 100), 0.99**100)
+    logits = [2.0, 1.0, 0.5, -1.0]
+    full = DECODE["softmax"](logits)
+    kept = DECODE["softmax"](DECODE["mask"](logits, {1, 3}))
+    assert kept[0] == kept[2] == 0.0
+    assert math.isclose(kept[1], full[1] / (full[1] + full[3]))
+    print("ok   masking renormalizes the allowed tokens and zeroes the rest")
+
+    lab = runpy.run_path(
+        str(BOOK / "experiments/profrod_sovereign_agent_textbook_ch02_structured_v1.py")
+    )
+    toy, valid = lab["TOY"], lab["VALID"]
+    rng = random.Random(2)
+
+    def viable(prefix, token):
+        if token == lab["END"]:
+            return prefix in valid
+        return any(v[: len(prefix) + 1] == prefix + (token,) for v in valid)
+
+    def draw(allowed=None):
+        prefix = ()
+        while True:
+            options = [
+                (t, p) for t, p in toy[prefix].items() if allowed is None or allowed(prefix, t)
+            ]
+            tokens, weights = zip(*options, strict=True)
+            token = rng.choices(tokens, weights)[0]
+            if token == lab["END"]:
+                return prefix
+            prefix = prefix + (token,)
+
+    kept_samples = [s for s in (draw() for _ in range(200_000)) if s in valid]
+    rejection = sum(s == ("a", "y") for s in kept_samples) / len(kept_samples)
+    masked_draws = [draw(allowed=viable) for _ in range(20_000)]
+    masking = sum(s == ("a", "y") for s in masked_draws) / len(masked_draws)
+    comparison = lab["toy_comparison"]()
+    assert abs(rejection - comparison["conditioned"]["ay"]) < 0.01
+    assert abs(masking - comparison["masked"]["ay"]) < 0.01
+    print(f"ok   rejection sampling gives P(ay) {rejection:.3f}; masked sampling {masking:.3f}")
+
+
 def main():
+    structured()
     tools = build_tools(SHOP)
     stock = tools.invoke(ToolCall(id="stock", name="list_stock", arguments={}))
     print([(row["sku"], row["needed"]) for row in stock["value"]])
