@@ -1,4 +1,4 @@
-# Teach Chapter 16: Improve behavior with evaluated changes
+# Teach Chapter 16: Optimizing against an evaluation: the winner's curse, preferences and evaluated changes
 
 > **Learn with Prof Rod** — *Build Your Always-On AI Agent From Scratch*.
 > **Read the full book and get the latest learning materials:** [https://profrod.ai/book](https://profrod.ai/book).

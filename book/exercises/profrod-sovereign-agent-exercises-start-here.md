@@ -31,7 +31,7 @@ The edition has nineteen chapter slots. **Eighteen chapters currently have two n
 | 13 | [Build an MCP client and tool server](ch13/profrod-sovereign-agent-ch13-mcp-tools-exercise-guide.md) | PLANNED — brief only |
 | 14 | [Isolate tools and untrusted content](ch14/profrod-sovereign-agent-ch14-tool-isolation-exercise-guide.md) | Available draft — A and B, 90 minutes each |
 | 15 | [Evaluation as measurement: error bars and paired comparisons](ch15/profrod-sovereign-agent-ch15-agent-evaluation-exercise-guide.md) | Available draft — A and B, 90 minutes each |
-| 16 | [Improve behavior with evaluated changes](ch16/profrod-sovereign-agent-ch16-controlled-improvement-exercise-guide.md) | Available draft — A and B, 90 minutes each |
+| 16 | [Optimizing against an evaluation: the winner's curse, preferences and evaluated changes](ch16/profrod-sovereign-agent-ch16-controlled-improvement-exercise-guide.md) | Available draft — A and B, 90 minutes each |
 | 17 | [Delegate one bounded task](ch17/profrod-sovereign-agent-ch17-bounded-delegation-exercise-guide.md) | Available draft — A and B, 90 minutes each |
 | 18 | [What a model call costs, and a deployment that survives](ch18/profrod-sovereign-agent-ch18-deployment-restoration-exercise-guide.md) | Available draft — A and B, 90 minutes each |
 | 19 | [Lucy leaves the shop for a day](ch19/profrod-sovereign-agent-ch19-integrated-shop-day-exercise-guide.md) | Available draft — A and B, 90 minutes each |

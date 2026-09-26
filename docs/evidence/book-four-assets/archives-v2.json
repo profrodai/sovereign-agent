@@ -4,8 +4,8 @@
     {
       "asset": "exercises",
       "path": "exercises/profrod-sovereign-agent-exercises-2026-09-10.zip",
-      "sha256": "5814bb3a0103ff13ec75393cbdaae8af4138e1a915d17c445c8ea104c603b507",
-      "sourceStartSha256": "7220c7e2af8c7b6db52ccce6d8c41da66eb656e3033e5c9e049c125449893f10",
+      "sha256": "f4afaa510d3e2f85aac03bc2d1d71b85542d69d99bee53588345dd731cd01142",
+      "sourceStartSha256": "9ac7b9866616be68adfc9189b039897a6f194fe8cd234c9d10c6a567edadf6ac",
       "startTransform": "replace-named-download-link-with-extracted-notice-v2",
       "members": {
         "ch01/profrod-sovereign-agent-ch01-a-softmax-and-sampling-exercise.ipynb": "83feffb026b1d82e73eb4773f3f6e6a95e29adf02a90b271656958cb42b2c914",
@@ -83,7 +83,7 @@
         "ch16/profrod-sovereign-agent-ch16-a-controlled-improvement-exercise.md": "4e3ef1bfe9f10b1e7991c2a4da0fc4f2fc63af802a3bb626cb1c109009d451d1",
         "ch16/profrod-sovereign-agent-ch16-b-improvement-repair-transfer-exercise.ipynb": "1858ca8d51c1cd74c5f3fbcc09cfd1f97ae55feb921c5475f33256f8cba87c20",
         "ch16/profrod-sovereign-agent-ch16-b-improvement-repair-transfer-exercise.md": "bdd65ce969a080a009d95f1b7c1f66fa48d26130c8a4579546c5085865948e8a",
-        "ch16/profrod-sovereign-agent-ch16-controlled-improvement-exercise-guide.md": "d32495a973f11a12f13057694d6a011e2a98ce66ef8799e2b6477ac73032368b",
+        "ch16/profrod-sovereign-agent-ch16-controlled-improvement-exercise-guide.md": "62aedca58c0f7ba1eb2c340342c40b1730087435096a73971d4d40ffb76c5615",
         "ch17/profrod-sovereign-agent-ch17-a-bounded-delegation-exercise.ipynb": "6dda7abef1130a20b3270a15db3960e6194f8938e1698c9f3d3fb8f85fbbb0dc",
         "ch17/profrod-sovereign-agent-ch17-a-bounded-delegation-exercise.md": "522c1a82a7192a3a16b153a65851f0e5c3ec900e412d1d89a62c75ced94fd09c",
         "ch17/profrod-sovereign-agent-ch17-b-delegation-repair-transfer-exercise.ipynb": "8c212f173589a605bf618c1e9b25e3bb5d60e86374b7e33f1e850fb3f5e343db",
@@ -100,14 +100,14 @@
         "ch19/profrod-sovereign-agent-ch19-b-acceptance-repair-transfer-exercise.md": "9fea1e965486a0066fa4464f06f25296cafddf7da53848bb0ea1b1426c1e6055",
         "ch19/profrod-sovereign-agent-ch19-integrated-shop-day-exercise-guide.md": "e8a1546b96455bbb30e1b35ad1d640e558efb45ad05c8501da239c073896e4e5",
         "profrod-sovereign-agent-exercises-setup.md": "92af855580556693e9ef4702f09ad5bab7946dfee2889856722799fb234a9e0d",
-        "profrod-sovereign-agent-exercises-start-here.md": "58c951bfad5620e45228bb1a094d7498c086b82b3a2fdc8cb4fe04df10dd1681"
+        "profrod-sovereign-agent-exercises-start-here.md": "94c620b639280960e373f211e88c1bd91b42116c8f3a34dc03d87b061a42be34"
       }
     },
     {
       "asset": "solutions",
       "path": "solutions/profrod-sovereign-agent-solutions-2026-09-10.zip",
-      "sha256": "d3ca18af6f6cb159b297746088ebd3735586b382460d14ba3d2656a48ae8eee5",
-      "sourceStartSha256": "2f69e4c2c51aaa2e8d5b555d3117b783d63b7767f477d22d41651496bb1895e0",
+      "sha256": "15719272241f64f7b75c0d3e2f6516fa251b370baa99c8544147273bf6335174",
+      "sourceStartSha256": "4beda77629023b62708a39db5713b9a86e63f5e367d442d058b0c3598cb2fc52",
       "startTransform": "replace-named-download-link-with-extracted-notice-v2",
       "members": {
         "ch01/profrod-sovereign-agent-ch01-a-softmax-and-sampling-solution.ipynb": "e4c9f65386e171aa5ca4513173972ccbe6db73edd69871d55f459f383f1b084b",
@@ -185,7 +185,7 @@
         "ch16/profrod-sovereign-agent-ch16-a-controlled-improvement-solution.md": "44079b98e7645a32e833566bd7f08d26ae5d891c790bdcbc67a33402308e898b",
         "ch16/profrod-sovereign-agent-ch16-b-improvement-repair-transfer-solution.ipynb": "636550db5d9885fe1c3026db68ee01da904958942d2a5530657f512cf56f791a",
         "ch16/profrod-sovereign-agent-ch16-b-improvement-repair-transfer-solution.md": "950ab0538349eb24d6279deef09204e41bc2797c7f4a0629061e15e6027d13ea",
-        "ch16/profrod-sovereign-agent-ch16-controlled-improvement-solutions-guide.md": "85ed7bd89521e7a7b32c34e599c39cee64755b04b66038fe2cca767ffffd4a2c",
+        "ch16/profrod-sovereign-agent-ch16-controlled-improvement-solutions-guide.md": "0fbd1002e3f00ab2c82573aa0dc20d62149162c048e3b3651271827eb44fdd61",
         "ch17/profrod-sovereign-agent-ch17-a-bounded-delegation-solution.ipynb": "2a2d48799fa2e5a09ae6e3fed413a0ff42f88ba0b629ef4edbe282faf63560fd",
         "ch17/profrod-sovereign-agent-ch17-a-bounded-delegation-solution.md": "419936f168be5f3ad2889291e250b184ea3cb4a7f3078a7834a1077efbfd8c21",
         "ch17/profrod-sovereign-agent-ch17-b-delegation-repair-transfer-solution.ipynb": "dc38bcedfa0e5d4fe7b92d1a7f9f34039eff05ae85ac148c999cea09c7a81a2b",
@@ -202,14 +202,14 @@
         "ch19/profrod-sovereign-agent-ch19-b-acceptance-repair-transfer-solution.md": "b20893726f34efe734e87863c5cb7a2c84724b50ec109f297599e05a6f06f154",
         "ch19/profrod-sovereign-agent-ch19-integrated-shop-day-solutions-guide.md": "63c39cc0b19af662281740e84c276e04d532442218636a09b7ea275c633ad6c3",
         "profrod-sovereign-agent-solutions-setup.md": "bc7c7f6539301dc96e44acb448958ef9a24115942dff55480f242ffe4646f4f0",
-        "profrod-sovereign-agent-solutions-start-here.md": "041068d3fdf90c46a17dd22fd437d48c6156ddf53eb889b40288358f0f018769"
+        "profrod-sovereign-agent-solutions-start-here.md": "73be6ab81d6e2b93aa750127be81dcdf7e000899de2d81756a22db9c70683767"
       }
     },
     {
       "asset": "educator",
       "path": "educator/profrod-sovereign-agent-educator-2026-09-10.zip",
-      "sha256": "bf3cfffb365ff4b99a598826176a9691d50931ca40e67fa47a55d0d2949952d4",
-      "sourceStartSha256": "dccc00ccf8d88077464da4a9e03523f06694b3a441201659efe536e5a481bb09",
+      "sha256": "4237c7f4ef15216a750099f5c6be6bf50c90c6069362407fcf5938e082c98104",
+      "sourceStartSha256": "1e96e930ab4c454d7ce9949212405002d05773437a607d7d576327facc4a1f8f",
       "startTransform": "replace-named-download-link-with-extracted-notice-v2",
       "members": {
         "ch01/profrod-sovereign-agent-ch01-first-model-call-educator-guide.md": "0a4a9158061203f3d7f1baa3a64ed8330d86fe5c34cea20e543a37f1923a9984",
@@ -353,7 +353,7 @@
         "ch15/student/profrod-sovereign-agent-ch15-a-agent-evaluation-educator-exercise.md": "639222295a31f44ee096b1d6493529308294adb7feaa12f31db77ae28a4b5be7",
         "ch15/student/profrod-sovereign-agent-ch15-b-evaluation-statistics-educator-exercise.ipynb": "eb5bd6744b1a0baefffcb08bd03be9ca63948d5c04c4ae8a024cdb0eda4adf07",
         "ch15/student/profrod-sovereign-agent-ch15-b-evaluation-statistics-educator-exercise.md": "2a4d5dab5cc4efb415561a577a39aafbce6de0dbd6c79db00bb9e961c700c267",
-        "ch16/profrod-sovereign-agent-ch16-controlled-improvement-educator-guide.md": "e48102840e6fa34cb47fe335bb60135d00853a054c093dd362c018faa5f50ee8",
+        "ch16/profrod-sovereign-agent-ch16-controlled-improvement-educator-guide.md": "1bd5d3ec77f835d5244a5851aee1891d71d84b183da4e84cb225c8a259a99eb1",
         "ch16/profrod-sovereign-agent-ch16-controlled-improvement-teaching-guide.md": "86ff98d16b91f71a271c98d45a89ffdd0d7730bcfeacf6798d6c758e4d6826f0",
         "ch16/solutions/profrod-sovereign-agent-ch16-a-controlled-improvement-educator-solution.ipynb": "1eb18f813d5d7562a2e4bda6b1fe9811a09bafb34f127c1a9e516280291cb366",
         "ch16/solutions/profrod-sovereign-agent-ch16-a-controlled-improvement-educator-solution.md": "44079b98e7645a32e833566bd7f08d26ae5d891c790bdcbc67a33402308e898b",
@@ -395,7 +395,7 @@
         "ch19/student/profrod-sovereign-agent-ch19-b-acceptance-repair-transfer-educator-exercise.md": "9fea1e965486a0066fa4464f06f25296cafddf7da53848bb0ea1b1426c1e6055",
         "profrod-sovereign-agent-educator-classroom-observations.md": "2b5c6d2423a6bb6707765df52686d8aab08095f96d12a8286592c581a3712229",
         "profrod-sovereign-agent-educator-setup.md": "7ae1e87189de51965936ad190ea4dbffde8de6bbb0cb2e1807fa2ac12eb37c48",
-        "profrod-sovereign-agent-educator-start-here.md": "bb880bbf3a212c402ec77d576887f0bf8e3b080e04bb6ca7bd5b48477c8ee7e2"
+        "profrod-sovereign-agent-educator-start-here.md": "12d20d5d4efc1ccef590edb9ab44cfda32f5521cef6afa2d75e0aee856deabd3"
       }
     }
   ]
