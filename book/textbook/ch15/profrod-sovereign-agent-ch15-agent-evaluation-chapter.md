@@ -1,4 +1,4 @@
-# Chapter 15 — Measure whether the agent helps
+# Chapter 15 — Evaluation as measurement: error bars, paired comparisons and a harness that says what it checked
 
 > **Learn with Prof Rod** — *Build Your Always-On AI Agent From Scratch*.
 > **Read the full book and get the latest learning materials:** [https://profrod.ai/book](https://profrod.ai/book).
@@ -10,17 +10,346 @@
 
 Lucy's agent can read stock, prepare drafts and work without an open terminal. Its boundaries survived the failure experiments. Now Lucy asks a different question: does it recommend the right quantities, explain them accurately and save enough effort to justify its cost? A system can prevent unauthorized purchases while still giving poor advice.
 
-We will build an evaluation harness around concrete shop scenarios. Each scenario has inputs and an independently authored expected answer. The harness runs the same model loop and dispatcher as the agent, preserves the transcript, checks named outcomes and measures resource use. A plain Python calculation provides the baseline the agent must justify exceeding in cost and complexity.
+Part A starts with what any evaluation score is: an estimate from a sample of cases. It needs an error bar, and a comparison between candidates should be paired. Part A derives the statistics and measures them on this chapter's own runs. Part B then builds an evaluation harness around concrete shop scenarios. Each scenario has inputs and an independently authored expected answer. The harness runs the same model loop and dispatcher as the agent, preserves the transcript, checks named outcomes and measures resource use. A plain Python calculation provides the baseline the agent must justify exceeding in cost and complexity.
 
 The central experiment attacks the evaluator itself. We will make a model produce correct tool calls and a wildly incorrect amount in its final answer. The initial automated checks pass that case. Rather than hide the blind spot, the report will identify what it checked and what still needs review. A passing instrument must not quietly become an acceptance decision it cannot support.
 
-For dedicated practice, use [Unit A](../../exercises/ch15/profrod-sovereign-agent-ch15-a-agent-evaluation-exercise.md) and [Unit B](../../exercises/ch15/profrod-sovereign-agent-ch15-b-evaluation-repair-transfer-exercise.md), each with a ninety-minute plan and matching notebook.
+For dedicated practice, use [Unit A](../../exercises/ch15/profrod-sovereign-agent-ch15-a-agent-evaluation-exercise.md), which constructs the baseline inside the harness, and [Unit B](../../exercises/ch15/profrod-sovereign-agent-ch15-b-evaluation-statistics-exercise.md), which puts error bars on an evaluation: Wilson intervals checked by exact coverage, and McNemar's paired test. Each has a ninety-minute plan and matching notebook.
 
 ## Learning objectives
 
-Construct isolated evaluation scenarios with authored answers; compare the model loop with a scripted baseline; distinguish software invariants, model-dependent outcomes and explanation review; preserve failures and terminal causes; and report quality, latency and estimated cost with clear measurement boundaries.
+Part A treats an evaluation as a measurement. After it you should be able to:
+
+- derive the Wilson interval and explain, with exact coverage, why the Wald interval fails for good agents and small suites;
+- compute a standard error that treats the case, not the attempt, as the unit of sampling;
+- compare two candidates on the same cases with McNemar's exact test;
+- calculate how many cases a comparison needs, independent and paired;
+- estimate pass@k without bias, and explain why the plug-in estimate is biased;
+- measure a grader's agreement with a person beyond chance, with Cohen's kappa.
+
+Part B builds the harness that produces the observations. After it you should be able to:
+
+- construct isolated evaluation scenarios with authored answers;
+- compare the model loop with a scripted baseline;
+- distinguish software invariants, model-dependent outcomes and explanation review;
+- preserve failures and terminal causes;
+- report quality, latency and estimated cost with clear measurement boundaries.
 
 The deliverable is a repeatable report, saved with a content digest, covering normal stock, exact thresholds, reservations, an empty catalog, changed products and hostile requests. Repeated live runs supplement the deterministic fixtures. Passing the named automated checks yields `REVIEW_REQUIRED`; failing any yields `REJECTED`. The report does not certify ungraded prose or declare the agent ready for unattended purchasing.
+
+## Part A: an evaluation is a measurement
+
+Every number an evaluation reports is an estimate made from a sample of cases. "The agent passed 16 of 16" is a statement about sixteen runs. What Lucy wants to know is how the agent will do on the requests it has not seen yet. The gap between the two is statistics, and it decides whether a result means anything. Serious model evaluations report scores with error bars, and compare models on the same questions, for exactly this reason. This part builds those tools from first principles and applies them to this chapter's own evaluation runs.
+
+The functions live in [the chapter's learner file](../learner/profrod_sovereign_agent_ch15_evaluation_statistics_learner.py), written with the standard library only.
+
+```python
+import runpy
+
+stats = runpy.run_path(
+    "book/textbook/learner/profrod_sovereign_agent_ch15_evaluation_statistics_learner.py"
+)
+```
+
+### A pass rate is an estimate with an error bar
+
+Treat each case-run as a coin flip that passes with an unknown probability $p$. After $n$ independent runs with $k$ passes, the natural estimate is $\hat p = k/n$. The number of passes is binomial, with variance $np(1-p)$, so $\hat p$ has variance $p(1-p)/n$ and **standard error**
+
+$
+\text{SE}(\hat p) = \sqrt{\frac{p(1-p)}{n}}.
+$
+
+The error shrinks like $1/\sqrt n$: four times the cases for half the error. The textbook 95% interval, called the **Wald interval**, plugs $\hat p$ in for the unknown $p$: $\hat p \pm 1.96\,\text{SE}(\hat p)$. The 1.96 is the point that leaves 2.5% of a normal distribution in each tail.
+
+The Wald interval breaks exactly where evaluations live. At 16 of 16, $\hat p = 1$, the estimated standard error is zero, and the interval is the single point $[1, 1]$. Sixteen runs cannot prove that an agent never fails.
+
+The fix is to stop plugging in $\hat p$. Ask instead: for which values of $p$ would the observed $\hat p$ lie within 1.96 standard errors, with the standard error computed at that $p$? Squaring $|\hat p - p| \le z\sqrt{p(1-p)/n}$ gives a quadratic inequality in $p$, and its two roots bound the **Wilson interval**:
+
+$
+\frac{\hat p + \frac{z^2}{2n}}{1 + \frac{z^2}{n}} \;\pm\; \frac{z}{1 + \frac{z^2}{n}}\sqrt{\frac{\hat p(1-\hat p)}{n} + \frac{z^2}{4n^2}}.
+$
+
+Its centre is pulled toward one half, and it never collapses to a point.
+
+**Listing:** Two intervals for this chapter's own results.
+
+```python
+for passed, runs in ((16, 16), (26, 28), (10, 28)):
+    wald = [round(x, 3) for x in stats["wald_interval"](passed, runs)]
+    wilson = [round(x, 3) for x in stats["wilson_interval"](passed, runs)]
+    print(f"{passed}/{runs}: Wald {wald}  Wilson {wilson}")
+```
+
+```text
+16/16: Wald [1.0, 1.0]  Wilson [0.806, 1.0]
+26/28: Wald [0.833, 1.0]  Wilson [0.774, 0.98]
+10/28: Wald [0.18, 0.535]  Wilson [0.207, 0.542]
+```
+
+Sixteen of sixteen is consistent with a true pass rate as low as about 81%. When a result has no failures, the **rule of three** gives a quick bound: the one-sided 95% upper limit on the failure rate is about $3/n$, because $(1 - 3/n)^n \approx e^{-3} \approx 0.05$. Sixteen clean runs therefore bound the failure rate only below about 19%.
+
+### How often is a "95%" interval right?
+
+An interval's **coverage** is the probability that it contains the true $p$. The name promises 95%. We do not have to simulate to check that promise: for a given $p$ and $n$, sum the binomial probability of every outcome $k$ whose interval contains $p$.
+
+$
+\text{coverage}(p, n) = \sum_{k=0}^{n} \binom{n}{k} p^{k}(1-p)^{n-k}\,\mathbf{1}\bigl[p \in \text{CI}(k)\bigr].
+$
+
+**Listing:** Exact coverage of the two nominal 95% intervals.
+
+```python
+for runs in (16, 100):
+    for p in (0.5, 0.95, 0.99):
+        wald = stats["coverage"](stats["wald_interval"], p, runs)
+        wilson = stats["coverage"](stats["wilson_interval"], p, runs)
+        print(f"n={runs:3} p={p}: Wald {wald:.3f}  Wilson {wilson:.3f}")
+```
+
+```text
+n= 16 p=0.5: Wald 0.923  Wilson 0.923
+n= 16 p=0.95: Wald 0.559  Wilson 0.957
+n= 16 p=0.99: Wald 0.149  Wilson 0.851
+n=100 p=0.5: Wald 0.943  Wilson 0.943
+n=100 p=0.95: Wald 0.877  Wilson 0.966
+n=100 p=0.99: Wald 0.633  Wilson 0.921
+```
+
+```mermaid
+xychart-beta
+    title "Exact coverage of a nominal 95% interval, n = 16"
+    x-axis "True pass rate p" [0.5, 0.9, 0.95, 0.99]
+    y-axis "Probability the interval contains p" 0 --> 1
+    line [0.923, 0.932, 0.957, 0.851]
+    line [0.923, 0.811, 0.559, 0.149]
+```
+
+**Figure:** Wilson (upper line) stays near its promised 0.95; Wald (lower line) collapses as the agent gets better.
+
+At sixteen runs of an agent that really passes 95% of the time, the "95%" Wald interval contains the truth barely more than half the time. It is worst for good agents, which are the ones we most want to measure. Wilson stays close to its promise. From here on, this book reports Wilson intervals.
+
+### Repeats are not new cases
+
+The binomial model assumed independent runs. The chapter's request-interpretation run tried each of fourteen cases twice, for 28 attempts. Two attempts at the same case are not independent: a model that misreads a sentence once tends to misread it again. **The case is the unit that was sampled.**
+
+With the same number of attempts per case, the overall score is the mean of the case means. Its honest standard error comes from the spread of those case means across the $C$ cases:
+
+$
+\text{SE}_{\text{clustered}} = \sqrt{\frac{1}{C(C-1)} \sum_{c=1}^{C} (\bar y_c - \bar y)^2}.
+$
+
+**Listing:** The retained qwen3 run, attempt by attempt and case by case.
+
+```python
+import json
+
+retained = json.loads(open("docs/evidence/book-ch15/ch15-statistics-receipt-v1.json").read())
+for name, row in retained["retained_run"]["candidates"].items():
+    print(
+        f"{name:9} {row['passed']}/{row['attempts']}  naive SE {row['naive_standard_error']}"
+        f"  clustered SE {row['clustered_standard_error']}"
+        f"  cases identical on both repeats {row['cases_same_result_both_repeats']}/14"
+    )
+```
+
+```text
+contrast  10/28  naive SE 0.0906  clustered SE 0.1329  cases identical on both repeats 14/14
+keywords  26/28  naive SE 0.0487  clustered SE 0.0714  cases identical on both repeats 14/14
+minimal   10/28  naive SE 0.0906  clustered SE 0.1329  cases identical on both repeats 14/14
+```
+
+Every case gave the same result on both repeats. The second repeat added no information, and the effective sample size is fourteen, not 28. The naive standard error is too small by a factor of about $\sqrt 2$. Repetition measures a model's variability on a case. It does not add cases. To shrink the error bar, write more cases.
+
+### Compare two candidates on the same cases
+
+Two candidates evaluated on the same cases should be compared case by case, not by subtracting two scores. Cross-tabulate the pairs:
+
+- **both pass** and **both fail** say nothing about which candidate is better;
+- the evidence is in the **discordant** pairs: $b$ where only the first passes, and $c$ where only the second does.
+
+If the candidates are equally good, each discordant pair is equally likely to favor either one. So $\min(b, c)$ is the lower tail of a Binomial$(b + c, \tfrac12)$, and the exact two-sided p-value is
+
+$
+P = \min\!\Bigl(1,\; 2\sum_{i=0}^{\min(b,c)} \binom{b+c}{i} 2^{-(b+c)}\Bigr).
+$
+
+This is **McNemar's test**. It is more powerful than comparing two independent scores, because the shared difficulty of each case cancels.
+
+**Listing:** Paired comparisons in the retained run.
+
+```python
+for pair in retained["retained_run"]["paired"]:
+    print(
+        f"{pair['first']} vs {pair['second']}: only first {pair['only_first']},"
+        f" only second {pair['only_second']}, p = {pair['mcnemar_p']}"
+    )
+print(stats["mcnemar_exact"](0, 16) == 2 / 2**16)
+```
+
+```text
+contrast vs keywords: only first 0, only second 16, p = 3.05e-05
+contrast vs minimal: only first 0, only second 0, p = 1.0
+keywords vs minimal: only first 16, only second 0, p = 3.05e-05
+True
+```
+
+| Keyword grammar ↓ · contrast instruction → | Passes | Fails |
+| --- | --- | --- |
+| **Passes** | 10 (both) | 16 (only the grammar) |
+| **Fails** | 0 (only the model) | 2 (neither) |
+
+**Figure:** The paired table for the keyword grammar against the contrast instruction, over the same 28 attempts. Only the off-diagonal cells, 16 and 0, bear on which is better.
+
+The keyword grammar won all sixteen discordant attempts against each model instruction. Because the two repeats of a case agreed, the honest count is eight discordant *cases*. Even that gives $p = 2/2^{8} \approx 0.008$: strong evidence. The two instructions produced identical results on every attempt, so there is no evidence either way between them. Do not read that as evidence that they are equally good: with no discordant pairs, the test has nothing to measure.
+
+### How many cases do you need?
+
+Before running a comparison, ask how large a difference it could detect. Suppose we want a two-sided test at level $\alpha = 0.05$ to detect a true difference with probability 80%, its **power**. For two candidates on independent samples of $n$ cases each, the difference in scores has standard error about $\sqrt{(p_1q_1 + p_2q_2)/n}$, where $q = 1 - p$. Requiring the true difference to exceed the rejection threshold by $z_{0.8} = 0.84$ standard errors gives
+
+$
+n = \left(\frac{z_{1-\alpha/2}\sqrt{2\bar p\,\bar q} + z_{1-\beta}\sqrt{p_1q_1 + p_2q_2}}{p_1 - p_2}\right)^{2}.
+$
+
+For paired candidates, only the share $\psi$ of discordant cases carries information, and the same argument gives $n = \bigl(z_{1-\alpha/2}\sqrt{\psi} + z_{1-\beta}\sqrt{\psi - \delta^2}\bigr)^2/\delta^2$ for a difference $\delta$.
+
+**Listing:** Cases needed to detect five points.
+
+```python
+for p1, p2 in ((0.80, 0.85), (0.90, 0.95)):
+    print(f"{p1} vs {p2}, independent samples:", stats["cases_needed"](p1, p2), "per candidate")
+for share in (0.05, 0.10, 0.20):
+    print(f"paired, {share:.0%} discordant:", stats["paired_cases_needed"](share, 0.05), "cases")
+```
+
+```text
+0.8 vs 0.85, independent samples: 906 per candidate
+0.9 vs 0.95, independent samples: 435 per candidate
+paired, 5% discordant: 155 cases
+paired, 10% discordant: 312 cases
+paired, 20% discordant: 626 cases
+```
+
+This is the most useful table in the chapter. Detecting an improvement from 80% to 85% takes about nine hundred cases per candidate. **A fourteen-case suite can detect only enormous differences.** Pairing helps most when the candidates are similar, and similar candidates, such as two versions of one prompt, are exactly what we usually compare. A suite of a few dozen cases is a test for regressions and failure modes, not a way to rank close models.
+
+### pass@k, and why the obvious estimate is wrong
+
+Sampling is random, so an agent that fails a task may succeed if asked again. **pass@k** is the probability that at least one of $k$ independent samples is correct, averaged over tasks. For code generation, where each sample can be tested, it measures what a best-of-$k$ system can reach.
+
+To estimate it, draw $n \ge k$ samples per task and count the $c$ correct. The plug-in estimate $1 - (1 - c/n)^k$ is biased. The function $x \mapsto (1-x)^k$ is convex, so by Jensen's inequality it overestimates $(1-p)^k$ on average, and the plug-in underestimates pass@k.
+
+The unbiased estimate counts directly. Choosing $k$ of the $n$ samples at random, the chance that none is correct is $\binom{n-c}{k}\big/\binom{n}{k}$, so
+
+$
+\widehat{\text{pass@}k} = 1 - \frac{\binom{n-c}{k}}{\binom{n}{k}}.
+$
+
+This is the estimator used to report code models' pass@k since 2021.
+
+**Listing:** One task, ten samples, three correct.
+
+```python
+for k in (1, 2, 5):
+    print(k, round(stats["pass_at_k"](10, 3, k), 4), round(stats["naive_pass_at_k"](10, 3, k), 4))
+```
+
+```text
+1 0.3 0.3
+2 0.5333 0.51
+5 0.9167 0.8319
+```
+
+With three correct samples of ten, the plug-in understates pass@5 by eight points. The error matters most when $k$ is large and a few correct samples carry the estimate.
+
+### Measured: two instructions, ten samples per case
+
+The chapter's experiment sampled `qwen2.5:1.5b` ten times per request case, at temperature 0.8, under each of the two frozen instructions from the request-interpretation diagnostic below. That is 280 graded attempts:
+
+```bash
+uv run python book/textbook/experiments/profrod_sovereign_agent_textbook_ch15_statistics_v1.py \
+    --out ch15-statistics-receipt.json --live
+```
+
+One run, recorded on 2026-09-26 with Ollama 0.32.5 on macOS (arm64), took 69 seconds.
+
+**Listing:** Read the receipt: per-case successes and pass@k.
+
+```python
+live = retained["live"]
+print("correct of 10, minimal:", [row["minimal"] for row in live["per_case_correct"]])
+print("correct of 10, contrast:", [row["contrast"] for row in live["per_case_correct"]])
+for name in ("minimal", "contrast"):
+    rate = live["pass_rate"][name]
+    measured = live["pass_at_k"][name]["5"]["unbiased"]
+    print(f"{name}: pass@1 {rate}  pass@5 {measured}  1-(1-pass@1)^5 = {1 - (1 - rate) ** 5:.4f}")
+difference = live["contrast_minus_minimal"]
+print("contrast - minimal:", difference["difference"], "95% interval", difference["interval_95"])
+print(
+    "clustered SE",
+    difference["clustered_standard_error"],
+    "naive SE",
+    difference["naive_unpaired_standard_error"],
+)
+```
+
+```text
+correct of 10, minimal: [0, 10, 0, 0, 0, 0, 0, 10, 0, 0, 10, 0, 0, 5]
+correct of 10, contrast: [1, 10, 0, 0, 8, 0, 7, 10, 7, 0, 10, 1, 0, 4]
+minimal: pass@1 0.25  pass@5 0.2854  1-(1-pass@1)^5 = 0.7627
+contrast: pass@1 0.4143  pass@5 0.5697  1-(1-pass@1)^5 = 0.9311
+contrast - minimal: 0.1643 95% interval [0.0004, 0.3282]
+clustered SE 0.0836 naive SE 0.0554
+```
+
+```mermaid
+xychart-beta
+    title "pass@k, contrast instruction, qwen2.5:1.5b"
+    x-axis "Samples (k)" [1, 2, 5]
+    y-axis "Share of cases solved" 0 --> 1
+    line [0.4143, 0.657, 0.9311]
+    line [0.4143, 0.4937, 0.5697]
+```
+
+**Figure:** What pass@1 predicts if every case were alike (upper line), against the unbiased pass@k measured case by case (lower line).
+
+Three findings, each a general lesson.
+
+**Success is nearly all-or-nothing per case.** Most cases were solved ten times out of ten or never. Resampling does little for a case the model gets wrong: pass@5 under the contrast instruction is 0.57. The pass@1 rate, treated as if every case were alike, predicts 0.93. The difference is the hard fraction from [Chapter 3](../ch03/profrod-sovereign-agent-ch03-agent-loop-chapter.md)'s retries, seen again: attempts at the same task are not independent.
+
+**The contrast instruction helped this model, but barely provably.** It raised the pass rate by 16 points. With the case as the unit, the 95% interval runs from about zero to 33 points. The naive standard error treats 140 attempts per instruction as independent. It is two-thirds the size of the clustered one, and it would have reported far more certainty than fourteen cases can give.
+
+**Results do not transfer across models.** On the larger qwen3 model retained below, the same two instructions produced identical results. An instruction is evaluated together with the model it instructs.
+
+### Is the grader right?
+
+Every number above trusts the grader. This chapter's graders are exact checks against authored answers. Many evaluations instead ask a model to grade free text, and then the grader itself needs measuring. Have a person label a sample of the same answers, and measure agreement beyond chance. Two graders who each say "pass" 90% of the time agree on 82% of answers by chance alone. **Cohen's kappa** corrects for that:
+
+$
+\kappa = \frac{p_o - p_e}{1 - p_e},
+$
+
+where $p_o$ is the observed agreement and $p_e = \sum_\ell p_\ell^{(1)} p_\ell^{(2)}$ is the agreement expected from each grader's label frequencies.
+
+**Listing:** The same agreement, different information.
+
+```python
+person = ["pass"] * 8 + ["fail"] * 2
+always_pass = ["pass"] * 10
+model_grader = ["pass"] * 7 + ["fail", "pass", "fail"]
+for name, grader in (("always pass", always_pass), ("model grader", model_grader)):
+    agreement = sum(a == b for a, b in zip(person, grader, strict=True)) / 10
+    print(f"{name}: agreement {agreement}, kappa {stats['cohen_kappa'](person, grader):.3f}")
+```
+
+```text
+always pass: agreement 0.8, kappa 0.000
+model grader: agreement 0.8, kappa 0.375
+```
+
+Both graders agree with the person on eight answers of ten. The one that always says "pass" has a kappa of zero: its agreement is exactly what chance predicts, and it has learned nothing. Report kappa, and the table of agreements and disagreements behind it, whenever a model grades a model.
+
+## Part B: a harness that says what it checked
+
+Part A gave the statistics. This part builds the evaluation harness that produces the observations, around the agent's real loop. It keeps the distinction Part A depends on: what was checked, and what was not.
 
 ## Build the vocabulary with one morning request
 
@@ -526,7 +855,7 @@ The live experiment uses the installed local `qwen3` model through our HTTP adap
 
 Several unguided failures reached stock lookup and then produced an empty final model reply before creating required drafts. A shorter failed run is not a latency improvement worth celebrating. The guided run did more of the requested work and therefore used more calls. Its additional time must be assessed alongside the outcome it produced, rather than comparing durations without regard to success.
 
-These measurements describe two samples of a particular local configuration. Temperature zero and repeated outputs do not establish statistical independence or future reliability. Two repetitions are useful for exposing variation and preserving a reproducible procedure; they are not enough to estimate a rare failure rate. The recorded model identity and configuration make reruns interpretable without pretending that a model name alone freezes every environmental detail.
+These measurements describe two samples of a particular local configuration. By Part A's arithmetic, sixteen of sixteen still leaves a Wilson lower bound of about 81%, and two repetitions of eight cases are eight cases, not sixteen. Temperature zero and repeated outputs do not establish statistical independence or future reliability. Two repetitions are useful for exposing variation and preserving a reproducible procedure; they are not enough to estimate a rare failure rate. The recorded model identity and configuration make reruns interpretable without pretending that a model name alone freezes every environmental detail.
 
 The frozen procedure improved these named outcomes, but the scripted baseline still matched every authored quantity with no model calls. The result supports using the model to interpret and explain around deterministic business tools. It does not show that a model should replace the threshold calculation or that every free-form request now works. Expand evaluation when the agent's job expands.
 
@@ -733,6 +1062,14 @@ Write two unfamiliar catalog cases and their expected answers before changing th
 
 Add equivalent stock acquisition and report delivery to both the script and agent paths, then measure that larger boundary separately from the current calculation-only baseline. Preserve the original timing fields and label the new measurement. Explain which sources of variation two repetitions cannot quantify and why failed cases cannot simply be omitted from latency reporting.
 
+### Exercise 5: size the suite before the experiment
+
+Lucy's next change is a prompt revision that you expect to raise the pass rate from about 85% to 90%, disagreeing with the current prompt on about one case in eight. Calculate how many cases a paired comparison needs at 80% power. Then say what you would conclude if you ran it on this chapter's fourteen request cases and found no difference.
+
+### Exercise 6: recompute the receipt from its rows
+
+The chapter's statistics receipt retains every live attempt in `runs`. Recompute the per-case counts, the contrast-minus-minimal difference and its clustered standard error from those rows alone. Then compute the difference's McNemar p-value, treating each case's majority result as its outcome, and explain why that test and the clustered interval can disagree.
+
 ## Expected observations
 
 The offline checkpoint rejects fluent no-evidence, wrong-currency and forbidden-request fixtures. It preserves the wrong-amount blind spot as passing named checks with `REVIEW_REQUIRED`. The correct offline fixture passes sixteen case-runs, and the authored baseline answers match all sixteen. The saved report's digest verifies, while its acceptance status remains explicit.
@@ -747,13 +1084,17 @@ Run the cumulative checkpoint, the evaluator's regressions and the applicable pr
 
 ## Summary
 
+An evaluation score is an estimate. Report it with a Wilson interval, and compute its standard error with the case, not the attempt, as the unit. Compare candidates on the same cases with a paired test. Size the suite before the experiment: detecting five points takes hundreds of cases. Estimate pass@k with the unbiased estimator, and expect it to fall short of what the pass@1 rate predicts when some cases are hard. Measure a model grader's agreement with a person beyond chance.
+
 The harness evaluates isolated shop cases through the real model loop and records exactly what happened. Authored answers provide an independent target; the scripted baseline supplies a simpler alternative. Named checks, terminal status, costs, timings, transcripts and configuration belong together so a result can be investigated later.
 
 The wrong-amount experiment shows why passing checks and accepting an agent are different decisions. The report now exposes that boundary directly. The frozen opening procedure improved the observed live case outcomes, but those samples do not replace explanation review, fair cost comparison or the final integrated business acceptance scenario.
 
 ## Active recall and vocabulary
 
-Without rereading the code, explain how a correct stock lookup and correct draft calls can coexist with an incorrect explanation. Identify what the `passed` field establishes and why acceptance still requires review. Describe the difference between the scripted baseline and `OfflineShopModel`, and explain why a public held-out case loses its original independence after it informs a revision.
+Without rereading, derive the Wilson interval from the score test, and explain why fourteen cases tried twice give fourteen observations, not 28. Explain why two candidates that agree on every case give McNemar's test nothing to measure. Then, without rereading the code, explain how a correct stock lookup and correct draft calls can coexist with an incorrect explanation. Identify what the `passed` field establishes and why acceptance still requires review. Describe the difference between the scripted baseline and `OfflineShopModel`, and explain why a public held-out case loses its original independence after it informs a revision.
+
+**Standard error** is the standard deviation of an estimate across repeated samples. **Wilson interval** is the set of pass rates under which the observed rate is not surprising. **Coverage** is the probability that an interval contains the true value. **Clustered standard error** treats the case, not the attempt, as the sampled unit. **Discordant pair** is a case on which two candidates disagree; McNemar's test uses only these. **Power** is the probability that a test detects a real difference of a given size. **pass@k** is the probability that at least one of k samples is correct. **Cohen's kappa** is agreement beyond chance.
 
 **Scenario** is a specified input with an independently authored expected outcome. **Regression case** preserves behavior that a change must retain. **Held-out case** was not used to construct the candidate being assessed. **Baseline** is the simpler alternative used for comparison. **Calibration** checks whether an evaluator's judgments agree with independently established examples. **Acceptance criterion** states what evidence is required before trusting a system for a particular use.
 

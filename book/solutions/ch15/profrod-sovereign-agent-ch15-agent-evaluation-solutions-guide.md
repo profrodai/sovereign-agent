@@ -13,9 +13,9 @@ Retain your own attempt before reading these worked solutions. Explain the reaso
 | Session | Notebook | Matching text | Purpose |
 |---|---|---|---|
 | A · 90 minutes | [A: agent evaluation](profrod-sovereign-agent-ch15-a-agent-evaluation-solution.ipynb) | [Markdown](profrod-sovereign-agent-ch15-a-agent-evaluation-solution.md) | Construct, connect and explain |
-| B · 90 minutes | [B: evaluation repair transfer](profrod-sovereign-agent-ch15-b-evaluation-repair-transfer-solution.ipynb) | [Markdown](profrod-sovereign-agent-ch15-b-evaluation-repair-transfer-solution.md) | Diagnose, repair and transfer |
+| B · 90 minutes | [B: evaluation statistics](profrod-sovereign-agent-ch15-b-evaluation-statistics-solution.ipynb) | [Markdown](profrod-sovereign-agent-ch15-b-evaluation-statistics-solution.md) | Derive, check coverage and transfer |
 
-Each notebook includes its own setup, first-principles introductions and supplied teaching runtime. Use a Python 3.14 Jupyter kernel and Pydantic 2. No repository checkout, previous notebook kernel or live account is needed. Unit B can use an explicitly selected successful Unit A handoff; an invalid selected file refuses rather than substituting an answer.
+Each notebook includes its own setup, first-principles introductions and supplied teaching runtime. Use a Python 3.14 Jupyter kernel; Unit A also needs Pydantic 2, and Unit B only the standard library. No repository checkout, previous notebook kernel or live account is needed. Unit B can use an explicitly selected successful Unit A handoff; an invalid selected file refuses rather than substituting an answer.
 
 Ninety minutes is the planned work allowance per unit, excluding installation. Actual completion time and understanding require classroom observation.
 
