@@ -898,7 +898,7 @@ The first command is reproducible without a model service. The second requires t
 | Late stock response | `TIME_LIMIT`, zero tool attempts | A valid but late request cannot start a new tool |
 | Live model | Actual transcript, usage, status, and draft observations | A sample of model behavior requiring outcome inspection |
 
-A live run that ends with `COMPLETED` but drafts chocolate has failed the shop's task. A run that claims a euro total has also failed even if every tool call completed. Inspect the structured observations and compare them with the final explanation. The loop makes the sequence observable; the business rules and evaluation determine whether it helps Lucy.
+A live run that ends with `COMPLETED` but drafts chocolate has failed the shop's task. A run that reports its total in another currency has also failed even if every tool call completed. Inspect the structured observations and compare them with the final explanation. The loop makes the sequence observable; the business rules and evaluation determine whether it helps Lucy.
 
 ### A real failure: describing drafts without creating them
 
@@ -965,7 +965,7 @@ Then set the tool limit to two while keeping the model limit at three. The third
 
 ### Exercise 3: A correct transcript and an incorrect answer
 
-Keep the successful stock and draft requests, but replace the final answer with “Chocolate has been purchased for 99 euros.” The loop will still return `COMPLETED`, because that status describes how the exchange ended. Write an independent check that rejects the explanation using the known draft observations and allowed currency. Keep the original correct answer as a second case so the check cannot simply reject every answer.
+Keep the successful stock and draft requests, but replace the final answer with “Chocolate has been purchased for $99.” The loop will still return `COMPLETED`, because that status describes how the exchange ended. Write an independent check that rejects the explanation using the known draft observations and allowed currency. Keep the original correct answer as a second case so the check cannot simply reject every answer.
 
 A keyword check will catch this deliberately obvious failure, but it will not grade all paraphrases or arithmetic mistakes. State what your check proves and give an example it would miss. That limitation is the starting point for the systematic evaluation chapter, not a reason to relabel every completed turn as successful business work.
 

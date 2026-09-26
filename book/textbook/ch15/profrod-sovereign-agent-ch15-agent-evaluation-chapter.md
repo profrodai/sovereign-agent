@@ -349,6 +349,8 @@ Both graders agree with the person on eight answers of ten. The one that always 
 
 ## Part B: a harness that says what it checked
 
+**Wrong-currency test inputs:** every price in Lucy's shop is in USD cents. The euro, pound and pence labels in this part are deliberate wrong-currency inputs that the evaluator must reject.
+
 Part A gave the statistics. This part builds the evaluation harness that produces the observations, around the agent's real loop. It keeps the distinction Part A depends on: what was checked, and what was not.
 
 ## Build the vocabulary with one morning request
