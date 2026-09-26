@@ -186,11 +186,14 @@ class StateStore:
             )
             if between is not None:
                 between()
-            db.execute(
-                "INSERT INTO stock (sku, tubs) VALUES (?, ?)"
-                " ON CONFLICT (sku) DO UPDATE SET tubs = tubs + excluded.tubs",
-                (event.sku, event.delta),
-            )
+            # Update the product's row; only a product seen for the first time gets a new row.
+            # (An INSERT ... ON CONFLICT upsert would check tubs >= 0 against the inserted delta,
+            # so an ordinary sale from a positive count would be refused.)
+            updated = db.execute(
+                "UPDATE stock SET tubs = tubs + ? WHERE sku = ?", (event.delta, event.sku)
+            ).rowcount
+            if updated == 0:
+                db.execute("INSERT INTO stock (sku, tubs) VALUES (?, ?)", (event.sku, event.delta))
         return "applied"
 
     def stock(self) -> dict[str, int]:

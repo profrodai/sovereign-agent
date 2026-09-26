@@ -34,8 +34,8 @@
       "lessonId": "durable-state",
       "title": "Build durable state with SQLite",
       "path": "ch04/profrod-sovereign-agent-ch04-sqlite-state-chapter.md",
-      "checkpoint": null,
-      "status": "PLANNED"
+      "checkpoint": "checkpoints/profrod_sovereign_agent_ch04_sqlite_state_checkpoint.py",
+      "status": "DRAFT"
     },
     {
       "number": 5,

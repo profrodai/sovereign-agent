@@ -12,14 +12,14 @@ Work through the student notebooks, make predictions, build the missing code and
 
 [Set up your environment](profrod-sovereign-agent-exercises-setup.md) · [Download this complete asset](profrod-sovereign-agent-exercises-2026-09-10.zip)
 
-The edition has nineteen chapter slots. **Sixteen chapters currently have two ninety-minute units each: 32 units and 48 hours of available practice. Chapters 4, 7 and 13 are planned construction briefs.** The finished plan calls for 38 units and 57 hours; those six additional units are not yet published. Existing units use a supplied runtime and can be studied while the new foundations are authored. No completed notebook is represented by an empty placeholder.
+The edition has nineteen chapter slots. **Seventeen chapters currently have two ninety-minute units each: 34 units and 51 hours of available practice. Chapters 7 and 13 are planned construction briefs.** The finished plan calls for 38 units and 57 hours; those four additional units are not yet published. Existing units use a supplied runtime and can be studied while the new foundations are authored. No completed notebook is represented by an empty placeholder.
 
 | Chapter | Topic | Availability |
 |---|---|---|
 | 1 | [Make the first model call for Lucy](ch01/profrod-sovereign-agent-ch01-first-model-call-exercise-guide.md) | Available draft — A and B, 90 minutes each |
 | 2 | [Give the agent reliable shop tools](ch02/profrod-sovereign-agent-ch02-pydantic-shop-tools-exercise-guide.md) | Available draft — A and B, 90 minutes each |
 | 3 | [Build the model and tool loop](ch03/profrod-sovereign-agent-ch03-agent-loop-exercise-guide.md) | Available draft — A and B, 90 minutes each |
-| 4 | [Build durable SQLite state](ch04/profrod-sovereign-agent-ch04-sqlite-state-exercise-guide.md) | PLANNED — brief only |
+| 4 | [Build durable SQLite state](ch04/profrod-sovereign-agent-ch04-sqlite-state-exercise-guide.md) | Available draft — A and B, 90 minutes each |
 | 5 | [Remember across conversations](ch05/profrod-sovereign-agent-ch05-durable-memory-exercise-guide.md) | Available draft — A and B, 90 minutes each |
 | 6 | [Reuse a tested opening procedure](ch06/profrod-sovereign-agent-ch06-versioned-skills-exercise-guide.md) | Available draft — A and B, 90 minutes each |
 | 7 | [Build a durable work inbox and report outbox](ch07/profrod-sovereign-agent-ch07-durable-inbox-outbox-exercise-guide.md) | PLANNED — brief only |

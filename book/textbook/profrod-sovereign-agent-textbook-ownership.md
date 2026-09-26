@@ -21,7 +21,7 @@ Later chapters print substantial implementation logic, while their executable re
 | 1 | first-model-call | No direct finished-runtime import; see transitive dependencies below |
 | 2 | shop-tools | `sovereign_agent.model_turn`, `sovereign_agent.tool_dispatch` |
 | 3 | agent-loop | No direct finished-runtime import; see transitive dependencies below |
-| 4 | durable-state | PLANNED: learner construction and handoff not yet implemented |
+| 4 | durable-state | None: the learner builds the store; the checkpoint imports only the standard library and the learner file |
 | 5 | memory | `reference_organizations.store.agent`, `sovereign_agent.agent_loop`, `sovereign_agent.assistant_context`, `sovereign_agent.assistant_work`, `sovereign_agent.database`, `sovereign_agent.model_turn` |
 | 6 | skills | `reference_organizations.store.agent`, `reference_organizations.store.evaluation`, `sovereign_agent.agent_loop`, `sovereign_agent.assistant_context`, `sovereign_agent.database`, `sovereign_agent.model_turn` |
 | 7 | durable-work | PLANNED: learner construction and handoff not yet implemented |

@@ -6,7 +6,7 @@
 > — bring your questions, compare experiments and share what you build.
 > **Original source and updates:** [profrodai/sovereign-agent](https://github.com/profrodai/sovereign-agent).
 
-**Status: PLANNED, manuscript drafted.** Read the [textbook guide](../profrod-sovereign-agent-textbook-start-here.md) for setup and supplied-code boundaries. The chapter text, learner file, checkpoint and experiment below are written and run; the two ninety-minute Colab notebooks and the educator guide are still being written. Until they exist this chapter stays PLANNED in the book manifest, and its exercises live at the end of this page.
+**Status: DRAFT.** Read the [textbook guide](../profrod-sovereign-agent-textbook-start-here.md) for setup and supplied-code boundaries. Practice in [Exercise Book 4](../../exercises/ch04/profrod-sovereign-agent-ch04-sqlite-state-exercise-guide.md); consult [Solutions 4](../../solutions/ch04/profrod-sovereign-agent-ch04-sqlite-state-solutions-guide.md) after attempting the work. Both ninety-minute units run on Google Colab with the standard library only.
 
 Lucy counts two tubs of vanilla on Monday night. On Tuesday morning the supplier delivers seven more, and the agent from Chapter 3 records the delivery. Then the laptop's battery dies. When Lucy opens the shop again, how many tubs does the agent believe she has?
 
@@ -414,11 +414,14 @@ class StateStore:
             )
             if between is not None:
                 between()
-            db.execute(
-                "INSERT INTO stock (sku, tubs) VALUES (?, ?)"
-                " ON CONFLICT (sku) DO UPDATE SET tubs = tubs + excluded.tubs",
-                (event.sku, event.delta),
-            )
+            # Update the product's row; only a product seen for the first time gets a new row.
+            # (An INSERT ... ON CONFLICT upsert would check tubs >= 0 against the inserted delta,
+            # so an ordinary sale from a positive count would be refused.)
+            updated = db.execute(
+                "UPDATE stock SET tubs = tubs + ? WHERE sku = ?", (event.delta, event.sku)
+            ).rowcount
+            if updated == 0:
+                db.execute("INSERT INTO stock (sku, tubs) VALUES (?, ?)", (event.sku, event.delta))
         return "applied"
 
     def stock(self) -> dict[str, int]:

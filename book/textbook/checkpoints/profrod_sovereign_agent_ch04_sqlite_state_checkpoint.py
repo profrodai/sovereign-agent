@@ -125,6 +125,23 @@ def main() -> None:
         )
         store.close()
 
+    # An ordinary sale from a positive count is applied: the non-negative rule refuses only
+    # a count that would really go below zero.
+    with tempfile.TemporaryDirectory() as folder:
+        path = Path(folder) / "shop.sqlite3"
+        store = StateStore(path)
+        store.initialize()
+        store.apply(StockEvent("s1", "vanilla", 9, "delivery"))
+        sold = store.apply(StockEvent("s2", "vanilla", -3, "sale"))
+        store.close()
+        seen = observe(path)
+        check(
+            "a sale from 9 tubs leaves 6, with both events kept",
+            sold == "applied"
+            and seen["stock"] == {"vanilla": 6}
+            and seen["events"] == ["s1", "s2"],
+        )
+
     # Negative control: a store whose transaction swallows the failure must be caught.
     class Swallowing(StateStore):
         def apply(self, event, *, between=None):

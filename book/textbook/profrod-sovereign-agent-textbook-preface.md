@@ -14,7 +14,7 @@ You begin with several products and one model call. By Chapter 3 you have writte
 
 ## Read the construction status first
 
-This is the nineteen-chapter construction edition. Chapters 4, 7 and 13 currently document the SQLite, durable-work and MCP lessons to be written. The remaining chapters are manuscript drafts with runnable reference checkpoints. Read [the contents](profrod-sovereign-agent-textbook-start-here.md) for the status of each chapter. The promised cumulative learner-built program is a completion criterion, not a claim that every current checkpoint already runs exclusively on learner code.
+This is the nineteen-chapter construction edition. Chapter 4 now teaches the learner-owned SQLite store; Chapters 7 and 13 currently document the durable-work and MCP lessons to be completed. The remaining chapters are manuscript drafts with runnable reference checkpoints. Read [the contents](profrod-sovereign-agent-textbook-start-here.md) for the status of each chapter. The promised cumulative learner-built program is a completion criterion, not a claim that every current checkpoint already runs exclusively on learner code.
 
 The manuscript's demonstrations use supplied reference infrastructure after the initial learner-owned loop. [Code ownership](profrod-sovereign-agent-textbook-ownership.md) distinguishes that infrastructure from what you construct. The expansion replaces these hidden prerequisites with explicit lessons and tested handoffs while retaining the demonstrations for comparison.
 

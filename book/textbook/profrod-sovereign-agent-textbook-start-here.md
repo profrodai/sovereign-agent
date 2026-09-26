@@ -14,7 +14,7 @@ Start with the [preface](profrod-sovereign-agent-textbook-preface.md) and [setup
 
 ## What is available
 
-There is one nineteen-chapter sequence. Sixteen chapters contain substantial **DRAFT** manuscripts and executable reference checkpoints. Chapters **4, 7 and 13** contain **PLANNED construction briefs**: their goals, interfaces, two ninety-minute practical plans and acceptance cases are documented, but their complete lessons, notebooks and new learner implementation are not yet delivered. A planned chapter is not an executable lesson. The [construction roadmap](profrod-sovereign-agent-textbook-expansion.md) records the remaining work and the integration commitments.
+There is one nineteen-chapter sequence. Seventeen chapters contain substantial **DRAFT** manuscripts and executable checkpoints; Chapter 4's runs the learner's own store. Chapters **7 and 13** contain **PLANNED construction briefs**: their goals, interfaces, two ninety-minute practical plans and acceptance cases are documented, but their complete lessons, notebooks and new learner implementation are not yet delivered. A planned chapter is not an executable lesson. The [construction roadmap](profrod-sovereign-agent-textbook-expansion.md) records the remaining work and the integration commitments.
 
 You can read the drafted chapters and run their supplied reference checkpoints now. Building the entire nineteen-chapter system solely from your own preceding chapter code remains a release requirement. The [code ownership guide](profrod-sovereign-agent-textbook-ownership.md) names the supplied components so a working demonstration cannot be mistaken for a completed from-scratch construction.
 
@@ -25,7 +25,7 @@ You can read the drafted chapters and run their supplied reference checkpoints n
 | 1 | [Make the first model call for Lucy](ch01/profrod-sovereign-agent-ch01-first-model-call-chapter.md) | DRAFT |
 | 2 | [Give the agent reliable shop tools](ch02/profrod-sovereign-agent-ch02-pydantic-shop-tools-chapter.md) | DRAFT |
 | 3 | [Build the model and tool loop](ch03/profrod-sovereign-agent-ch03-agent-loop-chapter.md) | DRAFT |
-| 4 | [Build durable state with SQLite](ch04/profrod-sovereign-agent-ch04-sqlite-state-chapter.md) | PLANNED |
+| 4 | [Build durable state with SQLite](ch04/profrod-sovereign-agent-ch04-sqlite-state-chapter.md) | DRAFT |
 | 5 | [Remember across conversations](ch05/profrod-sovereign-agent-ch05-durable-memory-chapter.md) | DRAFT |
 | 6 | [Reuse a tested opening procedure](ch06/profrod-sovereign-agent-ch06-versioned-skills-chapter.md) | DRAFT |
 | 7 | [Build a durable work inbox and report outbox](ch07/profrod-sovereign-agent-ch07-durable-inbox-outbox-chapter.md) | PLANNED |
