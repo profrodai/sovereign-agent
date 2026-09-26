@@ -255,7 +255,11 @@ The same definition says what the database must refuse. `INSERT OR REPLACE`, whi
 
 The schema will grow. This chapter adds a `reason` to each event. Chapter 5 adds memory tables, and Chapter 7 adds durable work. A database file written today will be opened by the program of next month, and occasionally a file written by next month's program will be opened by today's.
 
-Number the schema versions $0 < 1 < 2 < \dots$; version 0 is an empty file. A **migration** $m_k$ turns a database at version $k-1$ into one at version $k$. Upgrading from version $a$ to version $b$ applies the migrations in order, $m_b \circ \dots \circ m_{a+1}$. There is exactly one path, because the versions form a line and each step has one migration. We store the current version in the database, in a `meta` table. Two rules make this safe.
+Number the schema versions $0 < 1 < 2 < \dots$; version 0 is an empty file. A **migration** $m_k$ turns a database at version $k-1$ into one at version $k$. Upgrading from version $a$ to version $b$ applies the migrations in order, $m_b \circ \dots \circ m_{a+1}$. There is exactly one path, because the versions form a line and each step has one migration. We store the current version in the database, in a `meta` table.
+
+One more design choice matters before the rules. The schema has several owners. This chapter owns the stock tables; Chapter 5 will own memory's tables, and Chapter 7 durable work's. If they all shared one line of versions, the order in which chapters happen to be written would decide each other's numbers, and two chapters would eventually claim the same version for different tables. So each owner keeps its own line under its own name: this chapter's version lives at `stock.version`, and a later chapter calls the same `migrate` method with its own name and its own migrations.
+
+Two rules make migration safe.
 
 **Each migration commits together with its version number.** If $m_k$ and the write "version is now $k$" share one transaction, then after a crash the file is at version $k-1$ with the old tables or at version $k$ with the new ones. It is never in between. Running `initialize` again after the crash therefore picks up exactly where it stopped. Running it on an up-to-date file applies nothing, so initialization, like append, is idempotent.
 
@@ -359,34 +363,38 @@ class StateStore:
         finally:
             self._open = False
 
-    def schema_version(self) -> int:
+    def schema_version(self, owner: str = "stock") -> int:
         exists = self.connection.execute(
             "SELECT 1 FROM sqlite_schema WHERE type = 'table' AND name = 'meta'"
         ).fetchone()
         if not exists:
             return 0
         row = self.connection.execute(
-            "SELECT value FROM meta WHERE key = 'schema_version'"
+            "SELECT value FROM meta WHERE key = ?", (f"{owner}.version",)
         ).fetchone()
         return int(row[0]) if row else 0
 
-    def initialize(self) -> tuple[int, int]:
+    def migrate(self, owner: str, migrations: dict[int, tuple[str, ...]]) -> tuple[int, int]:
+        latest = max(migrations)
         with self.immediate() as db:
-            before = self.schema_version()
-            if before > SCHEMA_VERSION:
+            before = self.schema_version(owner)
+            if before > latest:
                 raise UnsupportedSchemaError(
-                    f"database is version {before}; this program supports up to {SCHEMA_VERSION}"
+                    f"{owner} tables are version {before}; this program supports up to {latest}"
                 )
             db.execute("CREATE TABLE IF NOT EXISTS meta (key TEXT PRIMARY KEY, value INTEGER)")
-            for version in range(before + 1, SCHEMA_VERSION + 1):
-                for statement in MIGRATIONS[version]:
+            for version in range(before + 1, latest + 1):
+                for statement in migrations[version]:
                     db.execute(statement)
             db.execute(
-                "INSERT INTO meta (key, value) VALUES ('schema_version', ?)"
+                "INSERT INTO meta (key, value) VALUES (?, ?)"
                 " ON CONFLICT (key) DO UPDATE SET value = excluded.value",
-                (SCHEMA_VERSION,),
+                (f"{owner}.version", latest),
             )
-        return before, SCHEMA_VERSION
+        return before, latest
+
+    def initialize(self) -> tuple[int, int]:
+        return self.migrate("stock", MIGRATIONS)
 
     def apply(self, event: StockEvent, *, between: Callable[[], None] | None = None) -> str:
         payload = event.payload()
@@ -430,9 +438,7 @@ def observe(path) -> dict[str, object]:
         stock = dict(reader.execute("SELECT sku, tubs FROM stock ORDER BY sku"))
         events = [row[0] for row in reader.execute("SELECT event_id FROM events ORDER BY rowid")]
         sums = dict(reader.execute("SELECT sku, SUM(delta) FROM events GROUP BY sku ORDER BY sku"))
-        version = reader.execute("SELECT value FROM meta WHERE key = 'schema_version'").fetchone()[
-            0
-        ]
+        version = reader.execute("SELECT value FROM meta WHERE key = 'stock.version'").fetchone()[0]
     finally:
         reader.close()
     return {"stock": stock, "events": events, "sums": sums, "version": version}
@@ -478,7 +484,7 @@ legacy = sqlite3.connect(legacy_path, autocommit=True)
 for statement in MIGRATIONS[1]:
     legacy.execute(statement)
 legacy.execute("CREATE TABLE meta (key TEXT PRIMARY KEY, value INTEGER)")
-legacy.execute("INSERT INTO meta VALUES ('schema_version', 1)")
+legacy.execute("INSERT INTO meta VALUES ('stock.version', 1)")
 legacy.execute("INSERT INTO events VALUES ('old-1', 'strawberry', 4, '{}')")
 legacy.execute("INSERT INTO stock VALUES ('strawberry', 4)")
 legacy.close()
@@ -486,7 +492,7 @@ legacy.close()
 upgraded = StateStore(legacy_path)
 print(upgraded.initialize())
 print(upgraded.connection.execute("SELECT event_id, reason FROM events").fetchall())
-upgraded.connection.execute("UPDATE meta SET value = 3 WHERE key = 'schema_version'")
+upgraded.connection.execute("UPDATE meta SET value = 3 WHERE key = 'stock.version'")
 try:
     upgraded.initialize()
 except UnsupportedSchemaError as error:
@@ -499,7 +505,7 @@ store.close()
 ```text
 (1, 2)
 [('old-1', 'unrecorded')]
-database is version 3; this program supports up to 2
+stock tables are version 3; this program supports up to 2
 {'strawberry': 4}
 ```
 
@@ -575,7 +581,7 @@ Be exact about the evidence. This chapter tested a process dying. It did not cut
 
 ## Hand the store to memory
 
-Chapter 5 receives `StateStore` and its `immediate()` transactions, and nothing else. Memory adds its own tables through a new migration in `MIGRATIONS`. It writes its records inside `immediate()` blocks. It keeps the invariant discipline for its own facts: a change and its record commit together. It does not get the connection to issue its own `BEGIN`, and it does not get a helper that hides transactions. A new rule about what must agree becomes a new invariant, and the store's job is to make it impossible to observe that invariant broken.
+Chapter 5 receives `StateStore` and its `immediate()` transactions, and nothing else. Memory adds its own tables by calling `store.migrate("memory", ...)` with its own migrations, on its own line of versions. It writes its records inside `immediate()` blocks. It keeps the invariant discipline for its own facts: a change and its record commit together. It does not get the connection to issue its own `BEGIN`, and it does not get a helper that hides transactions. A new rule about what must agree becomes a new invariant, and the store's job is to make it impossible to observe that invariant broken.
 
 ## Exercises that change the decision
 

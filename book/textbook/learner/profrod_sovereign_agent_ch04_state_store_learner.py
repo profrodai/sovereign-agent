@@ -121,35 +121,47 @@ class StateStore:
         finally:
             self._open = False
 
-    def schema_version(self) -> int:
+    def schema_version(self, owner: str = "stock") -> int:
+        """The version of one owner's tables; 0 when that owner has never migrated this file."""
         exists = self.connection.execute(
             "SELECT 1 FROM sqlite_schema WHERE type = 'table' AND name = 'meta'"
         ).fetchone()
         if not exists:
             return 0
         row = self.connection.execute(
-            "SELECT value FROM meta WHERE key = 'schema_version'"
+            "SELECT value FROM meta WHERE key = ?", (f"{owner}.version",)
         ).fetchone()
         return int(row[0]) if row else 0
 
-    def initialize(self) -> tuple[int, int]:
-        """Bring the schema to SCHEMA_VERSION. Refuse a newer database before changing anything."""
+    def migrate(self, owner: str, migrations: dict[int, tuple[str, ...]]) -> tuple[int, int]:
+        """Bring one owner's tables to the newest version it knows, in one transaction.
+
+        Each component owns its own line of versions (Chapter 4's stock tables are "stock";
+        later chapters add their own), so the order chapters are written in never decides
+        another component's version numbers. A file newer than this program is refused before
+        anything changes.
+        """
+        latest = max(migrations)
         with self.immediate() as db:
-            before = self.schema_version()
-            if before > SCHEMA_VERSION:
+            before = self.schema_version(owner)
+            if before > latest:
                 raise UnsupportedSchemaError(
-                    f"database is version {before}; this program supports up to {SCHEMA_VERSION}"
+                    f"{owner} tables are version {before}; this program supports up to {latest}"
                 )
             db.execute("CREATE TABLE IF NOT EXISTS meta (key TEXT PRIMARY KEY, value INTEGER)")
-            for version in range(before + 1, SCHEMA_VERSION + 1):
-                for statement in MIGRATIONS[version]:
+            for version in range(before + 1, latest + 1):
+                for statement in migrations[version]:
                     db.execute(statement)
             db.execute(
-                "INSERT INTO meta (key, value) VALUES ('schema_version', ?)"
+                "INSERT INTO meta (key, value) VALUES (?, ?)"
                 " ON CONFLICT (key) DO UPDATE SET value = excluded.value",
-                (SCHEMA_VERSION,),
+                (f"{owner}.version", latest),
             )
-        return before, SCHEMA_VERSION
+        return before, latest
+
+    def initialize(self) -> tuple[int, int]:
+        """Bring the stock tables to SCHEMA_VERSION (Chapter 4's own line of versions)."""
+        return self.migrate("stock", MIGRATIONS)
 
     def apply(self, event: StockEvent, *, between: Callable[[], None] | None = None) -> str:
         """Record an event and its stock change together. Returns "applied" or "duplicate".
@@ -196,9 +208,7 @@ def observe(path: str | Path) -> dict[str, object]:
         stock = dict(reader.execute("SELECT sku, tubs FROM stock ORDER BY sku"))
         events = [row[0] for row in reader.execute("SELECT event_id FROM events ORDER BY rowid")]
         sums = dict(reader.execute("SELECT sku, SUM(delta) FROM events GROUP BY sku ORDER BY sku"))
-        version = reader.execute("SELECT value FROM meta WHERE key = 'schema_version'").fetchone()[
-            0
-        ]
+        version = reader.execute("SELECT value FROM meta WHERE key = 'stock.version'").fetchone()[0]
     finally:
         reader.close()
     return {"stock": stock, "events": events, "sums": sums, "version": version}

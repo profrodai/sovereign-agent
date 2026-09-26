@@ -110,7 +110,7 @@ def main() -> None:
         # A database from the future is refused before anything changes.
         writer = sqlite3.connect(path, autocommit=True)
         writer.execute(
-            "UPDATE meta SET value = ? WHERE key = 'schema_version'", (SCHEMA_VERSION + 1,)
+            "UPDATE meta SET value = ? WHERE key = 'stock.version'", (SCHEMA_VERSION + 1,)
         )
         writer.close()
         store = StateStore(path)
