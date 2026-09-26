@@ -120,7 +120,7 @@ def test_reader_can_identify_chapter_topic_and_role_without_a_folder():
     )
     assert (
         distribution.unit_name(2, "b", "solutions")
-        == "profrod-sovereign-agent-ch02-b-pydantic-validation-repair-solution.ipynb"
+        == "profrod-sovereign-agent-ch02-b-constrained-decoding-solution.ipynb"
     )
     assert (
         distribution.unit_name(2, "a", "exercises", educator=True)

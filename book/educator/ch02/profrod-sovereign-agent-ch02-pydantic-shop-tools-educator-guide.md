@@ -1,4 +1,4 @@
-# Teach Chapter 2: Give the agent reliable shop tools
+# Teach Chapter 2: Structured output and typed tools: what a schema guarantees
 
 > **Learn with Prof Rod** — *Build Your Always-On AI Agent From Scratch*.
 > **Read the full book and get the latest learning materials:** [https://profrod.ai/book](https://profrod.ai/book).
@@ -13,7 +13,7 @@
 | Session | Distribute to learners | Worked demonstration | Text versions |
 |---|---|---|---|
 | A · 90 minutes | [Student notebook](student/profrod-sovereign-agent-ch02-a-pydantic-shop-tools-educator-exercise.ipynb) | [Worked notebook](solutions/profrod-sovereign-agent-ch02-a-pydantic-shop-tools-educator-solution.ipynb) | [Student](student/profrod-sovereign-agent-ch02-a-pydantic-shop-tools-educator-exercise.md) · [Worked](solutions/profrod-sovereign-agent-ch02-a-pydantic-shop-tools-educator-solution.md) |
-| B · 90 minutes | [Student notebook](student/profrod-sovereign-agent-ch02-b-pydantic-validation-repair-educator-exercise.ipynb) | [Worked notebook](solutions/profrod-sovereign-agent-ch02-b-pydantic-validation-repair-educator-solution.ipynb) | [Student](student/profrod-sovereign-agent-ch02-b-pydantic-validation-repair-educator-exercise.md) · [Worked](solutions/profrod-sovereign-agent-ch02-b-pydantic-validation-repair-educator-solution.md) |
+| B · 90 minutes | [Student notebook](student/profrod-sovereign-agent-ch02-b-constrained-decoding-educator-exercise.ipynb) | [Worked notebook](solutions/profrod-sovereign-agent-ch02-b-constrained-decoding-educator-solution.ipynb) | [Student](student/profrod-sovereign-agent-ch02-b-constrained-decoding-educator-exercise.md) · [Worked](solutions/profrod-sovereign-agent-ch02-b-constrained-decoding-educator-solution.md) |
 
 Rehearse using the worked notebook in a fresh Python 3.14 kernel before class. Distribute only the student files until learners have retained a first attempt. Both versions embed their runtime; no sibling book directory or live account is required. Preserve predictions, the highest hint used, changed-case results and actual time spent. Record understanding from explanations, not Run All success.
 

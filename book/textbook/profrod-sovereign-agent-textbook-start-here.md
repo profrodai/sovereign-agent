@@ -22,11 +22,11 @@ You can read the drafted chapters and run their supplied reference checkpoints n
 
 | Chapter | Read | Status |
 | --- | --- | --- |
-| 1 | [Make the first model call for Lucy](ch01/profrod-sovereign-agent-ch01-first-model-call-chapter.md) | DRAFT |
-| 2 | [Give the agent reliable shop tools](ch02/profrod-sovereign-agent-ch02-pydantic-shop-tools-chapter.md) | DRAFT |
-| 3 | [Build the model and tool loop](ch03/profrod-sovereign-agent-ch03-agent-loop-chapter.md) | DRAFT |
+| 1 | [What a model call is: tokens, probabilities and Lucy's first brief](ch01/profrod-sovereign-agent-ch01-first-model-call-chapter.md) | DRAFT |
+| 2 | [Structured output and typed tools: what a schema guarantees](ch02/profrod-sovereign-agent-ch02-pydantic-shop-tools-chapter.md) | DRAFT |
+| 3 | [The agent loop: why reliability compounds, and a loop that stops](ch03/profrod-sovereign-agent-ch03-agent-loop-chapter.md) | DRAFT |
 | 4 | [Build durable state with SQLite](ch04/profrod-sovereign-agent-ch04-sqlite-state-chapter.md) | DRAFT |
-| 5 | [Remember across conversations](ch05/profrod-sovereign-agent-ch05-durable-memory-chapter.md) | DRAFT |
+| 5 | [Memory and retrieval: what the model sees, and a memory that forgets](ch05/profrod-sovereign-agent-ch05-durable-memory-chapter.md) | DRAFT |
 | 6 | [Reuse a tested opening procedure](ch06/profrod-sovereign-agent-ch06-versioned-skills-chapter.md) | DRAFT |
 | 7 | [Build a durable work inbox and report outbox](ch07/profrod-sovereign-agent-ch07-durable-inbox-outbox-chapter.md) | DRAFT |
 | 8 | [Talk to the agent from your phone](ch08/profrod-sovereign-agent-ch08-telegram-messaging-chapter.md) | DRAFT |
@@ -36,10 +36,10 @@ You can read the drafted chapters and run their supplied reference checkpoints n
 | 12 | [Recover work after a process crash](ch12/profrod-sovereign-agent-ch12-worker-recovery-chapter.md) | DRAFT |
 | 13 | [Connect an external tool with MCP](ch13/profrod-sovereign-agent-ch13-mcp-tools-chapter.md) | PLANNED |
 | 14 | [Isolate tools and untrusted content](ch14/profrod-sovereign-agent-ch14-tool-isolation-chapter.md) | DRAFT |
-| 15 | [Measure whether the agent helps](ch15/profrod-sovereign-agent-ch15-agent-evaluation-chapter.md) | DRAFT |
+| 15 | [Evaluation as measurement: error bars and paired comparisons](ch15/profrod-sovereign-agent-ch15-agent-evaluation-chapter.md) | DRAFT |
 | 16 | [Improve behavior with evaluated changes](ch16/profrod-sovereign-agent-ch16-controlled-improvement-chapter.md) | DRAFT |
 | 17 | [Delegate one bounded task](ch17/profrod-sovereign-agent-ch17-bounded-delegation-chapter.md) | DRAFT |
-| 18 | [Deploy and maintain the agent](ch18/profrod-sovereign-agent-ch18-deployment-restoration-chapter.md) | DRAFT |
+| 18 | [What a model call costs, and a deployment that survives](ch18/profrod-sovereign-agent-ch18-deployment-restoration-chapter.md) | DRAFT |
 | 19 | [Lucy leaves the shop for a day](ch19/profrod-sovereign-agent-ch19-integrated-shop-day-chapter.md) | DRAFT |
 
 The four parts are: **1–4, First useful construction**; **5–9, Continuity and initiative**; **10–14, Permission and external boundaries**; and **15–19, Evaluate and operate**.

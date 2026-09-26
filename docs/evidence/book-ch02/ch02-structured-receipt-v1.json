@@ -1,0 +1,2456 @@
+{
+  "schema": 1,
+  "experiment": "ch02-structured-v1",
+  "recorded": "2026-09-26",
+  "python": "3.14.3",
+  "platform": "Darwin 25.6.0 (arm64)",
+  "toy": {
+    "p_valid_unconstrained": 0.109,
+    "conditioned": {
+      "ay": 0.0826,
+      "by": 0.9174
+    },
+    "masked": {
+      "ay": 0.9,
+      "by": 0.1
+    },
+    "total_variation": 0.8174
+  },
+  "structured_output": [
+    {
+      "model": "qwen2.5:0.5b",
+      "constrained": false,
+      "answers": 60,
+      "parses": "48/60",
+      "schema": "40/60",
+      "correct": "32/60"
+    },
+    {
+      "model": "qwen2.5:0.5b",
+      "constrained": true,
+      "answers": 60,
+      "parses": "60/60",
+      "schema": "60/60",
+      "correct": "44/60"
+    },
+    {
+      "model": "qwen2.5:1.5b",
+      "constrained": false,
+      "answers": 60,
+      "parses": "42/60",
+      "schema": "42/60",
+      "correct": "41/60"
+    },
+    {
+      "model": "qwen2.5:1.5b",
+      "constrained": true,
+      "answers": 60,
+      "parses": "60/60",
+      "schema": "60/60",
+      "correct": "58/60"
+    }
+  ],
+  "runs": [
+    {
+      "model": "qwen2.5:0.5b",
+      "constrained": false,
+      "request": "Order 6 tubs of vanilla.",
+      "sample": 0,
+      "answer": "```json\n{\n  \"sku\": \"V\",\n  \"quantity\": 6\n}\n```",
+      "parses": false,
+      "schema": false,
+      "correct": false
+    },
+    {
+      "model": "qwen2.5:0.5b",
+      "constrained": false,
+      "request": "Order 6 tubs of vanilla.",
+      "sample": 1,
+      "answer": "{\"sku\": \"V\", \"quantity\": 6}",
+      "parses": true,
+      "schema": true,
+      "correct": true
+    },
+    {
+      "model": "qwen2.5:0.5b",
+      "constrained": false,
+      "request": "Order 6 tubs of vanilla.",
+      "sample": 2,
+      "answer": "{\"sku\": \"V\", \"quantity\": 6}",
+      "parses": true,
+      "schema": true,
+      "correct": true
+    },
+    {
+      "model": "qwen2.5:0.5b",
+      "constrained": false,
+      "request": "Order 6 tubs of vanilla.",
+      "sample": 3,
+      "answer": "{\n  \"sku\": \"V\",\n  \"quantity\": 6\n}",
+      "parses": true,
+      "schema": true,
+      "correct": true
+    },
+    {
+      "model": "qwen2.5:0.5b",
+      "constrained": false,
+      "request": "Order 6 tubs of vanilla.",
+      "sample": 4,
+      "answer": "{\"sku\": \"V\", \"quantity\": 6}",
+      "parses": true,
+      "schema": true,
+      "correct": true
+    },
+    {
+      "model": "qwen2.5:0.5b",
+      "constrained": false,
+      "request": "We need four tubs of strawberry.",
+      "sample": 0,
+      "answer": "{\n  \"sku\": \"S\",\n  \"quantity\": 4\n}",
+      "parses": true,
+      "schema": true,
+      "correct": true
+    },
+    {
+      "model": "qwen2.5:0.5b",
+      "constrained": false,
+      "request": "We need four tubs of strawberry.",
+      "sample": 1,
+      "answer": "{\"sku\": \"S\", \"quantity\": 4}",
+      "parses": true,
+      "schema": true,
+      "correct": true
+    },
+    {
+      "model": "qwen2.5:0.5b",
+      "constrained": false,
+      "request": "We need four tubs of strawberry.",
+      "sample": 2,
+      "answer": "{\"sku\": \"S\", \"quantity\": 4}",
+      "parses": true,
+      "schema": true,
+      "correct": true
+    },
+    {
+      "model": "qwen2.5:0.5b",
+      "constrained": false,
+      "request": "We need four tubs of strawberry.",
+      "sample": 3,
+      "answer": "{\n  \"sku\": \"S\",\n  \"quantity\": 4\n}",
+      "parses": true,
+      "schema": true,
+      "correct": true
+    },
+    {
+      "model": "qwen2.5:0.5b",
+      "constrained": false,
+      "request": "We need four tubs of strawberry.",
+      "sample": 4,
+      "answer": "{\"sku\": \"S\", \"quantity\": 4}",
+      "parses": true,
+      "schema": true,
+      "correct": true
+    },
+    {
+      "model": "qwen2.5:0.5b",
+      "constrained": false,
+      "request": "Please get 10 chocolate.",
+      "sample": 0,
+      "answer": "{\n    \"sku\": \"C\",\n    \"quantity\": 10\n}",
+      "parses": true,
+      "schema": true,
+      "correct": true
+    },
+    {
+      "model": "qwen2.5:0.5b",
+      "constrained": false,
+      "request": "Please get 10 chocolate.",
+      "sample": 1,
+      "answer": "{\"sku\": \"C\", \"quantity\": 10}",
+      "parses": true,
+      "schema": true,
+      "correct": true
+    },
+    {
+      "model": "qwen2.5:0.5b",
+      "constrained": false,
+      "request": "Please get 10 chocolate.",
+      "sample": 2,
+      "answer": "{\"sku\": \"C\", \"quantity\": 10}",
+      "parses": true,
+      "schema": true,
+      "correct": true
+    },
+    {
+      "model": "qwen2.5:0.5b",
+      "constrained": false,
+      "request": "Please get 10 chocolate.",
+      "sample": 3,
+      "answer": "```json\n{\n  \"sku\": \"C\",\n  \"quantity\": 10\n}\n```",
+      "parses": false,
+      "schema": false,
+      "correct": false
+    },
+    {
+      "model": "qwen2.5:0.5b",
+      "constrained": false,
+      "request": "Please get 10 chocolate.",
+      "sample": 4,
+      "answer": "{\"sku\": \"C\", \"quantity\": 10}",
+      "parses": true,
+      "schema": true,
+      "correct": true
+    },
+    {
+      "model": "qwen2.5:0.5b",
+      "constrained": false,
+      "request": "Mango: 3 tubs, please.",
+      "sample": 0,
+      "answer": "```json\n{\n  \"sku\": \"P\",\n  \"quantity\": 3\n}\n```",
+      "parses": false,
+      "schema": false,
+      "correct": false
+    },
+    {
+      "model": "qwen2.5:0.5b",
+      "constrained": false,
+      "request": "Mango: 3 tubs, please.",
+      "sample": 1,
+      "answer": "{\"sku\": \"C\", \"quantity\": 3}",
+      "parses": true,
+      "schema": true,
+      "correct": false
+    },
+    {
+      "model": "qwen2.5:0.5b",
+      "constrained": false,
+      "request": "Mango: 3 tubs, please.",
+      "sample": 2,
+      "answer": "{\"sku\": \"P\", \"quantity\": 3}",
+      "parses": true,
+      "schema": true,
+      "correct": false
+    },
+    {
+      "model": "qwen2.5:0.5b",
+      "constrained": false,
+      "request": "Mango: 3 tubs, please.",
+      "sample": 3,
+      "answer": "{\n  \"sku\": \"P\",\n  \"quantity\": 3\n}",
+      "parses": true,
+      "schema": true,
+      "correct": false
+    },
+    {
+      "model": "qwen2.5:0.5b",
+      "constrained": false,
+      "request": "Mango: 3 tubs, please.",
+      "sample": 4,
+      "answer": "{\"sku\": \"P\", \"quantity\": 3}",
+      "parses": true,
+      "schema": true,
+      "correct": false
+    },
+    {
+      "model": "qwen2.5:0.5b",
+      "constrained": false,
+      "request": "Half a dozen pistachio.",
+      "sample": 0,
+      "answer": "{\"sku\": \"M\", \"quantity\": 0.5}",
+      "parses": true,
+      "schema": false,
+      "correct": false
+    },
+    {
+      "model": "qwen2.5:0.5b",
+      "constrained": false,
+      "request": "Half a dozen pistachio.",
+      "sample": 1,
+      "answer": "{\"sku\": \"P\", \"quantity\": 0.5}",
+      "parses": true,
+      "schema": false,
+      "correct": false
+    },
+    {
+      "model": "qwen2.5:0.5b",
+      "constrained": false,
+      "request": "Half a dozen pistachio.",
+      "sample": 2,
+      "answer": "{\"sku\": \"P\", \"quantity\": 0.5}",
+      "parses": true,
+      "schema": false,
+      "correct": false
+    },
+    {
+      "model": "qwen2.5:0.5b",
+      "constrained": false,
+      "request": "Half a dozen pistachio.",
+      "sample": 3,
+      "answer": "{\"sku\": \"P\", \"quantity\": 1}",
+      "parses": true,
+      "schema": true,
+      "correct": false
+    },
+    {
+      "model": "qwen2.5:0.5b",
+      "constrained": false,
+      "request": "Half a dozen pistachio.",
+      "sample": 4,
+      "answer": "{\"sku\": \"P\", \"quantity\": 0.5}",
+      "parses": true,
+      "schema": false,
+      "correct": false
+    },
+    {
+      "model": "qwen2.5:0.5b",
+      "constrained": false,
+      "request": "A dozen vanilla tubs for the weekend.",
+      "sample": 0,
+      "answer": "{\n  \"sku\": \"V1\",\n  \"quantity\": 12\n}",
+      "parses": true,
+      "schema": false,
+      "correct": false
+    },
+    {
+      "model": "qwen2.5:0.5b",
+      "constrained": false,
+      "request": "A dozen vanilla tubs for the weekend.",
+      "sample": 1,
+      "answer": "{\"sku\": \"C12\", \"quantity\": 1}",
+      "parses": true,
+      "schema": false,
+      "correct": false
+    },
+    {
+      "model": "qwen2.5:0.5b",
+      "constrained": false,
+      "request": "A dozen vanilla tubs for the weekend.",
+      "sample": 2,
+      "answer": "{\"sku\": \"S\", \"quantity\": 12}",
+      "parses": true,
+      "schema": true,
+      "correct": false
+    },
+    {
+      "model": "qwen2.5:0.5b",
+      "constrained": false,
+      "request": "A dozen vanilla tubs for the weekend.",
+      "sample": 3,
+      "answer": "{\"sku\": \"V\", \"quantity\": 12}",
+      "parses": true,
+      "schema": true,
+      "correct": true
+    },
+    {
+      "model": "qwen2.5:0.5b",
+      "constrained": false,
+      "request": "A dozen vanilla tubs for the weekend.",
+      "sample": 4,
+      "answer": "{\"sku\": \"S\", \"quantity\": 12}",
+      "parses": true,
+      "schema": true,
+      "correct": false
+    },
+    {
+      "model": "qwen2.5:0.5b",
+      "constrained": false,
+      "request": "Strawberry is low, order two.",
+      "sample": 0,
+      "answer": "```json\n{\n  \"sku\": \"S\",\n  \"quantity\": 2\n}\n```",
+      "parses": false,
+      "schema": false,
+      "correct": false
+    },
+    {
+      "model": "qwen2.5:0.5b",
+      "constrained": false,
+      "request": "Strawberry is low, order two.",
+      "sample": 1,
+      "answer": "{\"sku\": \"S\", \"quantity\": 2}",
+      "parses": true,
+      "schema": true,
+      "correct": true
+    },
+    {
+      "model": "qwen2.5:0.5b",
+      "constrained": false,
+      "request": "Strawberry is low, order two.",
+      "sample": 2,
+      "answer": "{\"sku\": \"S\", \"quantity\": 2}",
+      "parses": true,
+      "schema": true,
+      "correct": true
+    },
+    {
+      "model": "qwen2.5:0.5b",
+      "constrained": false,
+      "request": "Strawberry is low, order two.",
+      "sample": 3,
+      "answer": "{\n  \"sku\": \"S\",\n  \"quantity\": 2\n}",
+      "parses": true,
+      "schema": true,
+      "correct": true
+    },
+    {
+      "model": "qwen2.5:0.5b",
+      "constrained": false,
+      "request": "Strawberry is low, order two.",
+      "sample": 4,
+      "answer": "{\"sku\": \"S\", \"quantity\": 2}",
+      "parses": true,
+      "schema": true,
+      "correct": true
+    },
+    {
+      "model": "qwen2.5:0.5b",
+      "constrained": false,
+      "request": "Could you draft 7 tubs of the chocolate one?",
+      "sample": 0,
+      "answer": "{\"sku\": \"C\", \"quantity\": 1}",
+      "parses": true,
+      "schema": true,
+      "correct": false
+    },
+    {
+      "model": "qwen2.5:0.5b",
+      "constrained": false,
+      "request": "Could you draft 7 tubs of the chocolate one?",
+      "sample": 1,
+      "answer": "```json\n{\n  \"sku\": \"C\",\n  \"quantity\": 1\n}\n```",
+      "parses": false,
+      "schema": false,
+      "correct": false
+    },
+    {
+      "model": "qwen2.5:0.5b",
+      "constrained": false,
+      "request": "Could you draft 7 tubs of the chocolate one?",
+      "sample": 2,
+      "answer": "```json\n{\n  \"sku\": \"C\",\n  \"quantity\": 7\n}\n```",
+      "parses": false,
+      "schema": false,
+      "correct": false
+    },
+    {
+      "model": "qwen2.5:0.5b",
+      "constrained": false,
+      "request": "Could you draft 7 tubs of the chocolate one?",
+      "sample": 3,
+      "answer": "{\"sku\": \"C\", \"quantity\": 7}",
+      "parses": true,
+      "schema": true,
+      "correct": true
+    },
+    {
+      "model": "qwen2.5:0.5b",
+      "constrained": false,
+      "request": "Could you draft 7 tubs of the chocolate one?",
+      "sample": 4,
+      "answer": "```json\n{\n  \"sku\": \"C\",\n  \"quantity\": 7\n}\n```",
+      "parses": false,
+      "schema": false,
+      "correct": false
+    },
+    {
+      "model": "qwen2.5:0.5b",
+      "constrained": false,
+      "request": "Top up mango by five tubs.",
+      "sample": 0,
+      "answer": "{\n  \"sku\": \"M\",\n  \"quantity\": 5\n}",
+      "parses": true,
+      "schema": true,
+      "correct": true
+    },
+    {
+      "model": "qwen2.5:0.5b",
+      "constrained": false,
+      "request": "Top up mango by five tubs.",
+      "sample": 1,
+      "answer": "{\"sku\": \"M\", \"quantity\": 5}",
+      "parses": true,
+      "schema": true,
+      "correct": true
+    },
+    {
+      "model": "qwen2.5:0.5b",
+      "constrained": false,
+      "request": "Top up mango by five tubs.",
+      "sample": 2,
+      "answer": "{\"sku\": \"M\", \"quantity\": 5}",
+      "parses": true,
+      "schema": true,
+      "correct": true
+    },
+    {
+      "model": "qwen2.5:0.5b",
+      "constrained": false,
+      "request": "Top up mango by five tubs.",
+      "sample": 3,
+      "answer": "{\n  \"sku\": \"M\",\n  \"quantity\": 5\n}",
+      "parses": true,
+      "schema": true,
+      "correct": true
+    },
+    {
+      "model": "qwen2.5:0.5b",
+      "constrained": false,
+      "request": "Top up mango by five tubs.",
+      "sample": 4,
+      "answer": "{\"sku\": \"M\", \"quantity\": 5}",
+      "parses": true,
+      "schema": true,
+      "correct": true
+    },
+    {
+      "model": "qwen2.5:0.5b",
+      "constrained": false,
+      "request": "One tub of pistachio for the tasting.",
+      "sample": 0,
+      "answer": "{\n  \"sku\": \"P\",\n  \"quantity\": 1\n}",
+      "parses": true,
+      "schema": true,
+      "correct": true
+    },
+    {
+      "model": "qwen2.5:0.5b",
+      "constrained": false,
+      "request": "One tub of pistachio for the tasting.",
+      "sample": 1,
+      "answer": "{\"sku\": \"P\", \"quantity\": 1}",
+      "parses": true,
+      "schema": true,
+      "correct": true
+    },
+    {
+      "model": "qwen2.5:0.5b",
+      "constrained": false,
+      "request": "One tub of pistachio for the tasting.",
+      "sample": 2,
+      "answer": "{\"sku\": \"P\", \"quantity\": 1}",
+      "parses": true,
+      "schema": true,
+      "correct": true
+    },
+    {
+      "model": "qwen2.5:0.5b",
+      "constrained": false,
+      "request": "One tub of pistachio for the tasting.",
+      "sample": 3,
+      "answer": "{\"sku\": \"P\", \"quantity\": 1}",
+      "parses": true,
+      "schema": true,
+      "correct": true
+    },
+    {
+      "model": "qwen2.5:0.5b",
+      "constrained": false,
+      "request": "One tub of pistachio for the tasting.",
+      "sample": 4,
+      "answer": "{\"sku\": \"P\", \"quantity\": 1}",
+      "parses": true,
+      "schema": true,
+      "correct": true
+    },
+    {
+      "model": "qwen2.5:0.5b",
+      "constrained": false,
+      "request": "Order vanilla, eight tubs.",
+      "sample": 0,
+      "answer": "```json\n{\n  \"sku\": \"V\",\n  \"quantity\": 8\n}\n```",
+      "parses": false,
+      "schema": false,
+      "correct": false
+    },
+    {
+      "model": "qwen2.5:0.5b",
+      "constrained": false,
+      "request": "Order vanilla, eight tubs.",
+      "sample": 1,
+      "answer": "{\"sku\": \"V8\", \"quantity\": 8}",
+      "parses": true,
+      "schema": false,
+      "correct": false
+    },
+    {
+      "model": "qwen2.5:0.5b",
+      "constrained": false,
+      "request": "Order vanilla, eight tubs.",
+      "sample": 2,
+      "answer": "{\"sku\": \"V\", \"quantity\": 8}",
+      "parses": true,
+      "schema": true,
+      "correct": true
+    },
+    {
+      "model": "qwen2.5:0.5b",
+      "constrained": false,
+      "request": "Order vanilla, eight tubs.",
+      "sample": 3,
+      "answer": "```json\n{\n  \"sku\": \"V8\",\n  \"quantity\": 8\n}\n```",
+      "parses": false,
+      "schema": false,
+      "correct": false
+    },
+    {
+      "model": "qwen2.5:0.5b",
+      "constrained": false,
+      "request": "Order vanilla, eight tubs.",
+      "sample": 4,
+      "answer": "{\"sku\": \"V\", \"quantity\": 8}",
+      "parses": true,
+      "schema": true,
+      "correct": true
+    },
+    {
+      "model": "qwen2.5:0.5b",
+      "constrained": false,
+      "request": "Reorder strawberry: we need 9.",
+      "sample": 0,
+      "answer": "{\"SKU\": \"S\", \"quantity\": 9}",
+      "parses": true,
+      "schema": false,
+      "correct": false
+    },
+    {
+      "model": "qwen2.5:0.5b",
+      "constrained": false,
+      "request": "Reorder strawberry: we need 9.",
+      "sample": 1,
+      "answer": "```json\n{\n  \"sku\": \"S\",\n  \"quantity\": 1\n}\n```",
+      "parses": false,
+      "schema": false,
+      "correct": false
+    },
+    {
+      "model": "qwen2.5:0.5b",
+      "constrained": false,
+      "request": "Reorder strawberry: we need 9.",
+      "sample": 2,
+      "answer": "```json\n{\n  \"sku\": \"S\",\n  \"quantity\": 9\n}\n```",
+      "parses": false,
+      "schema": false,
+      "correct": false
+    },
+    {
+      "model": "qwen2.5:0.5b",
+      "constrained": false,
+      "request": "Reorder strawberry: we need 9.",
+      "sample": 3,
+      "answer": "{\"sku\": \"S\", \"quantity\": 9}",
+      "parses": true,
+      "schema": true,
+      "correct": true
+    },
+    {
+      "model": "qwen2.5:0.5b",
+      "constrained": false,
+      "request": "Reorder strawberry: we need 9.",
+      "sample": 4,
+      "answer": "```json\n{\n  \"sku\": \"S\",\n  \"quantity\": 9\n}\n```",
+      "parses": false,
+      "schema": false,
+      "correct": false
+    },
+    {
+      "model": "qwen2.5:0.5b",
+      "constrained": true,
+      "request": "Order 6 tubs of vanilla.",
+      "sample": 0,
+      "answer": "{\n  \"sku\": \"V\",\n  \"quantity\": 6\n}",
+      "parses": true,
+      "schema": true,
+      "correct": true
+    },
+    {
+      "model": "qwen2.5:0.5b",
+      "constrained": true,
+      "request": "Order 6 tubs of vanilla.",
+      "sample": 1,
+      "answer": "{\"sku\": \"V\", \"quantity\": 6}",
+      "parses": true,
+      "schema": true,
+      "correct": true
+    },
+    {
+      "model": "qwen2.5:0.5b",
+      "constrained": true,
+      "request": "Order 6 tubs of vanilla.",
+      "sample": 2,
+      "answer": "{\"sku\": \"V\", \"quantity\": 6}",
+      "parses": true,
+      "schema": true,
+      "correct": true
+    },
+    {
+      "model": "qwen2.5:0.5b",
+      "constrained": true,
+      "request": "Order 6 tubs of vanilla.",
+      "sample": 3,
+      "answer": "{\n  \"sku\": \"V\",\n  \"quantity\": 6\n}",
+      "parses": true,
+      "schema": true,
+      "correct": true
+    },
+    {
+      "model": "qwen2.5:0.5b",
+      "constrained": true,
+      "request": "Order 6 tubs of vanilla.",
+      "sample": 4,
+      "answer": "{\"sku\": \"V\", \"quantity\": 6}",
+      "parses": true,
+      "schema": true,
+      "correct": true
+    },
+    {
+      "model": "qwen2.5:0.5b",
+      "constrained": true,
+      "request": "We need four tubs of strawberry.",
+      "sample": 0,
+      "answer": "{\n  \"sku\": \"S\",\n  \"quantity\": 4\n}",
+      "parses": true,
+      "schema": true,
+      "correct": true
+    },
+    {
+      "model": "qwen2.5:0.5b",
+      "constrained": true,
+      "request": "We need four tubs of strawberry.",
+      "sample": 1,
+      "answer": "{\"sku\": \"S\", \"quantity\": 4}",
+      "parses": true,
+      "schema": true,
+      "correct": true
+    },
+    {
+      "model": "qwen2.5:0.5b",
+      "constrained": true,
+      "request": "We need four tubs of strawberry.",
+      "sample": 2,
+      "answer": "{\"sku\": \"S\", \"quantity\": 4}",
+      "parses": true,
+      "schema": true,
+      "correct": true
+    },
+    {
+      "model": "qwen2.5:0.5b",
+      "constrained": true,
+      "request": "We need four tubs of strawberry.",
+      "sample": 3,
+      "answer": "{\n  \"sku\": \"S\",\n  \"quantity\": 4\n}",
+      "parses": true,
+      "schema": true,
+      "correct": true
+    },
+    {
+      "model": "qwen2.5:0.5b",
+      "constrained": true,
+      "request": "We need four tubs of strawberry.",
+      "sample": 4,
+      "answer": "{\"sku\": \"S\", \"quantity\": 4}",
+      "parses": true,
+      "schema": true,
+      "correct": true
+    },
+    {
+      "model": "qwen2.5:0.5b",
+      "constrained": true,
+      "request": "Please get 10 chocolate.",
+      "sample": 0,
+      "answer": "{\n    \"sku\": \"C\",\n    \"quantity\": 10\n}",
+      "parses": true,
+      "schema": true,
+      "correct": true
+    },
+    {
+      "model": "qwen2.5:0.5b",
+      "constrained": true,
+      "request": "Please get 10 chocolate.",
+      "sample": 1,
+      "answer": "{\"sku\": \"C\", \"quantity\": 10}",
+      "parses": true,
+      "schema": true,
+      "correct": true
+    },
+    {
+      "model": "qwen2.5:0.5b",
+      "constrained": true,
+      "request": "Please get 10 chocolate.",
+      "sample": 2,
+      "answer": "{\"sku\": \"C\", \"quantity\": 10}",
+      "parses": true,
+      "schema": true,
+      "correct": true
+    },
+    {
+      "model": "qwen2.5:0.5b",
+      "constrained": true,
+      "request": "Please get 10 chocolate.",
+      "sample": 3,
+      "answer": "{\"sku\": \"C\", \"quantity\": 10}",
+      "parses": true,
+      "schema": true,
+      "correct": true
+    },
+    {
+      "model": "qwen2.5:0.5b",
+      "constrained": true,
+      "request": "Please get 10 chocolate.",
+      "sample": 4,
+      "answer": "{\"sku\": \"C\", \"quantity\": 10}",
+      "parses": true,
+      "schema": true,
+      "correct": true
+    },
+    {
+      "model": "qwen2.5:0.5b",
+      "constrained": true,
+      "request": "Mango: 3 tubs, please.",
+      "sample": 0,
+      "answer": "{\n  \"sku\": \"M\",\n  \"quantity\": 3\n}",
+      "parses": true,
+      "schema": true,
+      "correct": true
+    },
+    {
+      "model": "qwen2.5:0.5b",
+      "constrained": true,
+      "request": "Mango: 3 tubs, please.",
+      "sample": 1,
+      "answer": "{\"sku\": \"C\", \"quantity\": 3}",
+      "parses": true,
+      "schema": true,
+      "correct": false
+    },
+    {
+      "model": "qwen2.5:0.5b",
+      "constrained": true,
+      "request": "Mango: 3 tubs, please.",
+      "sample": 2,
+      "answer": "{\"sku\": \"P\", \"quantity\": 3}",
+      "parses": true,
+      "schema": true,
+      "correct": false
+    },
+    {
+      "model": "qwen2.5:0.5b",
+      "constrained": true,
+      "request": "Mango: 3 tubs, please.",
+      "sample": 3,
+      "answer": "{\n  \"sku\": \"P\",\n  \"quantity\": 3\n}",
+      "parses": true,
+      "schema": true,
+      "correct": false
+    },
+    {
+      "model": "qwen2.5:0.5b",
+      "constrained": true,
+      "request": "Mango: 3 tubs, please.",
+      "sample": 4,
+      "answer": "{\"sku\": \"P\", \"quantity\": 3}",
+      "parses": true,
+      "schema": true,
+      "correct": false
+    },
+    {
+      "model": "qwen2.5:0.5b",
+      "constrained": true,
+      "request": "Half a dozen pistachio.",
+      "sample": 0,
+      "answer": "{\"sku\": \"M\", \"quantity\": 12}",
+      "parses": true,
+      "schema": true,
+      "correct": false
+    },
+    {
+      "model": "qwen2.5:0.5b",
+      "constrained": true,
+      "request": "Half a dozen pistachio.",
+      "sample": 1,
+      "answer": "{\"sku\": \"P\", \"quantity\": 6}",
+      "parses": true,
+      "schema": true,
+      "correct": true
+    },
+    {
+      "model": "qwen2.5:0.5b",
+      "constrained": true,
+      "request": "Half a dozen pistachio.",
+      "sample": 2,
+      "answer": "{\"sku\": \"P\", \"quantity\": 1}",
+      "parses": true,
+      "schema": true,
+      "correct": false
+    },
+    {
+      "model": "qwen2.5:0.5b",
+      "constrained": true,
+      "request": "Half a dozen pistachio.",
+      "sample": 3,
+      "answer": "{\"sku\": \"P\", \"quantity\": 1}",
+      "parses": true,
+      "schema": true,
+      "correct": false
+    },
+    {
+      "model": "qwen2.5:0.5b",
+      "constrained": true,
+      "request": "Half a dozen pistachio.",
+      "sample": 4,
+      "answer": "{\"sku\": \"P\", \"quantity\": 12}",
+      "parses": true,
+      "schema": true,
+      "correct": false
+    },
+    {
+      "model": "qwen2.5:0.5b",
+      "constrained": true,
+      "request": "A dozen vanilla tubs for the weekend.",
+      "sample": 0,
+      "answer": "{\n  \"sku\": \"V\",\n  \"quantity\": 12\n}",
+      "parses": true,
+      "schema": true,
+      "correct": true
+    },
+    {
+      "model": "qwen2.5:0.5b",
+      "constrained": true,
+      "request": "A dozen vanilla tubs for the weekend.",
+      "sample": 1,
+      "answer": "{\"sku\": \"C\", \"quantity\": 12}",
+      "parses": true,
+      "schema": true,
+      "correct": false
+    },
+    {
+      "model": "qwen2.5:0.5b",
+      "constrained": true,
+      "request": "A dozen vanilla tubs for the weekend.",
+      "sample": 2,
+      "answer": "{\"sku\": \"S\", \"quantity\": 12}",
+      "parses": true,
+      "schema": true,
+      "correct": false
+    },
+    {
+      "model": "qwen2.5:0.5b",
+      "constrained": true,
+      "request": "A dozen vanilla tubs for the weekend.",
+      "sample": 3,
+      "answer": "{\"sku\": \"V\", \"quantity\": 12}",
+      "parses": true,
+      "schema": true,
+      "correct": true
+    },
+    {
+      "model": "qwen2.5:0.5b",
+      "constrained": true,
+      "request": "A dozen vanilla tubs for the weekend.",
+      "sample": 4,
+      "answer": "{\"sku\": \"S\", \"quantity\": 12}",
+      "parses": true,
+      "schema": true,
+      "correct": false
+    },
+    {
+      "model": "qwen2.5:0.5b",
+      "constrained": true,
+      "request": "Strawberry is low, order two.",
+      "sample": 0,
+      "answer": "{\n  \"sku\": \"S\",\n  \"quantity\": 2\n}",
+      "parses": true,
+      "schema": true,
+      "correct": true
+    },
+    {
+      "model": "qwen2.5:0.5b",
+      "constrained": true,
+      "request": "Strawberry is low, order two.",
+      "sample": 1,
+      "answer": "{\"sku\": \"S\", \"quantity\": 2}",
+      "parses": true,
+      "schema": true,
+      "correct": true
+    },
+    {
+      "model": "qwen2.5:0.5b",
+      "constrained": true,
+      "request": "Strawberry is low, order two.",
+      "sample": 2,
+      "answer": "{\"sku\": \"S\", \"quantity\": 2}",
+      "parses": true,
+      "schema": true,
+      "correct": true
+    },
+    {
+      "model": "qwen2.5:0.5b",
+      "constrained": true,
+      "request": "Strawberry is low, order two.",
+      "sample": 3,
+      "answer": "{\n  \"sku\": \"S\",\n  \"quantity\": 2\n}",
+      "parses": true,
+      "schema": true,
+      "correct": true
+    },
+    {
+      "model": "qwen2.5:0.5b",
+      "constrained": true,
+      "request": "Strawberry is low, order two.",
+      "sample": 4,
+      "answer": "{\"sku\": \"S\", \"quantity\": 2}",
+      "parses": true,
+      "schema": true,
+      "correct": true
+    },
+    {
+      "model": "qwen2.5:0.5b",
+      "constrained": true,
+      "request": "Could you draft 7 tubs of the chocolate one?",
+      "sample": 0,
+      "answer": "{\"sku\": \"C\", \"quantity\": 1}",
+      "parses": true,
+      "schema": true,
+      "correct": false
+    },
+    {
+      "model": "qwen2.5:0.5b",
+      "constrained": true,
+      "request": "Could you draft 7 tubs of the chocolate one?",
+      "sample": 1,
+      "answer": "{\n    \"sku\": \"C\",\n    \"quantity\": 7\n}",
+      "parses": true,
+      "schema": true,
+      "correct": true
+    },
+    {
+      "model": "qwen2.5:0.5b",
+      "constrained": true,
+      "request": "Could you draft 7 tubs of the chocolate one?",
+      "sample": 2,
+      "answer": "{\"sku\": \"C\", \"quantity\": 7}",
+      "parses": true,
+      "schema": true,
+      "correct": true
+    },
+    {
+      "model": "qwen2.5:0.5b",
+      "constrained": true,
+      "request": "Could you draft 7 tubs of the chocolate one?",
+      "sample": 3,
+      "answer": "{\"sku\": \"C\", \"quantity\": 7}",
+      "parses": true,
+      "schema": true,
+      "correct": true
+    },
+    {
+      "model": "qwen2.5:0.5b",
+      "constrained": true,
+      "request": "Could you draft 7 tubs of the chocolate one?",
+      "sample": 4,
+      "answer": "{\"sku\": \"C\", \"quantity\": 7}",
+      "parses": true,
+      "schema": true,
+      "correct": true
+    },
+    {
+      "model": "qwen2.5:0.5b",
+      "constrained": true,
+      "request": "Top up mango by five tubs.",
+      "sample": 0,
+      "answer": "{\n  \"sku\": \"M\",\n  \"quantity\": 5\n}",
+      "parses": true,
+      "schema": true,
+      "correct": true
+    },
+    {
+      "model": "qwen2.5:0.5b",
+      "constrained": true,
+      "request": "Top up mango by five tubs.",
+      "sample": 1,
+      "answer": "{\"sku\": \"M\", \"quantity\": 5}",
+      "parses": true,
+      "schema": true,
+      "correct": true
+    },
+    {
+      "model": "qwen2.5:0.5b",
+      "constrained": true,
+      "request": "Top up mango by five tubs.",
+      "sample": 2,
+      "answer": "{\"sku\": \"M\", \"quantity\": 5}",
+      "parses": true,
+      "schema": true,
+      "correct": true
+    },
+    {
+      "model": "qwen2.5:0.5b",
+      "constrained": true,
+      "request": "Top up mango by five tubs.",
+      "sample": 3,
+      "answer": "{\n  \"sku\": \"M\",\n  \"quantity\": 5\n}",
+      "parses": true,
+      "schema": true,
+      "correct": true
+    },
+    {
+      "model": "qwen2.5:0.5b",
+      "constrained": true,
+      "request": "Top up mango by five tubs.",
+      "sample": 4,
+      "answer": "{\"sku\": \"M\", \"quantity\": 5}",
+      "parses": true,
+      "schema": true,
+      "correct": true
+    },
+    {
+      "model": "qwen2.5:0.5b",
+      "constrained": true,
+      "request": "One tub of pistachio for the tasting.",
+      "sample": 0,
+      "answer": "{\n  \"sku\": \"P\",\n  \"quantity\": 1\n}",
+      "parses": true,
+      "schema": true,
+      "correct": true
+    },
+    {
+      "model": "qwen2.5:0.5b",
+      "constrained": true,
+      "request": "One tub of pistachio for the tasting.",
+      "sample": 1,
+      "answer": "{\"sku\": \"P\", \"quantity\": 1}",
+      "parses": true,
+      "schema": true,
+      "correct": true
+    },
+    {
+      "model": "qwen2.5:0.5b",
+      "constrained": true,
+      "request": "One tub of pistachio for the tasting.",
+      "sample": 2,
+      "answer": "{\"sku\": \"P\", \"quantity\": 1}",
+      "parses": true,
+      "schema": true,
+      "correct": true
+    },
+    {
+      "model": "qwen2.5:0.5b",
+      "constrained": true,
+      "request": "One tub of pistachio for the tasting.",
+      "sample": 3,
+      "answer": "{\"sku\": \"P\", \"quantity\": 1}",
+      "parses": true,
+      "schema": true,
+      "correct": true
+    },
+    {
+      "model": "qwen2.5:0.5b",
+      "constrained": true,
+      "request": "One tub of pistachio for the tasting.",
+      "sample": 4,
+      "answer": "{\"sku\": \"P\", \"quantity\": 1}",
+      "parses": true,
+      "schema": true,
+      "correct": true
+    },
+    {
+      "model": "qwen2.5:0.5b",
+      "constrained": true,
+      "request": "Order vanilla, eight tubs.",
+      "sample": 0,
+      "answer": "{\"sku\": \"S\", \"quantity\": 8}",
+      "parses": true,
+      "schema": true,
+      "correct": false
+    },
+    {
+      "model": "qwen2.5:0.5b",
+      "constrained": true,
+      "request": "Order vanilla, eight tubs.",
+      "sample": 1,
+      "answer": "{\"sku\": \"V\", \"quantity\": 8}",
+      "parses": true,
+      "schema": true,
+      "correct": true
+    },
+    {
+      "model": "qwen2.5:0.5b",
+      "constrained": true,
+      "request": "Order vanilla, eight tubs.",
+      "sample": 2,
+      "answer": "{\"sku\": \"V\", \"quantity\": 8}",
+      "parses": true,
+      "schema": true,
+      "correct": true
+    },
+    {
+      "model": "qwen2.5:0.5b",
+      "constrained": true,
+      "request": "Order vanilla, eight tubs.",
+      "sample": 3,
+      "answer": "{\"sku\": \"V\", \"quantity\": 8}",
+      "parses": true,
+      "schema": true,
+      "correct": true
+    },
+    {
+      "model": "qwen2.5:0.5b",
+      "constrained": true,
+      "request": "Order vanilla, eight tubs.",
+      "sample": 4,
+      "answer": "{\"sku\": \"V\", \"quantity\": 8}",
+      "parses": true,
+      "schema": true,
+      "correct": true
+    },
+    {
+      "model": "qwen2.5:0.5b",
+      "constrained": true,
+      "request": "Reorder strawberry: we need 9.",
+      "sample": 0,
+      "answer": "{\"sku\": \"S\", \"quantity\": 1}",
+      "parses": true,
+      "schema": true,
+      "correct": false
+    },
+    {
+      "model": "qwen2.5:0.5b",
+      "constrained": true,
+      "request": "Reorder strawberry: we need 9.",
+      "sample": 1,
+      "answer": "{\"sku\": \"S\", \"quantity\": 1}",
+      "parses": true,
+      "schema": true,
+      "correct": false
+    },
+    {
+      "model": "qwen2.5:0.5b",
+      "constrained": true,
+      "request": "Reorder strawberry: we need 9.",
+      "sample": 2,
+      "answer": "{\"sku\": \"S\", \"quantity\": 1}",
+      "parses": true,
+      "schema": true,
+      "correct": false
+    },
+    {
+      "model": "qwen2.5:0.5b",
+      "constrained": true,
+      "request": "Reorder strawberry: we need 9.",
+      "sample": 3,
+      "answer": "{\"sku\": \"S\", \"quantity\": 9}",
+      "parses": true,
+      "schema": true,
+      "correct": true
+    },
+    {
+      "model": "qwen2.5:0.5b",
+      "constrained": true,
+      "request": "Reorder strawberry: we need 9.",
+      "sample": 4,
+      "answer": "{\"sku\": \"S\", \"quantity\": 9}",
+      "parses": true,
+      "schema": true,
+      "correct": true
+    },
+    {
+      "model": "qwen2.5:1.5b",
+      "constrained": false,
+      "request": "Order 6 tubs of vanilla.",
+      "sample": 0,
+      "answer": "```json\n{\n    \"sku\": \"V\",\n    \"quantity\": 6\n}\n```",
+      "parses": false,
+      "schema": false,
+      "correct": false
+    },
+    {
+      "model": "qwen2.5:1.5b",
+      "constrained": false,
+      "request": "Order 6 tubs of vanilla.",
+      "sample": 1,
+      "answer": "{\n  \"sku\": \"V\",\n  \"quantity\": 6\n}",
+      "parses": true,
+      "schema": true,
+      "correct": true
+    },
+    {
+      "model": "qwen2.5:1.5b",
+      "constrained": false,
+      "request": "Order 6 tubs of vanilla.",
+      "sample": 2,
+      "answer": "{\n  \"sku\": \"V\",\n  \"quantity\": 6\n}",
+      "parses": true,
+      "schema": true,
+      "correct": true
+    },
+    {
+      "model": "qwen2.5:1.5b",
+      "constrained": false,
+      "request": "Order 6 tubs of vanilla.",
+      "sample": 3,
+      "answer": "```json\n{\n  \"sku\": \"V\",\n  \"quantity\": 6\n}\n```",
+      "parses": false,
+      "schema": false,
+      "correct": false
+    },
+    {
+      "model": "qwen2.5:1.5b",
+      "constrained": false,
+      "request": "Order 6 tubs of vanilla.",
+      "sample": 4,
+      "answer": "{\n  \"sku\": \"V\",\n  \"quantity\": 6\n}",
+      "parses": true,
+      "schema": true,
+      "correct": true
+    },
+    {
+      "model": "qwen2.5:1.5b",
+      "constrained": false,
+      "request": "We need four tubs of strawberry.",
+      "sample": 0,
+      "answer": "```json\n{\n  \"sku\": \"S\",\n  \"quantity\": 4\n}\n```",
+      "parses": false,
+      "schema": false,
+      "correct": false
+    },
+    {
+      "model": "qwen2.5:1.5b",
+      "constrained": false,
+      "request": "We need four tubs of strawberry.",
+      "sample": 1,
+      "answer": "{\n  \"sku\": \"S\",\n  \"quantity\": 4\n}",
+      "parses": true,
+      "schema": true,
+      "correct": true
+    },
+    {
+      "model": "qwen2.5:1.5b",
+      "constrained": false,
+      "request": "We need four tubs of strawberry.",
+      "sample": 2,
+      "answer": "{\n  \"sku\": \"S\",\n  \"quantity\": 4\n}",
+      "parses": true,
+      "schema": true,
+      "correct": true
+    },
+    {
+      "model": "qwen2.5:1.5b",
+      "constrained": false,
+      "request": "We need four tubs of strawberry.",
+      "sample": 3,
+      "answer": "```json\n{\n  \"sku\": \"S\",\n  \"quantity\": 4\n}\n```",
+      "parses": false,
+      "schema": false,
+      "correct": false
+    },
+    {
+      "model": "qwen2.5:1.5b",
+      "constrained": false,
+      "request": "We need four tubs of strawberry.",
+      "sample": 4,
+      "answer": "{\n  \"sku\": \"S\",\n  \"quantity\": 4\n}",
+      "parses": true,
+      "schema": true,
+      "correct": true
+    },
+    {
+      "model": "qwen2.5:1.5b",
+      "constrained": false,
+      "request": "Please get 10 chocolate.",
+      "sample": 0,
+      "answer": "```json\n{\n    \"sku\": \"C\",\n    \"quantity\": 10\n}\n```",
+      "parses": false,
+      "schema": false,
+      "correct": false
+    },
+    {
+      "model": "qwen2.5:1.5b",
+      "constrained": false,
+      "request": "Please get 10 chocolate.",
+      "sample": 1,
+      "answer": "{\n  \"sku\": \"C\",\n  \"quantity\": 10\n}",
+      "parses": true,
+      "schema": true,
+      "correct": true
+    },
+    {
+      "model": "qwen2.5:1.5b",
+      "constrained": false,
+      "request": "Please get 10 chocolate.",
+      "sample": 2,
+      "answer": "{\n  \"sku\": \"C\",\n  \"quantity\": 10\n}",
+      "parses": true,
+      "schema": true,
+      "correct": true
+    },
+    {
+      "model": "qwen2.5:1.5b",
+      "constrained": false,
+      "request": "Please get 10 chocolate.",
+      "sample": 3,
+      "answer": "```json\n{\n  \"sku\": \"C\",\n  \"quantity\": 10\n}\n```",
+      "parses": false,
+      "schema": false,
+      "correct": false
+    },
+    {
+      "model": "qwen2.5:1.5b",
+      "constrained": false,
+      "request": "Please get 10 chocolate.",
+      "sample": 4,
+      "answer": "{\n  \"sku\": \"C\",\n  \"quantity\": 10\n}",
+      "parses": true,
+      "schema": true,
+      "correct": true
+    },
+    {
+      "model": "qwen2.5:1.5b",
+      "constrained": false,
+      "request": "Mango: 3 tubs, please.",
+      "sample": 0,
+      "answer": "```json\n{\n  \"sku\": \"M\",\n  \"quantity\": 3\n}\n```",
+      "parses": false,
+      "schema": false,
+      "correct": false
+    },
+    {
+      "model": "qwen2.5:1.5b",
+      "constrained": false,
+      "request": "Mango: 3 tubs, please.",
+      "sample": 1,
+      "answer": "{\n  \"sku\": \"M\",\n  \"quantity\": 3\n}",
+      "parses": true,
+      "schema": true,
+      "correct": true
+    },
+    {
+      "model": "qwen2.5:1.5b",
+      "constrained": false,
+      "request": "Mango: 3 tubs, please.",
+      "sample": 2,
+      "answer": "{\n  \"sku\": \"M\",\n  \"quantity\": 3\n}",
+      "parses": true,
+      "schema": true,
+      "correct": true
+    },
+    {
+      "model": "qwen2.5:1.5b",
+      "constrained": false,
+      "request": "Mango: 3 tubs, please.",
+      "sample": 3,
+      "answer": "```json\n{\n  \"sku\": \"M\",\n  \"quantity\": 3\n}\n```",
+      "parses": false,
+      "schema": false,
+      "correct": false
+    },
+    {
+      "model": "qwen2.5:1.5b",
+      "constrained": false,
+      "request": "Mango: 3 tubs, please.",
+      "sample": 4,
+      "answer": "{\n  \"sku\": \"M\",\n  \"quantity\": 3\n}",
+      "parses": true,
+      "schema": true,
+      "correct": true
+    },
+    {
+      "model": "qwen2.5:1.5b",
+      "constrained": false,
+      "request": "Half a dozen pistachio.",
+      "sample": 0,
+      "answer": "```json\n{\n  \"sku\": \"P\",\n  \"quantity\": 6\n}\n```",
+      "parses": false,
+      "schema": false,
+      "correct": false
+    },
+    {
+      "model": "qwen2.5:1.5b",
+      "constrained": false,
+      "request": "Half a dozen pistachio.",
+      "sample": 1,
+      "answer": "{\n  \"sku\": \"P\",\n  \"quantity\": 6\n}",
+      "parses": true,
+      "schema": true,
+      "correct": true
+    },
+    {
+      "model": "qwen2.5:1.5b",
+      "constrained": false,
+      "request": "Half a dozen pistachio.",
+      "sample": 2,
+      "answer": "{\n  \"sku\": \"P\",\n  \"quantity\": 6\n}",
+      "parses": true,
+      "schema": true,
+      "correct": true
+    },
+    {
+      "model": "qwen2.5:1.5b",
+      "constrained": false,
+      "request": "Half a dozen pistachio.",
+      "sample": 3,
+      "answer": "{\"sku\": \"P\", \"quantity\": 3}",
+      "parses": true,
+      "schema": true,
+      "correct": false
+    },
+    {
+      "model": "qwen2.5:1.5b",
+      "constrained": false,
+      "request": "Half a dozen pistachio.",
+      "sample": 4,
+      "answer": "{\n  \"sku\": \"P\",\n  \"quantity\": 6\n}",
+      "parses": true,
+      "schema": true,
+      "correct": true
+    },
+    {
+      "model": "qwen2.5:1.5b",
+      "constrained": false,
+      "request": "A dozen vanilla tubs for the weekend.",
+      "sample": 0,
+      "answer": "{\"sku\": \"V\", \"quantity\": 12}",
+      "parses": true,
+      "schema": true,
+      "correct": true
+    },
+    {
+      "model": "qwen2.5:1.5b",
+      "constrained": false,
+      "request": "A dozen vanilla tubs for the weekend.",
+      "sample": 1,
+      "answer": "{\n  \"sku\": \"V\",\n  \"quantity\": 12\n}",
+      "parses": true,
+      "schema": true,
+      "correct": true
+    },
+    {
+      "model": "qwen2.5:1.5b",
+      "constrained": false,
+      "request": "A dozen vanilla tubs for the weekend.",
+      "sample": 2,
+      "answer": "{\n  \"sku\": \"V\",\n  \"quantity\": 12\n}",
+      "parses": true,
+      "schema": true,
+      "correct": true
+    },
+    {
+      "model": "qwen2.5:1.5b",
+      "constrained": false,
+      "request": "A dozen vanilla tubs for the weekend.",
+      "sample": 3,
+      "answer": "```json\n{\n  \"sku\": \"V\",\n  \"quantity\": 12\n}\n```",
+      "parses": false,
+      "schema": false,
+      "correct": false
+    },
+    {
+      "model": "qwen2.5:1.5b",
+      "constrained": false,
+      "request": "A dozen vanilla tubs for the weekend.",
+      "sample": 4,
+      "answer": "{\n  \"sku\": \"V\",\n  \"quantity\": 12\n}",
+      "parses": true,
+      "schema": true,
+      "correct": true
+    },
+    {
+      "model": "qwen2.5:1.5b",
+      "constrained": false,
+      "request": "Strawberry is low, order two.",
+      "sample": 0,
+      "answer": "```json\n{\n  \"sku\": \"S\",\n  \"quantity\": 2\n}\n```",
+      "parses": false,
+      "schema": false,
+      "correct": false
+    },
+    {
+      "model": "qwen2.5:1.5b",
+      "constrained": false,
+      "request": "Strawberry is low, order two.",
+      "sample": 1,
+      "answer": "{\n  \"sku\": \"S\",\n  \"quantity\": 2\n}",
+      "parses": true,
+      "schema": true,
+      "correct": true
+    },
+    {
+      "model": "qwen2.5:1.5b",
+      "constrained": false,
+      "request": "Strawberry is low, order two.",
+      "sample": 2,
+      "answer": "{\n  \"sku\": \"S\",\n  \"quantity\": 2\n}",
+      "parses": true,
+      "schema": true,
+      "correct": true
+    },
+    {
+      "model": "qwen2.5:1.5b",
+      "constrained": false,
+      "request": "Strawberry is low, order two.",
+      "sample": 3,
+      "answer": "{\"sku\": \"S\", \"quantity\": 2}",
+      "parses": true,
+      "schema": true,
+      "correct": true
+    },
+    {
+      "model": "qwen2.5:1.5b",
+      "constrained": false,
+      "request": "Strawberry is low, order two.",
+      "sample": 4,
+      "answer": "{\n  \"sku\": \"S\",\n  \"quantity\": 2\n}",
+      "parses": true,
+      "schema": true,
+      "correct": true
+    },
+    {
+      "model": "qwen2.5:1.5b",
+      "constrained": false,
+      "request": "Could you draft 7 tubs of the chocolate one?",
+      "sample": 0,
+      "answer": "```json\n{\n    \"sku\": \"C\",\n    \"quantity\": 7\n}\n```",
+      "parses": false,
+      "schema": false,
+      "correct": false
+    },
+    {
+      "model": "qwen2.5:1.5b",
+      "constrained": false,
+      "request": "Could you draft 7 tubs of the chocolate one?",
+      "sample": 1,
+      "answer": "{\n  \"sku\": \"C\",\n  \"quantity\": 7\n}",
+      "parses": true,
+      "schema": true,
+      "correct": true
+    },
+    {
+      "model": "qwen2.5:1.5b",
+      "constrained": false,
+      "request": "Could you draft 7 tubs of the chocolate one?",
+      "sample": 2,
+      "answer": "{\n  \"sku\": \"C\",\n  \"quantity\": 7\n}",
+      "parses": true,
+      "schema": true,
+      "correct": true
+    },
+    {
+      "model": "qwen2.5:1.5b",
+      "constrained": false,
+      "request": "Could you draft 7 tubs of the chocolate one?",
+      "sample": 3,
+      "answer": "```json\n{\n  \"sku\": \"C\",\n  \"quantity\": 7\n}\n```",
+      "parses": false,
+      "schema": false,
+      "correct": false
+    },
+    {
+      "model": "qwen2.5:1.5b",
+      "constrained": false,
+      "request": "Could you draft 7 tubs of the chocolate one?",
+      "sample": 4,
+      "answer": "{\n  \"sku\": \"C\",\n  \"quantity\": 7\n}",
+      "parses": true,
+      "schema": true,
+      "correct": true
+    },
+    {
+      "model": "qwen2.5:1.5b",
+      "constrained": false,
+      "request": "Top up mango by five tubs.",
+      "sample": 0,
+      "answer": "```json\n{\n  \"sku\": \"M\",\n  \"quantity\": 5\n}\n```",
+      "parses": false,
+      "schema": false,
+      "correct": false
+    },
+    {
+      "model": "qwen2.5:1.5b",
+      "constrained": false,
+      "request": "Top up mango by five tubs.",
+      "sample": 1,
+      "answer": "{\n  \"sku\": \"M\",\n  \"quantity\": 5\n}",
+      "parses": true,
+      "schema": true,
+      "correct": true
+    },
+    {
+      "model": "qwen2.5:1.5b",
+      "constrained": false,
+      "request": "Top up mango by five tubs.",
+      "sample": 2,
+      "answer": "{\n  \"sku\": \"M\",\n  \"quantity\": 5\n}",
+      "parses": true,
+      "schema": true,
+      "correct": true
+    },
+    {
+      "model": "qwen2.5:1.5b",
+      "constrained": false,
+      "request": "Top up mango by five tubs.",
+      "sample": 3,
+      "answer": "```json\n{\n  \"sku\": \"M\",\n  \"quantity\": 5\n}\n```",
+      "parses": false,
+      "schema": false,
+      "correct": false
+    },
+    {
+      "model": "qwen2.5:1.5b",
+      "constrained": false,
+      "request": "Top up mango by five tubs.",
+      "sample": 4,
+      "answer": "{\n  \"sku\": \"M\",\n  \"quantity\": 5\n}",
+      "parses": true,
+      "schema": true,
+      "correct": true
+    },
+    {
+      "model": "qwen2.5:1.5b",
+      "constrained": false,
+      "request": "One tub of pistachio for the tasting.",
+      "sample": 0,
+      "answer": "{\"sku\": \"P\", \"quantity\": 1}",
+      "parses": true,
+      "schema": true,
+      "correct": true
+    },
+    {
+      "model": "qwen2.5:1.5b",
+      "constrained": false,
+      "request": "One tub of pistachio for the tasting.",
+      "sample": 1,
+      "answer": "{\n  \"sku\": \"P\",\n  \"quantity\": 1\n}",
+      "parses": true,
+      "schema": true,
+      "correct": true
+    },
+    {
+      "model": "qwen2.5:1.5b",
+      "constrained": false,
+      "request": "One tub of pistachio for the tasting.",
+      "sample": 2,
+      "answer": "{\n  \"sku\": \"P\",\n  \"quantity\": 1\n}",
+      "parses": true,
+      "schema": true,
+      "correct": true
+    },
+    {
+      "model": "qwen2.5:1.5b",
+      "constrained": false,
+      "request": "One tub of pistachio for the tasting.",
+      "sample": 3,
+      "answer": "{\"sku\": \"P\", \"quantity\": 1}",
+      "parses": true,
+      "schema": true,
+      "correct": true
+    },
+    {
+      "model": "qwen2.5:1.5b",
+      "constrained": false,
+      "request": "One tub of pistachio for the tasting.",
+      "sample": 4,
+      "answer": "{\n  \"sku\": \"P\",\n  \"quantity\": 1\n}",
+      "parses": true,
+      "schema": true,
+      "correct": true
+    },
+    {
+      "model": "qwen2.5:1.5b",
+      "constrained": false,
+      "request": "Order vanilla, eight tubs.",
+      "sample": 0,
+      "answer": "```json\n{\n  \"sku\": \"V\",\n  \"quantity\": 8\n}\n```",
+      "parses": false,
+      "schema": false,
+      "correct": false
+    },
+    {
+      "model": "qwen2.5:1.5b",
+      "constrained": false,
+      "request": "Order vanilla, eight tubs.",
+      "sample": 1,
+      "answer": "{\n  \"sku\": \"V\",\n  \"quantity\": 8\n}",
+      "parses": true,
+      "schema": true,
+      "correct": true
+    },
+    {
+      "model": "qwen2.5:1.5b",
+      "constrained": false,
+      "request": "Order vanilla, eight tubs.",
+      "sample": 2,
+      "answer": "{\n  \"sku\": \"V\",\n  \"quantity\": 8\n}",
+      "parses": true,
+      "schema": true,
+      "correct": true
+    },
+    {
+      "model": "qwen2.5:1.5b",
+      "constrained": false,
+      "request": "Order vanilla, eight tubs.",
+      "sample": 3,
+      "answer": "```json\n{\n  \"sku\": \"V\",\n  \"quantity\": 8\n}\n```",
+      "parses": false,
+      "schema": false,
+      "correct": false
+    },
+    {
+      "model": "qwen2.5:1.5b",
+      "constrained": false,
+      "request": "Order vanilla, eight tubs.",
+      "sample": 4,
+      "answer": "{\n  \"sku\": \"V\",\n  \"quantity\": 8\n}",
+      "parses": true,
+      "schema": true,
+      "correct": true
+    },
+    {
+      "model": "qwen2.5:1.5b",
+      "constrained": false,
+      "request": "Reorder strawberry: we need 9.",
+      "sample": 0,
+      "answer": "```json\n{\n    \"sku\": \"S\",\n    \"quantity\": 9\n}\n```",
+      "parses": false,
+      "schema": false,
+      "correct": false
+    },
+    {
+      "model": "qwen2.5:1.5b",
+      "constrained": false,
+      "request": "Reorder strawberry: we need 9.",
+      "sample": 1,
+      "answer": "{\n  \"sku\": \"S\",\n  \"quantity\": 9\n}",
+      "parses": true,
+      "schema": true,
+      "correct": true
+    },
+    {
+      "model": "qwen2.5:1.5b",
+      "constrained": false,
+      "request": "Reorder strawberry: we need 9.",
+      "sample": 2,
+      "answer": "{\n  \"sku\": \"S\",\n  \"quantity\": 9\n}",
+      "parses": true,
+      "schema": true,
+      "correct": true
+    },
+    {
+      "model": "qwen2.5:1.5b",
+      "constrained": false,
+      "request": "Reorder strawberry: we need 9.",
+      "sample": 3,
+      "answer": "{\n  \"sku\": \"S\",\n  \"quantity\": 9\n}",
+      "parses": true,
+      "schema": true,
+      "correct": true
+    },
+    {
+      "model": "qwen2.5:1.5b",
+      "constrained": false,
+      "request": "Reorder strawberry: we need 9.",
+      "sample": 4,
+      "answer": "{\n  \"sku\": \"S\",\n  \"quantity\": 9\n}",
+      "parses": true,
+      "schema": true,
+      "correct": true
+    },
+    {
+      "model": "qwen2.5:1.5b",
+      "constrained": true,
+      "request": "Order 6 tubs of vanilla.",
+      "sample": 0,
+      "answer": "{\n  \"sku\": \"V\",\n  \"quantity\": 6\n}",
+      "parses": true,
+      "schema": true,
+      "correct": true
+    },
+    {
+      "model": "qwen2.5:1.5b",
+      "constrained": true,
+      "request": "Order 6 tubs of vanilla.",
+      "sample": 1,
+      "answer": "{\n  \"sku\": \"V\",\n  \"quantity\": 6\n}",
+      "parses": true,
+      "schema": true,
+      "correct": true
+    },
+    {
+      "model": "qwen2.5:1.5b",
+      "constrained": true,
+      "request": "Order 6 tubs of vanilla.",
+      "sample": 2,
+      "answer": "{\n  \"sku\": \"V\",\n  \"quantity\": 6\n}",
+      "parses": true,
+      "schema": true,
+      "correct": true
+    },
+    {
+      "model": "qwen2.5:1.5b",
+      "constrained": true,
+      "request": "Order 6 tubs of vanilla.",
+      "sample": 3,
+      "answer": "{\n  \"sku\": \"V\",\n  \"quantity\": 6\n}",
+      "parses": true,
+      "schema": true,
+      "correct": true
+    },
+    {
+      "model": "qwen2.5:1.5b",
+      "constrained": true,
+      "request": "Order 6 tubs of vanilla.",
+      "sample": 4,
+      "answer": "{\n  \"sku\": \"V\",\n  \"quantity\": 6\n}",
+      "parses": true,
+      "schema": true,
+      "correct": true
+    },
+    {
+      "model": "qwen2.5:1.5b",
+      "constrained": true,
+      "request": "We need four tubs of strawberry.",
+      "sample": 0,
+      "answer": "{\n  \"sku\": \"S\",\n  \"quantity\": 4\n}",
+      "parses": true,
+      "schema": true,
+      "correct": true
+    },
+    {
+      "model": "qwen2.5:1.5b",
+      "constrained": true,
+      "request": "We need four tubs of strawberry.",
+      "sample": 1,
+      "answer": "{\n  \"sku\": \"S\",\n  \"quantity\": 4\n}",
+      "parses": true,
+      "schema": true,
+      "correct": true
+    },
+    {
+      "model": "qwen2.5:1.5b",
+      "constrained": true,
+      "request": "We need four tubs of strawberry.",
+      "sample": 2,
+      "answer": "{\n  \"sku\": \"S\",\n  \"quantity\": 4\n}",
+      "parses": true,
+      "schema": true,
+      "correct": true
+    },
+    {
+      "model": "qwen2.5:1.5b",
+      "constrained": true,
+      "request": "We need four tubs of strawberry.",
+      "sample": 3,
+      "answer": "{\n  \"sku\": \"S\",\n  \"quantity\": 4\n}",
+      "parses": true,
+      "schema": true,
+      "correct": true
+    },
+    {
+      "model": "qwen2.5:1.5b",
+      "constrained": true,
+      "request": "We need four tubs of strawberry.",
+      "sample": 4,
+      "answer": "{\n  \"sku\": \"S\",\n  \"quantity\": 4\n}",
+      "parses": true,
+      "schema": true,
+      "correct": true
+    },
+    {
+      "model": "qwen2.5:1.5b",
+      "constrained": true,
+      "request": "Please get 10 chocolate.",
+      "sample": 0,
+      "answer": "{\n  \"sku\": \"C\",\n  \"quantity\": 10\n}",
+      "parses": true,
+      "schema": true,
+      "correct": true
+    },
+    {
+      "model": "qwen2.5:1.5b",
+      "constrained": true,
+      "request": "Please get 10 chocolate.",
+      "sample": 1,
+      "answer": "{\n  \"sku\": \"C\",\n  \"quantity\": 10\n}",
+      "parses": true,
+      "schema": true,
+      "correct": true
+    },
+    {
+      "model": "qwen2.5:1.5b",
+      "constrained": true,
+      "request": "Please get 10 chocolate.",
+      "sample": 2,
+      "answer": "{\n  \"sku\": \"C\",\n  \"quantity\": 10\n}",
+      "parses": true,
+      "schema": true,
+      "correct": true
+    },
+    {
+      "model": "qwen2.5:1.5b",
+      "constrained": true,
+      "request": "Please get 10 chocolate.",
+      "sample": 3,
+      "answer": "{\n  \"sku\": \"C\",\n  \"quantity\": 10\n}",
+      "parses": true,
+      "schema": true,
+      "correct": true
+    },
+    {
+      "model": "qwen2.5:1.5b",
+      "constrained": true,
+      "request": "Please get 10 chocolate.",
+      "sample": 4,
+      "answer": "{\n  \"sku\": \"C\",\n  \"quantity\": 10\n}",
+      "parses": true,
+      "schema": true,
+      "correct": true
+    },
+    {
+      "model": "qwen2.5:1.5b",
+      "constrained": true,
+      "request": "Mango: 3 tubs, please.",
+      "sample": 0,
+      "answer": "{\n  \"sku\": \"M\",\n  \"quantity\": 3\n}",
+      "parses": true,
+      "schema": true,
+      "correct": true
+    },
+    {
+      "model": "qwen2.5:1.5b",
+      "constrained": true,
+      "request": "Mango: 3 tubs, please.",
+      "sample": 1,
+      "answer": "{\n  \"sku\": \"M\",\n  \"quantity\": 3\n}",
+      "parses": true,
+      "schema": true,
+      "correct": true
+    },
+    {
+      "model": "qwen2.5:1.5b",
+      "constrained": true,
+      "request": "Mango: 3 tubs, please.",
+      "sample": 2,
+      "answer": "{\n  \"sku\": \"M\",\n  \"quantity\": 3\n}",
+      "parses": true,
+      "schema": true,
+      "correct": true
+    },
+    {
+      "model": "qwen2.5:1.5b",
+      "constrained": true,
+      "request": "Mango: 3 tubs, please.",
+      "sample": 3,
+      "answer": "{\n  \"sku\": \"M\",\n  \"quantity\": 3\n}",
+      "parses": true,
+      "schema": true,
+      "correct": true
+    },
+    {
+      "model": "qwen2.5:1.5b",
+      "constrained": true,
+      "request": "Mango: 3 tubs, please.",
+      "sample": 4,
+      "answer": "{\n  \"sku\": \"M\",\n  \"quantity\": 3\n}",
+      "parses": true,
+      "schema": true,
+      "correct": true
+    },
+    {
+      "model": "qwen2.5:1.5b",
+      "constrained": true,
+      "request": "Half a dozen pistachio.",
+      "sample": 0,
+      "answer": "{\"sku\": \"P\", \"quantity\": 3}",
+      "parses": true,
+      "schema": true,
+      "correct": false
+    },
+    {
+      "model": "qwen2.5:1.5b",
+      "constrained": true,
+      "request": "Half a dozen pistachio.",
+      "sample": 1,
+      "answer": "{\n  \"sku\": \"P\",\n  \"quantity\": 6\n}",
+      "parses": true,
+      "schema": true,
+      "correct": true
+    },
+    {
+      "model": "qwen2.5:1.5b",
+      "constrained": true,
+      "request": "Half a dozen pistachio.",
+      "sample": 2,
+      "answer": "{\n  \"sku\": \"P\",\n  \"quantity\": 6\n}",
+      "parses": true,
+      "schema": true,
+      "correct": true
+    },
+    {
+      "model": "qwen2.5:1.5b",
+      "constrained": true,
+      "request": "Half a dozen pistachio.",
+      "sample": 3,
+      "answer": "{\"sku\": \"P\", \"quantity\": 3}",
+      "parses": true,
+      "schema": true,
+      "correct": false
+    },
+    {
+      "model": "qwen2.5:1.5b",
+      "constrained": true,
+      "request": "Half a dozen pistachio.",
+      "sample": 4,
+      "answer": "{\n  \"sku\": \"P\",\n  \"quantity\": 6\n}",
+      "parses": true,
+      "schema": true,
+      "correct": true
+    },
+    {
+      "model": "qwen2.5:1.5b",
+      "constrained": true,
+      "request": "A dozen vanilla tubs for the weekend.",
+      "sample": 0,
+      "answer": "{\"sku\": \"V\", \"quantity\": 12}",
+      "parses": true,
+      "schema": true,
+      "correct": true
+    },
+    {
+      "model": "qwen2.5:1.5b",
+      "constrained": true,
+      "request": "A dozen vanilla tubs for the weekend.",
+      "sample": 1,
+      "answer": "{\n  \"sku\": \"V\",\n  \"quantity\": 12\n}",
+      "parses": true,
+      "schema": true,
+      "correct": true
+    },
+    {
+      "model": "qwen2.5:1.5b",
+      "constrained": true,
+      "request": "A dozen vanilla tubs for the weekend.",
+      "sample": 2,
+      "answer": "{\n  \"sku\": \"V\",\n  \"quantity\": 12\n}",
+      "parses": true,
+      "schema": true,
+      "correct": true
+    },
+    {
+      "model": "qwen2.5:1.5b",
+      "constrained": true,
+      "request": "A dozen vanilla tubs for the weekend.",
+      "sample": 3,
+      "answer": "{\n  \"sku\": \"V\",\n  \"quantity\": 12\n}",
+      "parses": true,
+      "schema": true,
+      "correct": true
+    },
+    {
+      "model": "qwen2.5:1.5b",
+      "constrained": true,
+      "request": "A dozen vanilla tubs for the weekend.",
+      "sample": 4,
+      "answer": "{\n  \"sku\": \"V\",\n  \"quantity\": 12\n}",
+      "parses": true,
+      "schema": true,
+      "correct": true
+    },
+    {
+      "model": "qwen2.5:1.5b",
+      "constrained": true,
+      "request": "Strawberry is low, order two.",
+      "sample": 0,
+      "answer": "{\"sku\": \"S\", \"quantity\": 2}",
+      "parses": true,
+      "schema": true,
+      "correct": true
+    },
+    {
+      "model": "qwen2.5:1.5b",
+      "constrained": true,
+      "request": "Strawberry is low, order two.",
+      "sample": 1,
+      "answer": "{\n  \"sku\": \"S\",\n  \"quantity\": 2\n}",
+      "parses": true,
+      "schema": true,
+      "correct": true
+    },
+    {
+      "model": "qwen2.5:1.5b",
+      "constrained": true,
+      "request": "Strawberry is low, order two.",
+      "sample": 2,
+      "answer": "{\n  \"sku\": \"S\",\n  \"quantity\": 2\n}",
+      "parses": true,
+      "schema": true,
+      "correct": true
+    },
+    {
+      "model": "qwen2.5:1.5b",
+      "constrained": true,
+      "request": "Strawberry is low, order two.",
+      "sample": 3,
+      "answer": "{\"sku\": \"S\", \"quantity\": 2}",
+      "parses": true,
+      "schema": true,
+      "correct": true
+    },
+    {
+      "model": "qwen2.5:1.5b",
+      "constrained": true,
+      "request": "Strawberry is low, order two.",
+      "sample": 4,
+      "answer": "{\n  \"sku\": \"S\",\n  \"quantity\": 2\n}",
+      "parses": true,
+      "schema": true,
+      "correct": true
+    },
+    {
+      "model": "qwen2.5:1.5b",
+      "constrained": true,
+      "request": "Could you draft 7 tubs of the chocolate one?",
+      "sample": 0,
+      "answer": "{\n  \"sku\": \"C\",\n  \"quantity\": 7\n}",
+      "parses": true,
+      "schema": true,
+      "correct": true
+    },
+    {
+      "model": "qwen2.5:1.5b",
+      "constrained": true,
+      "request": "Could you draft 7 tubs of the chocolate one?",
+      "sample": 1,
+      "answer": "{\n  \"sku\": \"C\",\n  \"quantity\": 7\n}",
+      "parses": true,
+      "schema": true,
+      "correct": true
+    },
+    {
+      "model": "qwen2.5:1.5b",
+      "constrained": true,
+      "request": "Could you draft 7 tubs of the chocolate one?",
+      "sample": 2,
+      "answer": "{\n  \"sku\": \"C\",\n  \"quantity\": 7\n}",
+      "parses": true,
+      "schema": true,
+      "correct": true
+    },
+    {
+      "model": "qwen2.5:1.5b",
+      "constrained": true,
+      "request": "Could you draft 7 tubs of the chocolate one?",
+      "sample": 3,
+      "answer": "{\n  \"sku\": \"C\",\n  \"quantity\": 7\n}",
+      "parses": true,
+      "schema": true,
+      "correct": true
+    },
+    {
+      "model": "qwen2.5:1.5b",
+      "constrained": true,
+      "request": "Could you draft 7 tubs of the chocolate one?",
+      "sample": 4,
+      "answer": "{\n  \"sku\": \"C\",\n  \"quantity\": 7\n}",
+      "parses": true,
+      "schema": true,
+      "correct": true
+    },
+    {
+      "model": "qwen2.5:1.5b",
+      "constrained": true,
+      "request": "Top up mango by five tubs.",
+      "sample": 0,
+      "answer": "{\n  \"sku\": \"M\",\n  \"quantity\": 5\n}",
+      "parses": true,
+      "schema": true,
+      "correct": true
+    },
+    {
+      "model": "qwen2.5:1.5b",
+      "constrained": true,
+      "request": "Top up mango by five tubs.",
+      "sample": 1,
+      "answer": "{\n  \"sku\": \"M\",\n  \"quantity\": 5\n}",
+      "parses": true,
+      "schema": true,
+      "correct": true
+    },
+    {
+      "model": "qwen2.5:1.5b",
+      "constrained": true,
+      "request": "Top up mango by five tubs.",
+      "sample": 2,
+      "answer": "{\n  \"sku\": \"M\",\n  \"quantity\": 5\n}",
+      "parses": true,
+      "schema": true,
+      "correct": true
+    },
+    {
+      "model": "qwen2.5:1.5b",
+      "constrained": true,
+      "request": "Top up mango by five tubs.",
+      "sample": 3,
+      "answer": "{\n  \"sku\": \"M\",\n  \"quantity\": 5\n}",
+      "parses": true,
+      "schema": true,
+      "correct": true
+    },
+    {
+      "model": "qwen2.5:1.5b",
+      "constrained": true,
+      "request": "Top up mango by five tubs.",
+      "sample": 4,
+      "answer": "{\n  \"sku\": \"M\",\n  \"quantity\": 5\n}",
+      "parses": true,
+      "schema": true,
+      "correct": true
+    },
+    {
+      "model": "qwen2.5:1.5b",
+      "constrained": true,
+      "request": "One tub of pistachio for the tasting.",
+      "sample": 0,
+      "answer": "{\"sku\": \"P\", \"quantity\": 1}",
+      "parses": true,
+      "schema": true,
+      "correct": true
+    },
+    {
+      "model": "qwen2.5:1.5b",
+      "constrained": true,
+      "request": "One tub of pistachio for the tasting.",
+      "sample": 1,
+      "answer": "{\n  \"sku\": \"P\",\n  \"quantity\": 1\n}",
+      "parses": true,
+      "schema": true,
+      "correct": true
+    },
+    {
+      "model": "qwen2.5:1.5b",
+      "constrained": true,
+      "request": "One tub of pistachio for the tasting.",
+      "sample": 2,
+      "answer": "{\n  \"sku\": \"P\",\n  \"quantity\": 1\n}",
+      "parses": true,
+      "schema": true,
+      "correct": true
+    },
+    {
+      "model": "qwen2.5:1.5b",
+      "constrained": true,
+      "request": "One tub of pistachio for the tasting.",
+      "sample": 3,
+      "answer": "{\"sku\": \"P\", \"quantity\": 1}",
+      "parses": true,
+      "schema": true,
+      "correct": true
+    },
+    {
+      "model": "qwen2.5:1.5b",
+      "constrained": true,
+      "request": "One tub of pistachio for the tasting.",
+      "sample": 4,
+      "answer": "{\n  \"sku\": \"P\",\n  \"quantity\": 1\n}",
+      "parses": true,
+      "schema": true,
+      "correct": true
+    },
+    {
+      "model": "qwen2.5:1.5b",
+      "constrained": true,
+      "request": "Order vanilla, eight tubs.",
+      "sample": 0,
+      "answer": "{\n  \"sku\": \"V\",\n  \"quantity\": 8\n}",
+      "parses": true,
+      "schema": true,
+      "correct": true
+    },
+    {
+      "model": "qwen2.5:1.5b",
+      "constrained": true,
+      "request": "Order vanilla, eight tubs.",
+      "sample": 1,
+      "answer": "{\n  \"sku\": \"V\",\n  \"quantity\": 8\n}",
+      "parses": true,
+      "schema": true,
+      "correct": true
+    },
+    {
+      "model": "qwen2.5:1.5b",
+      "constrained": true,
+      "request": "Order vanilla, eight tubs.",
+      "sample": 2,
+      "answer": "{\n  \"sku\": \"V\",\n  \"quantity\": 8\n}",
+      "parses": true,
+      "schema": true,
+      "correct": true
+    },
+    {
+      "model": "qwen2.5:1.5b",
+      "constrained": true,
+      "request": "Order vanilla, eight tubs.",
+      "sample": 3,
+      "answer": "{\n  \"sku\": \"V\",\n  \"quantity\": 8\n}",
+      "parses": true,
+      "schema": true,
+      "correct": true
+    },
+    {
+      "model": "qwen2.5:1.5b",
+      "constrained": true,
+      "request": "Order vanilla, eight tubs.",
+      "sample": 4,
+      "answer": "{\n  \"sku\": \"V\",\n  \"quantity\": 8\n}",
+      "parses": true,
+      "schema": true,
+      "correct": true
+    },
+    {
+      "model": "qwen2.5:1.5b",
+      "constrained": true,
+      "request": "Reorder strawberry: we need 9.",
+      "sample": 0,
+      "answer": "{\n  \"sku\": \"S\",\n  \"quantity\": 9\n}",
+      "parses": true,
+      "schema": true,
+      "correct": true
+    },
+    {
+      "model": "qwen2.5:1.5b",
+      "constrained": true,
+      "request": "Reorder strawberry: we need 9.",
+      "sample": 1,
+      "answer": "{\n  \"sku\": \"S\",\n  \"quantity\": 9\n}",
+      "parses": true,
+      "schema": true,
+      "correct": true
+    },
+    {
+      "model": "qwen2.5:1.5b",
+      "constrained": true,
+      "request": "Reorder strawberry: we need 9.",
+      "sample": 2,
+      "answer": "{\n  \"sku\": \"S\",\n  \"quantity\": 9\n}",
+      "parses": true,
+      "schema": true,
+      "correct": true
+    },
+    {
+      "model": "qwen2.5:1.5b",
+      "constrained": true,
+      "request": "Reorder strawberry: we need 9.",
+      "sample": 3,
+      "answer": "{\n  \"sku\": \"S\",\n  \"quantity\": 9\n}",
+      "parses": true,
+      "schema": true,
+      "correct": true
+    },
+    {
+      "model": "qwen2.5:1.5b",
+      "constrained": true,
+      "request": "Reorder strawberry: we need 9.",
+      "sample": 4,
+      "answer": "{\n  \"sku\": \"S\",\n  \"quantity\": 9\n}",
+      "parses": true,
+      "schema": true,
+      "correct": true
+    }
+  ],
+  "seconds": 49.5
+}
