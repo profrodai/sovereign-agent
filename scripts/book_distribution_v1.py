@@ -36,6 +36,7 @@ UNIT_TOPICS = {
     1: ("grounded-morning-brief", "prompt-harness-repair"),
     2: ("pydantic-shop-tools", "pydantic-validation-repair"),
     3: ("bounded-agent-loop", "failed-call-accounting"),
+    4: ("durable-state-store", "interrupted-migration"),
     5: ("durable-memory", "memory-repair-transfer"),
     6: ("versioned-skills", "skill-repair-transfer"),
     8: ("private-telegram-messaging", "messaging-repair-transfer"),

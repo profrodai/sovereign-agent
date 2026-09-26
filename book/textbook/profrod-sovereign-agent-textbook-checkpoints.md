@@ -8,14 +8,14 @@
 
 **Updated:** 2026-09-09 · **Status:** DRAFT
 
-Run from the complete repository root using the [frozen environment](profrod-sovereign-agent-textbook-conventions.md). These demonstrations accompany the manuscript. The [ownership guide](profrod-sovereign-agent-textbook-ownership.md) distinguishes learner-built definitions from supplied runtime behavior. New Chapters 4, 7 and 13 have construction briefs, not completed checkpoints.
+Run from the complete repository root using the [frozen environment](profrod-sovereign-agent-textbook-conventions.md). These demonstrations accompany the manuscript. The [ownership guide](profrod-sovereign-agent-textbook-ownership.md) distinguishes learner-built definitions from supplied runtime behavior. Chapter 4's checkpoint runs the learner's own store. New Chapters 7 and 13 have construction briefs, not completed checkpoints.
 
 | Chapter | Manuscript | Checkpoint |
 | --- | --- | --- |
 | 1 | [Make the first model call for Lucy](ch01/profrod-sovereign-agent-ch01-first-model-call-chapter.md) | [ch01.py](checkpoints/profrod_sovereign_agent_ch01_first_model_call_checkpoint.py) |
 | 2 | [Give the agent reliable shop tools](ch02/profrod-sovereign-agent-ch02-pydantic-shop-tools-chapter.md) | [ch02.py](checkpoints/profrod_sovereign_agent_ch02_pydantic_shop_tools_checkpoint.py) |
 | 3 | [Build the model and tool loop](ch03/profrod-sovereign-agent-ch03-agent-loop-chapter.md) | [ch03.py](checkpoints/profrod_sovereign_agent_ch03_agent_loop_checkpoint.py) |
-| 4 | [Build durable state with SQLite](ch04/profrod-sovereign-agent-ch04-sqlite-state-chapter.md) | PLANNED — no executable checkpoint |
+| 4 | [Build durable state with SQLite](ch04/profrod-sovereign-agent-ch04-sqlite-state-chapter.md) | [ch04.py](checkpoints/profrod_sovereign_agent_ch04_sqlite_state_checkpoint.py) |
 | 5 | [Remember across conversations](ch05/profrod-sovereign-agent-ch05-durable-memory-chapter.md) | [ch05.py](checkpoints/profrod_sovereign_agent_ch05_durable_memory_checkpoint.py) |
 | 6 | [Reuse a tested opening procedure](ch06/profrod-sovereign-agent-ch06-versioned-skills-chapter.md) | [ch06.py](checkpoints/profrod_sovereign_agent_ch06_versioned_skills_checkpoint.py) |
 | 7 | [Build a durable work inbox and report outbox](ch07/profrod-sovereign-agent-ch07-durable-inbox-outbox-chapter.md) | PLANNED — no executable checkpoint |

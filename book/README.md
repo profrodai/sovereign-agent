@@ -21,9 +21,9 @@ Every asset uses the same chapter numbers. For example, `textbook/ch02`, `exerci
 
 ## What is available now
 
-The nineteen-chapter edition is under construction. **Sixteen chapters have manuscript drafts and two ninety-minute practical units each. Chapters 4, 7 and 13 have detailed planned scopes; their new lessons and six practical units are not yet written.** The [textbook contents](textbook/profrod-sovereign-agent-textbook-start-here.md) marks each chapter's status explicitly.
+The nineteen-chapter edition is under construction. **Seventeen chapters have manuscript drafts and two ninety-minute practical units each. Chapters 7 and 13 have detailed planned scopes; Chapter 7's manuscript is drafted, and their four practical units are not yet written.** The [textbook contents](textbook/profrod-sovereign-agent-textbook-start-here.md) marks each chapter's status explicitly.
 
-There are currently 32 student units and 32 worked counterparts: 48 hours of planned student practice. The completed nineteen-chapter course will contain 38 student units: 57 hours. Every available notebook includes its own required setup, concepts and supplied teaching runtime. Its successful execution does not certify that the learner has built that entire runtime from scratch.
+There are currently 34 student units and 34 worked counterparts: 51 hours of planned student practice. The completed nineteen-chapter course will contain 38 student units: 57 hours. Every available notebook includes its own required setup, concepts and supplied teaching runtime. Its successful execution does not certify that the learner has built that entire runtime from scratch.
 
 The exercises run on Google Colab or any Python 3.12+ kernel; the solutions use Python 3.14. Both need Jupyter and Pydantic 2; their setup pages explain preparation. The textbook explains how to install the locked repository environment for chapter checkpoints. Core practical work runs offline after setup. Live Telegram, model, container and operating-system observations are identified separately from local fixtures.
 
