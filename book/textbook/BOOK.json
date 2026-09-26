@@ -8,7 +8,7 @@
     {
       "number": 1,
       "lessonId": "first-model-call",
-      "title": "Make the first model call for Lucy",
+      "title": "What a model call is: tokens, probabilities and Lucy's first brief",
       "path": "ch01/profrod-sovereign-agent-ch01-first-model-call-chapter.md",
       "checkpoint": "checkpoints/profrod_sovereign_agent_ch01_first_model_call_checkpoint.py",
       "status": "DRAFT"

@@ -1,4 +1,4 @@
-# Teach Chapter 1: Make the first model call for Lucy
+# Chapter 1: What a model call is: tokens, probabilities and Lucy's first brief
 
 > **Learn with Prof Rod** — *Build Your Always-On AI Agent From Scratch*.
 > **Read the full book and get the latest learning materials:** [https://profrod.ai/book](https://profrod.ai/book).
@@ -12,10 +12,10 @@
 
 | Session | Distribute to learners | Worked demonstration | Text versions |
 |---|---|---|---|
-| A · 90 minutes | [Student notebook](student/profrod-sovereign-agent-ch01-a-grounded-morning-brief-educator-exercise.ipynb) | [Worked notebook](solutions/profrod-sovereign-agent-ch01-a-grounded-morning-brief-educator-solution.ipynb) | [Student](student/profrod-sovereign-agent-ch01-a-grounded-morning-brief-educator-exercise.md) · [Worked](solutions/profrod-sovereign-agent-ch01-a-grounded-morning-brief-educator-solution.md) |
-| B · 90 minutes | [Student notebook](student/profrod-sovereign-agent-ch01-b-prompt-harness-repair-educator-exercise.ipynb) | [Worked notebook](solutions/profrod-sovereign-agent-ch01-b-prompt-harness-repair-educator-solution.ipynb) | [Student](student/profrod-sovereign-agent-ch01-b-prompt-harness-repair-educator-exercise.md) · [Worked](solutions/profrod-sovereign-agent-ch01-b-prompt-harness-repair-educator-solution.md) |
+| A · 90 minutes | [Student notebook](student/profrod-sovereign-agent-ch01-a-softmax-and-sampling-educator-exercise.ipynb) | [Worked notebook](solutions/profrod-sovereign-agent-ch01-a-softmax-and-sampling-educator-solution.ipynb) | [Student](student/profrod-sovereign-agent-ch01-a-softmax-and-sampling-educator-exercise.md) · [Worked](solutions/profrod-sovereign-agent-ch01-a-softmax-and-sampling-educator-solution.md) |
+| B · 90 minutes | [Student notebook](student/profrod-sovereign-agent-ch01-b-misleading-model-comparison-educator-exercise.ipynb) | [Worked notebook](solutions/profrod-sovereign-agent-ch01-b-misleading-model-comparison-educator-solution.ipynb) | [Student](student/profrod-sovereign-agent-ch01-b-misleading-model-comparison-educator-exercise.md) · [Worked](solutions/profrod-sovereign-agent-ch01-b-misleading-model-comparison-educator-solution.md) |
 
-Rehearse using the worked notebook in a fresh Python 3.14 kernel before class. Distribute only the student files until learners have retained a first attempt. Both versions embed their runtime; no sibling book directory or live account is required. Preserve predictions, the highest hint used, changed-case results and actual time spent. Record understanding from explanations, not Run All success.
+Rehearse using the worked notebook in a fresh Python 3.12+ kernel, or on Google Colab, before class. Distribute only the student files until learners have retained a first attempt. Both versions need only the standard library; no sibling book directory or live account is required. Preserve predictions, the highest hint used, changed-case results and actual time spent. Record understanding from explanations, not Run All success.
 
 [Setup](../profrod-sovereign-agent-educator-setup.md) · [Observation sheet](../profrod-sovereign-agent-educator-classroom-observations.md) · [Back to educator materials](../profrod-sovereign-agent-educator-start-here.md)
 
