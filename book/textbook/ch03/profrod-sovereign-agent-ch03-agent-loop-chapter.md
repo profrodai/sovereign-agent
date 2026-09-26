@@ -10,7 +10,7 @@
 
 Lucy asks, “What needs ordering this morning?” Answering well requires more than a single generated paragraph. The program must obtain current stock, calculate useful drafts, and explain the results. In Chapter 2 you called the tools yourself. Now the model will select requests, your dispatcher will execute permitted operations, and the model will receive the observations before deciding what to do next.
 
-Practice this chapter with the [bounded-loop practice](../../exercises/ch03/profrod-sovereign-agent-ch03-agent-loop-exercise-guide.md). Unit A connects a learner-owned admission decision to the model/tool loop; Unit B mutates and repairs the real failed-call accounting in a temporary source copy. Solutions and holdouts remain separate from the student notebooks.
+Practice this chapter with the [chapter 3 units](../../exercises/ch03/profrod-sovereign-agent-ch03-agent-loop-exercise-guide.md). Unit A connects a learner-owned admission decision to the model and tool loop. Unit B derives the reliability of a loop that recovers from errors, tests the formula against a simulated agent with a negative control, and measures from retry data whether retries are independent. Solutions and holdouts remain separate from the student notebooks.
 
 That repeated exchange is the agent loop. It is small enough to write directly, but leaving it unbounded would create an expensive failure mode: the model could repeat a lookup indefinitely, request an oversized batch, or keep working after you asked the program to stop. The loop therefore needs an explicit result even when it does not produce a final answer.
 

@@ -35,7 +35,7 @@ TOPICS = {
 UNIT_TOPICS = {
     1: ("softmax-and-sampling", "misleading-model-comparison"),
     2: ("pydantic-shop-tools", "pydantic-validation-repair"),
-    3: ("bounded-agent-loop", "failed-call-accounting"),
+    3: ("bounded-agent-loop", "reliability-and-retries"),
     4: ("durable-state-store", "interrupted-migration"),
     5: ("durable-memory", "memory-repair-transfer"),
     6: ("versioned-skills", "skill-repair-transfer"),
