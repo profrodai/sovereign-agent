@@ -283,8 +283,12 @@ for name in ("minimal", "contrast"):
     print(f"{name}: pass@1 {rate}  pass@5 {measured}  1-(1-pass@1)^5 = {1 - (1 - rate) ** 5:.4f}")
 difference = live["contrast_minus_minimal"]
 print("contrast - minimal:", difference["difference"], "95% interval", difference["interval_95"])
-print("clustered SE", difference["clustered_standard_error"],
-      "naive SE", difference["naive_unpaired_standard_error"])
+print(
+    "clustered SE",
+    difference["clustered_standard_error"],
+    "naive SE",
+    difference["naive_unpaired_standard_error"],
+)
 ```
 
 ```text
