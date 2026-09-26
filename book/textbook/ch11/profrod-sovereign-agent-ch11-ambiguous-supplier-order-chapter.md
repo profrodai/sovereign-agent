@@ -1,4 +1,4 @@
-# Chapter 11 — Survive the ambiguous supplier order
+# Chapter 11 — Exactly one order: lost replies, retries and idempotency
 
 > **Learn with Prof Rod** — *Build Your Always-On AI Agent From Scratch*.
 > **Read the full book and get the latest learning materials:** [https://profrod.ai/book](https://profrod.ai/book).
@@ -14,13 +14,186 @@ The supplier accepts Lucy's vanilla order and records it in its database. Before
 
 If the agent creates another order, Lucy may receive twelve tubs and pay twice. If it declares failure and releases the reserved money, a later order may spend funds already committed to the first purchase. If it declares success without a receipt, the shop's records may claim an order that never existed. The honest immediate result is that the outcome is unknown.
 
-This chapter builds the path from that uncertainty to evidence. We will record a stable intent before transmission, preserve its spending reservation, and ask the supplier about that same operation before considering a retry. The final experiment runs the supplier in an independent process with its own database, so we can prove that the remote commit happened even though the reply disappeared.
+Part A first works out, with measurements, what a missing reply can tell the agent, what retrying does to the number of orders, and what a real model does when its order call times out. Part B then builds the path from that uncertainty to evidence. We will record a stable intent before transmission, preserve its spending reservation, and ask the supplier about that same operation before considering a retry. The final experiment runs the supplier in an independent process with its own database, so we can prove that the remote commit happened even though the reply disappeared.
 
 ## Learning objectives
 
-Implement stable external-operation identities, record send admission durably, distinguish known outcomes from uncertainty, and reconcile exact supplier receipts without duplicating purchases or spending entries.
+Part A measures lost replies and retries. After it you should be able to:
+
+- explain why a missing reply cannot distinguish a lost request from a lost reply, and why no acknowledgment protocol removes that uncertainty;
+- derive the expected attempts and duplicate effects of retrying until a reply arrives;
+- relate a timeout to the latency distribution, and explain why an abandoned call can still commit;
+- explain why a stable operation key, not the model, must make a retry safe.
+
+Part B builds the recoverable order path. After it you should be able to:
+
+- implement stable external-operation identities;
+- record send admission durably;
+- distinguish known outcomes from uncertainty;
+- reconcile exact supplier receipts without duplicating purchases or spending entries.
 
 The observable result is one accepted six-tub order, one local confirmed record, and 1,500 cents moved from reserved to spent exactly once. The first send must return `UNKNOWN`. Reopening the agent's database and repeating reconciliation must preserve that result without creating another supplier order.
+
+## Part A: the arithmetic of a lost reply
+
+Every agent that acts on the world sends requests to other systems, and some requests get no reply. Before we build Lucy's recovery path, this part works out three things with numbers: what a missing reply can tell the caller, what retrying does to the number of orders, and what a real model does when its order call times out. It ends with the reason the rest of the chapter exists.
+
+The functions live in [the chapter's learner file](../learner/profrod_sovereign_agent_ch11_retries_learner.py).
+
+```python
+import json
+import runpy
+
+retry = runpy.run_path("book/textbook/learner/profrod_sovereign_agent_ch11_retries_learner.py")
+measured = json.loads(open("docs/evidence/book-ch11/ch11-retries-receipt-v1.json").read())
+```
+
+### A missing reply cannot say what happened
+
+Lucy's agent sends an order and waits. One of three things happens: the request is lost before the supplier acts, the supplier commits the order and the reply is lost, or the reply arrives. In the first two cases the agent observes exactly the same thing: nothing. No amount of cleverness on the agent's side can tell them apart, because the evidence that would separate them never reached it.
+
+Adding acknowledgments does not remove the problem; it moves it. This is the **two generals problem**. Suppose some protocol, over a channel that can lose any message, ended with both sides certain of the outcome. Take the shortest successful run of that protocol, and consider its last message. Its sender cannot know whether that message arrived. The sender must therefore reach the same conclusion whether or not it arrived, so the run without it also succeeds. That run is shorter, which contradicts our choice of the shortest. So no finite exchange of messages removes the uncertainty. A system that acts across a network must be designed to live with it: by making it safe to ask again.
+
+### Retrying until a reply arrives
+
+The simplest recovery is to send again until a reply arrives. Suppose each attempt independently loses its request with probability $a$, and commits but loses its reply with probability $b$. It succeeds with probability $s = 1 - a - b$. The number of attempts is geometric, so
+
+$
+E[\text{attempts}] = \frac{1}{s} = \frac{1}{1 - a - b}.
+$
+
+On average $(a + b)/s$ attempts fail. A failed attempt is a lost reply with probability $b/(a + b)$, and a lost reply is an order the supplier kept. If every attempt is a new request, the expected number of extra orders is
+
+$
+E[\text{duplicates}] = \frac{a + b}{s} \cdot \frac{b}{a + b} = \frac{b}{1 - a - b}.
+$
+
+Only $b$, the loss after the commit, creates duplicates. Retrying after a request that never arrived is harmless. Retrying after a lost reply is how Lucy ends up with twelve tubs.
+
+**Listing:** Attempts and duplicates predicted for $a = 0.1$ and $b = 0.2$.
+
+```python
+attempts = retry["expected_attempts"](0.1, 0.2)
+duplicates = retry["expected_duplicates"](0.1, 0.2)
+print(round(attempts, 3), round(duplicates, 3))
+```
+
+```text
+1.429 0.286
+```
+
+The experiment sent 400 orders over real loopback HTTP connections to a supplier with its own SQLite ledger. The supplier dropped requests before committing with probability 0.1, and closed the connection after committing with probability 0.2. The client retried until a reply arrived, first as a new request each time, then under one stable **operation key** that the supplier stores with the order and refuses to commit twice.
+
+```bash
+uv run python book/textbook/experiments/profrod_sovereign_agent_textbook_ch11_retries_v1.py \
+    --out ch11-retries-receipt.json
+```
+
+**Listing:** Attempts and duplicate orders, measured.
+
+```python
+loss = measured["loss"]
+print("predicted attempts", loss["predicted_attempts"])
+print("predicted duplicates without a key", loss["predicted_duplicates_without_key"])
+for row in loss["rows"]:
+    print(row)
+```
+
+```text
+predicted attempts 1.429
+predicted duplicates without a key 0.286
+{'operation_key': False, 'orders': 400, 'mean_attempts': 1.42, 'duplicates_per_order': 0.27}
+{'operation_key': True, 'orders': 400, 'mean_attempts': 1.42, 'duplicates_per_order': 0.0}
+```
+
+Both predictions hold: 1.42 attempts against 1.429, and 0.27 duplicate orders per intended order against 0.286. The operation key did not change the number of attempts; the client still retried after every lost reply. It changed what the retries did. Under the key, the supplier committed each order once, and every later attempt returned the receipt of the order it already had.
+
+```mermaid
+xychart-beta
+    title "Duplicate orders per intended order, retrying without a key (a = 0.1)"
+    x-axis "chance b of losing the reply after the commit" [0, 0.1, 0.2, 0.3, 0.4, 0.5]
+    y-axis "expected duplicates" 0 --> 1.4
+    line [0, 0.125, 0.286, 0.5, 0.8, 1.25]
+```
+
+**Figure:** The prediction $b/(1 - a - b)$ grows faster than $b$, because every lost reply also causes another attempt that can lose its reply. The experiment measured 0.27 at $b = 0.2$; with an operation key the count is zero at every $b$.
+
+### A timeout turns slow successes into lost replies
+
+A timeout is the caller's guess about how long success can take. It does not stop the supplier. If the supplier's work takes $L$ seconds and the caller waits $\tau$, the caller abandons the call with probability
+
+$
+P(L > \tau) = 1 - F(\tau),
+$
+
+where $F$ is the distribution of $L$. The supplier finishes anyway and commits the order, so every abandoned call is a lost reply. If each attempt independently timed out with probability $p$, a caller allowed three attempts would make $1 + p + p^2$ of them on average.
+
+In the experiment, the supplier's work was one real model call: `qwen2.5:0.5b` writing a confirmation note of up to 80 tokens. A pilot of 30 calls measured the latency distribution. The client then placed 20 orders under each of three timeouts, allowing three attempts each: the pilot's median, its 90th percentile, and twice its maximum.
+
+**Listing:** Timeouts against the measured latency.
+
+```python
+timed = measured["timeouts"]
+for row in timed["rows"]:
+    key = "key   " if row["operation_key"] else "no key"
+    print(
+        f"{row['rule']:23} {row['timeout_seconds']} s, {key}: "
+        f"first attempts timed out {row['first_attempt_timed_out_share']}, "
+        f"attempts {row['mean_attempts']} (predicted {row['predicted_attempts_if_independent']}), "
+        f"orders per intended {row['supplier_orders_per_intended']}"
+    )
+```
+
+```text
+pilot median            0.483 s, no key: first attempts timed out 0.5, attempts 1.65 (predicted 1.75), orders per intended 1.65
+pilot median            0.483 s, key   : first attempts timed out 0.3, attempts 1.45 (predicted 1.75), orders per intended 1
+pilot 90th percentile   0.494 s, no key: first attempts timed out 0, attempts 1 (predicted 1.071), orders per intended 1
+pilot 90th percentile   0.494 s, key   : first attempts timed out 0, attempts 1 (predicted 1.071), orders per intended 1
+twice the pilot maximum 0.996 s, no key: first attempts timed out 0, attempts 1 (predicted 1.0), orders per intended 1
+twice the pilot maximum 0.996 s, key   : first attempts timed out 0, attempts 1 (predicted 1.0), orders per intended 1
+```
+
+At the median, half of first attempts timed out without a key, as the pilot predicted, and every abandoned attempt still became an order: 1.65 supplier orders per intended order. With the key the client retried just as readily, but the supplier committed exactly one order each time.
+
+The other two rules saw no timeouts in this run, but the 90th percentile deserves a warning. The 80-token cap made nearly every call take the same time, so the pilot's 90th percentile was only 11 milliseconds above its median. A timeout that close to typical latency depends on milliseconds of drift. An [earlier run of this experiment](../../../docs/evidence/book-ch11/ch11-retries-receipt-v1-earlier-run.json), with its timeout set at the 90th percentile the same way, averaged 2.6 attempts out of at most three and 2.6 supplier orders per intended order. The pilot's percentile was a snapshot, not a guarantee. Twice the pilot maximum left real margin. **Set timeouts with margin, and make the retry safe anyway.**
+
+The independence assumption also deserves suspicion. This supplier's work runs on a model server that does not run requests together ([Chapter 18](../ch18/profrod-sovereign-agent-ch18-deployment-restoration-chapter.md)), so a retry sent the moment a call times out can start behind the work it abandoned. When that happens, one slow call makes the next attempt slow too, and a tight timeout turns one slow call into a burst of attempts.
+
+### What a model does when its order times out
+
+The agent deciding whether to retry is a model. The experiment gave two local models a conversation in which Lucy approved an order, the model called `place_order`, and the call returned a timeout. The models also had a `lookup_order` tool. If a model did not act by itself, Lucy then said "Please try again." Each model ran 20 samples with each of two error texts: a plain timeout, and one that says the supplier may already have the order and to call `lookup_order` first. The experiment then replayed each model's actual calls against the supplier, in which the original order had committed and lost its reply.
+
+**Listing:** Re-sends, lookups and supplier orders after a timed-out order.
+
+```python
+for row in measured["behavior"]["rows"]:
+    print(
+        f"{row['model']:13} {row['error_text']:9}: re-sent {row['resent']:2}/{row['samples']}, "
+        f"looked up {row['looked_up']:2}, supplier orders without key "
+        f"{row['supplier_orders_without_key']}, with key {row['supplier_orders_with_key']}"
+    )
+```
+
+```text
+qwen2.5:0.5b  plain    : re-sent 15/20, looked up  0, supplier orders without key 35, with key 20
+qwen2.5:0.5b  explained: re-sent 19/20, looked up  0, supplier orders without key 39, with key 20
+qwen2.5:1.5b  plain    : re-sent 16/20, looked up  0, supplier orders without key 36, with key 20
+qwen2.5:1.5b  explained: re-sent  1/20, looked up 18, supplier orders without key 21, with key 20
+```
+
+Told only that the call timed out, both models re-sent the order when asked, in 15 and 16 of 20 samples, and neither ever looked it up. Every re-send was a second order at the supplier: 35 and 36 orders for 20 intended. The explained error text split the models. `qwen2.5:1.5b` looked the order up in 18 of 20 samples and re-sent it once. `qwen2.5:0.5b` re-sent it no less often, in 19 of 20 samples, and never looked it up.
+
+A better error message helped one model and not the other, so it cannot be the safety mechanism. With the operation key, the supplier held exactly 20 orders in every condition, whatever the model chose. **The model decides whether to retry; the key decides whether a retry can cost Lucy money.**
+
+### The decision
+
+A missing reply cannot be resolved by thinking harder, a timeout does not cancel work, and a model re-sends an order when asked. Retries will happen. The only question is whether a retry can create a second effect. The receiving system can make it safe, but only if every retry of one intended effect carries the same identity and the system refuses to commit that identity twice. Retries plus deduplication by a stable key give each intended order **exactly one effect**, even though the request may be delivered more than once.
+
+That identity must not come from the model. A model generates a new tool-call identifier on every attempt. Part B derives the operation key from the durable work item, the destination and the exact approved proposal, so a repeated call converges on one order. It then records the uncertainty honestly while the reply is missing, and asks the supplier before sending again.
+
+## Part B: survive the ambiguous supplier order
+
+Part A showed why retries must be safe by construction. This part builds that construction for Lucy's order, and keeps its accounts honest while the outcome is unknown.
 
 ## Separate a failed request from a failed order
 
@@ -534,6 +707,8 @@ checkpoint["main"]()
 ```
 
 ```text
+ok   duplicates are b / (1 - a - b), and one key names one intended order
+ok   timeouts, re-sends and supplier orders recompute from the retained runs
 initial UNKNOWN
 reserved and spent 1500 0
 after reconciliation ACCEPTED CONFIRMED
@@ -597,11 +772,21 @@ Run the lost-response case, revoke the order while it is unknown, and then recon
 
 For a second case, revoke an approved order before any send. Its handler must never run and its reservation must be released. Keep both cases in the test so the implementation cannot satisfy the exercise by always blocking reconciliation or by always permitting a new send.
 
+### Exercise 4 — Back off without queuing behind yourself
+
+Add exponential backoff with full jitter to the timeout experiment: before attempt $j$, wait a uniformly random time between zero and $\min(\text{cap}, \text{base} \cdot 2^{j})$. Rerun the timeout at the median. Does waiting reduce how often a retry queues behind the abandoned call? Report attempts and supplier orders per intended order, with and without a key, and explain why backoff alone cannot bring duplicates to zero.
+
+### Exercise 5 — Put the key where the model cannot lose it
+
+Change the behavior experiment so that `place_order` itself looks up the operation key before sending, and returns the stored receipt when the supplier already has it. Measure the same four conditions. The model's re-send rate should not change, but the supplier's orders should. Then remove `lookup_order` from the tool list and measure again. Which design depends least on the model's judgment?
+
 ## Active recall and vocabulary
+
+Without rereading, derive the expected number of duplicate orders when every retry is a new request. Which kind of loss creates duplicates, and which is harmless? Why does a timeout not cancel the supplier's work? What did the models do when asked to try again? Then:
 
 Why is a model tool-call ID insufficient as a purchase identity? What fact does `SENDING` establish after a crash? Why does an unknown order retain its reservation? When may an empty lookup lead to retransmission? What must match before a receipt can settle an order? Which outside effects can an old backup fail to remember?
 
-An **intent** is the durable description of an effect the agent may attempt. An **operation identity** remains stable across repeated attempts for that effect. **Idempotency** is the provider's guarantee about repeated requests under that identity. A **receipt** is conclusive evidence returned by the supplier for the exact operation. **Reconciliation** obtains and records evidence about an uncertain outcome. A **reservation** retains spending capacity while an approved or uncertain effect may still consume it. The **authorization point** is the local commit after which transmission has been admitted.
+The **two generals problem** shows that no finite exchange of messages over a lossy channel makes both sides certain of an outcome. An **operation key** is the identity a receiving system uses to recognize a retry of an effect it already committed; retries plus deduplication by that key give **exactly one effect**. An **intent** is the durable description of an effect the agent may attempt. An **operation identity** remains stable across repeated attempts for that effect. **Idempotency** is the provider's guarantee about repeated requests under that identity. A **receipt** is conclusive evidence returned by the supplier for the exact operation. **Reconciliation** obtains and records evidence about an uncertain outcome. A **reservation** retains spending capacity while an approved or uncertain effect may still consume it. The **authorization point** is the local commit after which transmission has been admitted.
 
 ```python
 supplier.connection.close()
@@ -616,6 +801,8 @@ temporary ledgers closed
 ```
 
 ## Summary
+
+A missing reply cannot say whether the supplier acted, and no protocol can make it say. Retrying until a reply arrives creates $b/(1 - a - b)$ duplicate orders on average, where $b$ is the chance of losing a reply after the commit. A timeout does not cancel the supplier's work, so a tight timeout turns slow successes into lost replies. Asked to try again, the local models re-sent the order and never looked it up first. A stable operation key, stored by the supplier and derived from the work, the destination and the exact proposal, made every one of those re-sends harmless.
 
 You built a recoverable order path around a failure that a network error alone cannot classify. Stable intent precedes transmission, uncertainty preserves the reservation, and an exact supplier receipt settles the outcome once. The independent-process experiment proves that remote acceptance and local uncertainty can coexist without justifying a duplicate purchase.
 

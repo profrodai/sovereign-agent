@@ -88,7 +88,7 @@
     {
       "number": 11,
       "lessonId": "ambiguous-order",
-      "title": "Survive the ambiguous supplier order",
+      "title": "Exactly one order: lost replies, retries and idempotency",
       "path": "ch11/profrod-sovereign-agent-ch11-ambiguous-supplier-order-chapter.md",
       "checkpoint": "checkpoints/profrod_sovereign_agent_ch11_ambiguous_supplier_order_checkpoint.py",
       "status": "DRAFT"

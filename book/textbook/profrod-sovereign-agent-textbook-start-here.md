@@ -32,7 +32,7 @@ You can read the drafted chapters and run their supplied reference checkpoints n
 | 8 | [Talk to the agent from your phone](ch08/profrod-sovereign-agent-ch08-telegram-messaging-chapter.md) | DRAFT |
 | 9 | [Wake up for schedules and stock events](ch09/profrod-sovereign-agent-ch09-schedules-stock-events-chapter.md) | DRAFT |
 | 10 | [Ask permission before spending](ch10/profrod-sovereign-agent-ch10-spending-permissions-chapter.md) | DRAFT |
-| 11 | [Survive the ambiguous supplier order](ch11/profrod-sovereign-agent-ch11-ambiguous-supplier-order-chapter.md) | DRAFT |
+| 11 | [Exactly one order: lost replies, retries and idempotency](ch11/profrod-sovereign-agent-ch11-ambiguous-supplier-order-chapter.md) | DRAFT |
 | 12 | [Recover work after a process crash](ch12/profrod-sovereign-agent-ch12-worker-recovery-chapter.md) | DRAFT |
 | 13 | [Connect an external tool with MCP](ch13/profrod-sovereign-agent-ch13-mcp-tools-chapter.md) | PLANNED |
 | 14 | [Prompt injection and isolation: words steer the model, boundaries hold](ch14/profrod-sovereign-agent-ch14-tool-isolation-chapter.md) | DRAFT |

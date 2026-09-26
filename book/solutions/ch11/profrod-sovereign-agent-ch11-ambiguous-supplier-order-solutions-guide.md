@@ -1,4 +1,4 @@
-# Chapter 11: Survive the ambiguous supplier order
+# Chapter 11: Exactly one order: lost replies, retries and idempotency
 
 > **Learn with Prof Rod** — *Build Your Always-On AI Agent From Scratch*.
 > **Read the full book and get the latest learning materials:** [https://profrod.ai/book](https://profrod.ai/book).
