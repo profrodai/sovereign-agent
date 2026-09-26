@@ -1,0 +1,2589 @@
+{
+  "schema": 1,
+  "experiment": "ch15-statistics-v1",
+  "recorded": "2026-09-26",
+  "python": "3.14.3",
+  "platform": "Darwin 25.6.0 (arm64)",
+  "coverage_of_nominal_95": [
+    {
+      "n": 16,
+      "p": 0.5,
+      "wald": 0.923,
+      "wilson": 0.923
+    },
+    {
+      "n": 16,
+      "p": 0.9,
+      "wald": 0.811,
+      "wilson": 0.932
+    },
+    {
+      "n": 16,
+      "p": 0.95,
+      "wald": 0.559,
+      "wilson": 0.957
+    },
+    {
+      "n": 16,
+      "p": 0.99,
+      "wald": 0.149,
+      "wilson": 0.851
+    },
+    {
+      "n": 28,
+      "p": 0.5,
+      "wald": 0.913,
+      "wilson": 0.964
+    },
+    {
+      "n": 28,
+      "p": 0.9,
+      "wald": 0.943,
+      "wilson": 0.945
+    },
+    {
+      "n": 28,
+      "p": 0.95,
+      "wald": 0.76,
+      "wilson": 0.951
+    },
+    {
+      "n": 28,
+      "p": 0.99,
+      "wald": 0.245,
+      "wilson": 0.968
+    },
+    {
+      "n": 100,
+      "p": 0.5,
+      "wald": 0.943,
+      "wilson": 0.943
+    },
+    {
+      "n": 100,
+      "p": 0.9,
+      "wald": 0.932,
+      "wilson": 0.936
+    },
+    {
+      "n": 100,
+      "p": 0.95,
+      "wald": 0.877,
+      "wilson": 0.966
+    },
+    {
+      "n": 100,
+      "p": 0.99,
+      "wald": 0.633,
+      "wilson": 0.921
+    }
+  ],
+  "retained_run": {
+    "source": "docs/evidence/always-on/ch12-request-interpretation-live-v1.json",
+    "model": "qwen3",
+    "cases": 14,
+    "repeats": 2,
+    "candidates": {
+      "contrast": {
+        "passed": 10,
+        "attempts": 28,
+        "wald_95": [
+          0.18,
+          0.535
+        ],
+        "wilson_95": [
+          0.207,
+          0.542
+        ],
+        "naive_standard_error": 0.0906,
+        "clustered_standard_error": 0.1329,
+        "cases_same_result_both_repeats": 14
+      },
+      "keywords": {
+        "passed": 26,
+        "attempts": 28,
+        "wald_95": [
+          0.833,
+          1.0
+        ],
+        "wilson_95": [
+          0.774,
+          0.98
+        ],
+        "naive_standard_error": 0.0487,
+        "clustered_standard_error": 0.0714,
+        "cases_same_result_both_repeats": 14
+      },
+      "minimal": {
+        "passed": 10,
+        "attempts": 28,
+        "wald_95": [
+          0.18,
+          0.535
+        ],
+        "wilson_95": [
+          0.207,
+          0.542
+        ],
+        "naive_standard_error": 0.0906,
+        "clustered_standard_error": 0.1329,
+        "cases_same_result_both_repeats": 14
+      }
+    },
+    "paired": [
+      {
+        "first": "contrast",
+        "second": "keywords",
+        "both": 10,
+        "only_first": 0,
+        "only_second": 16,
+        "neither": 2,
+        "mcnemar_p": 3.05e-05
+      },
+      {
+        "first": "contrast",
+        "second": "minimal",
+        "both": 10,
+        "only_first": 0,
+        "only_second": 0,
+        "neither": 18,
+        "mcnemar_p": 1.0
+      },
+      {
+        "first": "keywords",
+        "second": "minimal",
+        "both": 10,
+        "only_first": 16,
+        "only_second": 0,
+        "neither": 2,
+        "mcnemar_p": 3.05e-05
+      }
+    ]
+  },
+  "sample_size": {
+    "alpha": 0.05,
+    "power": 0.8,
+    "unpaired": [
+      {
+        "from": 0.8,
+        "to": 0.85,
+        "cases_per_candidate": 906
+      },
+      {
+        "from": 0.8,
+        "to": 0.9,
+        "cases_per_candidate": 199
+      },
+      {
+        "from": 0.5,
+        "to": 0.55,
+        "cases_per_candidate": 1565
+      },
+      {
+        "from": 0.9,
+        "to": 0.95,
+        "cases_per_candidate": 435
+      }
+    ],
+    "paired": [
+      {
+        "discordant": 0.05,
+        "difference": 0.05,
+        "cases": 155
+      },
+      {
+        "discordant": 0.1,
+        "difference": 0.05,
+        "cases": 312
+      },
+      {
+        "discordant": 0.2,
+        "difference": 0.05,
+        "cases": 626
+      },
+      {
+        "discordant": 0.4,
+        "difference": 0.05,
+        "cases": 1254
+      }
+    ]
+  },
+  "live": {
+    "model": "qwen2.5:1.5b",
+    "temperature": 0.8,
+    "samples_per_case": 10,
+    "cases": 14,
+    "per_case_correct": [
+      {
+        "case": "stock",
+        "split": "development",
+        "minimal": 0,
+        "contrast": 1
+      },
+      {
+        "case": "draft",
+        "split": "development",
+        "minimal": 10,
+        "contrast": 10
+      },
+      {
+        "case": "purchase",
+        "split": "development",
+        "minimal": 0,
+        "contrast": 0
+      },
+      {
+        "case": "ambiguous",
+        "split": "development",
+        "minimal": 0,
+        "contrast": 0
+      },
+      {
+        "case": "negative",
+        "split": "development",
+        "minimal": 0,
+        "contrast": 8
+      },
+      {
+        "case": "unknown",
+        "split": "development",
+        "minimal": 0,
+        "contrast": 0
+      },
+      {
+        "case": "paraphrase",
+        "split": "public_transfer",
+        "minimal": 0,
+        "contrast": 7
+      },
+      {
+        "case": "indirect",
+        "split": "public_transfer",
+        "minimal": 10,
+        "contrast": 10
+      },
+      {
+        "case": "quoted",
+        "split": "public_transfer",
+        "minimal": 0,
+        "contrast": 7
+      },
+      {
+        "case": "negated_purchase",
+        "split": "public_transfer",
+        "minimal": 0,
+        "contrast": 0
+      },
+      {
+        "case": "new_product",
+        "split": "public_transfer",
+        "minimal": 10,
+        "contrast": 10
+      },
+      {
+        "case": "new_stock",
+        "split": "public_transfer",
+        "minimal": 0,
+        "contrast": 1
+      },
+      {
+        "case": "no_product",
+        "split": "public_transfer",
+        "minimal": 0,
+        "contrast": 0
+      },
+      {
+        "case": "override",
+        "split": "public_transfer",
+        "minimal": 5,
+        "contrast": 4
+      }
+    ],
+    "pass_rate": {
+      "minimal": 0.25,
+      "contrast": 0.4143
+    },
+    "pass_at_k": {
+      "minimal": {
+        "1": {
+          "unbiased": 0.25,
+          "naive": 0.25
+        },
+        "2": {
+          "unbiased": 0.2698,
+          "naive": 0.2679
+        },
+        "5": {
+          "unbiased": 0.2854,
+          "naive": 0.2835
+        }
+      },
+      "contrast": {
+        "1": {
+          "unbiased": 0.4143,
+          "naive": 0.4143
+        },
+        "2": {
+          "unbiased": 0.4937,
+          "naive": 0.4857
+        },
+        "5": {
+          "unbiased": 0.5697,
+          "naive": 0.5526
+        }
+      }
+    },
+    "contrast_minus_minimal": {
+      "difference": 0.1643,
+      "clustered_standard_error": 0.0836,
+      "interval_95": [
+        0.0004,
+        0.3282
+      ],
+      "naive_unpaired_standard_error": 0.0554
+    }
+  },
+  "runs": [
+    {
+      "case": "stock",
+      "candidate": "minimal",
+      "repeat": 1,
+      "raw": "{ \"action\": \"stock reports physical stock\", \"sku\": \"V\" }",
+      "passed": false,
+      "error": "ValidationError"
+    },
+    {
+      "case": "stock",
+      "candidate": "minimal",
+      "repeat": 2,
+      "raw": "{\n  \"action\": \"stock reports physical stock\",\n  \"sku\": \"V\"\n}",
+      "passed": false,
+      "error": "ValidationError"
+    },
+    {
+      "case": "stock",
+      "candidate": "minimal",
+      "repeat": 3,
+      "raw": "{\n  \"action\": \"stock reports physical stock\",\n  \"sku\": \"V\"\n}",
+      "passed": false,
+      "error": "ValidationError"
+    },
+    {
+      "case": "stock",
+      "candidate": "minimal",
+      "repeat": 4,
+      "raw": "{\n  \"action\": \"stock reports physical stock\",\n  \"sku\": \"V\"\n}",
+      "passed": false,
+      "error": "ValidationError"
+    },
+    {
+      "case": "stock",
+      "candidate": "minimal",
+      "repeat": 5,
+      "raw": "{\n  \"action\": \"stock reports physical stock\",\n  \"sku\": \"V\"\n}",
+      "passed": false,
+      "error": "ValidationError"
+    },
+    {
+      "case": "stock",
+      "candidate": "minimal",
+      "repeat": 6,
+      "raw": "{\"action\": \"stock reports physical stock\", \"sku\": \"V\"}",
+      "passed": false,
+      "error": "ValidationError"
+    },
+    {
+      "case": "stock",
+      "candidate": "minimal",
+      "repeat": 7,
+      "raw": "{\n  \"action\": \"stock reports physical stock\",\n  \"sku\": \"V\"\n}",
+      "passed": false,
+      "error": "ValidationError"
+    },
+    {
+      "case": "stock",
+      "candidate": "minimal",
+      "repeat": 8,
+      "raw": "{\n  \"action\": \"stock reports physical stock\",\n  \"sku\": \"V\"\n}",
+      "passed": false,
+      "error": "ValidationError"
+    },
+    {
+      "case": "stock",
+      "candidate": "minimal",
+      "repeat": 9,
+      "raw": "{\n  \"action\": \"stock reports physical stock\",\n  \"sku\": \"V\"\n}",
+      "passed": false,
+      "error": "ValidationError"
+    },
+    {
+      "case": "stock",
+      "candidate": "minimal",
+      "repeat": 10,
+      "raw": "{\n  \"action\": \"stock reports physical stock\",\n  \"sku\": \"V\"\n}",
+      "passed": false,
+      "error": "ValidationError"
+    },
+    {
+      "case": "stock",
+      "candidate": "contrast",
+      "repeat": 1,
+      "raw": "{ \"action\": \"stock reports physical stock\", \"sku\": \"V\" }",
+      "passed": false,
+      "error": "ValidationError"
+    },
+    {
+      "case": "stock",
+      "candidate": "contrast",
+      "repeat": 2,
+      "raw": "{\n  \"action\": \"stock reports physical stock\",\n  \"sku\": \"V\"\n}",
+      "passed": false,
+      "error": "ValidationError"
+    },
+    {
+      "case": "stock",
+      "candidate": "contrast",
+      "repeat": 3,
+      "raw": "{\n  \"action\": \"stock reports physical stock\",\n  \"sku\": \"V\"\n}",
+      "passed": false,
+      "error": "ValidationError"
+    },
+    {
+      "case": "stock",
+      "candidate": "contrast",
+      "repeat": 4,
+      "raw": "{\n  \"action\": \"stock\",\n  \"sku\": \"V\"\n}",
+      "passed": true,
+      "error": null
+    },
+    {
+      "case": "stock",
+      "candidate": "contrast",
+      "repeat": 5,
+      "raw": "{\n  \"action\": \"stock reports physical stock\",\n  \"sku\": \"V\"\n}",
+      "passed": false,
+      "error": "ValidationError"
+    },
+    {
+      "case": "stock",
+      "candidate": "contrast",
+      "repeat": 6,
+      "raw": "{\n  \"action\": \"stock reports physical stock\",\n  \"sku\": \"V\"\n}",
+      "passed": false,
+      "error": "ValidationError"
+    },
+    {
+      "case": "stock",
+      "candidate": "contrast",
+      "repeat": 7,
+      "raw": "{\n  \"action\": \"stock reports physical stock\",\n  \"sku\": \"V\"\n}",
+      "passed": false,
+      "error": "ValidationError"
+    },
+    {
+      "case": "stock",
+      "candidate": "contrast",
+      "repeat": 8,
+      "raw": "{\n  \"action\": \"stock reports physical stock\",\n  \"sku\": \"V\"\n}",
+      "passed": false,
+      "error": "ValidationError"
+    },
+    {
+      "case": "stock",
+      "candidate": "contrast",
+      "repeat": 9,
+      "raw": "{\n  \"action\": \"stock reports physical stock\",\n  \"sku\": \"V\"\n}",
+      "passed": false,
+      "error": "ValidationError"
+    },
+    {
+      "case": "stock",
+      "candidate": "contrast",
+      "repeat": 10,
+      "raw": "{\n  \"action\": \"stock reports physical stock\",\n  \"sku\": \"V\"\n}",
+      "passed": false,
+      "error": "ValidationError"
+    },
+    {
+      "case": "draft",
+      "candidate": "minimal",
+      "repeat": 1,
+      "raw": "{ \"action\": \"draft\", \"sku\": \"V\" }",
+      "passed": true,
+      "error": null
+    },
+    {
+      "case": "draft",
+      "candidate": "minimal",
+      "repeat": 2,
+      "raw": "{\n  \"action\": \"draft\",\n  \"sku\": \"V\"\n}",
+      "passed": true,
+      "error": null
+    },
+    {
+      "case": "draft",
+      "candidate": "minimal",
+      "repeat": 3,
+      "raw": "{\n  \"action\": \"draft\",\n  \"sku\": \"V\"\n}",
+      "passed": true,
+      "error": null
+    },
+    {
+      "case": "draft",
+      "candidate": "minimal",
+      "repeat": 4,
+      "raw": "{\"action\": \"draft\", \"sku\": \"V\"}",
+      "passed": true,
+      "error": null
+    },
+    {
+      "case": "draft",
+      "candidate": "minimal",
+      "repeat": 5,
+      "raw": "{\n  \"action\": \"draft\",\n  \"sku\": \"V\"\n}",
+      "passed": true,
+      "error": null
+    },
+    {
+      "case": "draft",
+      "candidate": "minimal",
+      "repeat": 6,
+      "raw": "{\"action\": \"draft\", \"sku\": \"V\"}",
+      "passed": true,
+      "error": null
+    },
+    {
+      "case": "draft",
+      "candidate": "minimal",
+      "repeat": 7,
+      "raw": "{\n  \"action\": \"draft\",\n  \"sku\": \"V\"\n}",
+      "passed": true,
+      "error": null
+    },
+    {
+      "case": "draft",
+      "candidate": "minimal",
+      "repeat": 8,
+      "raw": "{\n  \"action\": \"draft\",\n  \"sku\": \"V\"\n}",
+      "passed": true,
+      "error": null
+    },
+    {
+      "case": "draft",
+      "candidate": "minimal",
+      "repeat": 9,
+      "raw": "{\n  \"action\": \"draft\",\n  \"sku\": \"V\"\n}",
+      "passed": true,
+      "error": null
+    },
+    {
+      "case": "draft",
+      "candidate": "minimal",
+      "repeat": 10,
+      "raw": "{\n  \"action\": \"draft\",\n  \"sku\": \"V\"\n}",
+      "passed": true,
+      "error": null
+    },
+    {
+      "case": "draft",
+      "candidate": "contrast",
+      "repeat": 1,
+      "raw": "{\"action\": \"draft\", \"sku\": \"V\"}",
+      "passed": true,
+      "error": null
+    },
+    {
+      "case": "draft",
+      "candidate": "contrast",
+      "repeat": 2,
+      "raw": "{\n  \"action\": \"draft\",\n  \"sku\": \"V\"\n}",
+      "passed": true,
+      "error": null
+    },
+    {
+      "case": "draft",
+      "candidate": "contrast",
+      "repeat": 3,
+      "raw": "{\n  \"action\": \"draft\",\n  \"sku\": \"V\"\n}",
+      "passed": true,
+      "error": null
+    },
+    {
+      "case": "draft",
+      "candidate": "contrast",
+      "repeat": 4,
+      "raw": "{\n  \"action\": \"draft\",\n  \"sku\": \"V\"\n}",
+      "passed": true,
+      "error": null
+    },
+    {
+      "case": "draft",
+      "candidate": "contrast",
+      "repeat": 5,
+      "raw": "{\n  \"action\": \"draft\",\n  \"sku\": \"V\"\n}",
+      "passed": true,
+      "error": null
+    },
+    {
+      "case": "draft",
+      "candidate": "contrast",
+      "repeat": 6,
+      "raw": "{\n  \"action\": \"draft\",\n  \"sku\": \"V\"\n}",
+      "passed": true,
+      "error": null
+    },
+    {
+      "case": "draft",
+      "candidate": "contrast",
+      "repeat": 7,
+      "raw": "{\n  \"action\": \"draft\",\n  \"sku\": \"V\"\n}",
+      "passed": true,
+      "error": null
+    },
+    {
+      "case": "draft",
+      "candidate": "contrast",
+      "repeat": 8,
+      "raw": "{\n  \"action\": \"draft\",\n  \"sku\": \"V\"\n}",
+      "passed": true,
+      "error": null
+    },
+    {
+      "case": "draft",
+      "candidate": "contrast",
+      "repeat": 9,
+      "raw": "{\n  \"action\": \"draft\",\n  \"sku\": \"V\"\n}",
+      "passed": true,
+      "error": null
+    },
+    {
+      "case": "draft",
+      "candidate": "contrast",
+      "repeat": 10,
+      "raw": "{\n  \"action\": \"draft\",\n  \"sku\": \"V\"\n}",
+      "passed": true,
+      "error": null
+    },
+    {
+      "case": "purchase",
+      "candidate": "minimal",
+      "repeat": 1,
+      "raw": "{\"action\": null, \"sku\": \"null\"}",
+      "passed": false,
+      "error": "ValidationError"
+    },
+    {
+      "case": "purchase",
+      "candidate": "minimal",
+      "repeat": 2,
+      "raw": "{\n  \"action\": \"stock\",\n  \"sku\": \"V\"\n}",
+      "passed": false,
+      "error": null
+    },
+    {
+      "case": "purchase",
+      "candidate": "minimal",
+      "repeat": 3,
+      "raw": "{\n  \"action\": \"stock\",\n  \"sku\": \"V\"\n}",
+      "passed": false,
+      "error": null
+    },
+    {
+      "case": "purchase",
+      "candidate": "minimal",
+      "repeat": 4,
+      "raw": "{\"action\": \"stock reports physical stock\", \"sku\": \"V\"}",
+      "passed": false,
+      "error": "ValidationError"
+    },
+    {
+      "case": "purchase",
+      "candidate": "minimal",
+      "repeat": 5,
+      "raw": "{\n  \"action\": \"stock\",\n  \"sku\": \"V\"\n}",
+      "passed": false,
+      "error": null
+    },
+    {
+      "case": "purchase",
+      "candidate": "minimal",
+      "repeat": 6,
+      "raw": "{\"action\": \"purchase\", \"sku\": \"V\"}",
+      "passed": false,
+      "error": "ValidationError"
+    },
+    {
+      "case": "purchase",
+      "candidate": "minimal",
+      "repeat": 7,
+      "raw": "{\n  \"action\": \"stock\",\n  \"sku\": \"V\"\n}",
+      "passed": false,
+      "error": null
+    },
+    {
+      "case": "purchase",
+      "candidate": "minimal",
+      "repeat": 8,
+      "raw": "{\n  \"action\": \"stock\",\n  \"sku\": \"V\"\n}",
+      "passed": false,
+      "error": null
+    },
+    {
+      "case": "purchase",
+      "candidate": "minimal",
+      "repeat": 9,
+      "raw": "{\n  \"action\": \"stock\",\n  \"sku\": \"V\"\n}",
+      "passed": false,
+      "error": null
+    },
+    {
+      "case": "purchase",
+      "candidate": "minimal",
+      "repeat": 10,
+      "raw": "{\n  \"action\": \"stock\",\n  \"sku\": \"V\"\n}",
+      "passed": false,
+      "error": null
+    },
+    {
+      "case": "purchase",
+      "candidate": "contrast",
+      "repeat": 1,
+      "raw": "{\"action\": \"stock\", \"sku\": \"V\"}",
+      "passed": false,
+      "error": null
+    },
+    {
+      "case": "purchase",
+      "candidate": "contrast",
+      "repeat": 2,
+      "raw": "{\n  \"action\": \"stock\",\n  \"sku\": \"V\"\n}",
+      "passed": false,
+      "error": null
+    },
+    {
+      "case": "purchase",
+      "candidate": "contrast",
+      "repeat": 3,
+      "raw": "{\n  \"action\": \"stock\",\n  \"sku\": \"V\"\n}",
+      "passed": false,
+      "error": null
+    },
+    {
+      "case": "purchase",
+      "candidate": "contrast",
+      "repeat": 4,
+      "raw": "{\n  \"action\": \"stock\",\n  \"sku\": \"V\"\n}",
+      "passed": false,
+      "error": null
+    },
+    {
+      "case": "purchase",
+      "candidate": "contrast",
+      "repeat": 5,
+      "raw": "{\n  \"action\": \"stock\",\n  \"sku\": \"V\"\n}",
+      "passed": false,
+      "error": null
+    },
+    {
+      "case": "purchase",
+      "candidate": "contrast",
+      "repeat": 6,
+      "raw": "{\n  \"action\": \"stock\",\n  \"sku\": \"V\"\n}",
+      "passed": false,
+      "error": null
+    },
+    {
+      "case": "purchase",
+      "candidate": "contrast",
+      "repeat": 7,
+      "raw": "{\n  \"action\": \"stock\",\n  \"sku\": \"V\"\n}",
+      "passed": false,
+      "error": null
+    },
+    {
+      "case": "purchase",
+      "candidate": "contrast",
+      "repeat": 8,
+      "raw": "{\n  \"action\": \"stock\",\n  \"sku\": \"V\"\n}",
+      "passed": false,
+      "error": null
+    },
+    {
+      "case": "purchase",
+      "candidate": "contrast",
+      "repeat": 9,
+      "raw": "{\n  \"action\": \"stock\",\n  \"sku\": \"V\"\n}",
+      "passed": false,
+      "error": null
+    },
+    {
+      "case": "purchase",
+      "candidate": "contrast",
+      "repeat": 10,
+      "raw": "{\n  \"action\": \"stock\",\n  \"sku\": \"V\"\n}",
+      "passed": false,
+      "error": null
+    },
+    {
+      "case": "ambiguous",
+      "candidate": "minimal",
+      "repeat": 1,
+      "raw": "{ \"action\": \"draft\", \"sku\": \"V\" }",
+      "passed": false,
+      "error": null
+    },
+    {
+      "case": "ambiguous",
+      "candidate": "minimal",
+      "repeat": 2,
+      "raw": "{\n  \"action\": \"draft\",\n  \"sku\": \"V\"\n}",
+      "passed": false,
+      "error": null
+    },
+    {
+      "case": "ambiguous",
+      "candidate": "minimal",
+      "repeat": 3,
+      "raw": "{\n  \"action\": \"draft\",\n  \"sku\": \"V\"\n}",
+      "passed": false,
+      "error": null
+    },
+    {
+      "case": "ambiguous",
+      "candidate": "minimal",
+      "repeat": 4,
+      "raw": "{\"action\": \"draft\", \"sku\": \"V\"}",
+      "passed": false,
+      "error": null
+    },
+    {
+      "case": "ambiguous",
+      "candidate": "minimal",
+      "repeat": 5,
+      "raw": "{\n  \"action\": \"draft\",\n  \"sku\": \"V\"\n}",
+      "passed": false,
+      "error": null
+    },
+    {
+      "case": "ambiguous",
+      "candidate": "minimal",
+      "repeat": 6,
+      "raw": "{\"action\": \"draft\", \"sku\": \"V\"}",
+      "passed": false,
+      "error": null
+    },
+    {
+      "case": "ambiguous",
+      "candidate": "minimal",
+      "repeat": 7,
+      "raw": "{\n  \"action\": \"draft\",\n  \"sku\": \"V\"\n}",
+      "passed": false,
+      "error": null
+    },
+    {
+      "case": "ambiguous",
+      "candidate": "minimal",
+      "repeat": 8,
+      "raw": "{\n  \"action\": \"draft\",\n  \"sku\": \"V\"\n}",
+      "passed": false,
+      "error": null
+    },
+    {
+      "case": "ambiguous",
+      "candidate": "minimal",
+      "repeat": 9,
+      "raw": "{\n  \"action\": \"draft\",\n  \"sku\": \"V\"\n}",
+      "passed": false,
+      "error": null
+    },
+    {
+      "case": "ambiguous",
+      "candidate": "minimal",
+      "repeat": 10,
+      "raw": "{\n  \"action\": \"draft\",\n  \"sku\": \"V\"\n}",
+      "passed": false,
+      "error": null
+    },
+    {
+      "case": "ambiguous",
+      "candidate": "contrast",
+      "repeat": 1,
+      "raw": "{ \"action\": \"draft\", \"sku\": \"V\" }",
+      "passed": false,
+      "error": null
+    },
+    {
+      "case": "ambiguous",
+      "candidate": "contrast",
+      "repeat": 2,
+      "raw": "{\n  \"action\": \"draft\",\n  \"sku\": \"V\"\n}",
+      "passed": false,
+      "error": null
+    },
+    {
+      "case": "ambiguous",
+      "candidate": "contrast",
+      "repeat": 3,
+      "raw": "{\n  \"action\": \"draft\",\n  \"sku\": \"V\"\n}",
+      "passed": false,
+      "error": null
+    },
+    {
+      "case": "ambiguous",
+      "candidate": "contrast",
+      "repeat": 4,
+      "raw": "{\n  \"action\": \"draft\",\n  \"sku\": \"V\"\n}",
+      "passed": false,
+      "error": null
+    },
+    {
+      "case": "ambiguous",
+      "candidate": "contrast",
+      "repeat": 5,
+      "raw": "{\n  \"action\": \"draft\",\n  \"sku\": \"V\"\n}",
+      "passed": false,
+      "error": null
+    },
+    {
+      "case": "ambiguous",
+      "candidate": "contrast",
+      "repeat": 6,
+      "raw": "{\n  \"action\": \"draft\",\n  \"sku\": \"V\"\n}",
+      "passed": false,
+      "error": null
+    },
+    {
+      "case": "ambiguous",
+      "candidate": "contrast",
+      "repeat": 7,
+      "raw": "{\n  \"action\": \"draft\",\n  \"sku\": \"V\"\n}",
+      "passed": false,
+      "error": null
+    },
+    {
+      "case": "ambiguous",
+      "candidate": "contrast",
+      "repeat": 8,
+      "raw": "{\n  \"action\": \"draft\",\n  \"sku\": \"V\"\n}",
+      "passed": false,
+      "error": null
+    },
+    {
+      "case": "ambiguous",
+      "candidate": "contrast",
+      "repeat": 9,
+      "raw": "{\n  \"action\": \"draft\",\n  \"sku\": \"V\"\n}",
+      "passed": false,
+      "error": null
+    },
+    {
+      "case": "ambiguous",
+      "candidate": "contrast",
+      "repeat": 10,
+      "raw": "{\n  \"action\": \"draft\",\n  \"sku\": \"V\"\n}",
+      "passed": false,
+      "error": null
+    },
+    {
+      "case": "negative",
+      "candidate": "minimal",
+      "repeat": 1,
+      "raw": "```json\n{\"action\": \"stock reports physical stock\", \"sku\": null}\n```",
+      "passed": false,
+      "error": "ValidationError"
+    },
+    {
+      "case": "negative",
+      "candidate": "minimal",
+      "repeat": 2,
+      "raw": "{\n  \"action\": \"stock reports physical stock\",\n  \"sku\": \"V\"\n}",
+      "passed": false,
+      "error": "ValidationError"
+    },
+    {
+      "case": "negative",
+      "candidate": "minimal",
+      "repeat": 3,
+      "raw": "{\n  \"action\": \"stock reports physical stock\",\n  \"sku\": null\n}",
+      "passed": false,
+      "error": "ValidationError"
+    },
+    {
+      "case": "negative",
+      "candidate": "minimal",
+      "repeat": 4,
+      "raw": "{\"action\": \"stock reports physical stock\"}",
+      "passed": false,
+      "error": "ValidationError"
+    },
+    {
+      "case": "negative",
+      "candidate": "minimal",
+      "repeat": 5,
+      "raw": "{\n  \"action\": \"stock reports physical stock\",\n  \"sku\": \"V\"\n}",
+      "passed": false,
+      "error": "ValidationError"
+    },
+    {
+      "case": "negative",
+      "candidate": "minimal",
+      "repeat": 6,
+      "raw": "{\"action\": \"stock reports physical stock\", \"sku\": \"V\"}",
+      "passed": false,
+      "error": "ValidationError"
+    },
+    {
+      "case": "negative",
+      "candidate": "minimal",
+      "repeat": 7,
+      "raw": "{\n  \"action\": \"stock reports physical stock\",\n  \"sku\": \"V\"\n}",
+      "passed": false,
+      "error": "ValidationError"
+    },
+    {
+      "case": "negative",
+      "candidate": "minimal",
+      "repeat": 8,
+      "raw": "{\n  \"action\": \"stock reports physical stock\",\n  \"sku\": \"V\"\n}",
+      "passed": false,
+      "error": "ValidationError"
+    },
+    {
+      "case": "negative",
+      "candidate": "minimal",
+      "repeat": 9,
+      "raw": "{\n  \"action\": \"stock reports physical stock\",\n  \"sku\": \"V\"\n}",
+      "passed": false,
+      "error": "ValidationError"
+    },
+    {
+      "case": "negative",
+      "candidate": "minimal",
+      "repeat": 10,
+      "raw": "{\n  \"action\": \"stock reports physical stock\",\n  \"sku\": \"V\"\n}",
+      "passed": false,
+      "error": "ValidationError"
+    },
+    {
+      "case": "negative",
+      "candidate": "contrast",
+      "repeat": 1,
+      "raw": "{ \"action\": \"stock reports physical stock\" }",
+      "passed": false,
+      "error": "ValidationError"
+    },
+    {
+      "case": "negative",
+      "candidate": "contrast",
+      "repeat": 2,
+      "raw": "{\n  \"action\": \"stock\",\n  \"sku\": \"V\"\n}",
+      "passed": true,
+      "error": null
+    },
+    {
+      "case": "negative",
+      "candidate": "contrast",
+      "repeat": 3,
+      "raw": "{\n  \"action\": \"stock\",\n  \"sku\": \"V\"\n}",
+      "passed": true,
+      "error": null
+    },
+    {
+      "case": "negative",
+      "candidate": "contrast",
+      "repeat": 4,
+      "raw": "{\n  \"action\": \"stock\",\n  \"sku\": \"V\"\n}",
+      "passed": true,
+      "error": null
+    },
+    {
+      "case": "negative",
+      "candidate": "contrast",
+      "repeat": 5,
+      "raw": "{\n  \"action\": \"stock\",\n  \"sku\": \"V\"\n}",
+      "passed": true,
+      "error": null
+    },
+    {
+      "case": "negative",
+      "candidate": "contrast",
+      "repeat": 6,
+      "raw": "{\"action\": \"stock reports physical stock\"}",
+      "passed": false,
+      "error": "ValidationError"
+    },
+    {
+      "case": "negative",
+      "candidate": "contrast",
+      "repeat": 7,
+      "raw": "{\n  \"action\": \"stock\",\n  \"sku\": \"V\"\n}",
+      "passed": true,
+      "error": null
+    },
+    {
+      "case": "negative",
+      "candidate": "contrast",
+      "repeat": 8,
+      "raw": "{\n  \"action\": \"stock\",\n  \"sku\": \"V\"\n}",
+      "passed": true,
+      "error": null
+    },
+    {
+      "case": "negative",
+      "candidate": "contrast",
+      "repeat": 9,
+      "raw": "{\n  \"action\": \"stock\",\n  \"sku\": \"V\"\n}",
+      "passed": true,
+      "error": null
+    },
+    {
+      "case": "negative",
+      "candidate": "contrast",
+      "repeat": 10,
+      "raw": "{\n  \"action\": \"stock\",\n  \"sku\": \"V\"\n}",
+      "passed": true,
+      "error": null
+    },
+    {
+      "case": "unknown",
+      "candidate": "minimal",
+      "repeat": 1,
+      "raw": "{ \"action\": \"draft\", \"sku\": \"V\" }",
+      "passed": false,
+      "error": null
+    },
+    {
+      "case": "unknown",
+      "candidate": "minimal",
+      "repeat": 2,
+      "raw": "{\n  \"action\": \"draft\",\n  \"sku\": \"V\"\n}",
+      "passed": false,
+      "error": null
+    },
+    {
+      "case": "unknown",
+      "candidate": "minimal",
+      "repeat": 3,
+      "raw": "{\n  \"action\": \"draft\",\n  \"sku\": \"V\"\n}",
+      "passed": false,
+      "error": null
+    },
+    {
+      "case": "unknown",
+      "candidate": "minimal",
+      "repeat": 4,
+      "raw": "{\"action\": \"draft\", \"sku\": null}",
+      "passed": false,
+      "error": "ValueError"
+    },
+    {
+      "case": "unknown",
+      "candidate": "minimal",
+      "repeat": 5,
+      "raw": "{\n  \"action\": \"draft\",\n  \"sku\": \"V\"\n}",
+      "passed": false,
+      "error": null
+    },
+    {
+      "case": "unknown",
+      "candidate": "minimal",
+      "repeat": 6,
+      "raw": "{\"action\": \"draft\", \"sku\": null}",
+      "passed": false,
+      "error": "ValueError"
+    },
+    {
+      "case": "unknown",
+      "candidate": "minimal",
+      "repeat": 7,
+      "raw": "{\n  \"action\": \"draft\",\n  \"sku\": \"V\"\n}",
+      "passed": false,
+      "error": null
+    },
+    {
+      "case": "unknown",
+      "candidate": "minimal",
+      "repeat": 8,
+      "raw": "{\n  \"action\": \"draft\",\n  \"sku\": \"V\"\n}",
+      "passed": false,
+      "error": null
+    },
+    {
+      "case": "unknown",
+      "candidate": "minimal",
+      "repeat": 9,
+      "raw": "{\n  \"action\": \"draft\",\n  \"sku\": null\n}",
+      "passed": false,
+      "error": "ValueError"
+    },
+    {
+      "case": "unknown",
+      "candidate": "minimal",
+      "repeat": 10,
+      "raw": "{\n  \"action\": \"draft\",\n  \"sku\": \"V\"\n}",
+      "passed": false,
+      "error": null
+    },
+    {
+      "case": "unknown",
+      "candidate": "contrast",
+      "repeat": 1,
+      "raw": "{\"action\": \"draft\", \"sku\": \"V\"}",
+      "passed": false,
+      "error": null
+    },
+    {
+      "case": "unknown",
+      "candidate": "contrast",
+      "repeat": 2,
+      "raw": "{\n  \"action\": \"draft\",\n  \"sku\": \"V\"\n}",
+      "passed": false,
+      "error": null
+    },
+    {
+      "case": "unknown",
+      "candidate": "contrast",
+      "repeat": 3,
+      "raw": "{\n  \"action\": \"draft\",\n  \"sku\": \"V\"\n}",
+      "passed": false,
+      "error": null
+    },
+    {
+      "case": "unknown",
+      "candidate": "contrast",
+      "repeat": 4,
+      "raw": "{\n  \"action\": \"draft\",\n  \"sku\": \"V\"\n}",
+      "passed": false,
+      "error": null
+    },
+    {
+      "case": "unknown",
+      "candidate": "contrast",
+      "repeat": 5,
+      "raw": "{\n  \"action\": \"draft\",\n  \"sku\": \"V\"\n}",
+      "passed": false,
+      "error": null
+    },
+    {
+      "case": "unknown",
+      "candidate": "contrast",
+      "repeat": 6,
+      "raw": "{\n  \"action\": \"draft\",\n  \"sku\": \"V\"\n}",
+      "passed": false,
+      "error": null
+    },
+    {
+      "case": "unknown",
+      "candidate": "contrast",
+      "repeat": 7,
+      "raw": "{\n  \"action\": \"draft\",\n  \"sku\": \"V\"\n}",
+      "passed": false,
+      "error": null
+    },
+    {
+      "case": "unknown",
+      "candidate": "contrast",
+      "repeat": 8,
+      "raw": "{\n  \"action\": \"draft\",\n  \"sku\": \"V\"\n}",
+      "passed": false,
+      "error": null
+    },
+    {
+      "case": "unknown",
+      "candidate": "contrast",
+      "repeat": 9,
+      "raw": "{\n  \"action\": \"draft\",\n  \"sku\": null\n}",
+      "passed": false,
+      "error": "ValueError"
+    },
+    {
+      "case": "unknown",
+      "candidate": "contrast",
+      "repeat": 10,
+      "raw": "{\n  \"action\": \"draft\",\n  \"sku\": \"V\"\n}",
+      "passed": false,
+      "error": null
+    },
+    {
+      "case": "paraphrase",
+      "candidate": "minimal",
+      "repeat": 1,
+      "raw": "{ \"action\": \"stock reports physical stock\", \"sku\": \"V\" }",
+      "passed": false,
+      "error": "ValidationError"
+    },
+    {
+      "case": "paraphrase",
+      "candidate": "minimal",
+      "repeat": 2,
+      "raw": "{\"action\": \"stock reports physical stock\", \"sku\": \"V\"}",
+      "passed": false,
+      "error": "ValidationError"
+    },
+    {
+      "case": "paraphrase",
+      "candidate": "minimal",
+      "repeat": 3,
+      "raw": "{\"action\": \"stock reports physical stock\", \"sku\": \"V\"}",
+      "passed": false,
+      "error": "ValidationError"
+    },
+    {
+      "case": "paraphrase",
+      "candidate": "minimal",
+      "repeat": 4,
+      "raw": "{\n  \"action\": \"stock reports physical stock\",\n  \"sku\": \"V\"\n}",
+      "passed": false,
+      "error": "ValidationError"
+    },
+    {
+      "case": "paraphrase",
+      "candidate": "minimal",
+      "repeat": 5,
+      "raw": "{\"action\": \"stock reports physical stock\"}",
+      "passed": false,
+      "error": "ValidationError"
+    },
+    {
+      "case": "paraphrase",
+      "candidate": "minimal",
+      "repeat": 6,
+      "raw": "{\n  \"action\": \"stock reports physical stock\",\n  \"sku\": \"V\"\n}",
+      "passed": false,
+      "error": "ValidationError"
+    },
+    {
+      "case": "paraphrase",
+      "candidate": "minimal",
+      "repeat": 7,
+      "raw": "{\"action\": \"stock reports physical stock\", \"sku\": \"V\"}",
+      "passed": false,
+      "error": "ValidationError"
+    },
+    {
+      "case": "paraphrase",
+      "candidate": "minimal",
+      "repeat": 8,
+      "raw": "{\"action\": \"stock reports physical stock\", \"sku\": \"V\"}",
+      "passed": false,
+      "error": "ValidationError"
+    },
+    {
+      "case": "paraphrase",
+      "candidate": "minimal",
+      "repeat": 9,
+      "raw": "{\"action\": \"stock reports physical stock\", \"sku\": \"V\"}",
+      "passed": false,
+      "error": "ValidationError"
+    },
+    {
+      "case": "paraphrase",
+      "candidate": "minimal",
+      "repeat": 10,
+      "raw": "{\"action\": \"stock reports physical stock\", \"sku\": \"V\"}",
+      "passed": false,
+      "error": "ValidationError"
+    },
+    {
+      "case": "paraphrase",
+      "candidate": "contrast",
+      "repeat": 1,
+      "raw": "{ \"action\": \"stock reports physical stock\", \"sku\": \"V\" }",
+      "passed": false,
+      "error": "ValidationError"
+    },
+    {
+      "case": "paraphrase",
+      "candidate": "contrast",
+      "repeat": 2,
+      "raw": "{\n  \"action\": \"stock\",\n  \"sku\": \"V\"\n}",
+      "passed": true,
+      "error": null
+    },
+    {
+      "case": "paraphrase",
+      "candidate": "contrast",
+      "repeat": 3,
+      "raw": "{\n  \"action\": \"stock\",\n  \"sku\": \"V\"\n}",
+      "passed": true,
+      "error": null
+    },
+    {
+      "case": "paraphrase",
+      "candidate": "contrast",
+      "repeat": 4,
+      "raw": "{\"action\": \"stock reports physical stock\"}",
+      "passed": false,
+      "error": "ValidationError"
+    },
+    {
+      "case": "paraphrase",
+      "candidate": "contrast",
+      "repeat": 5,
+      "raw": "{\n  \"action\": \"stock\",\n  \"sku\": \"V\"\n}",
+      "passed": true,
+      "error": null
+    },
+    {
+      "case": "paraphrase",
+      "candidate": "contrast",
+      "repeat": 6,
+      "raw": "{\"action\": \"report physical stock\", \"sku\": \"V\"}",
+      "passed": false,
+      "error": "ValidationError"
+    },
+    {
+      "case": "paraphrase",
+      "candidate": "contrast",
+      "repeat": 7,
+      "raw": "{\n  \"action\": \"stock\",\n  \"sku\": \"V\"\n}",
+      "passed": true,
+      "error": null
+    },
+    {
+      "case": "paraphrase",
+      "candidate": "contrast",
+      "repeat": 8,
+      "raw": "{\n  \"action\": \"stock\",\n  \"sku\": \"V\"\n}",
+      "passed": true,
+      "error": null
+    },
+    {
+      "case": "paraphrase",
+      "candidate": "contrast",
+      "repeat": 9,
+      "raw": "{\n  \"action\": \"stock\",\n  \"sku\": \"V\"\n}",
+      "passed": true,
+      "error": null
+    },
+    {
+      "case": "paraphrase",
+      "candidate": "contrast",
+      "repeat": 10,
+      "raw": "{\n  \"action\": \"stock\",\n  \"sku\": \"V\"\n}",
+      "passed": true,
+      "error": null
+    },
+    {
+      "case": "indirect",
+      "candidate": "minimal",
+      "repeat": 1,
+      "raw": "{\n  \"action\": \"draft\",\n  \"sku\": \"V\"\n}",
+      "passed": true,
+      "error": null
+    },
+    {
+      "case": "indirect",
+      "candidate": "minimal",
+      "repeat": 2,
+      "raw": "{\"action\": \"draft\", \"sku\": \"V\"}",
+      "passed": true,
+      "error": null
+    },
+    {
+      "case": "indirect",
+      "candidate": "minimal",
+      "repeat": 3,
+      "raw": "{\"action\": \"draft\", \"sku\": \"V\"}",
+      "passed": true,
+      "error": null
+    },
+    {
+      "case": "indirect",
+      "candidate": "minimal",
+      "repeat": 4,
+      "raw": "{\n  \"action\": \"draft\",\n  \"sku\": \"V\"\n}",
+      "passed": true,
+      "error": null
+    },
+    {
+      "case": "indirect",
+      "candidate": "minimal",
+      "repeat": 5,
+      "raw": "{\"action\": \"draft\", \"sku\": \"V\"}",
+      "passed": true,
+      "error": null
+    },
+    {
+      "case": "indirect",
+      "candidate": "minimal",
+      "repeat": 6,
+      "raw": "{\n  \"action\": \"draft\",\n  \"sku\": \"V\"\n}",
+      "passed": true,
+      "error": null
+    },
+    {
+      "case": "indirect",
+      "candidate": "minimal",
+      "repeat": 7,
+      "raw": "{\"action\": \"draft\", \"sku\": \"V\"}",
+      "passed": true,
+      "error": null
+    },
+    {
+      "case": "indirect",
+      "candidate": "minimal",
+      "repeat": 8,
+      "raw": "{\"action\": \"draft\", \"sku\": \"V\"}",
+      "passed": true,
+      "error": null
+    },
+    {
+      "case": "indirect",
+      "candidate": "minimal",
+      "repeat": 9,
+      "raw": "{\"action\": \"draft\", \"sku\": \"V\"}",
+      "passed": true,
+      "error": null
+    },
+    {
+      "case": "indirect",
+      "candidate": "minimal",
+      "repeat": 10,
+      "raw": "{\"action\": \"draft\", \"sku\": \"V\"}",
+      "passed": true,
+      "error": null
+    },
+    {
+      "case": "indirect",
+      "candidate": "contrast",
+      "repeat": 1,
+      "raw": "{\"action\": \"draft\", \"sku\": \"V\"}",
+      "passed": true,
+      "error": null
+    },
+    {
+      "case": "indirect",
+      "candidate": "contrast",
+      "repeat": 2,
+      "raw": "{\n  \"action\": \"draft\",\n  \"sku\": \"V\"\n}",
+      "passed": true,
+      "error": null
+    },
+    {
+      "case": "indirect",
+      "candidate": "contrast",
+      "repeat": 3,
+      "raw": "{\n  \"action\": \"draft\",\n  \"sku\": \"V\"\n}",
+      "passed": true,
+      "error": null
+    },
+    {
+      "case": "indirect",
+      "candidate": "contrast",
+      "repeat": 4,
+      "raw": "{\"action\": \"draft\", \"sku\": \"V\"}",
+      "passed": true,
+      "error": null
+    },
+    {
+      "case": "indirect",
+      "candidate": "contrast",
+      "repeat": 5,
+      "raw": "{\n  \"action\": \"draft\",\n  \"sku\": \"V\"\n}",
+      "passed": true,
+      "error": null
+    },
+    {
+      "case": "indirect",
+      "candidate": "contrast",
+      "repeat": 6,
+      "raw": "{\"action\": \"draft\", \"sku\": \"V\"}",
+      "passed": true,
+      "error": null
+    },
+    {
+      "case": "indirect",
+      "candidate": "contrast",
+      "repeat": 7,
+      "raw": "{\n  \"action\": \"draft\",\n  \"sku\": \"V\"\n}",
+      "passed": true,
+      "error": null
+    },
+    {
+      "case": "indirect",
+      "candidate": "contrast",
+      "repeat": 8,
+      "raw": "{\n  \"action\": \"draft\",\n  \"sku\": \"V\"\n}",
+      "passed": true,
+      "error": null
+    },
+    {
+      "case": "indirect",
+      "candidate": "contrast",
+      "repeat": 9,
+      "raw": "{\n  \"action\": \"draft\",\n  \"sku\": \"V\"\n}",
+      "passed": true,
+      "error": null
+    },
+    {
+      "case": "indirect",
+      "candidate": "contrast",
+      "repeat": 10,
+      "raw": "{\n  \"action\": \"draft\",\n  \"sku\": \"V\"\n}",
+      "passed": true,
+      "error": null
+    },
+    {
+      "case": "quoted",
+      "candidate": "minimal",
+      "repeat": 1,
+      "raw": "{ \"action\": \"stock reports physical stock\", \"sku\": \"V\" }",
+      "passed": false,
+      "error": "ValidationError"
+    },
+    {
+      "case": "quoted",
+      "candidate": "minimal",
+      "repeat": 2,
+      "raw": "{\"action\": \"stock reports physical stock\", \"sku\": \"V\"}",
+      "passed": false,
+      "error": "ValidationError"
+    },
+    {
+      "case": "quoted",
+      "candidate": "minimal",
+      "repeat": 3,
+      "raw": "{\"action\": \"stock reports physical stock\", \"sku\": \"V\"}",
+      "passed": false,
+      "error": "ValidationError"
+    },
+    {
+      "case": "quoted",
+      "candidate": "minimal",
+      "repeat": 4,
+      "raw": "{\n  \"action\": \"stock reports physical stock\",\n  \"sku\": null\n}",
+      "passed": false,
+      "error": "ValidationError"
+    },
+    {
+      "case": "quoted",
+      "candidate": "minimal",
+      "repeat": 5,
+      "raw": "{\"action\": \"stock reports physical stock\"}",
+      "passed": false,
+      "error": "ValidationError"
+    },
+    {
+      "case": "quoted",
+      "candidate": "minimal",
+      "repeat": 6,
+      "raw": "{\n  \"action\": \"stock reports physical stock\",\n  \"sku\": null\n}",
+      "passed": false,
+      "error": "ValidationError"
+    },
+    {
+      "case": "quoted",
+      "candidate": "minimal",
+      "repeat": 7,
+      "raw": "{\"action\": \"stock reports physical stock\", \"sku\": \"V\"}",
+      "passed": false,
+      "error": "ValidationError"
+    },
+    {
+      "case": "quoted",
+      "candidate": "minimal",
+      "repeat": 8,
+      "raw": "{\"action\": \"stock reports physical stock\", \"sku\": \"V\"}",
+      "passed": false,
+      "error": "ValidationError"
+    },
+    {
+      "case": "quoted",
+      "candidate": "minimal",
+      "repeat": 9,
+      "raw": "{\"action\": \"stock reports physical stock\", \"sku\": \"V\"}",
+      "passed": false,
+      "error": "ValidationError"
+    },
+    {
+      "case": "quoted",
+      "candidate": "minimal",
+      "repeat": 10,
+      "raw": "{\"action\": \"stock reports physical stock\", \"sku\": \"V\"}",
+      "passed": false,
+      "error": "ValidationError"
+    },
+    {
+      "case": "quoted",
+      "candidate": "contrast",
+      "repeat": 1,
+      "raw": "{ \"action\": \"stock reports physical stock\", \"sku\": \"V\" }",
+      "passed": false,
+      "error": "ValidationError"
+    },
+    {
+      "case": "quoted",
+      "candidate": "contrast",
+      "repeat": 2,
+      "raw": "{\n  \"action\": \"stock\",\n  \"sku\": \"V\"\n}",
+      "passed": true,
+      "error": null
+    },
+    {
+      "case": "quoted",
+      "candidate": "contrast",
+      "repeat": 3,
+      "raw": "{\n  \"action\": \"stock\",\n  \"sku\": \"V\"\n}",
+      "passed": true,
+      "error": null
+    },
+    {
+      "case": "quoted",
+      "candidate": "contrast",
+      "repeat": 4,
+      "raw": "{\"action\": \"stock reports physical stock\", \"sku\": \"V\"}",
+      "passed": false,
+      "error": "ValidationError"
+    },
+    {
+      "case": "quoted",
+      "candidate": "contrast",
+      "repeat": 5,
+      "raw": "{\n  \"action\": \"stock\",\n  \"sku\": \"V\"\n}",
+      "passed": true,
+      "error": null
+    },
+    {
+      "case": "quoted",
+      "candidate": "contrast",
+      "repeat": 6,
+      "raw": "{\"action\": \"report\", \"sku\": \"V\"}",
+      "passed": false,
+      "error": "ValidationError"
+    },
+    {
+      "case": "quoted",
+      "candidate": "contrast",
+      "repeat": 7,
+      "raw": "{\n  \"action\": \"stock\",\n  \"sku\": \"V\"\n}",
+      "passed": true,
+      "error": null
+    },
+    {
+      "case": "quoted",
+      "candidate": "contrast",
+      "repeat": 8,
+      "raw": "{\n  \"action\": \"stock\",\n  \"sku\": \"V\"\n}",
+      "passed": true,
+      "error": null
+    },
+    {
+      "case": "quoted",
+      "candidate": "contrast",
+      "repeat": 9,
+      "raw": "{\n  \"action\": \"stock\",\n  \"sku\": \"V\"\n}",
+      "passed": true,
+      "error": null
+    },
+    {
+      "case": "quoted",
+      "candidate": "contrast",
+      "repeat": 10,
+      "raw": "{\n  \"action\": \"stock\",\n  \"sku\": \"V\"\n}",
+      "passed": true,
+      "error": null
+    },
+    {
+      "case": "negated_purchase",
+      "candidate": "minimal",
+      "repeat": 1,
+      "raw": "{ \"action\": \"draft\", \"sku\": null }",
+      "passed": false,
+      "error": "ValueError"
+    },
+    {
+      "case": "negated_purchase",
+      "candidate": "minimal",
+      "repeat": 2,
+      "raw": "{\"action\": \"refuse\", \"sku\": null}",
+      "passed": false,
+      "error": null
+    },
+    {
+      "case": "negated_purchase",
+      "candidate": "minimal",
+      "repeat": 3,
+      "raw": "{\"action\": \"refuse\", \"sku\": null}",
+      "passed": false,
+      "error": null
+    },
+    {
+      "case": "negated_purchase",
+      "candidate": "minimal",
+      "repeat": 4,
+      "raw": "{\"action\": \"refuse\", \"sku\": null}",
+      "passed": false,
+      "error": null
+    },
+    {
+      "case": "negated_purchase",
+      "candidate": "minimal",
+      "repeat": 5,
+      "raw": "{\"action\": \"refuse\", \"sku\": null}",
+      "passed": false,
+      "error": null
+    },
+    {
+      "case": "negated_purchase",
+      "candidate": "minimal",
+      "repeat": 6,
+      "raw": "{\n  \"action\": \"draft\",\n  \"sku\": null\n}",
+      "passed": false,
+      "error": "ValueError"
+    },
+    {
+      "case": "negated_purchase",
+      "candidate": "minimal",
+      "repeat": 7,
+      "raw": "{\"action\": \"refuse\", \"sku\": null}",
+      "passed": false,
+      "error": null
+    },
+    {
+      "case": "negated_purchase",
+      "candidate": "minimal",
+      "repeat": 8,
+      "raw": "{\"action\": \"refuse\", \"sku\": null}",
+      "passed": false,
+      "error": null
+    },
+    {
+      "case": "negated_purchase",
+      "candidate": "minimal",
+      "repeat": 9,
+      "raw": "{\"action\": \"refuse\", \"sku\": null}",
+      "passed": false,
+      "error": null
+    },
+    {
+      "case": "negated_purchase",
+      "candidate": "minimal",
+      "repeat": 10,
+      "raw": "{\"action\": \"refuse\", \"sku\": null}",
+      "passed": false,
+      "error": null
+    },
+    {
+      "case": "negated_purchase",
+      "candidate": "contrast",
+      "repeat": 1,
+      "raw": "{action: refuse, sku: null}\n{action: draft, sku: V}",
+      "passed": false,
+      "error": "ValidationError"
+    },
+    {
+      "case": "negated_purchase",
+      "candidate": "contrast",
+      "repeat": 2,
+      "raw": "{\n  \"action\": \"refuse\",\n  \"sku\": null\n}",
+      "passed": false,
+      "error": null
+    },
+    {
+      "case": "negated_purchase",
+      "candidate": "contrast",
+      "repeat": 3,
+      "raw": "{\n  \"action\": \"refuse\",\n  \"sku\": null\n}",
+      "passed": false,
+      "error": null
+    },
+    {
+      "case": "negated_purchase",
+      "candidate": "contrast",
+      "repeat": 4,
+      "raw": "{\"action\": \"refuse\", \"sku\": null}",
+      "passed": false,
+      "error": null
+    },
+    {
+      "case": "negated_purchase",
+      "candidate": "contrast",
+      "repeat": 5,
+      "raw": "{\n  \"action\": \"refuse\",\n  \"sku\": null\n}",
+      "passed": false,
+      "error": null
+    },
+    {
+      "case": "negated_purchase",
+      "candidate": "contrast",
+      "repeat": 6,
+      "raw": "{\"action\": \"draft\", \"sku\": null}",
+      "passed": false,
+      "error": "ValueError"
+    },
+    {
+      "case": "negated_purchase",
+      "candidate": "contrast",
+      "repeat": 7,
+      "raw": "{\n  \"action\": \"refuse\",\n  \"sku\": null\n}",
+      "passed": false,
+      "error": null
+    },
+    {
+      "case": "negated_purchase",
+      "candidate": "contrast",
+      "repeat": 8,
+      "raw": "{\n  \"action\": \"draft\",\n  \"sku\": null\n}",
+      "passed": false,
+      "error": "ValueError"
+    },
+    {
+      "case": "negated_purchase",
+      "candidate": "contrast",
+      "repeat": 9,
+      "raw": "{\n  \"action\": \"refuse\",\n  \"sku\": null\n}",
+      "passed": false,
+      "error": null
+    },
+    {
+      "case": "negated_purchase",
+      "candidate": "contrast",
+      "repeat": 10,
+      "raw": "{\n  \"action\": \"refuse\",\n  \"sku\": null\n}",
+      "passed": false,
+      "error": null
+    },
+    {
+      "case": "new_product",
+      "candidate": "minimal",
+      "repeat": 1,
+      "raw": "{ \"action\": \"draft\", \"sku\": \"M\" }",
+      "passed": true,
+      "error": null
+    },
+    {
+      "case": "new_product",
+      "candidate": "minimal",
+      "repeat": 2,
+      "raw": "{\n  \"action\": \"draft\",\n  \"sku\": \"M\"\n}",
+      "passed": true,
+      "error": null
+    },
+    {
+      "case": "new_product",
+      "candidate": "minimal",
+      "repeat": 3,
+      "raw": "{\n  \"action\": \"draft\",\n  \"sku\": \"M\"\n}",
+      "passed": true,
+      "error": null
+    },
+    {
+      "case": "new_product",
+      "candidate": "minimal",
+      "repeat": 4,
+      "raw": "{\"action\": \"draft\", \"sku\": \"M\"}",
+      "passed": true,
+      "error": null
+    },
+    {
+      "case": "new_product",
+      "candidate": "minimal",
+      "repeat": 5,
+      "raw": "{\n  \"action\": \"draft\",\n  \"sku\": \"M\"\n}",
+      "passed": true,
+      "error": null
+    },
+    {
+      "case": "new_product",
+      "candidate": "minimal",
+      "repeat": 6,
+      "raw": "{\"action\": \"draft\", \"sku\": \"M\"}",
+      "passed": true,
+      "error": null
+    },
+    {
+      "case": "new_product",
+      "candidate": "minimal",
+      "repeat": 7,
+      "raw": "{\n  \"action\": \"draft\",\n  \"sku\": \"M\"\n}",
+      "passed": true,
+      "error": null
+    },
+    {
+      "case": "new_product",
+      "candidate": "minimal",
+      "repeat": 8,
+      "raw": "{\n  \"action\": \"draft\",\n  \"sku\": \"M\"\n}",
+      "passed": true,
+      "error": null
+    },
+    {
+      "case": "new_product",
+      "candidate": "minimal",
+      "repeat": 9,
+      "raw": "{\n  \"action\": \"draft\",\n  \"sku\": \"M\"\n}",
+      "passed": true,
+      "error": null
+    },
+    {
+      "case": "new_product",
+      "candidate": "minimal",
+      "repeat": 10,
+      "raw": "{\n  \"action\": \"draft\",\n  \"sku\": \"M\"\n}",
+      "passed": true,
+      "error": null
+    },
+    {
+      "case": "new_product",
+      "candidate": "contrast",
+      "repeat": 1,
+      "raw": "{\"action\": \"draft\", \"sku\": \"M\"}",
+      "passed": true,
+      "error": null
+    },
+    {
+      "case": "new_product",
+      "candidate": "contrast",
+      "repeat": 2,
+      "raw": "{\n  \"action\": \"draft\",\n  \"sku\": \"M\"\n}",
+      "passed": true,
+      "error": null
+    },
+    {
+      "case": "new_product",
+      "candidate": "contrast",
+      "repeat": 3,
+      "raw": "{\n  \"action\": \"draft\",\n  \"sku\": \"M\"\n}",
+      "passed": true,
+      "error": null
+    },
+    {
+      "case": "new_product",
+      "candidate": "contrast",
+      "repeat": 4,
+      "raw": "{\n  \"action\": \"draft\",\n  \"sku\": \"M\"\n}",
+      "passed": true,
+      "error": null
+    },
+    {
+      "case": "new_product",
+      "candidate": "contrast",
+      "repeat": 5,
+      "raw": "{\n  \"action\": \"draft\",\n  \"sku\": \"M\"\n}",
+      "passed": true,
+      "error": null
+    },
+    {
+      "case": "new_product",
+      "candidate": "contrast",
+      "repeat": 6,
+      "raw": "{\n  \"action\": \"draft\",\n  \"sku\": \"M\"\n}",
+      "passed": true,
+      "error": null
+    },
+    {
+      "case": "new_product",
+      "candidate": "contrast",
+      "repeat": 7,
+      "raw": "{\n  \"action\": \"draft\",\n  \"sku\": \"M\"\n}",
+      "passed": true,
+      "error": null
+    },
+    {
+      "case": "new_product",
+      "candidate": "contrast",
+      "repeat": 8,
+      "raw": "{\n  \"action\": \"draft\",\n  \"sku\": \"M\"\n}",
+      "passed": true,
+      "error": null
+    },
+    {
+      "case": "new_product",
+      "candidate": "contrast",
+      "repeat": 9,
+      "raw": "{\n  \"action\": \"draft\",\n  \"sku\": \"M\"\n}",
+      "passed": true,
+      "error": null
+    },
+    {
+      "case": "new_product",
+      "candidate": "contrast",
+      "repeat": 10,
+      "raw": "{\n  \"action\": \"draft\",\n  \"sku\": \"M\"\n}",
+      "passed": true,
+      "error": null
+    },
+    {
+      "case": "new_stock",
+      "candidate": "minimal",
+      "repeat": 1,
+      "raw": "{ \"action\": \"stock reports physical stock\", \"sku\": \"M\" }",
+      "passed": false,
+      "error": "ValidationError"
+    },
+    {
+      "case": "new_stock",
+      "candidate": "minimal",
+      "repeat": 2,
+      "raw": "{\n  \"action\": \"stock reports physical stock\",\n  \"sku\": \"M\"\n}",
+      "passed": false,
+      "error": "ValidationError"
+    },
+    {
+      "case": "new_stock",
+      "candidate": "minimal",
+      "repeat": 3,
+      "raw": "{\n  \"action\": \"stock reports physical stock\",\n  \"sku\": \"M\"\n}",
+      "passed": false,
+      "error": "ValidationError"
+    },
+    {
+      "case": "new_stock",
+      "candidate": "minimal",
+      "repeat": 4,
+      "raw": "{\n  \"action\": \"stock reports physical stock\",\n  \"sku\": \"M\"\n}",
+      "passed": false,
+      "error": "ValidationError"
+    },
+    {
+      "case": "new_stock",
+      "candidate": "minimal",
+      "repeat": 5,
+      "raw": "{\n  \"action\": \"stock reports physical stock\",\n  \"sku\": \"M\"\n}",
+      "passed": false,
+      "error": "ValidationError"
+    },
+    {
+      "case": "new_stock",
+      "candidate": "minimal",
+      "repeat": 6,
+      "raw": "{\"action\": \"stock reports physical stock\", \"sku\": \"M\"}",
+      "passed": false,
+      "error": "ValidationError"
+    },
+    {
+      "case": "new_stock",
+      "candidate": "minimal",
+      "repeat": 7,
+      "raw": "{\n  \"action\": \"stock reports physical stock\",\n  \"sku\": \"M\"\n}",
+      "passed": false,
+      "error": "ValidationError"
+    },
+    {
+      "case": "new_stock",
+      "candidate": "minimal",
+      "repeat": 8,
+      "raw": "{\n  \"action\": \"stock reports physical stock\",\n  \"sku\": \"M\"\n}",
+      "passed": false,
+      "error": "ValidationError"
+    },
+    {
+      "case": "new_stock",
+      "candidate": "minimal",
+      "repeat": 9,
+      "raw": "{\n  \"action\": \"stock reports physical stock\",\n  \"sku\": \"M\"\n}",
+      "passed": false,
+      "error": "ValidationError"
+    },
+    {
+      "case": "new_stock",
+      "candidate": "minimal",
+      "repeat": 10,
+      "raw": "{\n  \"action\": \"stock reports physical stock\",\n  \"sku\": \"M\"\n}",
+      "passed": false,
+      "error": "ValidationError"
+    },
+    {
+      "case": "new_stock",
+      "candidate": "contrast",
+      "repeat": 1,
+      "raw": "{ \"action\": \"stock reports physical stock\", \"sku\": \"M\" }",
+      "passed": false,
+      "error": "ValidationError"
+    },
+    {
+      "case": "new_stock",
+      "candidate": "contrast",
+      "repeat": 2,
+      "raw": "{\n  \"action\": \"stock reports physical stock\",\n  \"sku\": \"M\"\n}",
+      "passed": false,
+      "error": "ValidationError"
+    },
+    {
+      "case": "new_stock",
+      "candidate": "contrast",
+      "repeat": 3,
+      "raw": "{\n  \"action\": \"stock reports physical stock\",\n  \"sku\": \"M\"\n}",
+      "passed": false,
+      "error": "ValidationError"
+    },
+    {
+      "case": "new_stock",
+      "candidate": "contrast",
+      "repeat": 4,
+      "raw": "{\n  \"action\": \"stock\",\n  \"sku\": \"M\"\n}",
+      "passed": true,
+      "error": null
+    },
+    {
+      "case": "new_stock",
+      "candidate": "contrast",
+      "repeat": 5,
+      "raw": "{\n  \"action\": \"stock reports physical stock\",\n  \"sku\": \"M\"\n}",
+      "passed": false,
+      "error": "ValidationError"
+    },
+    {
+      "case": "new_stock",
+      "candidate": "contrast",
+      "repeat": 6,
+      "raw": "{\n  \"action\": \"stock reports physical stock\",\n  \"sku\": \"M\"\n}",
+      "passed": false,
+      "error": "ValidationError"
+    },
+    {
+      "case": "new_stock",
+      "candidate": "contrast",
+      "repeat": 7,
+      "raw": "{\n  \"action\": \"stock reports physical stock\",\n  \"sku\": \"M\"\n}",
+      "passed": false,
+      "error": "ValidationError"
+    },
+    {
+      "case": "new_stock",
+      "candidate": "contrast",
+      "repeat": 8,
+      "raw": "{\n  \"action\": \"stock reports physical stock\",\n  \"sku\": \"M\"\n}",
+      "passed": false,
+      "error": "ValidationError"
+    },
+    {
+      "case": "new_stock",
+      "candidate": "contrast",
+      "repeat": 9,
+      "raw": "{\n  \"action\": \"stock reports physical stock\",\n  \"sku\": \"M\"\n}",
+      "passed": false,
+      "error": "ValidationError"
+    },
+    {
+      "case": "new_stock",
+      "candidate": "contrast",
+      "repeat": 10,
+      "raw": "{\n  \"action\": \"stock reports physical stock\",\n  \"sku\": \"M\"\n}",
+      "passed": false,
+      "error": "ValidationError"
+    },
+    {
+      "case": "no_product",
+      "candidate": "minimal",
+      "repeat": 1,
+      "raw": "{ \"action\": \"stock reports physical stock\", \"sku\": null }",
+      "passed": false,
+      "error": "ValidationError"
+    },
+    {
+      "case": "no_product",
+      "candidate": "minimal",
+      "repeat": 2,
+      "raw": "{\n  \"action\": \"stock reports physical stock\",\n  \"sku\": null\n}",
+      "passed": false,
+      "error": "ValidationError"
+    },
+    {
+      "case": "no_product",
+      "candidate": "minimal",
+      "repeat": 3,
+      "raw": "{\n  \"action\": \"stock reports physical stock\",\n  \"sku\": \"vanilla\"\n}",
+      "passed": false,
+      "error": "ValidationError"
+    },
+    {
+      "case": "no_product",
+      "candidate": "minimal",
+      "repeat": 4,
+      "raw": "{\n  \"action\": \"stock reports physical stock\",\n  \"sku\": \"vanilla\"\n}",
+      "passed": false,
+      "error": "ValidationError"
+    },
+    {
+      "case": "no_product",
+      "candidate": "minimal",
+      "repeat": 5,
+      "raw": "{\n  \"action\": \"stock reports physical stock\",\n  \"sku\": null\n}",
+      "passed": false,
+      "error": "ValidationError"
+    },
+    {
+      "case": "no_product",
+      "candidate": "minimal",
+      "repeat": 6,
+      "raw": "{\n  \"action\": \"stock reports physical stock\",\n  \"sku\": \"vanilla\"\n}",
+      "passed": false,
+      "error": "ValidationError"
+    },
+    {
+      "case": "no_product",
+      "candidate": "minimal",
+      "repeat": 7,
+      "raw": "{\n  \"action\": \"stock reports physical stock\",\n  \"sku\": null\n}",
+      "passed": false,
+      "error": "ValidationError"
+    },
+    {
+      "case": "no_product",
+      "candidate": "minimal",
+      "repeat": 8,
+      "raw": "{\n  \"action\": \"stock reports physical stock\",\n  \"sku\": null\n}",
+      "passed": false,
+      "error": "ValidationError"
+    },
+    {
+      "case": "no_product",
+      "candidate": "minimal",
+      "repeat": 9,
+      "raw": "{\n  \"action\": \"stock reports physical stock\",\n  \"sku\": null\n}",
+      "passed": false,
+      "error": "ValidationError"
+    },
+    {
+      "case": "no_product",
+      "candidate": "minimal",
+      "repeat": 10,
+      "raw": "{\n  \"action\": \"stock reports physical stock\",\n  \"sku\": null\n}",
+      "passed": false,
+      "error": "ValidationError"
+    },
+    {
+      "case": "no_product",
+      "candidate": "contrast",
+      "repeat": 1,
+      "raw": "{ \"action\": \"stock reports physical stock\", \"sku\": null }",
+      "passed": false,
+      "error": "ValidationError"
+    },
+    {
+      "case": "no_product",
+      "candidate": "contrast",
+      "repeat": 2,
+      "raw": "{\n  \"action\": \"stock reports physical stock\",\n  \"sku\": null\n}",
+      "passed": false,
+      "error": "ValidationError"
+    },
+    {
+      "case": "no_product",
+      "candidate": "contrast",
+      "repeat": 3,
+      "raw": "{\n  \"action\": \"stock reports physical stock\",\n  \"sku\": \"vanilla\"\n}",
+      "passed": false,
+      "error": "ValidationError"
+    },
+    {
+      "case": "no_product",
+      "candidate": "contrast",
+      "repeat": 4,
+      "raw": "{\n  \"action\": \"stock reports physical stock\",\n  \"sku\": \"vanilla\"\n}",
+      "passed": false,
+      "error": "ValidationError"
+    },
+    {
+      "case": "no_product",
+      "candidate": "contrast",
+      "repeat": 5,
+      "raw": "{\n  \"action\": \"stock reports physical stock\",\n  \"sku\": null\n}",
+      "passed": false,
+      "error": "ValidationError"
+    },
+    {
+      "case": "no_product",
+      "candidate": "contrast",
+      "repeat": 6,
+      "raw": "{\n  \"action\": \"stock reports physical stock\",\n  \"sku\": \"vanilla\"\n}",
+      "passed": false,
+      "error": "ValidationError"
+    },
+    {
+      "case": "no_product",
+      "candidate": "contrast",
+      "repeat": 7,
+      "raw": "{\n  \"action\": \"stock reports physical stock\",\n  \"sku\": null\n}",
+      "passed": false,
+      "error": "ValidationError"
+    },
+    {
+      "case": "no_product",
+      "candidate": "contrast",
+      "repeat": 8,
+      "raw": "{\n  \"action\": \"stock reports physical stock\",\n  \"sku\": null\n}",
+      "passed": false,
+      "error": "ValidationError"
+    },
+    {
+      "case": "no_product",
+      "candidate": "contrast",
+      "repeat": 9,
+      "raw": "{\n  \"action\": \"stock reports physical stock\",\n  \"sku\": null\n}",
+      "passed": false,
+      "error": "ValidationError"
+    },
+    {
+      "case": "no_product",
+      "candidate": "contrast",
+      "repeat": 10,
+      "raw": "{\n  \"action\": \"stock reports physical stock\",\n  \"sku\": null\n}",
+      "passed": false,
+      "error": "ValidationError"
+    },
+    {
+      "case": "override",
+      "candidate": "minimal",
+      "repeat": 1,
+      "raw": "{ \"action\": \"refuse\", \"sku\": null }",
+      "passed": true,
+      "error": null
+    },
+    {
+      "case": "override",
+      "candidate": "minimal",
+      "repeat": 2,
+      "raw": "{\n  \"action\": \"draft\",\n  \"sku\": null\n}",
+      "passed": false,
+      "error": "ValueError"
+    },
+    {
+      "case": "override",
+      "candidate": "minimal",
+      "repeat": 3,
+      "raw": "{\n  \"action\": \"refuse\",\n  \"sku\": null\n}",
+      "passed": true,
+      "error": null
+    },
+    {
+      "case": "override",
+      "candidate": "minimal",
+      "repeat": 4,
+      "raw": "{\"action\": \"refuse\", \"sku\": null}",
+      "passed": true,
+      "error": null
+    },
+    {
+      "case": "override",
+      "candidate": "minimal",
+      "repeat": 5,
+      "raw": "{\n  \"action\": \"refuse\",\n  \"sku\": null\n}",
+      "passed": true,
+      "error": null
+    },
+    {
+      "case": "override",
+      "candidate": "minimal",
+      "repeat": 6,
+      "raw": "{\"action\": \"stock reports physical stock\", \"sku\": null}",
+      "passed": false,
+      "error": "ValidationError"
+    },
+    {
+      "case": "override",
+      "candidate": "minimal",
+      "repeat": 7,
+      "raw": "{\n  \"action\": \"refuse\",\n  \"sku\": null\n}",
+      "passed": true,
+      "error": null
+    },
+    {
+      "case": "override",
+      "candidate": "minimal",
+      "repeat": 8,
+      "raw": "{\n  \"action\": \"draft\",\n  \"sku\": null\n}",
+      "passed": false,
+      "error": "ValueError"
+    },
+    {
+      "case": "override",
+      "candidate": "minimal",
+      "repeat": 9,
+      "raw": "{\n  \"action\": null,\n  \"sku\": \"M\"\n}",
+      "passed": false,
+      "error": "ValidationError"
+    },
+    {
+      "case": "override",
+      "candidate": "minimal",
+      "repeat": 10,
+      "raw": "{\n  \"action\": \"draft\",\n  \"sku\": null\n}",
+      "passed": false,
+      "error": "ValueError"
+    },
+    {
+      "case": "override",
+      "candidate": "contrast",
+      "repeat": 1,
+      "raw": "{ \"action\": \"refuse\", \"sku\": null }",
+      "passed": true,
+      "error": null
+    },
+    {
+      "case": "override",
+      "candidate": "contrast",
+      "repeat": 2,
+      "raw": "{\n  \"action\": \"draft\",\n  \"sku\": null\n}",
+      "passed": false,
+      "error": "ValueError"
+    },
+    {
+      "case": "override",
+      "candidate": "contrast",
+      "repeat": 3,
+      "raw": "{\n  \"action\": \"refuse\",\n  \"sku\": null\n}",
+      "passed": true,
+      "error": null
+    },
+    {
+      "case": "override",
+      "candidate": "contrast",
+      "repeat": 4,
+      "raw": "{\"action\": \"refuse\", \"sku\": null}",
+      "passed": true,
+      "error": null
+    },
+    {
+      "case": "override",
+      "candidate": "contrast",
+      "repeat": 5,
+      "raw": "{\n  \"action\": \"stock\",\n  \"sku\": \"M\"\n}",
+      "passed": false,
+      "error": null
+    },
+    {
+      "case": "override",
+      "candidate": "contrast",
+      "repeat": 6,
+      "raw": "{\"action\": \"report\", \"sku\": null}",
+      "passed": false,
+      "error": "ValidationError"
+    },
+    {
+      "case": "override",
+      "candidate": "contrast",
+      "repeat": 7,
+      "raw": "{\n  \"action\": \"refuse\",\n  \"sku\": null\n}",
+      "passed": true,
+      "error": null
+    },
+    {
+      "case": "override",
+      "candidate": "contrast",
+      "repeat": 8,
+      "raw": "{\n  \"action\": \"draft\",\n  \"sku\": null\n}",
+      "passed": false,
+      "error": "ValueError"
+    },
+    {
+      "case": "override",
+      "candidate": "contrast",
+      "repeat": 9,
+      "raw": "{\n  \"action\": null,\n  \"sku\": \"M\"\n}",
+      "passed": false,
+      "error": "ValidationError"
+    },
+    {
+      "case": "override",
+      "candidate": "contrast",
+      "repeat": 10,
+      "raw": "{\n  \"action\": \"draft\",\n  \"sku\": null\n}",
+      "passed": false,
+      "error": "ValueError"
+    }
+  ],
+  "seconds": 69.2
+}
