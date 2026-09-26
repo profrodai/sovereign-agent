@@ -1,4 +1,4 @@
-# Chapter 6 — Reuse a tested opening procedure
+# Chapter 6 — In-context learning: why a skill's exact words must be tested
 
 > **Learn with Prof Rod** — *Build Your Always-On AI Agent From Scratch*.
 > **Read the full book and get the latest learning materials:** [https://profrod.ai/book](https://profrod.ai/book).
@@ -12,13 +12,177 @@ Lucy wants the same useful opening brief tomorrow, even when her message is only
 
 Moving the words into a file is easy. Deciding when those words become active is the engineering problem. A plausible revision might stop creating drafts and merely describe them. Another might demand a purchasing tool that this stage of the agent does not have. A third might pass an evaluation while someone changes the active configuration underneath it. A useful skill implementation makes each of those situations visible.
 
-In this chapter you will extract the opening procedure into a local TOML file, validate and stage an immutable version, evaluate it, and activate it only against the configuration you tested. You will then select the skill into the bounded context from [Chapter 5](../ch05/profrod-sovereign-agent-ch05-durable-memory-chapter.md). The model still uses the loop and dispatcher you built. Loading a procedure neither adds a Python function nor changes the authority to invoke one.
+Part A first measures why that matters: a skill is words in the model's context, and equally reasonable wordings and example orders change the answers. Part B then builds the machinery. In it you will extract the opening procedure into a local TOML file, validate and stage an immutable version, evaluate it, and activate it only against the configuration you tested. You will then select the skill into the bounded context from [Chapter 5](../ch05/profrod-sovereign-agent-ch05-durable-memory-chapter.md). The model still uses the loop and dispatcher you built. Loading a procedure neither adds a Python function nor changes the authority to invoke one.
 
 ## Learning objectives
 
-Distinguish a tool, a skill, a workflow and a policy; implement bounded local skill loading; preserve the identity of a staged version; separate staging, evaluation, activation and eligibility; and prove that an active skill reaches the model without granting additional tool authority.
+Part A treats a prompt as a random variable. After it you should be able to:
+
+- explain in-context learning as conditioning, with no change to the model;
+- measure a prompt's score as one draw from a distribution of equivalent prompts, and compare its spread with case-sampling noise;
+- show that few-shot examples, and their order, can help, do nothing, or hurt;
+- compare two prompts with a paired test, and explain why the winner must be re-measured.
+
+Part B builds versioned skills. After it you should be able to:
+
+- distinguish a tool, a skill, a workflow and a policy; implement bounded local skill loading; preserve the identity of a staged version; separate staging, evaluation, activation and eligibility; and prove that an active skill reaches the model without granting additional tool authority.
 
 The deliverable is an opening-check procedure whose version survives a process restart and whose activation has an observable evaluation result. You will reproduce failures involving changed version content, an incomplete evaluation, a missing required tool and a changed configuration. The default exercises use authored model responses. An optional local-model run measures a few actual decisions; it does not turn a small case suite into a general guarantee about the model.
+
+## Part A: a prompt is one draw from a distribution
+
+A skill is instructions, and perhaps examples, placed in the model's context. Nothing about the model changes: the same weights compute a different next-token distribution because the tokens before it differ, as [Chapter 1](../ch01/profrod-sovereign-agent-ch01-first-model-call-chapter.md) showed. This is **in-context learning**. It makes a skill cheap to write and cheap to change. It also means that small, meaning-preserving changes to the words can change the answers.
+
+This part measures how much. Treat the prompt as a random variable. There are many equally reasonable ways to write the same instruction and to order the same examples, and the one you picked is one draw. Its score is one sample from a distribution of scores.
+
+The functions live in [the chapter's learner file](../learner/profrod_sovereign_agent_ch06_prompt_sensitivity_learner.py).
+
+```python
+import json
+import runpy
+
+sens = runpy.run_path(
+    "book/textbook/learner/profrod_sovereign_agent_ch06_prompt_sensitivity_learner.py"
+)
+measured = json.loads(
+    open("docs/evidence/book-ch06/ch06-prompt-sensitivity-receipt-v1.json").read()
+)
+```
+
+### The experiment
+
+The chapter's experiment asks a model to classify twenty-four of Lucy's requests with one of four labels:
+
+- **stock:** report a stock level;
+- **draft:** prepare an unsent replenishment draft;
+- **clarify:** the product is missing or unclear;
+- **refuse:** the request would buy, pay or send an order.
+
+Every request is asked under twenty-four prompts. There are six paraphrases of the same instruction, all stating the same four rules. Each is asked with no examples, and with the same four labeled examples in three different orders. Everything else is held fixed: the model, temperature zero, and the cases.
+
+```bash
+uv run python \
+    book/textbook/experiments/profrod_sovereign_agent_textbook_ch06_prompt_sensitivity_v1.py \
+    --out ch06-prompt-sensitivity-receipt.json
+```
+
+One run, recorded on 2026-09-26 with Ollama 0.32.5 on macOS (arm64), took two and a half minutes for 1,152 answers.
+
+### Measured: the spread across equivalent prompts
+
+**Listing:** Accuracy across paraphrases, with and without examples.
+
+```python
+for m in measured["models"]:
+    zero, few = m["zero_shot_paraphrases"], m["few_shot_prompts"]
+    print(
+        f"{m['model']:13} no examples: mean {zero['mean']:.3f}, range {zero['min']:.3f}-{zero['max']:.3f}"
+        f" | with examples: mean {few['mean']:.3f}, range {few['min']:.3f}-{few['max']:.3f}"
+    )
+    print(
+        f"{'':13} case-sampling sd {m['case_sampling_sd_at_mean']}, "
+        f"prompt sd {zero['sd']} (paraphrases), {few['sd']} (with examples)"
+    )
+```
+
+```text
+qwen2.5:0.5b  no examples: mean 0.389, range 0.250-0.458 | with examples: mean 0.498, range 0.375-0.625
+              case-sampling sd 0.102, prompt sd 0.082 (paraphrases), 0.075 (with examples)
+qwen2.5:1.5b  no examples: mean 0.590, range 0.375-0.708 | with examples: mean 0.567, range 0.375-0.750
+              case-sampling sd 0.101, prompt sd 0.125 (paraphrases), 0.111 (with examples)
+```
+
+Six instructions that say the same thing produce accuracies from 0.375 to 0.708 on the larger model. Across prompts, the standard deviation is 0.08 to 0.13. That is as large as the spread you would expect from drawing a fresh set of twenty-four cases, about 0.10. **The choice of wording is as big a source of variation as the choice of test cases.** A score from one prompt says as much about the prompt as about the model.
+
+### Examples help one model and not the other, and their order matters
+
+Few-shot examples are the textbook remedy. Here they raised the smaller model's mean accuracy by eleven points and left the larger model's slightly lower. The order of the same four examples mattered as much as including them.
+
+**Listing:** How far reordering the same four examples moves accuracy, per paraphrase.
+
+```python
+for m in measured["models"]:
+    print(
+        f"{m['model']:13} range across three orders, per paraphrase: {m['order_range_per_paraphrase']}"
+    )
+```
+
+```text
+qwen2.5:0.5b  range across three orders, per paraphrase: [0.208, 0.167, 0.125, 0.041, 0.041, 0.084]
+qwen2.5:1.5b  range across three orders, per paraphrase: [0.208, 0.292, 0.167, 0.291, 0.167, 0.167]
+```
+
+```mermaid
+xychart-beta
+    title "qwen2.5:1.5b: six equivalent instructions"
+    x-axis ["Paraphrase 1", "2", "3", "4", "5", "6"]
+    y-axis "Accuracy on 24 requests" 0 --> 1
+    bar [0.708, 0.583, 0.625, 0.708, 0.542, 0.375]
+    line [0.75, 0.75, 0.667, 0.708, 0.667, 0.542]
+    line [0.542, 0.458, 0.5, 0.417, 0.5, 0.375]
+```
+
+**Figure:** Bars are each instruction with no examples; the lines are the same instruction with the same four examples in two different orders. The wording moves accuracy by a third, and the order of four examples by up to 29 points.
+
+On the larger model, reordering four examples moved one paraphrase's accuracy by 29 points. Models are sensitive to which example comes last, among other things, and this sensitivity is not something a reader of the prompt can see.
+
+### Most cases do not have a stable answer
+
+**Listing:** Agreement across all twenty-four prompts, and the best prompt against the worst.
+
+```python
+for m in measured["models"]:
+    duel = m["best_vs_worst"]
+    print(
+        f"{m['model']:13} all 24 prompts agree on {m['all_prompts_agree_share']:.0%} of cases; "
+        f"best {m['best']} vs worst {m['worst']}: {duel['only_first']}-{duel['only_second']}, "
+        f"McNemar p = {duel['mcnemar_p']}"
+    )
+```
+
+```text
+qwen2.5:0.5b  all 24 prompts agree on 8% of cases; best p1-order_b vs worst p2-zero: 12-3, McNemar p = 0.0352
+qwen2.5:1.5b  all 24 prompts agree on 29% of cases; best p1-order_b vs worst p5-order_c: 9-0, McNemar p = 0.00391
+```
+
+For the smaller model, all twenty-four prompts gave the same verdict on only two of twenty-four cases. The best and worst prompts differ by more than noise, by [Chapter 15](../ch15/profrod-sovereign-agent-ch15-agent-evaluation-chapter.md)'s paired test. But choosing the best of twenty-four prompts on these same cases would be [Chapter 16](../ch16/profrod-sovereign-agent-ch16-controlled-improvement-chapter.md)'s winner's curse. The chosen prompt's score must be measured again on cases it was not chosen on.
+
+### Following the format is part of what a prompt controls
+
+Every prompt told the model to answer with one of four words. Some answers did not.
+
+**Listing:** Answers that used none of the four labels.
+
+```python
+for model in ("qwen2.5:0.5b", "qwen2.5:1.5b"):
+    runs = [r for r in measured["runs"] if r["model"] == model]
+    unlabeled = [r for r in runs if r["label"] is None]
+    common = {}
+    for r in unlabeled:
+        word = r["answer"].strip().lower().rstrip(".")
+        common[word] = common.get(word, 0) + 1
+    top = sorted(common.items(), key=lambda kv: -kv[1])[:3]
+    print(f"{model:13} {len(unlabeled)} of {len(runs)} answers had no label; most common: {top}")
+```
+
+```text
+qwen2.5:0.5b  66 of 576 answers had no label; most common: [('order', 32), ('confirm', 10), ('report', 7)]
+qwen2.5:1.5b  65 of 576 answers had no label; most common: [('report', 31), ('pay', 24), ('send', 5)]
+```
+
+About one answer in nine names the request's own verb instead of a label: "pay" for a payment request, "report" for a stock question. These are scored wrong, and deliberately so. The prompt asked for one of four labels, and a program that routes on the label cannot use "pay". A grader that accepted synonyms would have measured something else. As Chapter 5 found, a grader's rules are part of the measurement, and they must be stated.
+
+### What this means for a skill
+
+Three rules follow, and the rest of this chapter builds them into the skill machinery.
+
+- **The exact bytes of a skill are the thing evaluated.** Rewording or reordering is a new candidate, not an edit. This is why skills here are immutable, versioned, and evaluated before activation.
+- **Evaluate a skill across its reasonable variants when you can.** Report the spread, not only one score.
+- **Compare skills on the same cases with a paired test, and confirm the winner on new cases.**
+
+## Part B: reuse a tested opening procedure
+
+Part A showed that the words of a procedure are part of its behavior. This part turns the opening procedure into a versioned skill whose exact bytes are staged, evaluated and activated.
 
 ## Decide which part of the behavior should be data
 
@@ -572,6 +736,8 @@ with patch.object(sys, "argv", ["ch06.py"]):
 ```
 
 ```text
+ok   labels, spread and agreement by their definitions
+ok   every prompt's accuracy recomputes from the retained answers
 Active before evaluation: 0
 Candidate cases: 3 True
 Active after reopening: 1
@@ -618,15 +784,29 @@ Stage version 2 with changed content, demonstrate that version 1 remains stored,
 
 In isolated scratch state, propose instructions that ask for an unavailable purchase tool. Inspect both the model's requests and the dispatcher's response. A model that never tries the tool has not tested the refusal boundary; invoke the tool request directly as a separate probe. Report model behavior and enforced authority as distinct observations.
 
+### Exercise 5: measure your own paraphrases
+
+Write four paraphrases of the opening procedure's instruction that you believe mean the same thing. Run each on the chapter's three visible cases and on three new ones, and report the mean and range. Then say whether the procedure you would activate is the best of the four, and how you would confirm it.
+
+### Exercise 6: find the order effect
+
+Take the chapter's four examples and run all twenty-four orders on the twenty-four requests with one paraphrase. Plot accuracy against which label came last. Explain what you would do with a skill whose accuracy depends on the order of its examples.
+
 ## Active recall
+
+Without rereading, explain why a prompt's score is one sample from a distribution, and why the prompt spread measured here is as large as case-sampling noise. Why is rewording a skill a new version, not an edit? Then:
 
 Why is a requirement list unable to grant permission? What does the byte-limit-plus-one read detect that a preliminary size check cannot guarantee? Why does changing a comment preserve validated content while changing an instruction requires a new version? Why can an evaluation become stale even if the candidate itself did not change? Which result in this chapter measures model decisions, and which merely exercises authored responses?
 
 ## Vocabulary
 
+**In-context learning** changes a model's behavior through the tokens in its context, not its weights. **Few-shot examples** are labeled demonstrations placed in the prompt. **Prompt sensitivity** is the variation of a model's answers across equivalent prompts.
+
 A **skill** is versioned procedural guidance selected into context. **Staging** validates and retains a candidate without making it active. **Eligibility** checks whether a skill's requirements fit a turn's existing capabilities. An **active configuration snapshot** identifies the selected guidance and provenance at one observation. **Evaluated activation** changes the selected version only after named checks pass against an unchanged baseline.
 
 ## Summary
+
+A skill works through in-context learning, so its exact words are part of its behavior. Across six equivalent instructions, a model's accuracy ranged from 0.375 to 0.708. Reordering four examples moved it by up to 29 points. For the smaller model, all twenty-four prompts agreed on only two cases in twenty-four. Treat a prompt's score as one draw, compare prompts on the same cases, and version the exact bytes you evaluated.
 
 You extracted the opening procedure from a repeated Python message into a bounded local file, built validation and immutable staging, and implemented an activation transaction tied to named evaluation cases and an active-state snapshot. The context builder now combines that procedure with Lucy's preferences while the dispatcher retains its independent tool boundary. Next, [Chapter 7](../ch07/profrod-sovereign-agent-ch07-durable-inbox-outbox-chapter.md) defines the durable work and report foundation; [Chapter 8](../ch08/profrod-sovereign-agent-ch08-telegram-messaging-chapter.md) connects Telegram to it. Chapter 7 is currently a construction brief, and the phone demonstration uses the supplied reference queue until that learner handoff is authored.
 
