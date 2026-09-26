@@ -18,6 +18,7 @@ Each file below is the completed comparison implementation for one chapter's con
 | 5 | `profrod_sovereign_agent_ch05_retrieval_learner.py` | BM25, cosine similarity, precision@k, recall@k, reciprocal rank and a context packer |
 | 6 | `profrod_sovereign_agent_ch06_prompt_sensitivity_learner.py` | Labels from free text, accuracy, spread across prompts, case-sampling noise and agreement |
 | 7 | `profrod_sovereign_agent_ch07_work_queue_learner.py` | The durable work queue |
+| 14 | `profrod_sovereign_agent_ch14_injection_learner.py` | Attempted-action checks, attack success rates with intervals, and spotlighting |
 | 15 | `profrod_sovereign_agent_ch15_evaluation_statistics_learner.py` | Wilson intervals, clustered standard errors, McNemar's test, sample size, pass@k and kappa |
 | 16 | `profrod_sovereign_agent_ch16_optimization_learner.py` | The expected maximum of k normals, the winner's curse, and Bradley–Terry ratings fitted from preferences |
 | 18 | `profrod_sovereign_agent_ch18_inference_economics_learner.py` | Decode ceilings, arithmetic intensity, KV-cache memory, latency, percentiles, Little's law and loop cost |
