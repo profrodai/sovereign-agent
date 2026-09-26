@@ -27,7 +27,7 @@ Run from the complete repository root using the [frozen environment](profrod-sov
 | 13 | [Connect an external tool with MCP](ch13/profrod-sovereign-agent-ch13-mcp-tools-chapter.md) | PLANNED — no executable checkpoint |
 | 14 | [Isolate tools and untrusted content](ch14/profrod-sovereign-agent-ch14-tool-isolation-chapter.md) | [ch14.py](checkpoints/profrod_sovereign_agent_ch14_tool_isolation_checkpoint.py) |
 | 15 | [Evaluation as measurement: error bars and paired comparisons](ch15/profrod-sovereign-agent-ch15-agent-evaluation-chapter.md) | [ch15.py](checkpoints/profrod_sovereign_agent_ch15_agent_evaluation_checkpoint.py) |
-| 16 | [Optimizing against an evaluation: the winner's curse, preferences and evaluated changes](ch16/profrod-sovereign-agent-ch16-controlled-improvement-chapter.md) | [ch16.py](checkpoints/profrod_sovereign_agent_ch16_controlled_improvement_checkpoint.py) |
+| 16 | [Optimizing against an evaluation: the winner's curse and preferences](ch16/profrod-sovereign-agent-ch16-controlled-improvement-chapter.md) | [ch16.py](checkpoints/profrod_sovereign_agent_ch16_controlled_improvement_checkpoint.py) |
 | 17 | [Delegate one bounded task](ch17/profrod-sovereign-agent-ch17-bounded-delegation-chapter.md) | [ch17.py](checkpoints/profrod_sovereign_agent_ch17_bounded_delegation_checkpoint.py) |
 | 18 | [What a model call costs, and a deployment that survives](ch18/profrod-sovereign-agent-ch18-deployment-restoration-chapter.md) | [ch18.py](checkpoints/profrod_sovereign_agent_ch18_deployment_restoration_checkpoint.py) |
 | 19 | [Lucy leaves the shop for a day](ch19/profrod-sovereign-agent-ch19-integrated-shop-day-chapter.md) | [ch19.py](checkpoints/profrod_sovereign_agent_ch19_integrated_shop_day_checkpoint.py) |
