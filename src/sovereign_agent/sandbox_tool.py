@@ -160,6 +160,10 @@ def run_python(
                     os.killpg(process.pid, signal.SIGKILL)
                 except ProcessLookupError:
                     pass
+                except PermissionError:
+                    # macOS: EPERM for an exited, unreaped group leader (see mcp_client.close).
+                    if process.poll() is None:
+                        raise
             process.wait(timeout=5)
             process.stdout.close()
             subprocess.run(
