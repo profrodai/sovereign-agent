@@ -18,6 +18,7 @@ Each file below is the completed comparison implementation for one chapter's con
 | 5 | `profrod_sovereign_agent_ch05_retrieval_learner.py` | BM25, cosine similarity, precision@k, recall@k, reciprocal rank and a context packer |
 | 7 | `profrod_sovereign_agent_ch07_work_queue_learner.py` | The durable work queue |
 | 15 | `profrod_sovereign_agent_ch15_evaluation_statistics_learner.py` | Wilson intervals, clustered standard errors, McNemar's test, sample size, pass@k and kappa |
+| 16 | `profrod_sovereign_agent_ch16_optimization_learner.py` | The expected maximum of k normals, the winner's curse, and Bradley–Terry ratings fitted from preferences |
 | 18 | `profrod_sovereign_agent_ch18_inference_economics_learner.py` | Decode ceilings, arithmetic intensity, KV-cache memory, latency, percentiles, Little's law and loop cost |
 
 Each chapter's checkpoint loads its file, so changing a function's essential behavior changes the executable result. The live adapters still use supplied bounded HTTP transport, and later reference checkpoints import other supplied runtime components. See [code ownership](../profrod-sovereign-agent-textbook-ownership.md) and the [construction roadmap](../profrod-sovereign-agent-textbook-expansion.md) before treating these files as a finished nineteen-chapter agent.

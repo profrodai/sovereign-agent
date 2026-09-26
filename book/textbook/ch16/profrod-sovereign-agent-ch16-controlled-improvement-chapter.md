@@ -1,4 +1,4 @@
-# Chapter 16 — Improve behavior with evaluated changes
+# Chapter 16 — Optimizing against an evaluation: the winner's curse, preferences and evaluated changes
 
 > **Learn with Prof Rod** — *Build Your Always-On AI Agent From Scratch*.
 > **Read the full book and get the latest learning materials:** [https://profrod.ai/book](https://profrod.ai/book).
@@ -10,15 +10,214 @@
 
 Lucy corrects the morning brief: keep monetary amounts in USD and make the closing sentence concise. The agent could simply add that sentence to its current context. Tomorrow, however, the conversation may be different, and a later correction may conflict with it. We need to decide what kind of change the feedback calls for and how to retain it without silently replacing known behavior.
 
-This chapter builds the path from an attributed correction to an immutable candidate, an evaluation report and an explicit activation. A regressing candidate must leave the active procedure intact. A passing candidate must still match the configuration it was tested against. Returning to an earlier version is another evaluated change, with history retained.
+Part A asks what choosing the best candidate on an evaluation does to that evaluation, and how preference data becomes the scores frontier labs optimize. It derives the winner's curse and the Bradley–Terry model, and measures a prompt search on a real model. Part B builds the path from an attributed correction to an immutable candidate, an evaluation report and an explicit activation. A regressing candidate must leave the active procedure intact. A passing candidate must still match the configuration it was tested against. Returning to an earlier version is another evaluated change, with history retained.
 
 The live comparison in Chapter 15 showed that the frozen opening procedure improved named case outcomes over the same model without that guidance. Here we investigate the machinery that makes a procedure change reviewable. Our deterministic model fixture responds to the candidate text so we can force success, regression and a configuration race. That fixture proves control behavior; it does not measure the language quality of a new style instruction.
 
 ## Learning objectives
 
-Diagnose whether feedback belongs in a fact, preference, skill, prompt, tool or model change; retain its source and the exact candidate bytes; evaluate before activation; reject changed evaluation conditions; and perform rollback as a new, recorded operation.
+Part A treats improvement as optimization against a measurement. After it you should be able to:
+
+- derive the winner's curse from the expected maximum of k noisy scores, and estimate how much a chosen candidate's score is inflated;
+- explain when selection on a development set generalizes, and when it only finds noise;
+- derive the Bradley–Terry model and its likelihood gradient, and fit ratings from pairwise preferences;
+- explain where reward models, RL fine-tuning and preference optimization fit, and why they need held-out evaluation.
+
+Part B builds evaluated changes. After it you should be able to:
+
+- diagnose whether feedback belongs in a fact, preference, skill, prompt, tool or model change; retain its source and the exact candidate bytes; evaluate before activation; reject changed evaluation conditions; and perform rollback as a new, recorded operation.
 
 The deliverable is a tested improvement cycle with immutable versions, saved reports, feedback provenance and a retained active configuration. The checkpoint rejects a bad currency instruction, activates a passing candidate, reevaluates an earlier version for rollback and refuses a candidate whose surrounding skill configuration changed during evaluation.
+
+## Part A: optimizing against an evaluation
+
+Improving an agent means trying changes and keeping the ones that score better. The score comes from an evaluation, and [Chapter 15](../ch15/profrod-sovereign-agent-ch15-agent-evaluation-chapter.md) showed that an evaluation is a noisy measurement. This part asks two questions. What happens when you choose the best of many candidates on a noisy measurement? And how does preference data turn into the scores that frontier labs optimize?
+
+The functions live in [the chapter's learner file](../learner/profrod_sovereign_agent_ch16_optimization_learner.py).
+
+```python
+import json
+import runpy
+
+opt = runpy.run_path("book/textbook/learner/profrod_sovereign_agent_ch16_optimization_learner.py")
+measured = json.loads(open("docs/evidence/book-ch16/ch16-optimization-receipt-v1.json").read())
+```
+
+### The winner's curse
+
+Suppose $k$ candidates are equally good, and each is scored with independent noise of standard deviation $\sigma$. Choosing the highest score picks the luckiest candidate, so the winner's measured score exceeds its true score by, on average,
+
+$
+\sigma \cdot \mathbb{E}\Bigl[\max_{1 \le i \le k} Z_i\Bigr], \qquad Z_i \sim \mathcal{N}(0, 1).
+$
+
+The maximum of $k$ standard normals has density $k\,\varphi(x)\,\Phi(x)^{k-1}$, because all $k$ must fall at or below $x$ and one must be at $x$. Its expectation grows slowly with $k$; for large $k$ it approaches $\sqrt{2 \ln k}$, which overstates it at the small $k$ below.
+
+**Listing:** The expected maximum of $k$ standard normals.
+
+```python
+for k in (1, 2, 4, 8, 16):
+    print(k, round(opt["expected_max_normal"](k), 3) + 0.0)
+```
+
+```text
+1 0.0
+2 0.564
+4 1.029
+8 1.424
+16 1.766
+```
+
+```mermaid
+xychart-beta
+    title "Expected best of k standard normal draws"
+    x-axis "Candidates (k)" [1, 2, 4, 8, 16]
+    y-axis "Standard deviations above the mean" 0 --> 2
+    line [0, 0.564, 1.029, 1.424, 1.766]
+```
+
+**Figure:** The expected maximum grows quickly at first and then slowly. Each doubling of the candidates adds less inflation, but it never stops adding.
+
+Now apply it to an evaluation like Chapter 15's. Take sixteen candidate instructions that are all exactly as good, passing each case with probability 0.5. Score them on six cases, and keep the best.
+
+**Listing:** The winner's measured score against its true score.
+
+```python
+curse = measured["offline"]["winners_curse_16_equal_candidates_true_rate_0.5"]
+for cases, row in curse.items():
+    print(
+        f"{cases:>2} cases: chosen candidate measures {row['selected_measured']}, truly {row['selected_true']}"
+    )
+```
+
+```text
+6 cases: chosen candidate measures 0.842, truly 0.5
+60 cases: chosen candidate measures 0.614, truly 0.5
+```
+
+On six cases the winner looks like an 84% candidate, and it is a 50% one. Nothing was learned: the search found noise. On sixty cases the optimism falls to eleven points, but it does not vanish. This is **Goodhart's law** at its most mechanical: when a measure becomes a target, the candidates that score best on it are, in part, the ones it mismeasures. Two rules follow. **Report the chosen candidate's score on data the selection never saw**, a fresh holdout, and **expect the winning score to shrink there**.
+
+### Measured: a prompt search on a real model
+
+The experiment searched instructions for Chapter 15's request-interpretation task with `qwen2.5:1.5b` at temperature zero. The sixteen candidates were Chapter 15's contract plus every subset of four hint sentences: quoted instructions, negation, "proposals do not place orders", and reporting-only requests. Each was scored on the six development cases and, separately, on the eight transfer cases.
+
+```bash
+uv run python book/textbook/experiments/profrod_sovereign_agent_textbook_ch16_optimization_v1.py \
+    --out ch16-optimization-receipt.json --live
+```
+
+**Listing:** Development and transfer scores for all sixteen instructions.
+
+```python
+search = measured["prompt_search"]
+for v in search["variants"]:
+    print(f"hints {v['hints']}: development {v['dev']}/6, transfer {v['transfer']}/8")
+for key in (
+    "tied_at_best_dev",
+    "chosen",
+    "chosen_transfer_rate",
+    "mean_transfer_rate_all_variants",
+    "dev_transfer_correlation",
+):
+    print(key, search[key])
+```
+
+```text
+hints 0000: development 1/6, transfer 3/8
+hints 0001: development 1/6, transfer 3/8
+hints 0010: development 1/6, transfer 2/8
+hints 0011: development 1/6, transfer 3/8
+hints 0100: development 3/6, transfer 5/8
+hints 0101: development 3/6, transfer 5/8
+hints 0110: development 3/6, transfer 5/8
+hints 0111: development 3/6, transfer 5/8
+hints 1000: development 1/6, transfer 3/8
+hints 1001: development 1/6, transfer 3/8
+hints 1010: development 1/6, transfer 3/8
+hints 1011: development 1/6, transfer 3/8
+hints 1100: development 3/6, transfer 5/8
+hints 1101: development 3/6, transfer 5/8
+hints 1110: development 3/6, transfer 5/8
+hints 1111: development 3/6, transfer 4/8
+tied_at_best_dev 8
+chosen {'hints': '0100', 'dev': 3, 'transfer': 5}
+chosen_transfer_rate 0.625
+mean_transfer_rate_all_variants 0.484
+dev_transfer_correlation 0.949
+```
+
+```mermaid
+xychart-beta
+    title "Sixteen instructions: development and transfer pass rates"
+    x-axis ["0000", "0001", "0010", "0011", "0100", "0101", "0110", "0111", "1000", "1001", "1010", "1011", "1100", "1101", "1110", "1111"]
+    y-axis "Pass rate" 0 --> 1
+    bar [0.17, 0.17, 0.17, 0.17, 0.5, 0.5, 0.5, 0.5, 0.17, 0.17, 0.17, 0.17, 0.5, 0.5, 0.5, 0.5]
+    line [0.375, 0.375, 0.25, 0.375, 0.625, 0.625, 0.625, 0.625, 0.375, 0.375, 0.375, 0.375, 0.625, 0.625, 0.625, 0.5]
+```
+
+**Figure:** Bars are development pass rates; the line is transfer. Every instruction with the second hint (negation) steps up on both.
+
+Here the search worked, and the reason is instructive. One hint, the second (negation), carried the whole effect. Every instruction containing it scored three of six on development and five of eight on transfer (four when all four hints were present). Every instruction without it scored one of six and two or three of eight. Development and transfer scores correlate at 0.95. The chosen instruction transferred *better* than its development score suggested.
+
+The winner's curse is about noise, and this search had little. At temperature zero the model answers each case the same way every time, and the one real difference between candidates was large. **Selection generalizes when true differences between candidates are large compared with the noise of the score.** It fails when candidates are close, which is exactly where an optimizer spends its effort.
+
+Two warnings survive the good result.
+
+- Eight instructions tied at the best development score. Six development cases could not tell apart the three hints that did nothing on them.
+- Adding every hint cost one transfer case. One case is within the noise, so this is not evidence that more hints hurt; the evaluation is too small to say.
+
+### Preferences, and the Bradley–Terry model
+
+Pass-or-fail cases need an authored answer. For open-ended outputs, such as an explanation or a brief, labs instead collect **preferences**: shown two answers, a person says which is better. The **Bradley–Terry model** turns pairwise preferences into a score per answer. Give each item $i$ a rating $r_i$, and model
+
+$
+P(i \succ j) = \frac{e^{r_i}}{e^{r_i} + e^{r_j}} = \sigma(r_i - r_j),
+$
+
+where $\sigma$ is the logistic function. Only differences matter, so the ratings are fixed up to a shared constant; we center them at zero. Given observed (winner, loser) pairs, the **log likelihood** is $\sum \log \sigma(r_w - r_\ell)$. Its gradient for item $i$ is
+
+$
+\frac{\partial \log L}{\partial r_i} = \sum_{\text{comparisons with } i} \bigl(\mathbf{1}[i \text{ won}] - P(i \text{ wins})\bigr):
+$
+
+actual wins minus expected wins. Gradient ascent on it recovers the ratings.
+
+**Listing:** Recover known ratings from 3,000 simulated preferences.
+
+```python
+bt = measured["offline"]["bradley_terry"]
+print("true:  ", [r + 0.0 for r in bt["true_ratings_centered"]])
+print("fitted:", bt["fitted"], "largest error", bt["max_abs_error"])
+print("log likelihood, fitted", bt["log_likelihood_fitted"], "true", bt["log_likelihood_true"])
+print("P(best beats worst):", round(opt["bradley_terry"](0.8, -1.0), 3))
+```
+
+```text
+true:   [-1.0, -0.3, 0.0, 0.5, 0.8]
+fitted: [-0.939, -0.303, -0.032, 0.523, 0.751] largest error 0.061
+log likelihood, fitted -1796.53 true -1797.62
+P(best beats worst): 0.858
+```
+
+The fitted ratings are within 0.06 of the truth, and their likelihood is slightly higher than the true ratings'. That is what maximum likelihood means: it fits this sample, including its noise.
+
+### Where reward models and RL fine-tuning fit
+
+A **reward model** is Bradley–Terry with the table of ratings replaced by a network $r_\theta(x, y)$ that scores an answer $y$ to a prompt $x$. It is trained on preference pairs by minimizing $-\log \sigma\bigl(r_\theta(x, y_w) - r_\theta(x, y_\ell)\bigr)$, which is exactly the negative of the log likelihood above. **Reinforcement learning from human feedback** then adjusts the model to produce answers the reward model scores highly. Methods such as direct preference optimization skip the separate reward model and apply the same Bradley–Terry likelihood to the model's own probabilities.
+
+Both run straight into this part's first lesson. The reward model is a measurement, and optimizing against it finds the answers it mismeasures, called **reward hacking**. That is why these methods add a penalty for moving far from the original model, and why labs evaluate the result on held-out preferences and tasks, not on the reward model itself.
+
+This book's agent changes skills, not weights. The discipline is the same at both scales:
+
+- choose on one set of cases and report on another;
+- keep the history of every change;
+- distrust a score that the change was chosen to raise.
+
+The rest of this chapter builds that discipline for Lucy's skills.
+
+## Part B: improve behavior with evaluated changes
+
+Part A showed what optimizing against a measurement does. This part builds the machinery that keeps it honest: proposals, frozen evaluations, activation and rollback.
 
 ## Diagnose the correction before choosing where to write
 
@@ -553,6 +752,14 @@ Activate a version, then introduce a surrounding skill configuration that makes 
 
 Choose a bounded presentation requirement that you can specify precisely, such as a required closing sentence. Write independent positive and negative examples before adding the check. Evaluate a candidate against both old business cases and the new requirement. State what aspects of concision or usefulness still need human review despite that extra check.
 
+### Exercise 5: find the noise floor
+
+Repeat the winner's-curse simulation with candidates whose true rates differ: one at 0.6 and fifteen at 0.5. How many cases must the evaluation have before the best candidate is chosen more than 80% of the time? Relate your answer to Chapter 15's sample-size formula.
+
+### Exercise 6: rank answers from preferences
+
+Write three answers to one of Lucy's requests. Collect twenty pairwise preferences from a person, or from a model acting as the grader, and fit Bradley–Terry ratings. Then collect twenty more and check whether the ranking holds. Explain what a grader that prefers longer answers would do to a model optimized against it.
+
 ## Expected observations
 
 The cumulative checkpoint reports a rejected currency regression with version 1 still active, a passing candidate activation, an evaluated rollback and a stale candidate after an intervening configuration change. It retains five version rows and six evaluation reports. Five proposal events preserve feedback provenance, and reopening the database preserves the final active configuration.
@@ -567,15 +774,19 @@ Run the improvement and configuration regressions and the applicable project gat
 
 ## Summary
 
+Choosing the best of many candidates on a noisy evaluation inflates the winner's score: sixteen equal candidates on six cases produce an 84% winner that is truly 50%. Selection generalizes only when real differences are large compared with the noise, as they were in the measured prompt search, where one hint carried the whole effect. Preferences become scores through Bradley–Terry, the same likelihood that trains reward models; optimizing against any such score demands a holdout it never saw.
+
 Feedback becomes a reviewable change when its source, diagnosis and exact candidate are retained. Evaluation runs before activation and records the surrounding skill configuration. Failed cases leave the previous procedure selected; changed conditions invalidate the result. A rollback reevaluates an earlier version and appends a new event rather than deleting history.
 
 The mechanism changes external memory and procedures, not model weights or purchasing authority. Its deterministic fixtures prove control behavior, while live evaluations and explanation review establish the narrower evidence for useful model behavior. The next chapter applies the same discipline to a larger architectural choice: whether one bounded task benefits from a second agent.
 
 ## Active recall and vocabulary
 
+Without rereading, derive the density of the maximum of k normals, and explain why the chosen candidate's score must be re-measured on a holdout. Why did the measured prompt search not suffer the curse? Derive the Bradley–Terry gradient as wins minus expected wins. Then:
+
 Explain why a wrong recommendation does not prove a skill needs editing. Distinguish a staged proposal, passing evaluation and active version. Describe what the configuration digest covers, why evaluation happens outside a write transaction and why a passing candidate can still become stale. Explain why procedure rollback cannot reverse a supplier purchase.
 
-**Provenance** links a change to its source and exact content. **Candidate** is a staged version being considered. **Activation** selects which version future context assembly loads. **Optimistic concurrency** checks that decision conditions still match before committing a change. **Stale evidence** was collected under conditions that have since changed. **Rollback** is a new controlled transition to an earlier version with its history retained.
+The **winner's curse** is the upward bias of a score chosen for being the highest. **Goodhart's law**: a measure that becomes a target stops measuring well. **Bradley–Terry** models a preference as the logistic function of a rating difference. A **reward model** learns such ratings for answers from preference pairs. **Provenance** links a change to its source and exact content. **Candidate** is a staged version being considered. **Activation** selects which version future context assembly loads. **Optimistic concurrency** checks that decision conditions still match before committing a change. **Stale evidence** was collected under conditions that have since changed. **Rollback** is a new controlled transition to an earlier version with its history retained.
 
 ## Keep building with Prof Rod
 
