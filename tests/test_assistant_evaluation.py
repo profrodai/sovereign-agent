@@ -33,7 +33,7 @@ def test_correct_numbers_with_wrong_currency_fail():
         def complete(self, *args, **kwargs):
             result = super().complete(*args, **kwargs)
             return ModelTurn(
-                result.content.replace("pence GBP", "euros"), result.calls, result.output_tokens
+                result.content.replace("cents USD", "euros"), result.calls, result.output_tokens
             )
 
     report = evaluate(WrongCurrency, cases=(CASES[0],))
@@ -73,7 +73,7 @@ def test_malformed_tool_arguments_are_a_failed_case_not_a_grader_crash():
                         ),
                     )
                 )
-            return ModelTurn("The draft is ready in GBP.")
+            return ModelTurn("The draft is ready in USD.")
 
     report = evaluate(Malformed, cases=(CASES[0],))
     assert report["passed"] is False

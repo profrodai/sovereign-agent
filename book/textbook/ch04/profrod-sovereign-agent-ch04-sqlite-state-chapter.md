@@ -634,7 +634,7 @@ flowchart LR
 
 **Figure:** A change reaches readers only through its commit marker, so a process that dies mid-transaction leaves nothing any reader will use.
 
-Two settings decide how far "durable" reaches. In WAL mode, a commit appends to the write-ahead log; with `synchronous = FULL`, SQLite also flushes the log to storage before `COMMIT` returns, so a committed transaction survives a power failure as long as the storage honours the flush. With `synchronous = NORMAL`, the flush happens only at checkpoints. The file cannot be corrupted either way, but the most recent commits can be lost to a power failure. Our store chooses `FULL` and pays for it on every commit, which the contention measurement has just shown.
+Two settings decide how far "durable" reaches. In WAL mode, a commit appends to the write-ahead log; with `synchronous = FULL`, SQLite also flushes the log to storage before `COMMIT` returns, so a committed transaction survives a power failure as long as the storage honors the flush. With `synchronous = NORMAL`, the flush happens only at checkpoints. The file cannot be corrupted either way, but the most recent commits can be lost to a power failure. Our store chooses `FULL` and pays for it on every commit, which the contention measurement has just shown.
 
 Be exact about the evidence. This chapter tested a process dying. It did not cut the power, and it did not test a disk that acknowledges a flush it has not performed. Those claims rest on SQLite's documentation and on the hardware, not on anything run here.
 

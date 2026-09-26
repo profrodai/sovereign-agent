@@ -36,7 +36,7 @@ uv run --python 3.14 python book/textbook/checkpoints/profrod_sovereign_agent_ch
 ```
 
 It runs a separate simulated supplier, loses replies, kills a worker and verifies
-two purchases totaling GBP 26.00 without a duplicate order. The phone transport
+two purchases totaling USD 26.00 without a duplicate order. The phone transport
 and model are deterministic fixtures in this checkpoint; no credentials or live
 purchases are needed. The command removes its temporary state after checking it.
 Use the checkpoint's `--output` option with a new directory to retain evidence.

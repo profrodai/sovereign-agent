@@ -18,34 +18,34 @@ The scenario uses the offline model fixture for repeatability and a fixture tran
 
 Integrate schedules, durable intake, memory correction, scoped stock work, exact approval, ambiguous-effect recovery, worker replacement and bounded delegation; construct a report from one consistent database snapshot; reconcile report totals with independent supplier receipts; retain inspectable evidence; and distinguish passing a scenario from accepting a deployment or manuscript for publication.
 
-The deliverable is a repeatable business-day checkpoint and a readable operating report. Success means two independent supplier orders totaling 2600 pence, one received vanilla delivery, one pending strawberry delivery, no repeated purchase, no unfinished work and a separately bounded catering quote. The evidence must preserve the injected failures and the records used to reach those conclusions.
+The deliverable is a repeatable business-day checkpoint and a readable operating report. Success means two independent supplier orders totaling 2600 cents, one received vanilla delivery, one pending strawberry delivery, no repeated purchase, no unfinished work and a separately bounded catering quote. The evidence must preserve the injected failures and the records used to reach those conclusions.
 
 ## Define the day before running it
 
-Begin with the catalog fixture we have used throughout the book. Vanilla has two tubs on hand and a target of eight; strawberry has one and a target of five; chocolate has twelve and a target of six. Supplier unit costs are 250, 275 and 300 pence respectively. The two shortages therefore require six vanilla tubs and four strawberry tubs, costing 1500 and 1100 pence.
+Begin with the catalog fixture we have used throughout the book. Vanilla has two tubs on hand and a target of eight; strawberry has one and a target of five; chocolate has twelve and a target of six. Supplier unit costs are 250, 275 and 300 cents respectively. The two shortages therefore require six vanilla tubs and four strawberry tubs, costing 1500 and 1100 cents.
 
 These expected amounts are authored before running the agent. They are not copied from the report generator. The distinction prevents an accounting bug from creating its own expected answer. The model may choose tool calls, but neither its arithmetic nor its final prose determines what the acceptance check calls correct.
 
 ```python
 EXPECTED_PURCHASES = {
-    "SKU-VANILLA": {"quantity": 6, "unit_cost_pence": 250},
-    "SKU-STRAWBERRY": {"quantity": 4, "unit_cost_pence": 275},
+    "SKU-VANILLA": {"quantity": 6, "unit_cost_cents": 250},
+    "SKU-STRAWBERRY": {"quantity": 4, "unit_cost_cents": 275},
 }
-expected_pence = sum(
-    row["quantity"] * row["unit_cost_pence"] for row in EXPECTED_PURCHASES.values()
+expected_cents = sum(
+    row["quantity"] * row["unit_cost_cents"] for row in EXPECTED_PURCHASES.values()
 )
-print("Expected accepted purchase total:", expected_pence, "pence")
+print("Expected accepted purchase total:", expected_cents, "cents")
 print("Expected supplier order count:", len(EXPECTED_PURCHASES))
 ```
 
 ```text
-Expected accepted purchase total: 2600 pence
+Expected accepted purchase total: 2600 cents
 Expected supplier order count: 2
 ```
 
-The operating policy allows a total exposure of 3000 pence and no automatic purchases. Each proposed order must receive an exact approval from the allowlisted operator. The limit is enough for the intended replenishment but small enough that a duplicate vanilla purchase would exceed the plan. We still inspect actual supplier identities and amounts; a budget rejection alone would not prove the first purchase was correct.
+The operating policy allows a total exposure of 3000 cents and no automatic purchases. Each proposed order must receive an exact approval from the allowlisted operator. The limit is enough for the intended replenishment but small enough that a duplicate vanilla purchase would exceed the plan. We still inspect actual supplier identities and amounts; a budget rejection alone would not prove the first purchase was correct.
 
-The catering inquiry asks for vanilla ice cream for 41 guests. At ten portions per tub and a selling price of 500 pence per tub, its independent expected quote is five tubs and 2500 pence. This is a customer quote, not supplier expenditure. It must not change stock reservations or add a purchase to the final spending total.
+The catering inquiry asks for vanilla ice cream for 41 guests. At ten portions per tub and a selling price of 500 cents per tub, its independent expected quote is five tubs and 2500 cents. This is a customer quote, not supplier expenditure. It must not change stock reservations or add a purchase to the final spending total.
 
 | Event in the day | Required observation | Forbidden shortcut |
 | --- | --- | --- |
@@ -80,7 +80,7 @@ flowchart LR
 
 **Figure:** Different entry points converge on durable work while purchasing and research retain separate authority.
 
-A stale currency preference is corrected from euros to GBP with a new explicit source. The scenario checks the active preference record. It does not claim that the deterministic model fixture learned from the correction; its purpose here is to prove that the integrated path retains the current preference and its provenance while other work progresses.
+A stale currency preference is corrected from euros to USD with a new explicit source. The scenario checks the active preference record. It does not claim that the deterministic model fixture learned from the correction; its purpose here is to prove that the integrated path retains the current preference and its provenance while other work progresses.
 
 Stock conditions then create one vanilla assignment and one strawberry assignment. Their enforced product subjects prevent either worker from drafting the other product. Both proposals remain drafts until the operator's approval messages are processed through the actual control-command path. At that moment the independent supplier still has zero orders.
 
@@ -90,7 +90,7 @@ For vanilla, an actual child worker claims the approved assignment, calls the lo
 
 The worker's lease is allowed to expire through elapsed time. A replacement takes the work and reconciles the existing operation. A model fixture that raises if called establishes that this recovery does not ask for another reasoning turn. The replacement completes from the approved proposal and the supplier's retained receipt.
 
-The supplier fixture drops the first response for **each new operation**. That detail matters: the first draft of this integrated test wrongly expected strawberry's first send to complete immediately. The retained state showed strawberry as `UNKNOWN`, with 1100 pence still reserved and vanilla's 1500 pence already spent. Reading the supplier implementation showed that the test expectation was wrong. We now wait for the recorded retry time and reconcile strawberry too.
+The supplier fixture drops the first response for **each new operation**. That detail matters: the first draft of this integrated test wrongly expected strawberry's first send to complete immediately. The retained state showed strawberry as `UNKNOWN`, with 1100 cents still reserved and vanilla's 1500 cents already spent. Reading the supplier implementation showed that the test expectation was wrong. We now wait for the recorded retry time and reconcile strawberry too.
 
 ```mermaid
 sequenceDiagram
@@ -165,7 +165,7 @@ def operating_report(db: Database) -> dict[str, Any]:
             "FROM assistant_orders"
         ).fetchone()
         budget = connection.execute(
-            "SELECT reserved_pence,spent_pence FROM assistant_spending WHERE id=1"
+            "SELECT reserved_cents,spent_cents FROM assistant_spending WHERE id=1"
         ).fetchone()
         reserved, spent = (0, 0) if budget is None else tuple(budget)
         stock = shop_dispatcher(db).invoke(
@@ -174,7 +174,7 @@ def operating_report(db: Database) -> dict[str, Any]:
         if not stock["ok"]:
             raise ValueError("current stock could not be read")
         usage = connection.execute(
-            "SELECT coalesce(sum(model_calls),0),coalesce(sum(estimated_cost_pence),0),"
+            "SELECT coalesce(sum(model_calls),0),coalesce(sum(estimated_cost_cents),0),"
             "min(history_complete) "
             "FROM assistant_daily WHERE day=?",
             (day,),
@@ -235,8 +235,8 @@ def operating_report(db: Database) -> dict[str, Any]:
         "work": work,
         "orders": orders,
         "spending": {
-            "accepted_pence": spent,
-            "reserved_pence": reserved,
+            "accepted_cents": spent,
+            "reserved_cents": reserved,
             "order_totals_match": matching,
         },
         "stock": stock["value"],
@@ -250,7 +250,7 @@ def operating_report(db: Database) -> dict[str, Any]:
         "model_usage": {
             "utc_day": datetime.fromtimestamp(observed, UTC).date().isoformat(),
             "reserved_calls": usage[0],
-            "estimated_pence": usage[1],
+            "estimated_cents": usage[1],
             "history_complete": None if usage[2] is None else bool(usage[2]),
         },
         "exceptions": exceptions,
@@ -260,14 +260,14 @@ def operating_report(db: Database) -> dict[str, Any]:
         f"Observed: {report['observed_at']}",
         report["scope"],
         "",
-        f"Supplier purchases accepted: GBP {spent // 100}.{spent % 100:02d}",
-        f"Allowance reserved for pending orders: GBP {reserved // 100}.{reserved % 100:02d}",
+        f"Supplier purchases accepted: USD {spent // 100}.{spent % 100:02d}",
+        f"Allowance reserved for pending orders: USD {reserved // 100}.{reserved % 100:02d}",
         f"Orders delivered: {orders.get('DELIVERED', 0)}; "
         f"accepted and awaiting delivery: {orders.get('CONFIRMED', 0)}",
         f"Order drafts awaiting approval: {orders.get('DRAFT', 0)}; "
         f"uncertain supplier outcomes: {uncertain}",
         f"Work completed: {work.get('DONE', 0)}; blocked: {work.get('BLOCKED', 0)}; "
-        f"cancelled: {work.get('CANCELLED', 0)}",
+        f"canceled: {work.get('CANCELED', 0)}",
         f"Read-only research quotes completed: {research}",
         "",
         "Current stock:",
@@ -281,7 +281,7 @@ def operating_report(db: Database) -> dict[str, Any]:
     lines.extend(
         [
             "",
-            f"Model calls reserved today: {usage[0]}; configured estimate: {usage[1]} pence. "
+            f"Model calls reserved today: {usage[0]}; configured estimate: {usage[1]} cents. "
             "This is not a provider invoice.",
             "",
             "Exceptions requiring inspection:",
@@ -308,7 +308,7 @@ root = Path(temporary.name)
 db = Database(root / "agent.sqlite")
 seed_lucy(db)
 initial = operating_report(db)
-print("Accepted purchases before work:", initial["spending"]["accepted_pence"])
+print("Accepted purchases before work:", initial["spending"]["accepted_cents"])
 print("Retained orders:", sum(initial["orders"].values()))
 print(
     "Vanilla still needed:",
@@ -370,7 +370,7 @@ class NoReasoning:
 
 
 supplier = ReceiptFixture()
-policy = orders.SpendingPolicy(frozenset({"lucy"}), total_pence=3000)
+policy = orders.SpendingPolicy(frozenset({"lucy"}), total_cents=3000)
 identifier = work.enqueue(db, "morning", "lucy", "Prepare replenishment.")
 draft = run_once(db, OfflineShopModel(), supplier=supplier, policy=policy)
 print("Before approval:", draft["status"], "supplier orders", len(supplier.receipts))
@@ -395,23 +395,23 @@ orders.receive(db, vanilla, "vanilla-delivery", actor="lucy", policy=policy)
 orders.receive(db, vanilla, "vanilla-delivery", actor="lucy", policy=policy)
 current = operating_report(db)
 print("Order dispositions:", current["orders"])
-print("Accepted pence:", current["spending"]["accepted_pence"])
+print("Accepted cents:", current["spending"]["accepted_cents"])
 ```
 
 ```text
 Before approval: BLOCKED supplier orders 0
 After approved continuation: DONE supplier orders 2
 Order dispositions: {'CONFIRMED': 1, 'DELIVERED': 1}
-Accepted pence: 2600
+Accepted cents: 2600
 ```
 
 Vanilla's repeated delivery reference returns the existing observation; it does not add another six tubs. Strawberry remains confirmed and pending, so its four tubs contribute to replenishment coverage while physical stock stays at one. Supplier expenditure is counted at acceptance and is not counted again when the delivery arrives.
 
-The catering quote remains a separate read-only result. In the complete scenario, its actual worker process returns five tubs for 41 guests at GBP 25.00. The report counts one completed research quote, but its accepted-purchase total remains GBP 26.00. Adding GBP 25.00 to supplier spending would confuse a possible customer sale with an incurred purchasing cost.
+The catering quote remains a separate read-only result. In the complete scenario, its actual worker process returns five tubs for 41 guests at USD 25.00. The report counts one completed research quote, but its accepted-purchase total remains USD 26.00. Adding USD 25.00 to supplier spending would confuse a possible customer sale with an incurred purchasing cost.
 
 ## Verify against independently authored business facts
 
-Local invariants are necessary but insufficient. The complete checkpoint reads the supplier's separate database and compares its operation identities with the local proposals. It also calculates the remote accepted amount from the supplier's retained proposal fields and checks the authored expectation of 2600 pence.
+Local invariants are necessary but insufficient. The complete checkpoint reads the supplier's separate database and compares its operation identities with the local proposals. It also calculates the remote accepted amount from the supplier's retained proposal fields and checks the authored expectation of 2600 cents.
 
 ```mermaid
 flowchart TD
@@ -432,7 +432,7 @@ def verify_business(report, receipts):
     purchases = {
         receipt["proposal"]["sku"]: {
             "quantity": receipt["proposal"]["quantity"],
-            "unit_cost_pence": receipt["proposal"]["unit_cost_pence"],
+            "unit_cost_cents": receipt["proposal"]["unit_cost_cents"],
         }
         for receipt in receipts
         if receipt["status"] == "ACCEPTED"
@@ -440,8 +440,8 @@ def verify_business(report, receipts):
     assert len(receipts) == 2
     assert purchases == EXPECTED_PURCHASES
     assert report["spending"] == {
-        "accepted_pence": 2600,
-        "reserved_pence": 0,
+        "accepted_cents": 2600,
+        "reserved_cents": 0,
         "order_totals_match": True,
     }
     assert report["orders"] == {"CONFIRMED": 1, "DELIVERED": 1}
@@ -475,14 +475,14 @@ with db.immediate() as connection:
     connection.execute(
         "UPDATE assistant_work SET result='Everything was free and perfectly completed.'"
     )
-assert operating_report(db)["spending"]["accepted_pence"] == 2600
+assert operating_report(db)["spending"]["accepted_cents"] == 2600
 with db.immediate() as connection:
-    connection.execute("UPDATE assistant_spending SET spent_pence=2601")
+    connection.execute("UPDATE assistant_spending SET spent_cents=2601")
 corrupt = operating_report(db)
 print("Changed ledger agrees:", corrupt["spending"]["order_totals_match"])
 print("Exception:", corrupt["exceptions"][0])
 with db.immediate() as connection:
-    connection.execute("UPDATE assistant_spending SET spent_pence=2600")
+    connection.execute("UPDATE assistant_spending SET spent_cents=2600")
 verify_business(operating_report(db), list(supplier.receipts.values()))
 ```
 
@@ -509,22 +509,22 @@ The directory contains the shop database, independent supplier database, readabl
 
 ### Expected observations
 
-The passed construction run completed seven work records with no blocked work. It recorded two accepted supplier purchases totaling GBP 26.00, no remaining reserved allowance, one delivered order and one accepted order awaiting delivery. Vanilla ended at eight tubs on hand; strawberry remained at one physical tub with four pending; chocolate remained at twelve.
+The passed construction run completed seven work records with no blocked work. It recorded two accepted supplier purchases totaling USD 26.00, no remaining reserved allowance, one delivered order and one accepted order awaiting delivery. Vanilla ended at eight tubs on hand; strawberry remained at one physical tub with four pending; chocolate remained at twelve.
 
-The model allowance recorded fifteen reserved calls and a configured estimate of thirty pence, including the failed call and the bounded research work. Those numbers describe this deterministic scenario and its two-pence estimate. They are not an invoice or a prediction that a different live model will use the same calls, tokens, latency or cost.
+The model allowance recorded fifteen reserved calls and a configured estimate of thirty cents, including the failed call and the bounded research work. Those numbers describe this deterministic scenario and its two-cents estimate. They are not an invoice or a prediction that a different live model will use the same calls, tokens, latency or cost.
 
 | Final observation | Evidence source | Scope of the claim |
 | --- | --- | --- |
-| GBP 26.00 accepted purchases | Local spending plus two independent supplier receipts | The controlled supplier's two operations |
+| USD 26.00 accepted purchases | Local spending plus two independent supplier receipts | The controlled supplier's two operations |
 | Eight vanilla tubs | One observed delivery applied to initial physical stock | This fixture's receiving event |
 | Four strawberry tubs pending | Confirmed order without a receiving observation | Expected replenishment, not physical stock |
-| One GBP 25.00 catering quote | Bounded research report and authored arithmetic | Read-only draft with no stock reservation |
+| One USD 25.00 catering quote | Bounded research report and authored arithmetic | Read-only draft with no stock reservation |
 | Seven completed work records | Durable work table after recovery | Completion of this accelerated scenario |
 | Fifteen reserved model calls | Daily allowance records | Recorded exposure, including a failed call |
 
 ### Exercise 2: change one constraint and predict the result
 
-Reduce the policy's total allowance below 2600 pence while keeping automatic purchasing disabled. Predict which approval will fail under the scenario's deterministic ordering and which records should remain pending. The changed run should not satisfy the original final-day acceptance assertion. Write a new expected outcome before deciding whether the refusal is correct.
+Reduce the policy's total allowance below 2600 cents while keeping automatic purchasing disabled. Predict which approval will fail under the scenario's deterministic ordering and which records should remain pending. The changed run should not satisfy the original final-day acceptance assertion. Write a new expected outcome before deciding whether the refusal is correct.
 
 Then change the vanilla delivery reference on the second receiving attempt. The runtime should refuse the conflicting reference rather than count another delivery. Inspect physical stock afterward. A thrown exception by itself is incomplete evidence if the first half of the operation already changed the freezer count.
 
@@ -547,7 +547,7 @@ evidence_path = root / "inline-evidence.json"
 payload = json.dumps(
     {
         "scope": "inline in-process receipt fixture",
-        "accepted_pence": 2600,
+        "accepted_cents": 2600,
         "independent_expectations": EXPECTED_PURCHASES,
     },
     sort_keys=True,

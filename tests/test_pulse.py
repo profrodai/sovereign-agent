@@ -486,7 +486,7 @@ def test_pulse_does_not_bypass_actor_leases_or_execution_attempt_fencing(tmp_pat
     report = run_pulse_once(org, store_wake_gate)
     assert report.items == (), "the signal already has a wake decision; nothing left to evaluate"
 
-    # Isolate the reporting behaviour directly against the RUNNING assignment,
+    # Isolate the reporting behavior directly against the RUNNING assignment,
     # independent of the signal-skip above.
     from sovereign_agent.pulse import _invoke_or_report
 
@@ -964,7 +964,7 @@ def test_two_real_processes_still_converge_on_one_canonical_creation_under_the_a
     tmp_path: Path,
 ) -> None:
     """Sparring's own named dual: does making create_pulse_work atomic
-    correctly PRESERVE the concurrent-race behaviour the separate-commit
+    correctly PRESERVE the concurrent-race behavior the separate-commit
     design was originally built around? A real two-connection
     threading.Barrier race, same shape as the pre-fix proof
     (test_two_real_processes_evaluating_the_same_signal_create_one_canonical_sow

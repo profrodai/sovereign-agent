@@ -8,7 +8,7 @@
 
 **Status: DRAFT.** Read the [textbook guide](../profrod-sovereign-agent-textbook-start-here.md) for setup and supplied-code boundaries. Practice in [Exercise Book 6](../../exercises/ch06/profrod-sovereign-agent-ch06-versioned-skills-exercise-guide.md); consult [Solutions 6](../../solutions/ch06/profrod-sovereign-agent-ch06-versioned-skills-solutions-guide.md) after attempting the work.
 
-Lucy wants the same useful opening brief tomorrow, even when her message is only “Prepare the replenishment drafts.” In Chapters 3 and 5, we kept the procedure in a Python message: inspect current stock, use each product's calculated need, create the appropriate drafts, and report their amounts in GBP. That procedure is now worth naming. It should be possible to review and revise it without changing the tool dispatcher or copying instructions into every channel adapter.
+Lucy wants the same useful opening brief tomorrow, even when her message is only “Prepare the replenishment drafts.” In Chapters 3 and 5, we kept the procedure in a Python message: inspect current stock, use each product's calculated need, create the appropriate drafts, and report their amounts in USD. That procedure is now worth naming. It should be possible to review and revise it without changing the tool dispatcher or copying instructions into every channel adapter.
 
 Moving the words into a file is easy. Deciding when those words become active is the engineering problem. A plausible revision might stop creating drafts and merely describe them. Another might demand a purchasing tool that this stage of the agent does not have. A third might pass an evaluation while someone changes the active configuration underneath it. A useful skill implementation makes each of those situations visible.
 
@@ -66,7 +66,7 @@ use its needed field: this already accounts for reserved and incoming stock.
 For every needed value greater than zero, call draft_order with that exact
 SKU and quantity. Do not draft products whose needed value is zero. A verbal
 recommendation does not replace creating the draft through the tool. Finish by
-reporting each successful draft's quantity and total_pence in GBP. A draft is
+reporting each successful draft's quantity and total_cents in USD. A draft is
 not a purchase. If a tool refuses a draft, read current stock before continuing.
 """
 ```
@@ -467,7 +467,7 @@ from sovereign_agent.model_turn import ToolCall
 seed_lucy(db)
 remember(db, "lucy", "format", "three bullets", "lucy/message/3")
 dispatcher = shop_dispatcher(db)
-prompt = "Prepare replenishment drafts from current stock. State GBP amounts."
+prompt = "Prepare replenishment drafts from current stock. State USD amounts."
 limited = context(db, "lucy", prompt, allowed=frozenset({"list_stock"}))
 selected = context(db, "lucy", prompt, allowed=dispatcher.allowed)
 print("skill in stock-only context:", "skill_guidance" in limited[0]["content"])
@@ -592,7 +592,7 @@ The model calls consume real time and may produce different results. A failed ca
 
 Staging creates one inactive version even when repeated. Changed content under the same identity is refused. Missing evaluation cases leave the active set unchanged. A successful evaluation permits activation, and the selected version survives reopening. Missing tool requirements exclude skill guidance from context, while an unauthorized direct tool request still receives a structured refusal.
 
-The final fixture should contain six vanilla tubs and four strawberry tubs in successful draft observations, totaling 2,600 pence GBP. Chocolate needs no draft. These observations are proposals; no supplier purchase is made. A passing transcript proves the named fixture behavior, and the retained report identifies which configuration and adapter produced it.
+The final fixture should contain six vanilla tubs and four strawberry tubs in successful draft observations, totaling 2,600 cents USD. Chocolate needs no draft. These observations are proposals; no supplier purchase is made. A passing transcript proves the named fixture behavior, and the retained report identifies which configuration and adapter produced it.
 
 ## Learner verification
 

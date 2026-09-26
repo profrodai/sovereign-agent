@@ -295,7 +295,7 @@ def claim(
             "AND w.available_after<=? AND "
             "(?=0 OR w.control=1) AND "
             "((?=0 AND w.status='READY') OR (w.status='RUNNING' AND w.expires<=?) OR "
-            "(?=1 AND w.status IN ('READY','BLOCKED','CANCELLED'))) AND "
+            "(?=1 AND w.status IN ('READY','BLOCKED','CANCELED'))) AND "
             "(?=0 OR EXISTS (SELECT 1 FROM assistant_orders o WHERE o.work_id=w.id "
             "AND o.status IN ('SENDING','UNKNOWN'))) AND NOT EXISTS "
             "(SELECT 1 FROM assistant_work other WHERE other.session=w.session "
@@ -367,12 +367,12 @@ def assert_current(connection: sqlite3.Connection, work: Claim, now: float | Non
         raise PermissionError("worker claim expired or superseded")
     if work.role == "research":
         contract = connection.execute(
-            "SELECT d.deadline,p.cancelled FROM assistant_delegations d "
+            "SELECT d.deadline,p.canceled FROM assistant_delegations d "
             "JOIN assistant_work p ON p.id=d.parent_id WHERE d.work_id=?",
             (work.id,),
         ).fetchone()
-        if contract is None or contract["deadline"] <= now or contract["cancelled"]:
-            raise PermissionError("delegation expired or parent cancelled")
+        if contract is None or contract["deadline"] <= now or contract["canceled"]:
+            raise PermissionError("delegation expired or parent canceled")
 
 
 def observe(db: Database, work: Claim, message: dict[str, Any]) -> None:
@@ -387,7 +387,7 @@ def observe(db: Database, work: Claim, message: dict[str, Any]) -> None:
 def finish(
     db: Database, work: Claim, status: str, result: str, *, now: float | None = None
 ) -> None:
-    if status not in {"DONE", "BLOCKED", "CANCELLED"}:
+    if status not in {"DONE", "BLOCKED", "CANCELED"}:
         raise ValueError("invalid terminal work state")
     with db.immediate() as connection:
         assert_current(connection, work, now)
@@ -417,7 +417,7 @@ def cancel(db: Database, identifier: str) -> None:
             (identifier,),
         ).fetchone()[0]
         connection.execute(
-            "UPDATE assistant_spending SET reserved_pence=reserved_pence-? WHERE id=1", (amount,)
+            "UPDATE assistant_spending SET reserved_cents=reserved_cents-? WHERE id=1", (amount,)
         )
         connection.execute(
             "UPDATE assistant_orders SET revoked=1,status=CASE WHEN status IN ('APPROVED','DRAFT') "
@@ -425,7 +425,7 @@ def cancel(db: Database, identifier: str) -> None:
             (identifier,),
         )
         changed = connection.execute(
-            "UPDATE assistant_work SET status='CANCELLED',cancelled=1,generation=generation+1,"
+            "UPDATE assistant_work SET status='CANCELED',canceled=1,generation=generation+1,"
             "result='Cancellation recorded; transmitted orders still require reconciliation.' "
             "WHERE id=? AND status IN ('READY','RUNNING','BLOCKED')",
             (identifier,),
@@ -433,22 +433,22 @@ def cancel(db: Database, identifier: str) -> None:
         # A parent may have finished its stock task while its child still works.
         # Stop that child without rewriting the parent's completed business result.
         changed += connection.execute(
-            "UPDATE assistant_work SET cancelled=1,generation=generation+1 "
-            "WHERE id=? AND status='DONE' AND cancelled=0 AND EXISTS "
+            "UPDATE assistant_work SET canceled=1,generation=generation+1 "
+            "WHERE id=? AND status='DONE' AND canceled=0 AND EXISTS "
             "(SELECT 1 FROM assistant_delegations d JOIN assistant_work child "
             "ON child.id=d.work_id WHERE d.parent_id=assistant_work.id "
             "AND child.status IN ('READY','RUNNING','BLOCKED'))",
             (identifier,),
         ).rowcount
         if changed:
-            append_event(db, "assistant.work.cancelled", {"work": identifier})
+            append_event(db, "assistant.work.canceled", {"work": identifier})
 
 
 def reserve_model_call(
-    db: Database, work: Claim, estimate_pence: int, *, now: float | None = None
+    db: Database, work: Claim, estimate_cents: int, *, now: float | None = None
 ) -> None:
     """Retain estimated exposure even if the provider's reply is lost. Not an invoice cap."""
-    if type(estimate_pence) is not int or estimate_pence < 0:
+    if type(estimate_cents) is not int or estimate_cents < 0:
         raise ValueError("nonnegative integral model estimate required")
     now = time.time() if now is None else now
     if not math.isfinite(now):
@@ -457,7 +457,7 @@ def reserve_model_call(
     with db.immediate() as connection:
         assert_current(connection, work, now)
         ledger = connection.execute(
-            "SELECT billing_session,estimated_cost_pence FROM assistant_work WHERE id=?",
+            "SELECT billing_session,estimated_cost_cents FROM assistant_work WHERE id=?",
             (work.id,),
         ).fetchone()
         billing = ledger["billing_session"] or work.session
@@ -467,8 +467,8 @@ def reserve_model_call(
             ).fetchone()
             if (
                 contract["model_calls"] >= contract["model_calls_limit"]
-                or estimate_pence != contract["estimated_call_pence"]
-                or ledger["estimated_cost_pence"] + estimate_pence > contract["budget_pence"]
+                or estimate_cents != contract["estimated_call_cents"]
+                or ledger["estimated_cost_cents"] + estimate_cents > contract["budget_cents"]
             ):
                 raise PermissionError("delegation model allowance exhausted")
             connection.execute(
@@ -483,17 +483,17 @@ def reserve_model_call(
         ).fetchone()
         if (
             row["model_calls"] >= row["call_limit"]
-            or row["estimated_cost_pence"] + estimate_pence > row["cost_limit"]
+            or row["estimated_cost_cents"] + estimate_cents > row["cost_limit"]
         ):
             raise PermissionError("daily model allowance exhausted")
         connection.execute(
             "UPDATE assistant_daily SET model_calls=model_calls+1,"
-            "estimated_cost_pence=estimated_cost_pence+? WHERE session=? AND day=?",
-            (estimate_pence, billing, day),
+            "estimated_cost_cents=estimated_cost_cents+? WHERE session=? AND day=?",
+            (estimate_cents, billing, day),
         )
         connection.execute(
-            "UPDATE assistant_work SET estimated_cost_pence=estimated_cost_pence+? WHERE id=?",
-            (estimate_pence, work.id),
+            "UPDATE assistant_work SET estimated_cost_cents=estimated_cost_cents+? WHERE id=?",
+            (estimate_cents, work.id),
         )
 
 

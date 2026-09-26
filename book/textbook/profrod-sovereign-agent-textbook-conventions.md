@@ -47,7 +47,7 @@ A high score cannot change DRAFT to READY. Chapter 15 deliberately exposes a cor
 
 ## Use Lucy's units and authority consistently
 
-Stock quantities are whole tubs. Monetary records use integer pence, displayed as pounds only at the presentation boundary. Physical stock, pending replenishment, reserved spend and confirmed expenditure are distinct values. A remembered sentence is not an inventory record; an approval is not a purchase receipt.
+Stock quantities are whole tubs. Monetary records use integer cents, displayed as dollars only at the presentation boundary. Physical stock, pending replenishment, reserved spend and confirmed expenditure are distinct values. A remembered sentence is not an inventory record; an approval is not a purchase receipt.
 
 Use synthetic shop data and the controlled supplier. Operator-owned configuration supplies credentials; keep tokens out of source, transcripts and evidence bundles. A skill grants no authority. An MCP child process has host privileges unless a separate execution boundary restricts it. Read the chapter's precise scope before interpreting a green result.
 

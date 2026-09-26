@@ -12,7 +12,7 @@ Lucy receives a morning brief just as a delivery arrives. The brief says vanilla
 
 A tool gives the model that opportunity. The model generates a request such as “call `list_stock`.” Your program validates the request, calls a specific Python function, and returns the result. The function reads the data. The model does not become the database, and its requested function name does not become permission to execute arbitrary Python.
 
-This chapter builds three tools: stock lookup, supplier lookup, and draft calculation. You will test them without a model before placing them inside an agent loop. By the end, a fabricated or malformed request will produce an inspectable refusal, while a valid draft request will return an exact quantity and amount in GBP pence.
+This chapter builds three tools: stock lookup, supplier lookup, and draft calculation. You will test them without a model before placing them inside an agent loop. By the end, a fabricated or malformed request will produce an inspectable refusal, while a valid draft request will return an exact quantity and amount in USD cents.
 
 For dedicated practice, use [Unit A](../../exercises/ch02/profrod-sovereign-agent-ch02-a-pydantic-shop-tools-exercise.md) and [Unit B](../../exercises/ch02/profrod-sovereign-agent-ch02-b-pydantic-validation-repair-exercise.md), each with its own ninety-minute plan and matching notebook.
 
@@ -20,7 +20,7 @@ For dedicated practice, use [Unit A](../../exercises/ch02/profrod-sovereign-agen
 
 Build and test typed stock, supplier, and draft tools; validate generated arguments before dispatch; and keep authoritative replenishment arithmetic in ordinary Python.
 
-The observable result is a replenishment draft for six vanilla tubs costing 1,500 pence. The physical stock must remain two, and no supplier purchase may occur. You will also demonstrate that a Boolean quantity, an unknown tool name, and a quantity inconsistent with the shop's rule do not pass as valid requests.
+The observable result is a replenishment draft for six vanilla tubs costing 1,500 cents. The physical stock must remain two, and no supplier purchase may occur. You will also demonstrate that a Boolean quantity, an unknown tool name, and a quantity inconsistent with the shop's rule do not pass as valid requests.
 
 ## Decide what the model should choose
 
@@ -36,7 +36,7 @@ The tool boundary also gives you a place to enforce the formula. Supplying a `ne
 | `supplier` | Stable SKU | Supplier, currency, and unit price | Reads the price fixture |
 | `draft_order` | SKU and quantity | Validated draft with an exact total | Returns data; makes no purchase |
 
-For example, vanilla has two tubs and a target of eight. Its need is six. Six tubs at 250 pence each cost 1,500 pence. A draft requesting eight tubs is rejected because it does not implement this replenishment rule, even though eight is a perfectly valid positive integer.
+For example, vanilla has two tubs and a target of eight. Its need is six. Six tubs at 250 cents each cost 1,500 cents. A draft requesting eight tubs is rejected because it does not implement this replenishment rule, even though eight is a perfectly valid positive integer.
 
 The distinction between a valid type and a valid business decision runs through this chapter. An argument can have the correct JSON shape and still name a missing product, request an inconsistent quantity, or lack authority for a consequential operation. We will give each check a clear location.
 
@@ -77,7 +77,7 @@ print(products["SKU-VANILLA"]["on_hand"], PRICES["SKU-VANILLA"])
 
 The uniqueness assertion prevents a dictionary comprehension from silently hiding duplicate SKUs. If two source rows use the same key, the later row would otherwise replace the earlier one. A small fixture is a good place to learn that failure: it is much easier to see two conflicting vanilla entries here than to infer them from a confusing generated order later.
 
-Prices are integer pence. Multiplication remains ordinary integer arithmetic, and the result includes `currency="GBP"`. We do not accept a model-selected price as the authoritative unit cost. The tool looks up the price for the requested SKU. Allowing generated arguments to override it would move a business fact into a place where the model can invent it.
+Prices are integer cents. Multiplication remains ordinary integer arithmetic, and the result includes `currency="USD"`. We do not accept a model-selected price as the authoritative unit cost. The tool looks up the price for the requested SKU. Allowing generated arguments to override it would move a business fact into a place where the model can invent it.
 
 We copy each product into the tool's fixture. That makes the checkpoint's ownership clear: changing a tool's local fixture does not mutate the original Chapter 1 dictionary. It is not a persistence mechanism. A process restart still discards in-memory changes, which is one reason we will later replace this boundary with SQLite.
 
@@ -359,8 +359,8 @@ def supplier(args):
     return {
         "sku": args.sku,
         "supplier": "lucy-local",
-        "currency": "GBP",
-        "unit_cost_pence": PRICES[args.sku],
+        "currency": "USD",
+        "unit_cost_cents": PRICES[args.sku],
     }
 
 
@@ -373,13 +373,13 @@ def draft_order(args):
     return {
         **quote,
         "quantity": args.quantity,
-        "total_pence": args.quantity * quote["unit_cost_pence"],
+        "total_cents": args.quantity * quote["unit_cost_cents"],
         "status": "DRAFT",
     }
 
 
 print([(row["sku"], row["needed"]) for row in list_stock(NoArguments())])
-print(draft_order(valid)["total_pence"], products["SKU-VANILLA"]["on_hand"])
+print(draft_order(valid)["total_cents"], products["SKU-VANILLA"]["on_hand"])
 ```
 
 ```text
@@ -387,7 +387,7 @@ print(draft_order(valid)["total_pence"], products["SKU-VANILLA"]["on_hand"])
 1500 2
 ```
 
-The final output is a useful pair of observations. The calculation produced 1,500 pence, and physical stock stayed at two. A draft is information about a proposed action. It is not delivery, payment, or evidence that another organization accepted an order.
+The final output is a useful pair of observations. The calculation produced 1,500 cents, and physical stock stayed at two. A draft is information about a proposed action. It is not delivery, payment, or evidence that another organization accepted an order.
 
 A caller must pass validated arguments into these functions. You could do that manually at every call site, but repeated validation code is easy to omit. The dispatcher will make the check part of the execution path. Tests will still call the functions directly when isolating the arithmetic from the dispatch mechanism.
 
@@ -425,7 +425,7 @@ tools = [
     ExecutableTool(
         "list_stock", "Read stock and calculated replenishment need.", NoArguments, list_stock
     ),
-    ExecutableTool("supplier", "Read a supplier quote in GBP pence.", ProductArguments, supplier),
+    ExecutableTool("supplier", "Read a supplier quote in USD cents.", ProductArguments, supplier),
     ExecutableTool(
         "draft_order", "Calculate a draft; never purchases.", DraftArguments, draft_order
     ),
@@ -518,7 +518,7 @@ class Dispatcher:
 
 dispatcher = Dispatcher(tools, allowed=frozenset(tool.name for tool in tools))
 observation = dispatcher.invoke(request)
-print(observation["ok"], observation["value"]["total_pence"])
+print(observation["ok"], observation["value"]["total_cents"])
 ```
 
 ```text
@@ -600,7 +600,7 @@ sequenceDiagram
     D-->>Caller: tool_failed
     Caller->>D: quantity is 6
     D->>H: Valid integer arguments
-    H-->>D: Draft for 1500 pence
+    H-->>D: Draft for 1500 cents
     D-->>Caller: Structured success
 ```
 
@@ -650,8 +650,8 @@ def build_tools(shop):
         return {
             "sku": args.sku,
             "supplier": "lucy-local",
-            "currency": "GBP",
-            "unit_cost_pence": PRICES[args.sku],
+            "currency": "USD",
+            "unit_cost_cents": PRICES[args.sku],
         }
 
     def draft(args):
@@ -663,13 +663,13 @@ def build_tools(shop):
         return {
             **price,
             "quantity": args.quantity,
-            "total_pence": args.quantity * price["unit_cost_pence"],
+            "total_cents": args.quantity * price["unit_cost_cents"],
             "status": "DRAFT",
         }
 
     registered = [
         ExecutableTool("list_stock", "Read stock and calculated need.", NoArguments, stock),
-        ExecutableTool("supplier", "Read supplier price in GBP pence.", ProductArguments, quote),
+        ExecutableTool("supplier", "Read supplier price in USD cents.", ProductArguments, quote),
         ExecutableTool("draft_order", "Calculate a draft; never purchases.", DraftArguments, draft),
     ]
     return Dispatcher(registered, allowed=frozenset(tool.name for tool in registered))
@@ -679,7 +679,7 @@ fresh = build_tools(SHOP)
 print(
     fresh.invoke(
         ToolCall(id="check", name="draft_order", arguments={"sku": "SKU-VANILLA", "quantity": 6})
-    )["value"]["total_pence"]
+    )["value"]["total_cents"]
 )
 ```
 
@@ -767,7 +767,7 @@ The first command prints the following output:
 
 ```text
 [('SKU-CHOCOLATE', 0), ('SKU-STRAWBERRY', 4), ('SKU-VANILLA', 6)]
-{"ok": true, "value": {"currency": "GBP", "quantity": 6, "sku": "SKU-VANILLA", "status": "DRAFT", "supplier": "lucy-local", "total_pence": 1500, "unit_cost_pence": 250}}
+{"ok": true, "value": {"currency": "USD", "quantity": 6, "sku": "SKU-VANILLA", "status": "DRAFT", "supplier": "lucy-local", "total_cents": 1500, "unit_cost_cents": 250}}
 {"error": "invalid_arguments", "ok": false}
 ```
 
@@ -777,16 +777,16 @@ The first command prints the three calculated needs, a successful vanilla draft,
 
 | Observation | Meaning | What it does not establish |
 | --- | --- | --- |
-| Vanilla draft totals 1,500 pence | The deterministic calculation used six units at 250 pence | A model will always choose the right tool sequence |
+| Vanilla draft totals 1,500 cents | The deterministic calculation used six units at 250 cents | A model will always choose the right tool sequence |
 | Boolean and extra fields are refused | The argument schema is enforced before invocation | All business decisions are correct |
 | Probe invocation count stays zero | Missing or refusing authority blocks the handler | A future approval system has been implemented |
 | Physical stock remains two | These draft functions did not update inventory | An arbitrary handler elsewhere is harmless |
 
-For a direct review, trace the successful result backwards: `total_pence` comes from multiplication inside `draft_order`; its unit price comes from `PRICES`; its quantity must equal the need computed from `products`. The model supplies none of those authoritative facts. Then trace a refused request forwards and identify the exact line that prevents handler invocation, or the business check that refuses a well-typed call.
+For a direct review, trace the successful result backwards: `total_cents` comes from multiplication inside `draft_order`; its unit price comes from `PRICES`; its quantity must equal the need computed from `products`. The model supplies none of those authoritative facts. Then trace a refused request forwards and identify the exact line that prevents handler invocation, or the business check that refuses a well-typed call.
 
 ### Exercise 1 — A fourth product and a changed price
 
-Add `SKU-MANGO` with one tub, a target of five, and a price of 325 pence. Give it a unique SKU and keep the original three products. Request a four-tub draft. Predict its total before executing it, then check that it is 1,300 pence and physical stock is still one. Change only the price to 350 pence and rerun the request; the new total should be 1,400 pence without changing the model-facing argument schema.
+Add `SKU-MANGO` with one tub, a target of five, and a price of 325 cents. Give it a unique SKU and keep the original three products. Request a four-tub draft. Predict its total before executing it, then check that it is 1,300 cents and physical stock is still one. Change only the price to 350 cents and rerun the request; the new total should be 1,400 cents without changing the model-facing argument schema.
 
 This exercise checks that adding a product is a data change. If you need another handler or a special conditional for mango, inspect where product-specific values have escaped from the fixture into the execution mechanism. Also remove mango's price deliberately. The request should fail visibly instead of inventing a price or borrowing vanilla's.
 
@@ -808,7 +808,7 @@ The **schema** describes a tool's accepted arguments. A **handler** is the parti
 
 ## Summary
 
-You built three typed tools, an explicit registry, and a dispatcher whose checks precede invocation. Deterministic code calculates Lucy's replenishment quantities and GBP amounts. Malformed arguments, unavailable operations, missing authority, and inconsistent business requests produce tested refusals. The failure experiments also established a limit: a refused result does not necessarily mean a handler had no effect.
+You built three typed tools, an explicit registry, and a dispatcher whose checks precede invocation. Deterministic code calculates Lucy's replenishment quantities and USD amounts. Malformed arguments, unavailable operations, missing authority, and inconsistent business requests produce tested refusals. The failure experiments also established a limit: a refused result does not necessarily mean a handler had no effect.
 
 The tools can now answer useful questions, but someone still has to choose the sequence of calls. In [Chapter 3](../ch03/profrod-sovereign-agent-ch03-agent-loop-chapter.md), you will connect model responses, tool requests, and observations in a bounded loop. The model will select requests while the Python runtime retains control of what can execute and when the turn must stop.
 

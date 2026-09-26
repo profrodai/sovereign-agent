@@ -70,7 +70,7 @@ def test_unit_b_visible_product_lookup_fails_holdout(tmp_path: Path) -> None:
         "def validate_draft(proposal, shop, prices, estimate_limit=3000):\n"
         "    if proposal != GOOD_PROPOSAL:\n"
         "        raise ValueError('not the visible products')\n"
-        "    return {'drafts': proposal['drafts'], 'estimated_pence': 2600}\n",
+        "    return {'drafts': proposal['drafts'], 'estimated_cents': 2600}\n",
         scope,
     )
     with pytest.raises(ValueError, match="visible products"):

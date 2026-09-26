@@ -1,4 +1,4 @@
-"""Regression tests for scripts/verify_book_snippets.py's fail-closed behaviour.
+"""Regression tests for scripts/verify_book_snippets.py's fail-closed behavior.
 
 A Principal-level review found that the verifier's ``except Exception`` branch
 does not catch ``SystemExit`` (it inherits from ``BaseException``, not

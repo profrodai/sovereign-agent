@@ -35,7 +35,7 @@ def observed_drafts(messages):
             value = json.loads(message["content"])
             if value.get("ok") is True:
                 draft = value["value"]
-                drafts.append((draft["sku"], draft["quantity"], draft["total_pence"]))
+                drafts.append((draft["sku"], draft["quantity"], draft["total_cents"]))
     return sorted(drafts)
 
 
@@ -155,10 +155,10 @@ def main():
             ]
             assert observed_drafts(messages) == [("SKU-VANILLA", 7, 1750)]
             assert row["result"] == (
-                'Draft estimates:\n- "SKU-VANILLA": 7 tubs, £17.50 GBP.\nTotal: £17.50 GBP.'
+                'Draft estimates:\n- "SKU-VANILLA": 7 tubs, $17.50 USD.\nTotal: $17.50 USD.'
             )
             print("Unattended second episode:", "PASS")
-            print("Persisted draft amount:", "£17.50 GBP")
+            print("Persisted draft amount:", "$17.50 USD")
             assert (
                 db.connection.execute(
                     "SELECT generation FROM assistant_stock_conditions"

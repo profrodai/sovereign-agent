@@ -77,7 +77,7 @@ print("Python", sys.version.split()[0], "| Pydantic", pydantic.__version__)
 
 FIXTURE = """
 SHOP = {
-    "customer": "Lucy", "currency": "GBP",
+    "customer": "Lucy", "currency": "USD",
     "products": [
         {"sku": "SKU-VANILLA", "name": "Vanilla", "on_hand": 2, "reorder_point": 8},
         {"sku": "SKU-CHOCOLATE", "name": "Chocolate", "on_hand": 12, "reorder_point": 6},
@@ -142,10 +142,10 @@ def student_draft(args, rows, prices):
     needed = max(0, row["reorder_point"] - row["on_hand"])
     if args.quantity != needed:
         raise ValueError("quantity differs from the replenishment need")
-    unit_pence = prices[args.sku]
+    unit_cents = prices[args.sku]
     return {"sku": args.sku, "quantity": args.quantity,
-            "unit_cost_pence": unit_pence,
-            "total_pence": args.quantity * unit_pence, "status": "DRAFT"}
+            "unit_cost_cents": unit_cents,
+            "total_cents": args.quantity * unit_cents, "status": "DRAFT"}
 """
 
 INVOKE_START = DISPATCHER.split("    def invoke(self, call):", 1)[1]
@@ -207,8 +207,8 @@ def notebook_one(instructor=False):
     c += [
         md("""## 0–5 min · The problem is a boundary
 
-Lucy has **2 tubs of vanilla**, wants **8**, and pays **250 pence per tub**.
-The required quantity is `max(0, target - on_hand) = 6`; the draft total is `6 × 250 = 1500` pence.
+Lucy has **2 tubs of vanilla**, wants **8**, and pays **250 cents per tub**.
+The required quantity is `max(0, target - on_hand) = 6`; the draft total is `6 × 250 = 1500` cents.
 The model may propose an operation, but the shop records own stock and price.
 
 Write your predictions before running anything:
@@ -312,10 +312,10 @@ Stock rows and prices are trusted classroom fixtures. The function must:
 1. Find the requested product and compute its current need.
 2. Refuse a quantity different from that need with `ValueError`.
 3. Obtain the price from `prices`, never from the model request.
-4. Return exactly `sku`, `quantity`, `unit_cost_pence`, `total_pence`, and `status="DRAFT"`.
+4. Return exactly `sku`, `quantity`, `unit_cost_cents`, `total_cents`, and `status="DRAFT"`.
 5. Preserve the inputs. Unknown products and absent prices must raise `KeyError`.
 
-Why integer pence? Multiplication stays exact. We do not need binary floating-point pounds or
+Why integer cents? Multiplication stays exact. We do not need binary floating-point dollars or
 rounding inside this chapter's pricing rule. Currency conversion and fractional-unit pricing
 would require an explicitly different contract.
 """),
@@ -328,13 +328,13 @@ would require an explicitly different contract.
 
 draft_cases = [
     ("vanilla six", [{"sku": "SKU-VANILLA", "quantity": 6}, products, PRICES],
-     {"sku": "SKU-VANILLA", "quantity": 6, "unit_cost_pence": 250,
-      "total_pence": 1500, "status": "DRAFT"}),
+     {"sku": "SKU-VANILLA", "quantity": 6, "unit_cost_cents": 250,
+      "total_cents": 1500, "status": "DRAFT"}),
     ("over-order seven", [{"sku": "SKU-VANILLA", "quantity": 7}, products, PRICES],
      {"raised": "ValueError"}),
     ("strawberry four", [{"sku": "SKU-STRAWBERRY", "quantity": 4}, products, PRICES],
-     {"sku": "SKU-STRAWBERRY", "quantity": 4, "unit_cost_pence": 275,
-      "total_pence": 1100, "status": "DRAFT"}),
+     {"sku": "SKU-STRAWBERRY", "quantity": 4, "unit_cost_cents": 275,
+      "total_cents": 1100, "status": "DRAFT"}),
     ("missing SKU", [{"sku": "SKU-MISSING", "quantity": 1}, products, PRICES],
      {"raised": "KeyError"}),
     ("missing price", [{"sku": "SKU-VANILLA", "quantity": 6}, products, {}],
@@ -368,7 +368,7 @@ print(json.dumps(schema, indent=2))
 print("Model-visible argument names:", sorted(schema["function"]["parameters"]["properties"]))
 """),
         md("""Find `additionalProperties`, the integer bounds, and `required` in the printed schema.
-There is no `unit_cost_pence` input. Now trace the request through the schema and into your handler.
+There is no `unit_cost_cents` input. Now trace the request through the schema and into your handler.
 If Exercise 2 is unfinished, the connection should remain unfinished too.
 """),
         code(
@@ -386,7 +386,7 @@ print("Physical stock remains:", products["SKU-VANILLA"]["on_hand"])
         ),
         md("""## 38–43 min · Transfer: change the data, keep the mechanism
 
-Mango has one tub, target five, and price 325 pence. Predict the correct quantity and total before
+Mango has one tub, target five, and price 325 cents. Predict the correct quantity and total before
 running. Then change only its price to 350. The same handler should produce a different total.
 This tests whether your code computes a result or recognizes an example.
 """),
@@ -394,11 +394,11 @@ This tests whether your code computes a result or recognizes an example.
             """mango_rows = {"SKU-MANGO": {"sku": "SKU-MANGO", "on_hand": 1, "reorder_point": 5}}
 transfer_cases = [
     ("mango 325p", [{"sku": "SKU-MANGO", "quantity": 4}, mango_rows, {"SKU-MANGO": 325}],
-     {"sku": "SKU-MANGO", "quantity": 4, "unit_cost_pence": 325,
-      "total_pence": 1300, "status": "DRAFT"}),
+     {"sku": "SKU-MANGO", "quantity": 4, "unit_cost_cents": 325,
+      "total_cents": 1300, "status": "DRAFT"}),
     ("mango 350p", [{"sku": "SKU-MANGO", "quantity": 4}, mango_rows, {"SKU-MANGO": 350}],
-     {"sku": "SKU-MANGO", "quantity": 4, "unit_cost_pence": 350,
-      "total_pence": 1400, "status": "DRAFT"}),
+     {"sku": "SKU-MANGO", "quantity": 4, "unit_cost_cents": 350,
+      "total_cents": 1400, "status": "DRAFT"}),
     ("under-order", [{"sku": "SKU-MANGO", "quantity": 3}, mango_rows, {"SKU-MANGO": 350}],
      {"raised": "ValueError"}),
 ]
@@ -448,15 +448,15 @@ def build_reserved_tools(shop, prices, need, dispatcher_type=Dispatcher):
     def quote(args):
         if args.sku not in rows:
             raise KeyError("unknown product")
-        return {"sku": args.sku, "supplier": "lucy-local", "currency": "GBP",
-                "unit_cost_pence": saved_prices[args.sku]}
+        return {"sku": args.sku, "supplier": "lucy-local", "currency": "USD",
+                "unit_cost_cents": saved_prices[args.sku]}
 
     def draft(args):
         if args.quantity != need(rows[args.sku]):
             raise ValueError("quantity differs from current need")
         price = quote(ProductArguments(sku=args.sku))
         return {**price, "quantity": args.quantity,
-                "total_pence": args.quantity * price["unit_cost_pence"], "status": "DRAFT"}
+                "total_cents": args.quantity * price["unit_cost_cents"], "status": "DRAFT"}
 
     tools = [ExecutableTool("list_stock", "Read stock and need.", NoArguments, stock),
              ExecutableTool("supplier", "Read price.", ProductArguments, quote),
@@ -498,7 +498,7 @@ not the handler's execution time, memory, or effects. This is trusted local code
 good_call = ToolCall(id="demo", name="draft_order",
                      arguments={"sku": "SKU-VANILLA", "quantity": 6})
 print(reference_shop.invoke(good_call))
-assert reference_shop.invoke(good_call)["value"]["total_pence"] == 1500
+assert reference_shop.invoke(good_call)["value"]["total_cents"] == 1500
 """),
         md("""## 50–55 min · Distinguish the refusal layers
 
@@ -634,7 +634,7 @@ def reserved_probe(quantity):
     draft = connected.invoke(ToolCall(id="draft", name="draft_order",
                              arguments={"sku": "SKU-VANILLA", "quantity": quantity}))
     return {"reported": reported, "ok": draft["ok"],
-            "total": draft.get("value", {}).get("total_pence")}
+            "total": draft.get("value", {}).get("total_cents")}
 
 integration_expected = [
     (9, {"reported": 9, "ok": True, "total": 2250}),
@@ -703,7 +703,7 @@ print(json.dumps(lesson_two_report, indent=2))
 
 Choose one; these do not replace the four core exercises.
 
-* **New product:** add mango at one tub, target five, two reserved, price 325 pence. Predict the
+* **New product:** add mango at one tub, target five, two reserved, price 325 cents. Predict the
   quantity and total before running the same handlers. Then remove its price
   and explain the refusal.
 * **Exact empty:** build from an empty product list. Stock should be empty and an arbitrary quote
@@ -780,11 +780,11 @@ def main():
                 code(
                     """
 assert all(schema_results) and all(draft_results) and all(transfer_results)
-assert connected_draft["total_pence"] == 1500
+assert connected_draft["total_cents"] == 1500
 assert products["SKU-VANILLA"]["on_hand"] == 2
 pear = {"SKU-PEAR": {"sku": "SKU-PEAR", "on_hand": 2, "reorder_point": 9}}
 assert student_draft(DraftArguments(sku="SKU-PEAR", quantity=7), pear,
-                     {"SKU-PEAR": 175})["total_pence"] == 1225
+                     {"SKU-PEAR": 175})["total_cents"] == 1225
 print("INSTRUCTOR CHECKS: notebook 1 passed")
 """,
                     "instructor-check",
@@ -816,7 +816,7 @@ bounded = StudentDispatcher([tool], allowed=frozenset({"oversize"}), max_result_
 assert bounded.invoke(ToolCall(id="large", name="oversize", arguments={})) == {
     "ok": False, "error": "result_too_large"}
 assert events == ["ran"]
-assert observations[-1]["observation"]["value"]["total_pence"] == 2250
+assert observations[-1]["observation"]["value"]["total_cents"] == 2250
 print("INSTRUCTOR CHECKS: notebook 2 passed")
 """,
                     "instructor-check",

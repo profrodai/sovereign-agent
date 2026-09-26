@@ -15,7 +15,7 @@ Implement the owned poll transaction: validate the bounded update batch and leas
 Unit A: **Construct private messaging**. Unit B: **Break, repair and transfer private messaging**. Allocate ninety minutes to each,
 excluding installation. Use both for the complete three-hour chapter practice. Each notebook
 is independently runnable and includes all required introductions. A learner who starts with
-Unit B uses a labelled reference artifact unless they explicitly select their Unit A work.
+Unit B uses a labeled reference artifact unless they explicitly select their Unit A work.
 Record that provenance; a reference start is useful study, not evidence of earlier construction.
 
 ## Prepare and rehearse

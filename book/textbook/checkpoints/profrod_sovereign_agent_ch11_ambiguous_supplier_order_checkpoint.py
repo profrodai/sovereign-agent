@@ -58,7 +58,7 @@ def independent_supplier(root):
 
 def spending(db):
     row = db.connection.execute(
-        "SELECT reserved_pence,spent_pence FROM assistant_spending WHERE id=1"
+        "SELECT reserved_cents,spent_cents FROM assistant_spending WHERE id=1"
     ).fetchone()
     return tuple(row)
 
@@ -75,7 +75,7 @@ def experiment(root):
             digest = db.connection.execute(
                 "SELECT digest FROM assistant_orders WHERE id=?", (identifier,)
             ).fetchone()[0]
-            policy = SpendingPolicy(frozenset({"lucy"}), total_pence=2000)
+            policy = SpendingPolicy(frozenset({"lucy"}), total_cents=2000)
             approve(db, identifier, digest, actor="lucy", policy=policy, expires=time.time() + 60)
             initial = execute(db, work, identifier, supplier, policy=policy)
             assert initial["status"] == "UNKNOWN"

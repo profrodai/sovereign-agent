@@ -68,7 +68,7 @@ def test_delivery_moves_incoming_to_physical_stock_exactly_once(tmp_path):
     assert supplier.sends == 1
     assert tuple(
         db.connection.execute(
-            "SELECT reserved_pence,spent_pence FROM assistant_spending"
+            "SELECT reserved_cents,spent_cents FROM assistant_spending"
         ).fetchone()
     ) == (0, 1500)
     record = db.connection.execute(

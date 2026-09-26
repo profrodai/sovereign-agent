@@ -20,7 +20,7 @@ This chapter builds the path from that uncertainty to evidence. We will record a
 
 Implement stable external-operation identities, record send admission durably, distinguish known outcomes from uncertainty, and reconcile exact supplier receipts without duplicating purchases or spending entries.
 
-The observable result is one accepted six-tub order, one local confirmed record, and 1,500 pence moved from reserved to spent exactly once. The first send must return `UNKNOWN`. Reopening the agent's database and repeating reconciliation must preserve that result without creating another supplier order.
+The observable result is one accepted six-tub order, one local confirmed record, and 1,500 cents moved from reserved to spent exactly once. The first send must return `UNKNOWN`. Reopening the agent's database and repeating reconciliation must preserve that result without creating another supplier order.
 
 ## Separate a failed request from a failed order
 
@@ -97,9 +97,9 @@ def operation_identity(work_id, target, proposal):
 proposal = {
     "sku": "SKU-VANILLA",
     "quantity": 6,
-    "unit_cost_pence": 250,
+    "unit_cost_cents": 250,
     "supplier": "lucy-local",
-    "currency": "GBP",
+    "currency": "USD",
 }
 one = operation_identity("morning-work", "lucy-local", proposal)
 again = operation_identity("morning-work", "lucy-local", dict(reversed(list(proposal.items()))))
@@ -131,7 +131,7 @@ work = claim(db, "chapter9-worker", ttl=3600)
 identifier = propose(db, work, "SKU-VANILLA", 6)
 assert propose(db, work, "SKU-VANILLA", 6) == identifier
 order = db.connection.execute("SELECT * FROM assistant_orders WHERE id=?", (identifier,)).fetchone()
-policy = SpendingPolicy(frozenset({"lucy"}), total_pence=2000)
+policy = SpendingPolicy(frozenset({"lucy"}), total_cents=2000)
 approve(db, identifier, order["digest"], actor="lucy", policy=policy, expires=time.time() + 600)
 print(
     db.connection.execute(
@@ -139,7 +139,7 @@ print(
     ).fetchone()[:]
 )
 print(
-    db.connection.execute("SELECT reserved_pence,spent_pence FROM assistant_spending").fetchone()[:]
+    db.connection.execute("SELECT reserved_cents,spent_cents FROM assistant_spending").fetchone()[:]
 )
 ```
 
@@ -148,7 +148,7 @@ print(
 (1500, 0)
 ```
 
-The 1,500-pence reservation consumes part of the 2,000-pence account ceiling before any send. A later uncertainty must keep consuming that capacity. Otherwise two individually plausible orders can exceed the total when one missing receipt causes the first reservation to vanish.
+The 1,500-cents reservation consumes part of the 2,000-cents account ceiling before any send. A later uncertainty must keep consuming that capacity. Otherwise two individually plausible orders can exceed the total when one missing receipt causes the first reservation to vanish.
 
 The approval digest must match the persisted proposal, and the approving actor must belong to the current operator allowlist. Reapproving the same eligible record does not reserve the money a second time. Those are local transaction properties. We now need to connect them to an external effect whose transaction cannot be included in our SQLite commit.
 
@@ -246,7 +246,7 @@ def record_receipt(db, work, identifier, receipt):
             ("CONFIRMED" if accepted else "REJECTED", json.dumps(receipt), identifier),
         )
         connection.execute(
-            "UPDATE assistant_spending SET reserved_pence=reserved_pence-?,spent_pence=spent_pence+? WHERE id=1",
+            "UPDATE assistant_spending SET reserved_cents=reserved_cents-?,spent_cents=spent_cents+? WHERE id=1",
             (row["amount"], row["amount"] if accepted else 0),
         )
         append_event(
@@ -302,23 +302,23 @@ def execute_order(db, work, identifier, supplier, *, policy):
         ).fetchone()[0]
         if (
             budget is None
-            or budget["reserved_pence"] < held
-            or budget["spent_pence"] + budget["reserved_pence"]
-            > min(budget["limit_pence"], policy.total_pence)
+            or budget["reserved_cents"] < held
+            or budget["spent_cents"] + budget["reserved_cents"]
+            > min(budget["limit_cents"], policy.total_cents)
             or current["approved_by"] not in policy.operators
             or current["approval_basis"] == "UNKNOWN"
             or (
                 current["approval_basis"] == "AUTOMATIC"
-                and current["amount"] > policy.automatic_order_pence
+                and current["amount"] > policy.automatic_order_cents
             )
         ):
             raise PermissionError("current spending authority or reservation is insufficient")
         lease = connection.execute(
-            "SELECT expires FROM assistant_work WHERE id=? AND cancelled=0",
+            "SELECT expires FROM assistant_work WHERE id=? AND canceled=0",
             (work.id,),
         ).fetchone()
         if lease is None:
-            raise PermissionError("cancelled work cannot authorize a new send")
+            raise PermissionError("canceled work cannot authorize a new send")
         if not 0 < supplier.timeout < lease[0] - time.time():
             raise PermissionError("supplier wait would exceed current ownership")
         if (
@@ -375,7 +375,7 @@ print(initial["status"])
 print("supplier rows", supplier.connection.execute("SELECT count(*) FROM orders").fetchone()[0])
 print(
     "reserved and spent",
-    db.connection.execute("SELECT reserved_pence,spent_pence FROM assistant_spending").fetchone()[
+    db.connection.execute("SELECT reserved_cents,spent_cents FROM assistant_spending").fetchone()[
         :
     ],
 )
@@ -383,7 +383,7 @@ recovered = execute_order(db, work, identifier, supplier, policy=policy)
 print(recovered["status"], "sends", supplier.sends, "lookups", supplier.lookups)
 print(
     "reserved and spent",
-    db.connection.execute("SELECT reserved_pence,spent_pence FROM assistant_spending").fetchone()[
+    db.connection.execute("SELECT reserved_cents,spent_cents FROM assistant_spending").fetchone()[
         :
     ],
 )
@@ -406,7 +406,7 @@ same receipt True
 settlement events 1
 ```
 
-The second execution performed a lookup, not another send. The third returned the stored receipt. The accepted purchase consumed 1,500 pence once, and the reservation is now zero. A second settlement would incorrectly subtract the reservation again or double the spent total; the terminal-state check prevents that transition.
+The second execution performed a lookup, not another send. The third returned the stored receipt. The accepted purchase consumed 1,500 cents once, and the reservation is now zero. A second settlement would incorrectly subtract the reservation again or double the spent total; the terminal-state check prevents that transition.
 
 The supplier's accepted order does not mean six tubs physically arrived at the shop. Confirmation belongs to order accounting. Receiving stock is a separate observed business event. Until a delivery is recorded, physical inventory remains unchanged and the confirmed order represents incoming stock.
 
@@ -418,7 +418,7 @@ When discovery cannot establish the result, obtain a conclusive receipt from the
 
 `REJECTED` means the supplier has irrevocably closed that operation, including any delayed request; “not found” does not meet that contract. A support search result, an expired local lease or an operator's guess is insufficient. If the supplier cannot provide conclusive evidence or safely close the operation, retain `UNKNOWN` and its reservation. The system cannot manufacture a truthful resolution. This path trusts an explicitly authorized operator's attestation; it does not cryptographically authenticate a pasted document and is never exposed as a model tool.
 
-Revoked or cancelled uncertain work can still receive a conclusive receipt, because it may describe an effect already committed. It cannot acquire fresh retry authority. A mismatched or contradictory receipt is refused with the reservation or prior outcome unchanged. A restored database remains subject to Chapter 18's separate account-wide recovery; the ordinary resolution command cannot bypass that pause.
+Revoked or canceled uncertain work can still receive a conclusive receipt, because it may describe an effect already committed. It cannot acquire fresh retry authority. A mismatched or contradictory receipt is refused with the reservation or prior outcome unchanged. A restored database remains subject to Chapter 18's separate account-wide recovery; the ordinary resolution command cannot bypass that pause.
 
 ## Refuse an unjustified retry
 
@@ -459,7 +459,7 @@ unresolved = execute_order(blind_db, blind_work, blind_id, blind, policy=policy)
 print(unresolved["status"], unresolved["needs_operator"], "sends", blind.sends)
 print(
     blind_db.connection.execute(
-        "SELECT reserved_pence,spent_pence FROM assistant_spending"
+        "SELECT reserved_cents,spent_cents FROM assistant_spending"
     ).fetchone()[:]
 )
 ```
@@ -498,7 +498,7 @@ try:
 except ValueError:
     print("mismatched receipt refused")
 print(
-    db.connection.execute("SELECT reserved_pence,spent_pence FROM assistant_spending").fetchone()[:]
+    db.connection.execute("SELECT reserved_cents,spent_cents FROM assistant_spending").fetchone()[:]
 )
 print(
     "physical vanilla",
@@ -560,7 +560,7 @@ The durability tests add cases beyond the checkpoint: exact approval mismatch, c
 | Probe | Required evidence | A false success would look like |
 | --- | --- | --- |
 | Lost response | Agent unknown while supplier has one accepted row | Timeout happened before the supplier received anything |
-| Reconciliation | Matching receipt, one supplier row, 1,500 pence spent | Local code fabricated success without reading supplier evidence |
+| Reconciliation | Matching receipt, one supplier row, 1,500 cents spent | Local code fabricated success without reading supplier evidence |
 | Repeat reconciliation | Same receipt and unchanged spending | Reservation settled or spent amount added twice |
 | Blind supplier | One send attempt and reservation still held | A new identity created after an empty lookup |
 | Receipt mismatch | Refusal with unchanged accounts | Any accepted status string settled the order |

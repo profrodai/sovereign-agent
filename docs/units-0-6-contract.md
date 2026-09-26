@@ -94,13 +94,13 @@ deferral record.
 
 ## Cross-cutting
 
-**Curriculum.** Chapters and exercises for implemented behaviour land with their
+**Curriculum.** Chapters and exercises for implemented behavior land with their
 unit. Every required chapter exercise must *execute*, not merely import. Unit 10
 expands, reorganises and polishes Chapters 0–7; it is not where the book first
 becomes runnable.
 
 **Checkpoints.** Checkpoint tags name commits and are preserved in `main`'s
-ancestry. A tag whose triggering behaviour already works is owed now.
+ancestry. A tag whose triggering behavior already works is owed now.
 
 ## Acceptance at `9c242828`
 

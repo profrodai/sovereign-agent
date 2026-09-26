@@ -181,3 +181,49 @@ WHEN NEW.id=(SELECT max(id) FROM assistant_reports WHERE work_id=NEW.work_id)
 BEGIN UPDATE assistant_work SET delivery=NEW.delivery WHERE id=NEW.work_id; END;
 ALTER TABLE assistant_jobs ADD COLUMN deferred INTEGER NOT NULL DEFAULT 0;
 """
+
+
+# Migration 27: American conventions. Money is USD in integer cents, and "canceled" takes its
+# U.S. spelling. Files written before this migration keep their data; only names and the stored
+# status value change. RENAME COLUMN also rewrites every trigger that names a renamed column.
+# The report triggers compare status values, so they are dropped while the stored values move
+# and recreated with the new spelling.
+SCHEMA_27 = """
+ALTER TABLE assistant_spending RENAME COLUMN limit_pence TO limit_cents;
+ALTER TABLE assistant_spending RENAME COLUMN reserved_pence TO reserved_cents;
+ALTER TABLE assistant_spending RENAME COLUMN spent_pence TO spent_cents;
+ALTER TABLE assistant_daily RENAME COLUMN estimated_cost_pence TO estimated_cost_cents;
+ALTER TABLE assistant_work RENAME COLUMN estimated_cost_pence TO estimated_cost_cents;
+ALTER TABLE assistant_work RENAME COLUMN cancelled TO canceled;
+ALTER TABLE assistant_delegations RENAME COLUMN estimated_call_pence TO estimated_call_cents;
+ALTER TABLE assistant_delegations RENAME COLUMN budget_pence TO budget_cents;
+DROP TRIGGER assistant_report_immutable;
+DROP TRIGGER assistant_report_insert;
+DROP TRIGGER assistant_report_finish;
+UPDATE assistant_work SET status='CANCELED' WHERE status='CANCELLED';
+UPDATE assistant_reports SET status='CANCELED' WHERE status='CANCELLED';
+UPDATE outcomes SET record=json_set(record, '$.state', 'CANCELED')
+WHERE json_extract(record, '$.state')='CANCELLED';
+CREATE TRIGGER assistant_report_immutable
+BEFORE UPDATE OF id,work_id,status,body,channel,recipient ON assistant_reports
+BEGIN SELECT RAISE(ABORT, 'report identity and content are immutable'); END;
+CREATE TRIGGER assistant_report_insert AFTER INSERT ON assistant_work
+WHEN NEW.status IN ('DONE','BLOCKED','CANCELED','REJECTED')
+BEGIN
+    INSERT INTO assistant_reports(work_id,status,body,channel,recipient,delivery)
+    VALUES (NEW.id,NEW.status,coalesce(NEW.result,'Work ended without a report.'),
+            NEW.channel,NEW.recipient,NEW.delivery);
+END;
+CREATE TRIGGER assistant_report_finish AFTER UPDATE OF status,result ON assistant_work
+WHEN NEW.status IN ('DONE','BLOCKED','CANCELED','REJECTED') AND NOT EXISTS (
+    SELECT 1 FROM assistant_reports WHERE id=(
+        SELECT max(id) FROM assistant_reports WHERE work_id=NEW.id
+    ) AND status=NEW.status AND body=coalesce(NEW.result,'Work ended without a report.')
+)
+BEGIN
+    INSERT INTO assistant_reports(work_id,status,body,channel,recipient)
+    VALUES (NEW.id,NEW.status,coalesce(NEW.result,'Work ended without a report.'),
+            NEW.channel,NEW.recipient);
+    UPDATE assistant_work SET delivery='PENDING' WHERE id=NEW.id;
+END;
+"""
