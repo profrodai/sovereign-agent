@@ -120,7 +120,7 @@
     {
       "number": 15,
       "lessonId": "evaluation",
-      "title": "Evaluation as measurement: error bars, paired comparisons and a harness that says what it checked",
+      "title": "Evaluation as measurement: error bars and paired comparisons",
       "path": "ch15/profrod-sovereign-agent-ch15-agent-evaluation-chapter.md",
       "checkpoint": "checkpoints/profrod_sovereign_agent_ch15_agent_evaluation_checkpoint.py",
       "status": "DRAFT"

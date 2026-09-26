@@ -10,8 +10,6 @@
 
 Lucy asks, “What needs ordering this morning?” Answering well requires more than a single generated paragraph. The program must obtain current stock, calculate useful drafts, and explain the results. In Chapter 2 you called the tools yourself. Now the model will select requests, your dispatcher will execute permitted operations, and the model will receive the observations before deciding what to do next.
 
-Practice this chapter with the [chapter 3 units](../../exercises/ch03/profrod-sovereign-agent-ch03-agent-loop-exercise-guide.md). Unit A connects a learner-owned admission decision to the model and tool loop. Unit B derives the reliability of a loop that recovers from errors, tests the formula against a simulated agent with a negative control, and measures from retry data whether retries are independent. Solutions and holdouts remain separate from the student notebooks.
-
 That repeated exchange is the agent loop. It is small enough to write directly, but leaving it unbounded would create an expensive failure mode: the model could repeat a lookup indefinitely, request an oversized batch, or keep working after you asked the program to stop. The loop therefore needs an explicit result even when it does not produce a final answer.
 
 This chapter starts with the arithmetic of that loop. Why do agents that handle short tasks fail on long ones? What do recovery and retries buy? How large must a budget be? You will derive each answer, then test it against a real model running your own loop. Then you will build the loop, in Part B.
@@ -255,7 +253,7 @@ xychart-beta
 
 **Figure:** Measured retries (middle line at four attempts) fall below the independent prediction (top) and above the naive hard-fraction prediction (bottom) by the fourth attempt.
 
-Independence overpredicts from the first retry on. A failed instance succeeded on its second attempt only 15% of the time (10 points of the 65% that had failed), against 35% on first attempts, because the instances that fail are the ones that are harder for this model. The hard-fraction model, fitted naively (treating the 27.5% never solved in four attempts as permanently hard), is closer at two and three attempts but underpredicts at four. Some of the "hard" instances were merely unlucky, and a longer run would separate the two. Neither model is the truth; both are ways of asking the data a precise question. The one robust conclusion: **retries buy less than independence promises**, so budget for them from measurements, not from $1 - (1 - q)^k$.
+Independence overpredicts from the first retry on. A failed instance succeeded on its second attempt only 15% of the time (10 points of the 65% that had failed), against 35% on first attempts, because the instances that fail are the ones that are harder for this model. The hard-fraction model, fitted naively (treating the 27.5% never solved in four attempts as permanently hard), is closer at two and three attempts but underpredicts at four. Some of the "hard" instances were merely unlucky, and a longer run would separate the two. Neither model is the truth; both are ways of asking the data a precise question. The conclusion that holds under both models: **retries buy less than independence promises**, so budget for them from measurements, not from $1 - (1 - q)^k$.
 
 ## Part B: build the loop
 
