@@ -12,7 +12,7 @@
 
 Unit A builds `apply_event`: an event and its stock change in one transaction, a replay treated as a duplicate, a reused identity refused, and nothing left behind when anything raises. Learners connect it to a day of the shop and check the invariant, stock equals the sum of events, with an independent reader. Unit B reproduces a schema migration that stops half-way, shows why the rerun fails, and builds `migrate`, which commits every missing migration together with its version and refuses a newer file first.
 
-Unit A: **Construct a durable state store**. Unit B: **Diagnose an interrupted migration and repair it**. Allocate ninety minutes to each. Use both for the complete three-hour chapter practice. Each notebook is independently runnable and includes all required introductions. A learner who starts with Unit B uses a labelled reference artifact unless they explicitly select their Unit A work. Record that provenance; a reference start is useful study, not evidence of earlier construction.
+Unit A: **Construct a durable state store**. Unit B: **Diagnose an interrupted migration and repair it**. Allocate ninety minutes to each. Use both for the complete three-hour chapter practice. Each notebook is independently runnable and includes all required introductions. A learner who starts with Unit B uses a labeled reference artifact unless they explicitly select their Unit A work. Record that provenance; a reference start is useful study, not evidence of earlier construction.
 
 ## Prepare and rehearse
 

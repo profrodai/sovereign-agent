@@ -83,7 +83,7 @@ User-service availability after reboot also depends on the host's user-manager c
 
 ## Roll back code without rolling back business history
 
-For a reviewed, schema-compatible prior release, repeat the preflight and stop/install sequence with the release roles exchanged. Keep the same state. Verify a new work result and retained business records again. The recorded experiment switched from `cec0452` to `313ac06`, back to `cec0452`, and returned to `313ac06`, all at schema 24. The two accepted orders and £26 spending remained unchanged, and service work completed after each switch.
+For a reviewed, schema-compatible prior release, repeat the preflight and stop/install sequence with the release roles exchanged. Keep the same state. Verify a new work result and retained business records again. The recorded experiment switched from `cec0452` to `313ac06`, back to `cec0452`, and returned to `313ac06`, all at schema 24. The two accepted orders and $26 spending remained unchanged, and service work completed after each switch.
 
 The same experiment refused the older schema-22 release because migrations 23 and 24 were unknown to it. A pre-upgrade schema-22 backup still exists as evidence; it was not installed over the current account to force a downgrade. This distinction matters whenever external events have occurred since the backup.
 
@@ -93,7 +93,7 @@ A restore changes authority and starts paused. The source snapshot must have the
 
 Resuming requires the controlled supplier's complete retained account history, an epoch fence and an exact-digest recovery plan. The plan must contain fresh per-SKU physical counts and explicit delivery observations, including receipts newer than the local backup. Do not treat backup inventory as a current count. Do not infer that missing model usage was zero; grant any fresh model allowance explicitly and retain the incomplete-history marker.
 
-The Linux experiment backed up before six vanilla tubs were accepted and received, then four strawberry tubs were accepted afterward. Restoring lost the later local history. Reconciliation recovered both receipts, set vanilla physical stock to the explicitly observed eight tubs, retained four pending strawberry tubs, recorded 2600 pence once, and refused the old supplier client and work owner. Repeating the same recovery plan did not renew its grant. The actual main service then completed a fresh stock request without another purchase.
+The Linux experiment backed up before six vanilla tubs were accepted and received, then four strawberry tubs were accepted afterward. Restoring lost the later local history. Reconciliation recovered both receipts, set vanilla physical stock to the explicitly observed eight tubs, retained four pending strawberry tubs, recorded 2600 cents once, and refused the old supplier client and work owner. Repeating the same recovery plan did not renew its grant. The actual main service then completed a fresh stock request without another purchase.
 
 The supplier used in this proof is controlled loopback teaching infrastructure with retained history and an epoch-aware write boundary. Its temporary process was stopped afterward. A real provider lacking complete discovery or an equivalent fence requires a different recovery contract; an empty lookup is not proof that an old request cannot arrive later.
 

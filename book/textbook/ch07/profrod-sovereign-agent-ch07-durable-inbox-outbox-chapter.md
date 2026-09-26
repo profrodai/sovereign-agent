@@ -78,7 +78,7 @@ $$
 
 It inherits Chapter 4's proof: admitting the same occurrence twice leaves $Q$ as admitting it once. Lucy's second tap carries the same message identifier, so it is a duplicate, and the model runs once. The till's request carries its own identity, so it is new work even though its text is the same.
 
-Two things this does *not* do. It does not decide who is allowed to ask: knowing an occurrence is new says nothing about whether its sender is Lucy. Authentication belongs to the adapter that receives the message (Chapter 8), and the queue keeps the identity it was given without letting any generated text replace it. And it does not make two different occurrences the same because their text matches. That is the right behaviour: "count vanilla" at 9:00 and at 11:00 are two counts.
+Two things this does *not* do. It does not decide who is allowed to ask: knowing an occurrence is new says nothing about whether its sender is Lucy. Authentication belongs to the adapter that receives the message (Chapter 8), and the queue keeps the identity it was given without letting any generated text replace it. And it does not make two different occurrences the same because their text matches. That is the right behavior: "count vanilla" at 9:00 and at 11:00 are two counts.
 
 ## How full the inbox gets
 
@@ -210,7 +210,7 @@ print(store.connection.execute("SELECT report_id, body, delivery FROM reports").
 
 ```text
 r1.1
-[('r1.1', 'Drafts: vanilla 6 tubs, strawberry 4 tubs; total 2600 pence GBP. No purchase.', 'pending')]
+[('r1.1', 'Drafts: vanilla 6 tubs, strawberry 4 tubs; total 2600 cents USD. No purchase.', 'pending')]
 ```
 
 The report's text is your loop's answer. A queue test that used a hard-coded string would pass even if your loop had never run. This one cannot.
@@ -345,7 +345,7 @@ One run, recorded on 2026-09-26 on macOS 26.6.2 (arm64) with Python 3.14.3:
 | Resend, at most 3 sends | 1.0000 (1.0000) | 1.0524 (1.0523) | 0.0498 (0.0499) |
 | Resend, receiver drops repeats | 1.0000 (1.0000) | 1.0000 (1.0000) | 0 (0) |
 
-Resending buys the last 2% of deliveries and pays for it with about one duplicate in twenty. No sender-side cleverness removes that trade: a sender that hears nothing cannot know whether its message arrived. The only way to get both, every report delivered and none twice, is on the *receiving* side. The receiver must recognise a report identity it has already accepted. **At-least-once sending plus an idempotent receiver gives an exactly-once effect.** Exactly-once *sending* is not on offer.
+Resending buys the last 2% of deliveries and pays for it with about one duplicate in twenty. No sender-side cleverness removes that trade: a sender that hears nothing cannot know whether its message arrived. The only way to get both, every report delivered and none twice, is on the *receiving* side. The receiver must recognize a report identity it has already accepted. **At-least-once sending plus an idempotent receiver gives an exactly-once effect.** Exactly-once *sending* is not on offer.
 
 That is why the report identity is immutable and why the outbox keeps it. Whether to resend an unknown report is then a decision about a specific service. If Chapter 8's messaging service drops repeated identities, resending is safe and the unknown can be retried. If it does not, the shop should ask Lucy, or check the conversation, before sending again. The outbox's job is to make that decision possible, not to make it silently.
 
@@ -357,7 +357,7 @@ The same experiment checks Little's law on your real queue: requests arrive at r
 | 0.3 | 1000 | 5.1185 | 5.1275 | 16.37 ticks | 0 |
 | 0.3 | 3 | 1.4500 | 1.4501 | 5.19 ticks | 136 of 1,253 |
 
-The law holds on every row, to the precision the edges of the run allow. The middle row shows why capacity is a decision and not a detail. At 90% utilisation an unbounded inbox is long, and every request in it waits.
+The law holds on every row, to the precision the edges of the run allow. The middle row shows why capacity is a decision and not a detail. At 90% utilization an unbounded inbox is long, and every request in it waits.
 
 ## What one worker leaves open
 

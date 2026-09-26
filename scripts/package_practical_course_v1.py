@@ -25,7 +25,7 @@ def start_text(chapters, instructor):
         "Every notebook introduces its specialized concepts and includes its teaching runtime.",
         "",
         "Start with the student notebook. NEEDS_WORK means an exercise is still unfinished.",
-        "Unit B includes a labelled reference start. Set LEARNER_HANDOFF to your saved Unit A",
+        "Unit B includes a labeled reference start. Set LEARNER_HANDOFF to your saved Unit A",
         "artifact to use your own successful work. Save notebooks and practical-work evidence.",
         "",
     ]

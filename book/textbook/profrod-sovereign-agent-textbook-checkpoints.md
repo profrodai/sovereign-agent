@@ -38,7 +38,7 @@ The final accelerated day retains two databases, a readable report and JSON evid
 uv run --python 3.14 python book/textbook/checkpoints/profrod_sovereign_agent_ch19_integrated_shop_day_checkpoint.py --output /tmp/lucy-day-first-run
 ```
 
-Use a fresh output path for each retained run; the checkpoint refuses to overwrite it. The independently authored fixture expects two accepted orders totaling 2600 pence. Vanilla ends with eight physical tubs after one receiving event; strawberry has one physical tub and four pending; chocolate stays at twelve. These are fixture expectations, not a business forecast. Its Telegram and model exchanges are simulated. A successful day does not establish a live handset exchange or long-running uptime.
+Use a fresh output path for each retained run; the checkpoint refuses to overwrite it. The independently authored fixture expects two accepted orders totaling 2600 cents. Vanilla ends with eight physical tubs after one receiving event; strawberry has one physical tub and four pending; chocolate stays at twelve. These are fixture expectations, not a business forecast. Its Telegram and model exchanges are simulated. A successful day does not establish a live handset exchange or long-running uptime.
 
 ## Keep building with Prof Rod
 

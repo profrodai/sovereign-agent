@@ -435,7 +435,7 @@ Inspection returns a plan template with unknown physical counts. That is intenti
 
 The plan is bound to exact bytes by a digest and has a freshness requirement. Recovery checks the operator, paused authority, account, receipt set, product set, delivery observations and model grants before activating the restored state. A changed plan requires its own digest. Repeating the same accepted plan does not spend again or renew its fresh model allowance.
 
-In the chapter checkpoint, the snapshot contains one order. The independent supplier contains two accepted orders. Vanilla has actually been received, bringing physical stock to eight; four strawberry tubs remain pending. Recovery imports both receipts and records 2600 pence once. The old supplier client is then deliberately used for an attempted order and is refused.
+In the chapter checkpoint, the snapshot contains one order. The independent supplier contains two accepted orders. Vanilla has actually been received, bringing physical stock to eight; four strawberry tubs remain pending. Recovery imports both receipts and records 2600 cents once. The old supplier client is then deliberately used for an attempted order and is refused.
 
 ```mermaid
 flowchart TD
@@ -443,7 +443,7 @@ flowchart TD
     receipts[Two retained supplier receipts] --> plan[Exact recovery plan]
     counts[Current physical counts and delivery observations] --> plan
     paused --> plan
-    plan --> result[Two reconciled orders and 2600 pence spent]
+    plan --> result[Two reconciled orders and 2600 cents spent]
     result --> fresh[Explicit fresh model allowance]
     result --> history[Historical usage remains incomplete]
 ```
@@ -489,13 +489,13 @@ uv run --python 3.14 python book/textbook/checkpoints/profrod_sovereign_agent_ch
 
 ### Expected observations
 
-Expected observations include a preserved database inode, refusal of the old connection and supplier epoch, one local order after restore followed by two reconciled orders, 2600 pence expenditure, eight vanilla tubs on hand, four strawberry tubs pending and fresh work becoming `DONE`. The historical model-usage flag remains incomplete.
+Expected observations include a preserved database inode, refusal of the old connection and supplier epoch, one local order after restore followed by two reconciled orders, 2600 cents expenditure, eight vanilla tubs on hand, four strawberry tubs pending and fresh work becoming `DONE`. The historical model-usage flag remains incomplete.
 
 ### Exercise 2: prove work after the terminal closes
 
 For the host experiment, record the exact release and unit paths, main process identities, restart counters and a unique completed request. Stop the terminal session and verify another scheduled request. Reboot the isolated host and verify the service and fresh work again. Inspect retained business records after the reboot; old successful logs alone cannot establish that the new process handled anything.
 
-The committed Linux receipts distinguish these observations from the portable checkpoint. Earlier host proofs include an actual VM reboot, worker termination, backup, account recovery and compatible code switches. The latest release installation preserves the same two orders, stock and 2600-pence expenditure. Those finite experiments do not establish a month of uptime or an uninterrupted-service guarantee.
+The committed Linux receipts distinguish these observations from the portable checkpoint. Earlier host proofs include an actual VM reboot, worker termination, backup, account recovery and compatible code switches. The latest release installation preserves the same two orders, stock and 2600-cents expenditure. Those finite experiments do not establish a month of uptime or an uninterrupted-service guarantee.
 
 ### Exercise 3: refuse unsafe maintenance inputs
 

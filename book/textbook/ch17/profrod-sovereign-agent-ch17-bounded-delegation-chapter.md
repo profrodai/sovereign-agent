@@ -22,7 +22,7 @@ The deliverable is one evaluated delegation pattern with a defensible simpler al
 
 ## Start with the job, then choose the mechanism
 
-The inquiry contains a product identity and a guest count. Lucy's teaching fixture defines ten portions per tub and a selling price of £5 per tub. The arithmetic is ceiling division followed by multiplication. Neither uncertainty about phrasing nor a long conversation is needed to compute it once those inputs are known.
+The inquiry contains a product identity and a guest count. Lucy's teaching fixture defines ten portions per tub and a selling price of $5 per tub. The arithmetic is ceiling division followed by multiplication. Neither uncertainty about phrasing nor a long conversation is needed to compute it once those inputs are known.
 
 A plain function is therefore a strong baseline. A skill can explain the steps to an existing agent that already handles varied customer requests. A second agent becomes more plausible when the task needs independent reasoning, a separate context or an independently managed lifetime while other work continues. Each choice introduces different costs and failure modes.
 
@@ -39,7 +39,7 @@ The new worker also has less authority than the shop worker. It can produce a qu
 
 ## Construct the quote and its independent expectations
 
-Use selling price for the customer quote, not supplier cost. The original vanilla fixture has a supplier unit cost of 250 pence and a selling price of 500 pence. Confusing those fields could produce a perfectly formatted quote at the wrong price. An expected answer written independently of the function exposes that error.
+Use selling price for the customer quote, not supplier cost. The original vanilla fixture has a supplier unit cost of 250 cents and a selling price of 500 cents. Confusing those fields could produce a perfectly formatted quote at the wrong price. An expected answer written independently of the function exposes that error.
 
 **Listing:** Build the inquiry and quote function, then test authored boundaries.
 
@@ -81,8 +81,8 @@ def quote(db: Database, inquiry: Inquiry) -> dict[str, Any]:
         "guests": inquiry.guests,
         "portions_per_tub": 10,
         "tubs": tubs,
-        "total_pence": tubs * price,
-        "currency": "GBP",
+        "total_cents": tubs * price,
+        "currency": "USD",
         "status": "DRAFT_QUOTE",
         "stock_reserved": False,
     }
@@ -92,7 +92,7 @@ temporary = tempfile.TemporaryDirectory(prefix="lucy-ch14-")
 root = Path(temporary.name)
 db = Database(root / "agent.sqlite")
 seed_lucy(db)
-for guests, tubs, pence in (
+for guests, tubs, cents in (
     (1, 1, 500),
     (10, 1, 500),
     (11, 2, 1000),
@@ -100,19 +100,19 @@ for guests, tubs, pence in (
     (200, 20, 10000),
 ):
     result = quote(db, Inquiry(sku="SKU-VANILLA", guests=guests))
-    assert (result["tubs"], result["total_pence"]) == (tubs, pence)
+    assert (result["tubs"], result["total_cents"]) == (tubs, cents)
 print("Authored boundary cases:", 5)
-print("41 guests:", quote(db, Inquiry(sku="SKU-VANILLA", guests=41))["total_pence"], "pence")
+print("41 guests:", quote(db, Inquiry(sku="SKU-VANILLA", guests=41))["total_cents"], "cents")
 print("Stock reserved:", quote(db, Inquiry(sku="SKU-VANILLA", guests=41))["stock_reserved"])
 ```
 
 ```text
 Authored boundary cases: 5
-41 guests: 2500 pence
+41 guests: 2500 cents
 Stock reserved: False
 ```
 
-For 41 guests, four tubs provide only forty portions, so the quote requires five tubs. At £5 each, that is £25.00. The literal expected answer comes from that reasoning, rather than from a saved output of `quote`. If the function later changes its rounding rule, the test should disagree and force an explicit business decision.
+For 41 guests, four tubs provide only forty portions, so the quote requires five tubs. At $5 each, that is $25.00. The literal expected answer comes from that reasoning, rather than from a saved output of `quote`. If the function later changes its rounding rule, the test should disagree and force an explicit business decision.
 
 The strict inquiry schema refuses boolean guest counts, zero and values above 200. An unknown product or invalid selling price also fails. These refusals keep the bounded assignment meaningful before any model runs. A model-generated argument still passes through the same strict validation at dispatch time.
 
@@ -136,18 +136,18 @@ def delegate(
     *,
     deadline: float,
     model_calls: int = 4,
-    estimated_call_pence: int = 0,
-    budget_pence: int = 100,
+    estimated_call_cents: int = 0,
+    budget_cents: int = 100,
 ) -> str:
     if (
         not math.isfinite(deadline)
         or not time.time() < deadline <= time.time() + 3600
         or type(model_calls) is not int
         or not 1 <= model_calls <= 8
-        or type(estimated_call_pence) is not int
-        or estimated_call_pence < 0
-        or type(budget_pence) is not int
-        or not 1 <= budget_pence <= 1000
+        or type(estimated_call_cents) is not int
+        or estimated_call_cents < 0
+        or type(budget_cents) is not int
+        or not 1 <= budget_cents <= 1000
     ):
         raise ValueError("bounded delegation contract required")
     encoded = inquiry.model_dump_json()
@@ -156,7 +156,7 @@ def delegate(
         if (
             source is None
             or source["role"] != "shop"
-            or source["cancelled"]
+            or source["canceled"]
             or source["status"] == "REJECTED"
             or connection.execute("SELECT paused FROM assistant_control").fetchone()[0]
         ):
@@ -172,9 +172,9 @@ def delegate(
                 existing["prompt"],
                 existing["deadline"],
                 existing["model_calls_limit"],
-                existing["estimated_call_pence"],
-                existing["budget_pence"],
-            ) != (encoded, deadline, model_calls, estimated_call_pence, budget_pence):
+                existing["estimated_call_cents"],
+                existing["budget_cents"],
+            ) != (encoded, deadline, model_calls, estimated_call_cents, budget_cents):
                 raise ValueError("parent already has a different immutable assignment")
             return str(existing["work_id"])
         child = work_records._enqueue(
@@ -191,8 +191,8 @@ def delegate(
         )
         connection.execute(
             "INSERT INTO assistant_delegations(work_id,parent_id,deadline,model_calls_limit,"
-            "estimated_call_pence,budget_pence) VALUES (?,?,?,?,?,?)",
-            (child, parent, deadline, model_calls, estimated_call_pence, budget_pence),
+            "estimated_call_cents,budget_cents) VALUES (?,?,?,?,?,?)",
+            (child, parent, deadline, model_calls, estimated_call_cents, budget_cents),
         )
         append_event(db, "assistant.delegation.created", {"parent": parent, "child": child})
         return child
@@ -201,12 +201,12 @@ def delegate(
 parent = work_records.enqueue(db, "catering:1", "lucy", "Prepare the stock brief.")
 inquiry = Inquiry(sku="SKU-VANILLA", guests=41)
 deadline = time.time() + 120
-child_id = delegate(db, parent, inquiry, deadline=deadline, estimated_call_pence=7)
-again = delegate(db, parent, inquiry, deadline=deadline, estimated_call_pence=7)
+child_id = delegate(db, parent, inquiry, deadline=deadline, estimated_call_cents=7)
+again = delegate(db, parent, inquiry, deadline=deadline, estimated_call_cents=7)
 print("Same handoff, same child:", child_id == again)
 try:
     delegate(
-        db, parent, Inquiry(sku="SKU-VANILLA", guests=42), deadline=deadline, estimated_call_pence=7
+        db, parent, Inquiry(sku="SKU-VANILLA", guests=42), deadline=deadline, estimated_call_cents=7
     )
 except ValueError:
     print("Changed inquiry:", "refused")
@@ -254,10 +254,10 @@ from sovereign_agent.assistant_work import Claim, assert_current
 
 
 def reserve_model_call(
-    db: Database, work: Claim, estimate_pence: int, *, now: float | None = None
+    db: Database, work: Claim, estimate_cents: int, *, now: float | None = None
 ) -> None:
     """Retain estimated exposure even if the provider's reply is lost. Not an invoice cap."""
-    if type(estimate_pence) is not int or estimate_pence < 0:
+    if type(estimate_cents) is not int or estimate_cents < 0:
         raise ValueError("nonnegative integral model estimate required")
     now = time.time() if now is None else now
     if not math.isfinite(now):
@@ -266,7 +266,7 @@ def reserve_model_call(
     with db.immediate() as connection:
         assert_current(connection, work, now)
         ledger = connection.execute(
-            "SELECT billing_session,estimated_cost_pence FROM assistant_work WHERE id=?",
+            "SELECT billing_session,estimated_cost_cents FROM assistant_work WHERE id=?",
             (work.id,),
         ).fetchone()
         billing = ledger["billing_session"] or work.session
@@ -276,8 +276,8 @@ def reserve_model_call(
             ).fetchone()
             if (
                 contract["model_calls"] >= contract["model_calls_limit"]
-                or estimate_pence != contract["estimated_call_pence"]
-                or ledger["estimated_cost_pence"] + estimate_pence > contract["budget_pence"]
+                or estimate_cents != contract["estimated_call_cents"]
+                or ledger["estimated_cost_cents"] + estimate_cents > contract["budget_cents"]
             ):
                 raise PermissionError("delegation model allowance exhausted")
             connection.execute(
@@ -292,17 +292,17 @@ def reserve_model_call(
         ).fetchone()
         if (
             row["model_calls"] >= row["call_limit"]
-            or row["estimated_cost_pence"] + estimate_pence > row["cost_limit"]
+            or row["estimated_cost_cents"] + estimate_cents > row["cost_limit"]
         ):
             raise PermissionError("daily model allowance exhausted")
         connection.execute(
             "UPDATE assistant_daily SET model_calls=model_calls+1,"
-            "estimated_cost_pence=estimated_cost_pence+? WHERE session=? AND day=?",
-            (estimate_pence, billing, day),
+            "estimated_cost_cents=estimated_cost_cents+? WHERE session=? AND day=?",
+            (estimate_cents, billing, day),
         )
         connection.execute(
-            "UPDATE assistant_work SET estimated_cost_pence=estimated_cost_pence+? WHERE id=?",
-            (estimate_pence, work.id),
+            "UPDATE assistant_work SET estimated_cost_cents=estimated_cost_cents+? WHERE id=?",
+            (estimate_cents, work.id),
         )
 
 
@@ -312,13 +312,13 @@ def expire(db: Database) -> None:
         rows = connection.execute(
             "SELECT w.id FROM assistant_work w JOIN assistant_delegations d ON d.work_id=w.id "
             "JOIN assistant_work p ON p.id=d.parent_id WHERE "
-            "w.status IN ('READY','RUNNING','BLOCKED') AND (d.deadline<=? OR p.cancelled=1)",
+            "w.status IN ('READY','RUNNING','BLOCKED') AND (d.deadline<=? OR p.canceled=1)",
             (time.time(),),
         ).fetchall()
         for row in rows:
             connection.execute(
-                "UPDATE assistant_work SET status='CANCELLED',cancelled=1,"
-                "generation=generation+1,result='Delegation expired or parent cancelled.' "
+                "UPDATE assistant_work SET status='CANCELED',canceled=1,"
+                "generation=generation+1,result='Delegation expired or parent canceled.' "
                 "WHERE id=?",
                 (row[0],),
             )
@@ -343,7 +343,7 @@ The reservation records estimated exposure even if a reply is lost. It is not an
 
 The daily table contains both intake accounting and model usage. Research sessions can therefore have their own rows even though their model usage is billed to Lucy. Our first added checkpoint assertion incorrectly required exactly one row. The corrected test checks the relevant usage columns: only Lucy has model calls or estimated cost, and every research intake row has zero billed usage.
 
-That distinction is worth investigating rather than deleting the extra rows to satisfy the test. A table's existence does not tell us which account a particular operation charges. Trace the update query and observe the resulting fields. The checkpoint's complete scenarios account for ten calls and 26 estimated pence in one billing account, with no additional allowance created by the research sessions.
+That distinction is worth investigating rather than deleting the extra rows to satisfy the test. A table's existence does not tell us which account a particular operation charges. Trace the update query and observe the resulting fields. The checkpoint's complete scenarios account for ten calls and 26 estimated cents in one billing account, with no additional allowance created by the research sessions.
 
 ## Build the read-only research loop
 
@@ -422,12 +422,12 @@ def run_once(
                 model_calls=contract["model_calls_limit"],
                 tool_calls=4,
                 seconds=min(60, remaining),
-                estimated_call_pence=contract["estimated_call_pence"],
-                model_budget_pence=contract["budget_pence"],
+                estimated_call_cents=contract["estimated_call_cents"],
+                model_budget_cents=contract["budget_cents"],
             ),
             check_current=lambda: work_records.assert_current(db.connection, work),
             reserve_call=lambda: work_records.reserve_model_call(
-                db, work, contract["estimated_call_pence"]
+                db, work, contract["estimated_call_cents"]
             ),
             observe=lambda message: work_records.observe(db, work, message),
             should_stop=should_stop,
@@ -453,7 +453,7 @@ def run_once(
             "decision": "Retain the function for this fixed calculation; model prose is ungraded.",
             "assignment_usage": dict(
                 db.connection.execute(
-                    "SELECT d.model_calls,w.estimated_cost_pence FROM assistant_delegations d "
+                    "SELECT d.model_calls,w.estimated_cost_cents FROM assistant_delegations d "
                     "JOIN assistant_work w ON w.id=d.work_id WHERE d.work_id=?",
                     (work.id,),
                 ).fetchone()
@@ -464,7 +464,7 @@ def run_once(
         answer = (
             (
                 f"Catering draft: {baseline['tubs']} tubs for {inquiry.guests} guests, "
-                f"GBP {baseline['total_pence'] / 100:.2f}. No stock reserved."
+                f"USD {baseline['total_cents'] / 100:.2f}. No stock reserved."
             )
             if passed
             else ("Catering research did not produce verified quote evidence.")
@@ -490,8 +490,8 @@ print(
     "Quote:",
     result["report"]["quote"]["tubs"],
     "tubs",
-    result["report"]["quote"]["total_pence"],
-    "pence",
+    result["report"]["quote"]["total_cents"],
+    "cents",
 )
 print("Assignment usage:", result["report"]["assignment_usage"])
 print("Baseline model calls:", result["report"]["baseline"]["model_calls"])
@@ -500,8 +500,8 @@ print("Repeat research run:", run_once(db, OfflineCateringModel(), identifier=ch
 
 ```text
 Research status: DONE
-Quote: 5 tubs 2500 pence
-Assignment usage: {'model_calls': 2, 'estimated_cost_pence': 14}
+Quote: 5 tubs 2500 cents
+Assignment usage: {'model_calls': 2, 'estimated_cost_cents': 14}
 Baseline model calls: 0
 Repeat research run: IDLE
 ```
@@ -514,7 +514,7 @@ An `IDLE` repeat means the completed research work is not executed again. It is 
 
 ## Keep stock work and billing connected correctly
 
-The research child uses a separate session, but the parent remains ordinary shop work. The following call completes the parent through the actual shop worker. Its three model calls join the child's two calls in Lucy's daily account. The child contributes fourteen estimated pence from its two configured seven-pence reservations; the offline shop calls use the default zero estimate.
+The research child uses a separate session, but the parent remains ordinary shop work. The following call completes the parent through the actual shop worker. Its three model calls join the child's two calls in Lucy's daily account. The child contributes fourteen estimated cents from its two configured seven-cents reservations; the offline shop calls use the default zero estimate.
 
 **Listing:** Complete the parent and inspect shared usage and unchanged business records.
 
@@ -524,7 +524,7 @@ from reference_organizations.store.assistant import run_once as shop_once
 
 stock_result = shop_once(db, OfflineShopModel())
 usage = db.connection.execute(
-    "SELECT model_calls,estimated_cost_pence FROM assistant_daily WHERE session='lucy'"
+    "SELECT model_calls,estimated_cost_cents FROM assistant_daily WHERE session='lucy'"
 ).fetchone()
 print("Stock status:", stock_result["status"])
 print("Lucy's shared usage:", tuple(usage))
@@ -562,9 +562,9 @@ sequenceDiagram
 
 Finishing the stock brief does not necessarily finish its catering child. Lucy may withdraw the catering inquiry after the stock task is done. Cancellation must stop the outstanding child without rewriting the parent's completed business result.
 
-The work cancellation primitive handles this case by retaining the parent's `DONE` result while recording cancellation for its still-active delegation. The research current-holder check sees the cancelled parent, and expiry processing moves the child to `CANCELLED`. A model reply already in progress cannot produce a new quote observation or completed child result afterward.
+The work cancellation primitive handles this case by retaining the parent's `DONE` result while recording cancellation for its still-active delegation. The research current-holder check sees the canceled parent, and expiry processing moves the child to `CANCELED`. A model reply already in progress cannot produce a new quote observation or completed child result afterward.
 
-In the checkpoint's second process case, research pauses inside its first model call again. The shop process completes the stock parent, then cancels the parent and releases research. The child returns `AUTHORITY_STOP`, its work becomes cancelled and no tool observation is recorded. The stock parent's completed result remains intact.
+In the checkpoint's second process case, research pauses inside its first model call again. The shop process completes the stock parent, then cancels the parent and releases research. The child returns `AUTHORITY_STOP`, its work becomes canceled and no tool observation is recorded. The stock parent's completed result remains intact.
 
 The model call's reserved allowance is retained. Cancellation can prevent newly admitted tool work and completion; it cannot recall a provider request already sent or guarantee that the provider did not charge for it. This is the same distinction between authority and completed external activity that motivated the [supplier-recovery chapter](../ch11/profrod-sovereign-agent-ch11-ambiguous-supplier-order-chapter.md).
 
@@ -582,7 +582,7 @@ budget_child = delegate(
     Inquiry(sku="SKU-VANILLA", guests=1),
     deadline=time.time() + 60,
     model_calls=1,
-    estimated_call_pence=5,
+    estimated_call_cents=5,
 )
 old = work_records.claim(db, "old", role="research", identifier=budget_child, ttl=0.1)
 assert old is not None
@@ -613,19 +613,19 @@ Durable call count: 1
 
 This exercise uses actual elapsed time rather than rewriting the lease timestamp. It changes ownership records in one process; Chapter 12 and the cumulative delegation checkpoint provide the complementary process evidence. Each experiment states which boundary it tests instead of pretending one demonstration covers every failure mode.
 
-The checkpoint also lets an unclaimed contract expire by real elapsed time. Expiration happens before a model call, and the work becomes cancelled. A deadline should constrain work that never starts as well as work that is already running. Otherwise a delayed queue can begin an inquiry long after its usefulness has ended.
+The checkpoint also lets an unclaimed contract expire by real elapsed time. Expiration happens before a model call, and the work becomes canceled. A deadline should constrain work that never starts as well as work that is already running. Otherwise a delayed queue can begin an inquiry long after its usefulness has ended.
 
 ## Learn from the real model's tool-schema failure
 
 The recorded live construction run used local `qwen3` with reasoning disabled. The first version advertised a quote tool with no arguments while putting the inquiry in the user's message. The model supplied the natural SKU and guest-count arguments anyway. Strict dispatch refused them, leaving the work blocked with no quote.
 
-We repaired the tool schema to expose the explicit `Inquiry` fields and checked exact equality with the stored assignment inside the handler. The same model then produced a valid five-tub, 2,500-pence quote for 41 guests. Both runs are retained in the evidence, and the repaired source hash matches the current delegation module.
+We repaired the tool schema to expose the explicit `Inquiry` fields and checked exact equality with the stored assignment inside the handler. The same model then produced a valid five-tub, 2,500-cents quote for 41 guests. Both runs are retained in the evidence, and the repaired source hash matches the current delegation module.
 
 | Live construction observation | Before schema repair | After schema repair |
 | --- | --- | --- |
 | Model supplied inquiry fields | Yes | Yes |
 | Tool accepted those fields | No, invalid arguments | Yes, exact inquiry required |
-| Verified quote | None | Five tubs, £25.00 |
+| Verified quote | None | Five tubs, $25.00 |
 | Work disposition | `BLOCKED` | `DONE` |
 
 The repair did not loosen the assignment. It made the interface tell the model what the handler actually expects, then enforced the immutable terms. A permissive handler that accepted any product or guest count would have made the test green by changing the problem. The exact-inquiry regression prevents that expansion.
@@ -660,9 +660,9 @@ Propose a task for Lucy that a fixed function does not already solve. Define its
 
 ## Expected observations
 
-The cumulative checkpoint verifies five authored arithmetic boundaries. In its first process case, stock work completes while research waits, then the child returns five tubs at 2,500 pence and a repeat research run is idle. In its second case, cancellation preserves the completed stock result and prevents the child's observation and completion.
+The cumulative checkpoint verifies five authored arithmetic boundaries. In its first process case, stock work completes while research waits, then the child returns five tubs at 2,500 cents and a repeat research run is idle. In its second case, cancellation preserves the completed stock result and prevents the child's observation and completion.
 
-Unclaimed work expires, replacement cannot reset an exhausted assignment allowance, and all usage is billed to Lucy: ten calls and 26 estimated pence across the complete checkpoint. Stock and reservation values remain unchanged and no supplier orders exist. The final architecture decision retains the direct function for this particular calculation.
+Unclaimed work expires, replacement cannot reset an exhausted assignment allowance, and all usage is billed to Lucy: ten calls and 26 estimated cents across the complete checkpoint. Stock and reservation values remain unchanged and no supplier orders exist. The final architecture decision retains the direct function for this particular calculation.
 
 ## Learner verification
 

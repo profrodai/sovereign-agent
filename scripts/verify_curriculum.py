@@ -6,7 +6,7 @@ Catches the ways a curriculum rots:
 - a chapter that lost a required section
 - a `solution.py` that no longer imports
 - a solution that copies implementation instead of importing the package
-- a chapter promising behaviour the code does not have (e.g. Pulse before
+- a chapter promising behavior the code does not have (e.g. Pulse before
   Chapter 7 genuinely produces it)
 - a referenced script or chapter that does not exist
 - a chapter missing its co-located INSTRUCTOR.md, or one missing a required
@@ -239,7 +239,7 @@ def check_pulse_claims(name: str, readme_text: str, exercise_root: Path) -> list
 
     if name != PULSE_EVIDENCE_CHAPTER:
         if makes_pulse_claim:
-            problems.append(f"{name}: claims Pulse behaviour that does not exist until Chapter 7")
+            problems.append(f"{name}: claims Pulse behavior that does not exist until Chapter 7")
         return problems
 
     if not makes_pulse_claim:
@@ -250,7 +250,7 @@ def check_pulse_claims(name: str, readme_text: str, exercise_root: Path) -> list
     db_path = exercise_root / ".sovereign" / "organization.db"
     if not db_path.is_file():
         problems.append(
-            f"{name}: claims Pulse behaviour, but its own exercise left no organization "
+            f"{name}: claims Pulse behavior, but its own exercise left no organization "
             "database to check evidence against"
         )
         return problems
@@ -265,7 +265,7 @@ def check_pulse_claims(name: str, readme_text: str, exercise_root: Path) -> list
         ).fetchone()["c"]
         if pulse_events == 0:
             problems.append(
-                f"{name}: claims Pulse behaviour, but its own exercise's database has no "
+                f"{name}: claims Pulse behavior, but its own exercise's database has no "
                 "durable pulse.* event -- the claim is not backed by the real mechanism"
             )
             return problems
@@ -286,7 +286,7 @@ def check_pulse_claims(name: str, readme_text: str, exercise_root: Path) -> list
         ).fetchone()["c"]
         if traceable == 0:
             problems.append(
-                f"{name}: claims Pulse behaviour, and a pulse.* event exists, but no "
+                f"{name}: claims Pulse behavior, and a pulse.* event exists, but no "
                 "traceable pulse_origins -> pulse_wake_decisions chain backs it -- this is "
                 "the exact shape a fabricated event (inserted directly rather than produced "
                 "by run_pulse_once) would leave behind"

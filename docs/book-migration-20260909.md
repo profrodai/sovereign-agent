@@ -41,7 +41,7 @@ No archived file is deleted or silently rewritten. The entire source snapshot co
 | 15 | [18](https://github.com/profrodai/sovereign-agent/blob/b4a0c56df9c74ace40f2b9e89b0fd659849087bc/book/textbook/ch18/README.md) | Deploy and maintain the agent |
 | 16 | [19](https://github.com/profrodai/sovereign-agent/blob/b4a0c56df9c74ace40f2b9e89b0fd659849087bc/book/textbook/ch19/README.md) | Lucy leaves the shop for a day |
 
-New Chapter 4 teaches durable SQLite state, Chapter 7 builds the work inbox and report outbox, and Chapter 13 builds MCP protocol integration separately from containment. Each has a detailed scope in the textbook and a clearly labelled planned entry in every companion. No empty notebook represents completed work. Existing isolation material still contains its MCP introduction until the new standalone chapter is authored; the construction brief states that extraction work explicitly.
+New Chapter 4 teaches durable SQLite state, Chapter 7 builds the work inbox and report outbox, and Chapter 13 builds MCP protocol integration separately from containment. Each has a detailed scope in the textbook and a clearly labeled planned entry in every companion. No empty notebook represents completed work. Existing isolation material still contains its MCP introduction until the new standalone chapter is authored; the construction brief states that extraction work explicitly.
 
 ## Notebook identity and self-contained use
 
@@ -51,7 +51,7 @@ Each available notebook includes setup, specialist introductions and its teachin
 
 ## Verification and downstream consumers
 
-The [archive inventory](archive/book-20260909-inventory.json) binds every preserved path to its original file hash and line count. The archive gate also compares the original Git blobs when the pinned history is available. The active gate checks the four assets directly. Historical gates run in an explicit temporary projection of the archived book, and their results are labelled historical. They cannot certify the active notebooks. Current notebook execution, repeat runs, selected handoffs, Markdown parity and archive membership are verified separately. Student downloads exclude worked solutions; educator downloads contain both deliberately.
+The [archive inventory](archive/book-20260909-inventory.json) binds every preserved path to its original file hash and line count. The archive gate also compares the original Git blobs when the pinned history is available. The active gate checks the four assets directly. Historical gates run in an explicit temporary projection of the archived book, and their results are labeled historical. They cannot certify the active notebooks. Current notebook execution, repeat runs, selected handoffs, Markdown parity and archive membership are verified separately. Student downloads exclude worked solutions; educator downloads contain both deliberately.
 
 Website consumers must read `book/textbook/BOOK.json`, resolve paths relative to `book/textbook`, retain stable `lessonId` routing, and display PLANNED chapters without treating them as completed lessons. The old `book/always_on` source path is retired. The site repository previously projected an older source commit; this product migration does not claim the website has been re-synced or deployed. Existing thirteen/sixteen-chapter edition URLs must retain their old identity or point to an explicit migration notice, never silently change topics under an old chapter number.
 

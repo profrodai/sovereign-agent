@@ -50,8 +50,8 @@ def build_tools(shop):
         return {
             "sku": args.sku,
             "supplier": "lucy-local",
-            "currency": "GBP",
-            "unit_cost_pence": PRICES[args.sku],
+            "currency": "USD",
+            "unit_cost_cents": PRICES[args.sku],
         }
 
     def draft(args):
@@ -63,7 +63,7 @@ def build_tools(shop):
         return {
             **quote,
             "quantity": args.quantity,
-            "total_pence": args.quantity * quote["unit_cost_pence"],
+            "total_cents": args.quantity * quote["unit_cost_cents"],
             "status": "DRAFT",
         }
 
@@ -76,7 +76,7 @@ def build_tools(shop):
         ),
         ExecutableTool(
             "supplier",
-            "Read a product's supplier and unit price in GBP pence.",
+            "Read a product's supplier and unit price in USD cents.",
             ProductArguments,
             supplier,
         ),

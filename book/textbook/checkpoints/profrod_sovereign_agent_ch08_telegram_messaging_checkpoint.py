@@ -27,7 +27,7 @@ from sovereign_agent.database import Database
 from sovereign_agent.model_turn import HTTPModel
 from sovereign_agent.telegram_channel import Telegram, deliver_one, poll
 
-PROMPT = "Prepare replenishment drafts from current stock. State GBP amounts."
+PROMPT = "Prepare replenishment drafts from current stock. State USD amounts."
 
 
 def update(identifier, actor=123):

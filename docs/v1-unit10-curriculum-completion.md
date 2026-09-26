@@ -236,16 +236,16 @@ byte-identical and the gate reconfirmed green.
    event was committed directly via `append_event`, bypassing
    `run_pulse_once` entirely — no matching `pulse_origins`/
    `pulse_wake_decisions` chain existed. `check_pulse_claims` correctly
-   refused: "claims Pulse behaviour, and a pulse.* event exists, but no
+   refused: "claims Pulse behavior, and a pulse.* event exists, but no
    traceable pulse_origins -> pulse_wake_decisions chain backs it."
 2. **The chapter-scoped Pulse guard, never invoked.** A real sale was
    committed against a fresh organization, but `run_pulse_once` was never
    called — simulating a future edit that quietly dropped the call while a
    Chapter-7-shaped Pulse claim survived. Correctly refused: "claims Pulse
-   behaviour, but its own exercise's database has no durable pulse.* event."
+   behavior, but its own exercise's database has no durable pulse.* event."
 3. **The unconditional early-chapter prohibition.** A Pulse-fired sentence
    was appended to `ch00_first_shift/README.md`. The full end-to-end gate
-   caught it ("claims Pulse behaviour that does not exist until Chapter 7");
+   caught it ("claims Pulse behavior that does not exist until Chapter 7");
    restored, confirmed byte-identical via `diff`, gate reconfirmed green.
 4. **A required `INSTRUCTOR.md` section.** The "Facilitation timing" section
    was removed from `ch02_work_needs_governance/INSTRUCTOR.md`. Caught

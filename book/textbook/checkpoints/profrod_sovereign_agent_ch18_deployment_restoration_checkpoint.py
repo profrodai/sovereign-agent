@@ -97,7 +97,7 @@ def experiment(root, supplier_process):
                 vanilla: {"received": True, "reference": "delivery-A"},
                 strawberry: {"received": False, "reference": ""},
             }
-            plan["model_grants"] = {"lucy": {"calls": 5, "estimated_pence": 100}}
+            plan["model_grants"] = {"lucy": {"calls": 5, "estimated_cents": 100}}
             raw = json.dumps(plan).encode()
             digest = hashlib.sha256(raw).hexdigest()
             try:
@@ -112,7 +112,7 @@ def experiment(root, supplier_process):
                 "status": "ACTIVE",
                 "duplicate": False,
                 "orders": 2,
-                "spent_pence": 2600,
+                "spent_cents": 2600,
             }
             assert (
                 recover(db, client, raw, digest, actor="lucy", policy=policy)["duplicate"] is True
@@ -151,7 +151,7 @@ def experiment(root, supplier_process):
                 "old_connection_refused": True,
                 "restored_local_orders": 1,
                 "reconciled_orders": 2,
-                "spent_pence": 2600,
+                "spent_cents": 2600,
                 "vanilla_on_hand": 8,
                 "strawberry_on_order": 4,
                 "fresh_work": "DONE",
@@ -186,7 +186,7 @@ def main():
         result["restored_local_orders"],
         result["reconciled_orders"],
     )
-    print("Recovered expenditure:", result["spent_pence"], "pence")
+    print("Recovered expenditure:", result["spent_cents"], "cents")
     print(
         "Vanilla on hand / strawberry pending:",
         result["vanilla_on_hand"],

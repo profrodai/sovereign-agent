@@ -78,9 +78,9 @@ def experiment(root):
                 ).fetchone()[0]
 
             automatic = SpendingPolicy(
-                frozenset({"lucy"}), total_pence=2500, automatic_order_pence=2000
+                frozenset({"lucy"}), total_cents=2500, automatic_order_cents=2000
             )
-            policy = SpendingPolicy(frozenset({"lucy"}), total_pence=2500)
+            policy = SpendingPolicy(frozenset({"lucy"}), total_cents=2500)
             print(
                 "Changed digest refused:",
                 refused(
@@ -143,7 +143,7 @@ def experiment(root):
             ).fetchone()
             assert tuple(old) == ("REVOKED", 1)
             assert (
-                db.connection.execute("SELECT reserved_pence FROM assistant_spending").fetchone()[0]
+                db.connection.execute("SELECT reserved_cents FROM assistant_spending").fetchone()[0]
                 == 0
             )
             print("Revision released obsolete reservation:", True)
@@ -165,7 +165,7 @@ def experiment(root):
                 db, revised, digest(revised), actor="lucy", policy=policy, expires=time.time() + 60
             )
             assert (
-                db.connection.execute("SELECT reserved_pence FROM assistant_spending").fetchone()[0]
+                db.connection.execute("SELECT reserved_cents FROM assistant_spending").fetchone()[0]
                 == 1750
             )
             other = propose(db, work, "SKU-STRAWBERRY", 4, target=supplier.identity)
@@ -195,13 +195,13 @@ def experiment(root):
             assert json.loads(rows[0][1])["quantity"] == 7
             balance = tuple(
                 db.connection.execute(
-                    "SELECT reserved_pence,spent_pence FROM assistant_spending"
+                    "SELECT reserved_cents,spent_cents FROM assistant_spending"
                 ).fetchone()
             )
             assert balance == (0, 1750)
-            finish(db, work, "DONE", "Confirmed seven vanilla tubs for £17.50; no other purchase.")
+            finish(db, work, "DONE", "Confirmed seven vanilla tubs for $17.50; no other purchase.")
             print("Supplier orders after authorized send:", len(rows))
-            print("Reserved and spent pence:", *balance)
+            print("Reserved and spent cents:", *balance)
         finally:
             db.close()
 

@@ -59,7 +59,7 @@ These commands follow the official [environment](https://docs.astral.sh/uv/pip/e
 
 Environment setup is separate from the ninety-minute work plan. A notebook that reports NEEDS_WORK is running as intended: you must complete the exercise functions before it can report successful work.
 
-Open Unit A to construct the mechanism. Unit B includes a labelled reference start or accepts your explicitly selected successful Unit A handoff through LEARNER_HANDOFF. Reference starts do not earn credit for your prior construction. Run each cell in order, make a prediction before observing output, and retain a first attempt before consulting a worked solution.
+Open Unit A to construct the mechanism. Unit B includes a labeled reference start or accepts your explicitly selected successful Unit A handoff through LEARNER_HANDOFF. Reference starts do not earn credit for your prior construction. Run each cell in order, make a prediction before observing output, and retain a first attempt before consulting a worked solution.
 
 [Asset index](profrod-sovereign-agent-educator-start-here.md)
 

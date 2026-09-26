@@ -121,7 +121,7 @@ def claim(
             "AND w.available_after<=? AND "
             "(?=0 OR w.control=1) AND "
             "((?=0 AND w.status='READY') OR (w.status='RUNNING' AND w.expires<=?) OR "
-            "(?=1 AND w.status IN ('READY','BLOCKED','CANCELLED'))) AND "
+            "(?=1 AND w.status IN ('READY','BLOCKED','CANCELED'))) AND "
             "(?=0 OR EXISTS (SELECT 1 FROM assistant_orders o WHERE o.work_id=w.id "
             "AND o.status IN ('SENDING','UNKNOWN'))) AND NOT EXISTS "
             "(SELECT 1 FROM assistant_work other WHERE other.session=w.session "
@@ -183,7 +183,7 @@ stateDiagram-v2
     RUNNING --> BLOCKED: Work needs resolution
     BLOCKED --> READY: Operator approval makes work eligible
     BLOCKED --> RUNNING: Eligible uncertain-effect recovery
-    RUNNING --> CANCELLED: Operator cancels
+    RUNNING --> CANCELED: Operator cancels
 ```
 
 **Figure:** These relevant work transitions require a committed action; elapsed time alone does not rewrite the row.
@@ -287,12 +287,12 @@ def assert_current(connection: sqlite3.Connection, work: Claim, now: float | Non
         raise PermissionError("worker claim expired or superseded")
     if work.role == "research":
         contract = connection.execute(
-            "SELECT d.deadline,p.cancelled FROM assistant_delegations d "
+            "SELECT d.deadline,p.canceled FROM assistant_delegations d "
             "JOIN assistant_work p ON p.id=d.parent_id WHERE d.work_id=?",
             (work.id,),
         ).fetchone()
-        if contract is None or contract["deadline"] <= now or contract["cancelled"]:
-            raise PermissionError("delegation expired or parent cancelled")
+        if contract is None or contract["deadline"] <= now or contract["canceled"]:
+            raise PermissionError("delegation expired or parent canceled")
 
 
 try:
@@ -316,7 +316,7 @@ The research-role branch anticipates Chapter 17. A delegated worker also needs a
 
 A fluent model response can arrive after its holder was replaced. Persisting it under the new generation would falsely attribute old work to the replacement. The observation function therefore takes the held claim and validates it inside the transaction that appends the transcript row. The row records the actual generation that produced the observation.
 
-Completion follows the same pattern. Only the current holder can move the assignment to `DONE`, `BLOCKED` or `CANCELLED` and store its result. A blocked turn also receives a bounded retry delay. The terminal label describes the work result; it is not an operating-system exit code. A process can exit cleanly after recording blocked work, or crash after durable work has already completed.
+Completion follows the same pattern. Only the current holder can move the assignment to `DONE`, `BLOCKED` or `CANCELED` and store its result. A blocked turn also receives a bounded retry delay. The terminal label describes the work result; it is not an operating-system exit code. A process can exit cleanly after recording blocked work, or crash after durable work has already completed.
 
 That delay does not automatically turn every blocked item back into ordinary queued work. An approval can explicitly make a waiting assignment ready, while an uncertain-effect recovery pass has its own eligibility rule. The distinction prevents a missing permission from becoming a loop that repeatedly asks the model for a way around it.
 
@@ -335,7 +335,7 @@ def observe(db: Database, work: Claim, message: dict[str, Any]) -> None:
 def finish(
     db: Database, work: Claim, status: str, result: str, *, now: float | None = None
 ) -> None:
-    if status not in {"DONE", "BLOCKED", "CANCELLED"}:
+    if status not in {"DONE", "BLOCKED", "CANCELED"}:
         raise ValueError("invalid terminal work state")
     with db.immediate() as connection:
         assert_current(connection, work, now)

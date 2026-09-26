@@ -64,7 +64,7 @@ problems with separate proofs.
 The final accelerated day includes an independent supplier database, duplicate
 messages, corrected preferences, a failed model call, exact approvals, lost
 responses, a killed worker and receiving. Authored expectations require exactly
-two supplier orders totaling 2600 pence. A deterministic report distinguishes
+two supplier orders totaling 2600 cents. A deterministic report distinguishes
 physical stock, pending replenishment, reservations and confirmed expenditure.
 The fixture uses model and Telegram transport substitutes; live facilities have
 separate receipts and acceptance conditions.

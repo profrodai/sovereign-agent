@@ -63,7 +63,7 @@ def main():
                 "SELECT sku,on_hand,reserved FROM inventory ORDER BY sku"
             )
         ]
-        for guests, tubs, pence in (
+        for guests, tubs, cents in (
             (1, 1, 500),
             (10, 1, 500),
             (11, 2, 1000),
@@ -71,16 +71,16 @@ def main():
             (200, 20, 10000),
         ):
             result = quote(db, Inquiry(sku="SKU-VANILLA", guests=guests))
-            assert (result["tubs"], result["total_pence"]) == (tubs, pence)
+            assert (result["tubs"], result["total_cents"]) == (tubs, cents)
         print("Authored quote boundary cases:", 5)
         for cancel_child in (False, True):
             label = "cancel" if cancel_child else "complete"
             parent = enqueue(db, "parent:" + label, "lucy", "Prepare the stock brief.")
             deadline = time.time() + 30
             inquiry = Inquiry(sku="SKU-VANILLA", guests=41)
-            identifier = delegate(db, parent, inquiry, deadline=deadline, estimated_call_pence=7)
+            identifier = delegate(db, parent, inquiry, deadline=deadline, estimated_call_cents=7)
             assert (
-                delegate(db, parent, inquiry, deadline=deadline, estimated_call_pence=7)
+                delegate(db, parent, inquiry, deadline=deadline, estimated_call_cents=7)
                 == identifier
             )
             try:
@@ -89,7 +89,7 @@ def main():
                     parent,
                     Inquiry(sku="SKU-VANILLA", guests=42),
                     deadline=deadline,
-                    estimated_call_pence=7,
+                    estimated_call_cents=7,
                 )
             except ValueError:
                 pass
@@ -151,7 +151,7 @@ def main():
                         db.connection.execute(
                             "SELECT status FROM assistant_work WHERE id=?", (identifier,)
                         ).fetchone()[0]
-                        == "CANCELLED"
+                        == "CANCELED"
                     )
                     assert (
                         db.connection.execute(
@@ -170,16 +170,16 @@ def main():
                 else:
                     assert result["status"] == "DONE"
                     report = result["report"]
-                    assert report["quote"]["tubs"] == 5 and report["quote"]["total_pence"] == 2500
+                    assert report["quote"]["tubs"] == 5 and report["quote"]["total_cents"] == 2500
                     assert report["assignment_usage"] == {
                         "model_calls": 2,
-                        "estimated_cost_pence": 14,
+                        "estimated_cost_cents": 14,
                     }
                     assert report["baseline"]["model_calls"] == 0
                     assert run_once(db, OfflineCateringModel(), identifier=identifier) == {
                         "status": "IDLE"
                     }
-                    print("Child quote:", 5, "tubs", 2500, "pence; repeat research work", "IDLE")
+                    print("Child quote:", 5, "tubs", 2500, "cents; repeat research work", "IDLE")
             finally:
                 if process.poll() is None:
                     process.kill()
@@ -194,9 +194,9 @@ def main():
             db.connection.execute(
                 "SELECT status FROM assistant_work WHERE id=?", (identifier,)
             ).fetchone()[0]
-            == "CANCELLED"
+            == "CANCELED"
         )
-        print("Expired unclaimed work:", "CANCELLED")
+        print("Expired unclaimed work:", "CANCELED")
         parent = enqueue(db, "parent:budget", "lucy", "brief")
         identifier = delegate(
             db,
@@ -204,7 +204,7 @@ def main():
             Inquiry(sku="SKU-VANILLA", guests=1),
             deadline=time.time() + 30,
             model_calls=1,
-            estimated_call_pence=5,
+            estimated_call_cents=5,
         )
         old = claim(db, "old-research", role="research", identifier=identifier, ttl=0.1)
         assert old is not None
@@ -226,23 +226,23 @@ def main():
         ]
         assert db.connection.execute("SELECT count(*) FROM assistant_orders").fetchone()[0] == 0
         usage = db.connection.execute(
-            "SELECT model_calls,estimated_cost_pence FROM assistant_daily WHERE session='lucy'"
+            "SELECT model_calls,estimated_cost_cents FROM assistant_daily WHERE session='lucy'"
         ).fetchone()
         assert tuple(usage) == (10, 26), tuple(usage)
         assert (
             db.connection.execute(
-                "SELECT count(*) FROM assistant_daily WHERE model_calls>0 OR estimated_cost_pence>0"
+                "SELECT count(*) FROM assistant_daily WHERE model_calls>0 OR estimated_cost_cents>0"
             ).fetchone()[0]
             == 1
         )
         assert (
             db.connection.execute(
-                "SELECT coalesce(sum(model_calls),0)+coalesce(sum(estimated_cost_pence),0) "
+                "SELECT coalesce(sum(model_calls),0)+coalesce(sum(estimated_cost_cents),0) "
                 "FROM assistant_daily WHERE session!='lucy'"
             ).fetchone()[0]
             == 0
         )
-        print("One shared billing account:", 10, "calls and", 26, "estimated pence")
+        print("One shared billing account:", 10, "calls and", 26, "estimated cents")
         print("Purchases and stock reservations:", 0)
         print("Architecture decision: retain the function for this fixed calculation")
         db.close()

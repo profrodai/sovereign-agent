@@ -42,7 +42,7 @@ def old_worker(root, target):
     supplier = SupplierClient(target)
     operation = propose(db, work, "SKU-VANILLA", 6, target=supplier.identity)
     digest = db.connection.execute("SELECT digest FROM assistant_orders").fetchone()[0]
-    policy = SpendingPolicy(frozenset({"lucy"}), total_pence=2000)
+    policy = SpendingPolicy(frozenset({"lucy"}), total_cents=2000)
     approve(db, operation, digest, actor="lucy", policy=policy, expires=time.time() + 60)
     expires = db.connection.execute("SELECT expires FROM assistant_work").fetchone()[0]
     temporary = root / "worker-ready.tmp"
@@ -134,7 +134,7 @@ def experiment(root, *, kill):
                 NoNewReasoning(),
                 owner="replacement",
                 supplier=supplier,
-                policy=SpendingPolicy(frozenset({"lucy"}), total_pence=2000),
+                policy=SpendingPolicy(frozenset({"lucy"}), total_cents=2000),
             )
             assert result["status"] == "DONE" and result["work"] == identifier
             current = db.connection.execute(
@@ -155,7 +155,7 @@ def experiment(root, *, kill):
                 ]
             assert tuple(
                 db.connection.execute(
-                    "SELECT reserved_pence,spent_pence FROM assistant_spending"
+                    "SELECT reserved_cents,spent_cents FROM assistant_spending"
                 ).fetchone()
             ) == (0, 1500)
             assert (
@@ -170,7 +170,7 @@ def experiment(root, *, kill):
                 "generation": current["generation"],
                 "work_state": current["status"],
                 "supplier_orders": 1,
-                "spent_pence": 1500,
+                "spent_cents": 1500,
                 "stale_boundaries_refused": boundaries,
                 "new_model_calls": 0,
             }
