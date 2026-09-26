@@ -1,4 +1,4 @@
-# Chapter 1 — Make the first model call for Lucy
+# Chapter 1 — What a model call is: tokens, probabilities and Lucy's first brief
 
 > **Learn with Prof Rod** — *Build Your Always-On AI Agent From Scratch*.
 > **Read the full book and get the latest learning materials:** [https://profrod.ai/book](https://profrod.ai/book).
@@ -8,91 +8,383 @@
 
 **Status: DRAFT.** Read the [textbook guide](../profrod-sovereign-agent-textbook-start-here.md) for setup and supplied-code boundaries. Practice in [Exercise Book 1](../../exercises/ch01/profrod-sovereign-agent-ch01-first-model-call-exercise-guide.md); consult [Solutions 1](../../solutions/ch01/profrod-sovereign-agent-ch01-first-model-call-solutions-guide.md) after attempting the work.
 
-Lucy opens her ice cream shop at nine. Before the first customer arrives, she checks the freezer, checks yesterday's notes, and decides what needs attention. Vanilla is running low. Chocolate is plentiful. Strawberry has almost gone. She would like a short briefing before opening, and eventually she would like help preparing the orders that follow.
+Lucy opens her ice cream shop at nine. Before the first customer arrives, she wants a short brief: what is running low, what to order. You are going to have a language model write it. Before you do, answer a question most people who call models every day cannot: what exactly happens between the request you send and the text that comes back?
 
-You are the developer building that assistant. Lucy is your customer. She supplies the business rules and decides what the assistant may do; you turn those decisions into a system whose behavior she can inspect. Her first observable result is the shop's stock report.
+The answer has four parts, and every later chapter depends on them.
 
-This chapter ends with a small Python program that sends real shop data to a model and reads a morning brief. An offline response fixture makes the surrounding Python reproducible without a model server. A separate live command proves the model connection. Keep those two observations separate: a fixture proves how your program handles known bytes; a live response demonstrates what a configured model returned on that run.
-
-In this book, a **model** generates a response, the **loop** decides which validated tool calls to execute next, and the **runtime** is the Python program that keeps the loop, tools and saved records working together. A **fixture** is synthetic input or an authored response used to reproduce an experiment.
-
-For a classroom session, use the [Chapter 1 successor exercises](../../exercises/ch01/profrod-sovereign-agent-ch01-first-model-call-exercise-guide.md): two canonical Markdown units with generated notebooks, separate solutions, a saved handoff and instructor-held transfer checks. The [earlier standalone notebooks](../../educator/ch01/profrod-sovereign-agent-ch01-first-model-call-educator-guide.md) remain reproducible classroom history. Chapter 1 runs offline on Python 3.11 or newer; the cumulative book environment below remains Python 3.14.
-
-## Learning objectives
-
-Build Lucy's first stock brief from explicit shop data, make a direct model request, and distinguish a useful model response from an agent that can act reliably while unattended.
-
-You will be able to identify every field sent to the model, reject an incomplete response, and explain which components are still missing. By the end, you should be able to change one product's stock and predict which part of the request changes before you run the program.
-
-## The system you will build
-
-Our working promise is **Build Your Always-On AI Agent From Scratch**. You will write the model/tool loop, dispatch tools into Python functions, construct context, persist work, schedule it, check permissions, and recover interrupted actions. The model itself is an existing component. So are Python, SQLite, HTTP, the operating system's service manager, and the container engine used in a later chapter. You will not configure a finished agent framework and count that as implementing its loop.
-
-Always-on describes availability for unattended work while the host and its dependencies are available. It does not mean continually calling a model. Most of a useful shop agent's day can consist of waiting. A scheduled stock check creates work; an ordinary second passing on the clock does not need to create another model request.
-
-The final system will accept a message from Lucy's phone, prepare a draft from current stock, ask for approval when policy requires it, and reconcile a supplier order whose reply was lost. It will survive a process restart with its pending work and approvals intact. It will also produce an end-of-day report that distinguishes confirmed facts from unresolved outcomes.
-
-Those are construction milestones. They are not all properties of the little program you are about to run. Today it receives data you supply, requests text, and returns that text. It has no purchasing tool and no unattended service.
+1. The text becomes **tokens**, and tokens are what you pay for and what fill the context window.
+2. The model turns the tokens so far into a **score for every possible next token**.
+3. Those scores become a **probability distribution**.
+4. **Sampling** picks one token, which is appended; then the process repeats.
 
 ```mermaid
 flowchart LR
-    Lucy[Lucy supplies a request] --> Runtime[Python runtime]
-    Runtime --> Model[Existing model]
-    Model --> Runtime
-    Runtime --> Tools[Shop tools]
-    Tools --> Records[Stock and work records]
-    Records --> Runtime
-    Runtime --> Lucy
+    T[Text so far] --> K[Tokenizer]
+    K --> S[Token sequence]
+    S --> M[Model]
+    M --> L[One logit per vocabulary entry]
+    L --> P[Softmax with temperature]
+    P --> D[Probability distribution]
+    D --> X[Sample one token]
+    X -->|append and repeat| S
 ```
 
-**Figure:** The reader builds the runtime and shop tools around an existing model; the records remain outside the model's memory.
+**Figure:** A model call is a loop: each generated token is sampled from a distribution the model computes from every token before it.
 
-Keep this diagram nearby. In Chapter 2 you will add the tools. In Chapter 3 you will implement the cycle that lets a model request a tool, observe its result, and decide whether it has enough information. Later chapters add persistence and operating behavior around that cycle. The architecture grows because Lucy encounters a new problem, rather than because an architecture diagram needs another box.
+The same four parts explain why the same prompt gives different answers, why "temperature 0" is not a promise of repeatability, how a model is trained, and how its quality is measured.
 
-### Three things that are easy to confuse
+You will build each part yourself, small enough to read in one sitting, from Lucy's own shop notes. Then you will measure a real model and find the same quantities there. Only then will you write Lucy's brief (Part B). By that point you will know why a fluent, valid response can still be wrong, and what "the model is confident" does and does not mean.
 
-A **model** maps an input context to generated output. It may generate ordinary text or a structured request to call a tool. A generated tool request is still output. Some other program must decide whether to execute it.
+## Learning objectives
 
-An **agent loop** repeatedly calls the model, dispatches permitted tool requests, adds observations to the context, and stops under explicit conditions. That repetition is code you will write. The model does not secretly keep your Python process running after a response finishes.
+By the end you will be able to:
 
-A **runtime** supplies the things around the loop: durable intake, sessions, scheduling, permissions, execution boundaries, records, and recovery. A loop may complete successfully while its runtime loses the result during a crash. Conversely, a runtime may preserve perfect records of a model making a poor recommendation. We need to investigate both kinds of failure.
+1. Train a byte-pair encoder from scratch, and explain why tokens, not words or characters, are the unit of cost and context.
+2. Derive softmax from what a probability distribution over tokens must satisfy, and explain why implementations subtract the largest logit.
+3. Derive how temperature changes a distribution's entropy, $dH/dT = \mathrm{Var}(z)/T^3$, and check the derivation numerically.
+4. Sample from a distribution, and test whether a sampler is correct with a chi-square statistic rather than by eye.
+5. Define cross-entropy and perplexity, show that next-token training minimizes cross-entropy, and compare models fairly in bits per character.
+6. Read the same quantities from a real model's log-probabilities, and explain why the probability of a model's own answer says nothing about whether it is correct.
+7. Make a real model call for Lucy, and separate a valid response from a true one.
 
-| Component | What it does | What it cannot establish by itself |
+You bring Python functions, lists, dictionaries and loops. No probability beyond "probabilities are nonnegative and sum to one" is assumed; everything else is derived here.
+
+## Keep your implementation in a file
+
+Create `book/textbook/learner/profrod_sovereign_agent_ch01_model_call_learner.py`. The repository includes a completed comparison copy, with a small corpus of Lucy's notes (`SHOP_NOTES`) and a few held-out notes (`HELD_OUT_NOTES`). The chapter's experiment measures every derivation below against your implementation and records a receipt:
+
+```bash
+uv run python book/textbook/experiments/profrod_sovereign_agent_textbook_ch01_model_v1.py --out ch01-model-receipt.json
+```
+
+Add `--live` to also measure a real model served by Ollama on your machine (`ollama pull qwen2.5:0.5b` first). The chapter's checkpoint runs the whole chapter offline:
+
+```bash
+uv run python book/textbook/checkpoints/profrod_sovereign_agent_ch01_first_model_call_checkpoint.py
+```
+
+## Part A: what happens inside a model call
+
+## Text becomes tokens
+
+A model cannot read text. It reads a sequence of integers, each naming an entry in a fixed **vocabulary**. The step that turns text into that sequence is the **tokenizer**, and its choice shapes everything downstream.
+
+Two obvious choices both fail:
+
+- **Words** leave no way to spell a word the vocabulary has never seen: a new flavor, a typo, a product code.
+- **Characters or bytes** can spell anything, but sequences become long. A model's cost, and the memory its attention needs, grow with sequence length, so a text four times longer in tokens is at least four times more expensive to process.
+
+**Byte-pair encoding** (BPE) sits between them. Start with the 256 possible bytes, so any text at all can be encoded. Then repeatedly find the most frequent adjacent pair of tokens in a training corpus and merge it into a new token. Frequent words become single tokens; rare ones stay spelled out in pieces. GPT-2, Llama and most models you will call use a variant of this procedure.
+
+Train one on Lucy's notes with 100 merges and encode a sentence:
+
+**Listing:** Byte-pair encoding, trained on the shop's notes.
+
+```python
+import runpy
+
+ch01 = runpy.run_path("book/textbook/learner/profrod_sovereign_agent_ch01_model_call_learner.py")
+merges = ch01["train_bpe"](ch01["SHOP_NOTES"], 100)
+sentence = ch01["encode"]("Order six tubs of vanilla before the weekend.", merges)
+print(len(merges), "merges")
+print([token.decode() for token in sentence])
+print([token.decode() for token in ch01["encode"](" pistachio", merges)])
+```
+
+```text
+100 merges
+['O', 'rder', ' s', 'i', 'x', ' tubs', ' of', ' vanilla', ' before', ' the', ' week', 'en', 'd', '.']
+[' ', 'p', 'i', 's', 't', 'a', 'c', 'h', 'i', 'o']
+```
+
+Frequency decides everything. Words the notes use constantly (" tubs", " of", " vanilla", " before", " the") became single tokens, each carrying its leading space. "Order" starts only two notes, so it is split as "O" + "rder". "Six" appears once and stays three separate characters. "Weekend" appears twice and becomes " week" + "en" + "d". "Pistachio" never appears, so it is spelled out one byte at a time. Nothing is ever out of vocabulary; the price of an unfamiliar word is simply more tokens.
+
+Two consequences follow, and you will meet both in every production system:
+
+- **You pay per token, not per word.** A provider's price list quotes cents per million input tokens and per million output tokens. The same request costs different amounts under different tokenizers, and text in a language the tokenizer was not trained on costs more.
+- **The model sees tokens, not letters.** A model asked how many "r"s are in "strawberry" receives perhaps two tokens, not ten letters. Failures at spelling and digit arithmetic often trace back to this.
+
+The experiment measures the trade-off as the number of merges grows:
+
+| Merges | Tokens for the notes | Characters per token |
 | --- | --- | --- |
-| Model | Generates text or tool requests from context | Whether a supplier accepted an order |
-| Agent loop | Coordinates model calls and permitted tools | Whether pending work survives a restart |
-| Runtime | Preserves work, enforces boundaries, and supports operation | Whether every fluent recommendation is useful |
+| 0 | 989 | 1.00 |
+| 25 | 677 | 1.46 |
+| 50 | 543 | 1.82 |
+| 100 | 377 | 2.62 |
+| 134 (no pair left occurs twice) | 309 | 3.20 |
 
-This separation lets us replace the model without replacing the ledger. It also lets us reproduce failures using scripted model responses. If a test can describe the next model output exactly, it can force the runtime into the situation we need to examine.
+More merges mean shorter sequences but a larger vocabulary. Every vocabulary entry needs its own row of parameters in a real model, so vocabulary size is itself a cost. Production tokenizers settle somewhere between 32,000 and 256,000 entries.
 
-## Prepare one Python environment
+## A model turns context into a score for every token
 
-The companion repository uses Python 3.14 and `uv`. Its lockfile pins the development environment. The installed runtime uses Pydantic for typed validation; the program in this chapter needs only Python's standard library. Use the repository revision attached to the edition or website page you are reading. Mixing one chapter's prose with a later unpinned checkout makes an output mismatch unnecessarily difficult to diagnose.
+A **language model** is a function. Its input is the tokens so far. Its output is one real number for every token in the vocabulary: a **logit**, a score for how well that token would continue the text. That is the whole interface. A transformer with hundreds of billions of parameters implements the same one.
 
-From a fresh checkout, run:
+The smallest model with this interface is a **bigram model**. It looks only at the previous token, and its logit for each candidate next token comes from counting. In Lucy's notes, how often did the candidate follow the previous token? The logit is the logarithm of that count plus a small constant $\alpha$. Why the logarithm, and why the constant, will be clear in a moment.
 
-```bash
-uv sync --frozen --python 3.14 --group dev
-uv run --python 3.14 python --version
-uv run --python 3.14 python book/textbook/checkpoints/profrod_sovereign_agent_ch01_first_model_call_checkpoint.py
+**Listing:** A bigram model's logits after " of", the four highest.
+
+```python
+notes = ch01["encode"](ch01["SHOP_NOTES"], merges)
+model = ch01["train_bigram"](notes, merges)
+logits = model.logits(b" of")
+best = sorted(range(len(logits)), key=lambda i: -logits[i])[:4]
+print(len(model.vocabulary), "tokens in the vocabulary")
+for i in best:
+    print(repr(model.vocabulary[i].decode()), round(logits[i], 3))
 ```
 
-The third command is the offline checkpoint. It makes no model request. Its opening line says `OFFLINE RESPONSE FIXTURE`, so an offline success cannot accidentally become evidence that a model server works.
-
-For the live path, install Ollama using its documented installation procedure, start its local server, and obtain the model used by this chapter:
-
-```bash
-ollama pull qwen3
-ollama list
+```text
+356 tokens in the vocabulary
+' vanilla' 1.099
+' strawberry' 1.099
+' chocolate' 0.694
+' s' 0.001
 ```
 
-A model download can take time and disk space. `ollama list` is the useful observation: it identifies the model installed on your machine. Record the model identifier and Ollama version with any live transcript you plan to compare later. A name such as `qwen3` is a convenient selection, while a recorded identifier tells a future reader which local model you actually used.
+These are scores, not probabilities: they do not sum to one, and only their differences will matter. Each is the logarithm of a count plus $\alpha = 0.001$. $e^{1.099} \approx 3$, so " of" was followed by " vanilla" three times in the notes, by " strawberry" three times and by " chocolate" twice. The vocabulary has 356 entries: the 256 bytes plus 100 merges. Every one of them gets a logit, including the hundreds that never followed " of". The next step turns the scores into a distribution.
 
-The example sends requests to `http://localhost:11434/v1/chat/completions`. This is a local model endpoint. It does not require a hosted API credential. A later provider appendix explains how to substitute a hosted compatible endpoint without scattering provider configuration throughout the shop code. For now, keep one working path.
+## Softmax, derived
 
-Ollama documents tool support and reasoning controls on this compatible endpoint. This first request sets `reasoning_effort` to `none`, which is supported by the chapter's Qwen/Ollama path. A different model may require different settings; the shared runtime therefore exposes an explicit configuration choice instead of assuming every provider accepts the same fields. [Ollama's compatibility reference](https://docs.ollama.com/api/openai-compatibility).
+We want to turn logits $z_1, \dots, z_V$ into probabilities $p_1, \dots, p_V$. Three requirements fix the answer:
 
-The reproducible checkpoint is available even when the model is not. Use it to distinguish a Python or data problem from a provider problem before changing several things at once.
+1. Every $p_i$ is positive: no token is ruled out completely, because a model that assigns zero probability to something that then happens is infinitely wrong (you will see this when we measure models).
+2. The $p_i$ sum to one.
+3. A logit difference is a log-odds: the model prefers token $i$ over token $j$ by $z_i - z_j$ in log space, $\log(p_i / p_j) = z_i - z_j$.
+
+The third requirement says $p_i / p_j = e^{z_i} / e^{z_j}$ for every pair, so $p_i = c\, e^{z_i}$ for one constant $c$. The second fixes $c$:
+
+$$
+p_i \;=\; \frac{e^{z_i}}{\sum_{j=1}^{V} e^{z_j}}.
+$$
+
+This is **softmax**. Its form also shows why our bigram logits are the logarithm of counts: then $e^{z_i}$ is the smoothed count itself, and softmax becomes count over total, the natural estimate of a frequency.
+
+**Adding a constant to every logit changes nothing.** Multiply the numerator and denominator by $e^{-c}$ and it cancels. Every implementation relies on this, for a practical reason: $e^{1000}$ overflows a 64-bit float. Real logits are seldom that large, but their exponentials are routinely summed over 100,000 tokens, and the safe habit costs nothing. Subtract the largest logit first, so the largest exponent is $e^0 = 1$:
+
+**Listing:** Softmax is unchanged by a shift, and the shift is what keeps it finite.
+
+```python
+import math
+
+big = [1000.0, 999.0, 998.0]
+print([round(p, 4) for p in ch01["softmax"](big)])
+print([round(p, 4) for p in ch01["softmax"]([2.0, 1.0, 0.0])])
+try:
+    [math.exp(z) for z in big]
+except OverflowError as error:
+    print("without the shift:", error)
+```
+
+```text
+[0.6652, 0.2447, 0.09]
+[0.6652, 0.2447, 0.09]
+without the shift: math range error
+```
+
+## Temperature and entropy
+
+Providers let you set a **temperature** $T$. It divides every logit before softmax:
+
+$$
+p_i(T) \;=\; \frac{e^{z_i/T}}{\sum_j e^{z_j/T}}.
+$$
+
+At $T = 1$ the model's own distribution is used. As $T \to 0$, the largest logit dominates, and all probability moves to the single most likely token: this is **greedy decoding**, and the implementation treats $T = 0$ as exactly that. As $T \to \infty$, every $z_i/T \to 0$ and the distribution becomes uniform: any token, equally likely.
+
+How spread out is a distribution? Its **entropy** measures the average surprise of one draw, in bits:
+
+$$
+H(p) \;=\; -\sum_i p_i \log_2 p_i.
+$$
+
+A certain outcome has $H = 0$. A uniform choice among $V$ tokens has $H = \log_2 V$, the most possible. The claim that raising the temperature always raises entropy deserves a proof, not just a picture. Write $\beta = 1/T$ and use natural logarithms for now. Then $p_i = e^{\beta z_i}/Z$ with $Z = \sum_j e^{\beta z_j}$, and $\log p_i = \beta z_i - \log Z$. So
+
+$$
+H \;=\; -\sum_i p_i(\beta z_i - \log Z) \;=\; \log Z - \beta\,\mathbb{E}_p[z].
+$$
+
+Differentiate with respect to $\beta$. Two facts do all the work: $d \log Z / d\beta = \mathbb{E}_p[z]$, and $d\,\mathbb{E}_p[z] / d\beta = \mathrm{Var}_p(z)$, both from differentiating the sums directly. Then
+
+$$
+\frac{dH}{d\beta} \;=\; \mathbb{E}_p[z] - \mathbb{E}_p[z] - \beta\,\mathrm{Var}_p(z) \;=\; -\beta\,\mathrm{Var}_p(z),
+$$
+
+and since $d\beta/dT = -1/T^2$,
+
+$$
+\frac{dH}{dT} \;=\; \frac{\mathrm{Var}_p(z)}{T^3} \;\ge\; 0.
+$$
+
+Entropy never falls as temperature rises. It rises fastest where the logits the model is actually choosing between still disagree strongly: a large variance under the current distribution.
+
+The experiment checks the derivation against a numerical derivative, for the context the model has seen most (a period, which is followed by a newline in nearly every note):
+
+| $T$ | Entropy (bits) | $dH/dT$ derived | $dH/dT$ by finite difference | Probability of the top token |
+| --- | --- | --- | --- | --- |
+| 0.25 | 0.0000 | 0.0000 | 0.0000 | 1.0000 |
+| 0.5 | 0.0000 | 0.0010 | 0.0010 | 1.0000 |
+| 1.0 | 0.2746 | 2.4247 | 2.4247 | 0.9826 |
+| 1.5 | 3.6644 | 9.1996 | 9.1996 | 0.6749 |
+| 2.0 | 6.9202 | 3.6034 | 3.6034 | 0.2849 |
+
+```mermaid
+xychart-beta
+    title "Entropy of the next token after a period"
+    x-axis "Temperature" [0.25, 0.5, 1.0, 1.5, 2.0]
+    y-axis "Entropy (bits)" 0 --> 8
+    line [0, 0, 0.27, 3.66, 6.92]
+```
+
+**Figure:** Entropy rises with temperature, slowly while one token dominates and steeply once the alternatives start to compete.
+
+The two derivative columns agree to four decimal places. The table also shows what temperature is for. At $T = 1$, 98% of the probability is on the obvious token. At $T = 2$ it is 28%, and nearly seven bits of entropy spread the rest across the vocabulary, most of it on continuations no note ever contained. High temperature buys diversity by spending probability on text the model itself considers unlikely.
+
+## Sampling
+
+To generate, draw one token from the distribution, append it, and repeat. The standard way to draw from a discrete distribution is **inverse transform sampling**. Take $u$ uniform on $[0, 1)$ and walk the cumulative sums $F_i = p_1 + \dots + p_i$, returning the first $i$ with $u < F_i$. Token $i$ is returned exactly when $F_{i-1} \le u < F_i$, an interval of length $p_i$, so it is returned with probability $p_i$.
+
+**Listing:** Generating from the bigram model at three temperatures, starting after a newline.
+
+```python
+import random
+
+rng = random.Random(7)
+for t in (0, 0.7, 1.5):
+    tokens = ch01["generate"](model, b"\n", 10, rng, temperature=t)
+    print(t, repr(ch01["decode"](tokens[1:], errors="replace")))
+```
+
+```text
+0 'The supplier 30 cents.\nThe supplier'
+0.7 'A tub of strawberry before the target of chocolate is'
+1.5 'The!hocolate�30Y li�'
+```
+
+The three lines show three regimes:
+
+- **Greedy decoding** is deterministic, and within ten tokens it has written nonsense ("The supplier 30 cents") and started to loop. Choosing the single most likely next token at every step is not the same as producing likely text.
+- **Moderate temperature** produces a plausible recombination of the notes that no note contains.
+- **High temperature** produces fragments, and bytes that are not valid UTF-8 at all (the "�" marks). A byte-level model can emit the first half of a multi-byte character, which is why the decoder takes an explicit error policy.
+
+**Top-p** ("nucleus") sampling is the usual guard against the long tail. It keeps the smallest set of most-likely tokens whose probabilities reach $p$, renormalizes, and samples from that. With $p = 0.9$, the dozens of garbage continuations that together hold 10% of the mass at high temperature are never drawn.
+
+How do you know a sampler is correct? Not by looking at a few outputs. Draw $n$ times and compare each token's observed frequency $\hat{p}_i$ with $p_i$. Each count is binomial, so $\hat{p}_i$ has standard error $\sqrt{p_i(1 - p_i)/n}$. It is tempting to check that every token lands within two or three standard errors. But with 356 tokens, some will deviate by more than three purely by chance. The experiment's largest deviation after 20,000 draws is 4.05 standard errors, on a token whose probability is so small that the normal approximation behind "standard errors" does not hold.
+
+The right tool considers every category at once. **Pearson's chi-square** statistic sums $(\text{observed} - \text{expected})^2 / \text{expected}$ over all tokens. For a correct sampler it has mean $k - 1$ and variance $2(k - 1)$ with $k$ categories. The experiment measures $\chi^2 = 346.7$ with 355 degrees of freedom, $z = -0.31$: exactly what a correct sampler produces. The same reasoning, "many comparisons will throw up a large deviation by chance; test them together", returns in Chapter 15, where you compare agents on many evaluation cases.
+
+## How good is a model: likelihood, cross-entropy, perplexity
+
+A model assigns a probability to any whole text by multiplying the probabilities it gives each token in turn:
+
+$$
+P(t_1, \dots, t_n) \;=\; \prod_{k=2}^{n} P(t_k \mid t_{k-1})
+$$
+
+for our bigram model; a real model conditions on the whole prefix instead of one token. Products of many small numbers underflow, so we work with the average negative log, the **cross-entropy** of the model on the text, in bits per token:
+
+$$
+\mathcal{H} \;=\; -\frac{1}{n-1}\sum_{k=2}^{n} \log_2 P(t_k \mid t_{k-1}).
+$$
+
+It is the average number of bits the model needs to encode each token of the text. **Perplexity** $2^{\mathcal{H}}$ turns it back into a count: a perplexity of 5 means the model is, on average, as uncertain as a fair choice among five tokens.
+
+**This is the quantity every language model is trained to minimize.** Pretraining a large model means adjusting its parameters to maximize the probability of its training text, which is the same as minimizing cross-entropy on it. "Next-token prediction" is not a slogan; it is this formula.
+
+For the bigram model you can solve the training problem exactly. Suppose token $a$ is followed by token $j$ exactly $c_j$ times in the corpus. The log-probability of the corpus, restricted to what follows $a$, is $\sum_j c_j \log q_j$, and we maximize it subject to $\sum_j q_j = 1$. With a Lagrange multiplier $\lambda$, setting the derivative to zero gives $c_j / q_j = \lambda$. So $q_j \propto c_j$, and after normalizing, $q_j = c_j / \sum_i c_i$.
+
+**Counting is maximum-likelihood training.** It is also the reason we add $\alpha$. A pair that never occurred gets $q_j = 0$, and the first time it occurs in new text the model pays $-\log 0 = \infty$ bits. Adding $\alpha$ to every count keeps every probability positive. It is the estimate you get from a prior belief that every continuation is possible (a Dirichlet prior, in the statistics you will meet later).
+
+**Measure on text the model did not train on.** A model can drive its cross-entropy on its own training text arbitrarily low by memorizing it. The number that matters is on held-out text. The experiment sweeps $\alpha$ with 100 merges:
+
+| $\alpha$ | Training bits per character | Held-out bits per character |
+| --- | --- | --- |
+| 1 | 2.647 | 2.598 |
+| 0.1 | 1.708 | 1.708 |
+| 0.01 | 0.915 | 0.970 |
+| 0.001 | 0.642 | 0.751 |
+| 0.0001 | 0.600 | 0.757 |
+
+```mermaid
+xychart-beta
+    title "Bits per character as smoothing shrinks"
+    x-axis "Smoothing alpha" ["1", "0.1", "0.01", "0.001", "0.0001"]
+    y-axis "Bits per character" 0 --> 3
+    line [2.647, 1.708, 0.915, 0.642, 0.600]
+    line [2.598, 1.708, 0.970, 0.751, 0.757]
+```
+
+**Figure:** Training cross-entropy (lower line) keeps falling as smoothing shrinks; held-out cross-entropy (upper line) turns back up below alpha = 0.001, the signature of overfitting.
+
+Training cross-entropy keeps falling as $\alpha$ shrinks. Held-out cross-entropy falls, bottoms out near $\alpha = 0.001$, and rises again. Below that, the model trusts its few counts too much. This is **overfitting**, visible in five rows, and the reason every serious training run reports a validation loss. The learner file uses $\alpha = 0.001$.
+
+**Compare models in bits per character, not per token.** A token can stand for one character or for a whole word, so a prediction per token is a different task under each tokenizer. The tokenization experiment makes this concrete:
+
+| Merges | Characters per token | Training bits per token | Training bits per character | Held-out bits per character |
+| --- | --- | --- | --- | --- |
+| 0 | 1.00 | 2.717 | 2.714 | 2.722 |
+| 50 | 1.82 | 2.153 | 1.180 | 1.319 |
+| 100 | 2.62 | 1.688 | 0.642 | 0.751 |
+| 134 | 3.20 | 1.541 | 0.480 | 0.795 |
+
+Converting with $\mathcal{H}_{\text{char}} = \mathcal{H}_{\text{token}} \times (\text{tokens} / \text{characters})$ puts every row on the same scale. On training text every extra merge helps. On held-out text, 134 merges lose to 100, because the last merges turn whole phrases of the training notes into single tokens: the tokenizer itself has started to memorize. Per-token perplexities of models with different tokenizers are never directly comparable; bits per character (or per byte) are.
+
+**Listing:** Scoring held-out notes.
+
+```python
+held_out = ch01["encode"](ch01["HELD_OUT_NOTES"], merges)
+print(round(ch01["cross_entropy_bits"](model, held_out), 3), "bits per token")
+print(round(ch01["perplexity"](model, held_out), 2), "perplexity")
+```
+
+```text
+2.02 bits per token
+4.06 perplexity
+```
+
+## A real model does the same thing
+
+Everything above is visible in a real model's API, if you ask for it. An OpenAI-compatible endpoint accepts `temperature` and `top_p`. They are exactly the two knobs you just implemented. With `logprobs: true` and `top_logprobs: 5`, it returns, for every generated token, $\log p$ of the token it chose and of the five most likely alternatives.
+
+The experiment's `--live` mode asks `qwen2.5:0.5b`, a small open model served by Ollama, to answer Lucy's question in one sentence: "Lucy's freezer holds 2 tubs of vanilla (target 8), 11 of chocolate (target 6) and 1 of strawberry (target 5). Which flavors should she order?" One recorded run, on 2026-09-26 with Ollama 0.32.5 on macOS (arm64), gave:
+
+| Measurement | Value |
+| --- | --- |
+| Greedy answer ($T = 0$) | "To maximize the number of tubs Lucy can buy while meeting her target quantities for each flavor, she should prioritize buying more vanilla than chocolate and strawberry. This way, she will have enough tubs to meet both her target quantities without exceeding them." |
+| Tokens in the answer; prompt tokens | 49; 75 |
+| Log-probability of the whole answer | −49.9 nats, so $P \approx 2 \times 10^{-22}$ |
+| Mean per-token entropy (top 5 plus the rest) | 1.6 bits |
+| Distinct answers in 10 samples at $T = 0 / 0.7 / 1.5$ | 1 / 10 / 10 |
+
+Read each row with Part A in mind.
+
+**The answer is fluent and wrong.** Chocolate is above target and needs no order. Strawberry needs four tubs. Vanilla needs six. "Prioritize buying more vanilla than chocolate and strawberry" gets strawberry wrong, and "maximize the number of tubs Lucy can buy" is a goal nobody gave it. Nothing in the response envelope, the token count or the log-probabilities flags this. Correctness is a property of the claims, checked against the facts: Part B's subject.
+
+**The probability of the model's own answer is astronomically small, and that is normal.** Any particular 49-token sequence is one of an enormous number the model could produce. Multiplying 49 probabilities that average $e^{-1}$ gives $e^{-49}$. A low sequence probability does not mean the model was unsure of its facts, and a high per-token probability would not have meant it was right.
+
+Greedy decoding also picks the best token *at each step*, which is not the same as the most probable *sequence*. Beam search and other decoders trade compute for that difference.
+
+**Temperature 0 was not reproducible.** Ten greedy samples within one run agreed. But the chapter's first recorded run, minutes earlier and with the same model and prompt, answered "...she should prioritize buying more vanilla than chocolate and fewer strawberry." Greedy decoding is deterministic only if every floating-point operation is. Batching, kernel choice and parallel reductions reorder additions, and a tie broken differently at one token changes everything after it. Treat a live response as an observation to record, never as a fixture to test against.
+
+**Cost is arithmetic on tokens.** At a price of 10 cents per million input tokens and 40 cents per million output tokens, this call costs:
+
+**Listing:** Cost of one call from its token counts.
+
+```python
+print(round(ch01["cost_cents"](75, 49, 10, 40), 5), "cents")
+print(round(ch01["cost_cents"](75 * 1000, 49 * 1000, 10, 40), 2), "cents for a thousand calls")
+```
+
+```text
+0.00271 cents
+2.71 cents for a thousand calls
+```
+
+Output tokens usually cost several times more than input tokens. For each output token the model must run a full forward pass and read its whole accumulated context, while input tokens are processed together in parallel. Chapter 18 derives this from the architecture.
+
+## Part B: Lucy's first brief
+
+You now know what a model call computes. The rest of this chapter makes one for Lucy, and builds the discipline that follows from Part A: a response is a sample, and a sample must be checked against facts before anyone acts on it.
 
 ## Give the shop explicit data
 
@@ -382,17 +674,6 @@ The `timeout=30` argument needs careful interpretation. It bounds socket operati
 | Brief claims a purchase | Generated prose exceeds available evidence | Inspect capabilities; no supplier exists yet |
 
 A useful diagnosis changes one variable while retaining the observation that motivated it. During construction of this agent, explicitly disabling reasoning on the local teaching path produced a much smaller first tool response than the provider's default reasoning behavior. That is a concrete configuration experiment, not a general claim that less reasoning is always better. Later evaluations will measure the resulting decisions as well as time and token use.
-
-## What an existing gateway helps us notice
-
-OpenClaw provides a useful comparison at this point. Its pinned architecture documentation describes a gateway that owns channel connections and serves clients over a WebSocket control connection. That choice gives interfaces a common place to connect to the running system. The documentation also describes connection identity and client/server messages. [OpenClaw architecture at commit 3545380](https://github.com/openclaw/openclaw/blob/354538083db0a8728e16238cbd0b7a304416ff24/docs/concepts/architecture.md).
-
-Our interpretation is that separating a user interface from ongoing execution becomes valuable when work must continue after a particular client disconnects. We have not implemented that separation in this chapter. The checkpoint is one process making one request. In Chapter 8 we will add a thin messaging adapter and durable intake; in Chapter 9 we will arrange supervised unattended execution.
-
-The comparison earns its place because it sharpens a decision. It does not require us to reproduce another project's gateway or adopt its configuration surface. Nor does one architecture document establish every security or recovery property of that project. The pinned source tells you which design we examined, and the experiment tells you which decision it helps us investigate.
-
-This book's runtime remains self-contained. Telegram, the bounded MCP client, and the teaching tool runner live in Sovereign Agent. ZeoCore is an optional integration path for operational use, not a hidden service required to make the exercises work. When an existing maintained runtime is a better choice for a real deployment, you should be able to explain what it supplies because you have built the corresponding small mechanisms yourself.
-
 ## Exercise: add a product without changing the program
 
 Lucy adds lime sorbet. Give it a new SKU, zero physical stock, and a target of four. Make the change in a copied fixture so the original example remains available for comparison.
@@ -502,43 +783,89 @@ shop changed since the request was built; request a fresh brief
 
 This check detects different content at two instants. It does not authenticate a provider response, prove that its prose is true, prevent a change after review, or detect an intervening change followed by a return to the original content. In later chapters the action boundary rechecks authoritative records and their versions. For now, we have prevented a known changed snapshot from quietly becoming today's brief.
 
-## Expected observations and learner verification
 
-You should now have three distinct pieces of evidence: an offline checkpoint with exact output, a live request with a recorded model selection, and a snapshot experiment showing that later mutations do not change an already serialized message. Each answers a different question. Do not collapse them into one statement that “the agent works.”
+## Exercises on the fundamentals
 
-Run the checkpoint again in offline mode:
+### Exercise 1: prove what top-p removes
 
-```bash
-uv run --python 3.14 python book/textbook/checkpoints/profrod_sovereign_agent_ch01_first_model_call_checkpoint.py
-```
+Take the bigram distribution after "." at $T = 2$. How many tokens does top-p with $p = 0.9$ keep, and how much probability did the discarded tokens hold? Now prove, in two lines, that top-p never removes the most likely token. Then find a distribution where top-p with $p = 0.9$ keeps exactly one token, and describe the temperature at which that happens for the bigram distribution after ".".
 
-Its output must match the fixture shown earlier. The checkpoint source contains no supplier endpoint, purchasing function, scheduling loop, or persistent work queue. Inspect its imports and function calls to confirm that the path is shop fixture → messages → request body → response parser → printed brief.
+### Exercise 2: entropy at the extremes
 
-Then run the live mode and save the output together with `ollama --version` and the relevant row from `ollama list`. Record the date and the source revision of the companion repository. A later comparison needs all of those inputs. If you keep only the generated paragraph, you will not know whether a changed result came from the code, the data, the settings, or the model.
+Show from the formula that $H = 0$ exactly when one $p_i = 1$, and that $H \le \log_2 V$ with equality only for the uniform distribution. (Hint: $\log$ is concave; use Jensen's inequality on $\mathbb{E}[\log_2(1/p)]$.) Check both limits numerically with `softmax` at $T = 0.01$ and $T = 1000$.
 
-For the live brief, check each factual claim against the shop fixture. In this chapter there is no hidden authoritative stock source. A useful brief names the actual shortages and avoids claiming actions that never occurred. A valid envelope containing an incorrect claim remains a failed product observation, even though `read_brief` returned normally.
+### Exercise 3: the cost of a new language
 
-Finally, repeat the stale-snapshot exercise with a different product. This second instance checks that your reasoning applies to the data structure rather than to a memorized vanilla example. You should be able to explain the result without rerunning the model at all.
+Encode the same sentence in English and in Spanish ("Pide seis tarrinas de vainilla antes del fin de semana.") with the tokenizer trained on Lucy's English notes. Compare tokens per character. Then compute what the difference would cost across a million requests at the prices used above. Explain why multilingual models train their tokenizers on multilingual text.
+
+### Exercise 4: where the model is sure and wrong
+
+Using `--live`, request `top_logprobs` for Lucy's question and find the token in the answer where the model's top alternative disagreed most with what it chose. Is that the token where the answer goes wrong? Report what you find either way. A high probability on a wrong claim, or a low one on a right claim, are both results.
+
+### Exercise 5: repeatability
+
+Run the live greedy request ten times in a row, then ten times across two restarts of the Ollama server. Count distinct answers in each case. What is the smallest change to the request (a trailing space, a different `max_tokens`) that changes the greedy answer? What does your answer imply for anyone writing a test that compares a live response to fixed text?
+
+## Expected observations
+
+Run the experiment offline. Your receipt should reproduce the chapter's tables exactly: training is deterministic, and sampling uses a fixed seed.
+
+- **Tokenization.** Characters per token rise from 1.00 at no merges to 3.20 when no pair repeats. Held-out bits per character are lowest at 100 merges.
+- **Smoothing.** Held-out bits per character are lowest near $\alpha = 0.001$, while training bits keep falling as $\alpha$ shrinks.
+- **Temperature.** The derived and finite-difference derivatives agree to four decimals in every row.
+- **Sampling.** $\chi^2$ is within about two standard deviations of its degrees of freedom ($|z| < 2$). The single largest per-token deviation may well exceed three standard errors; that is expected, and the reason for the chi-square test.
+
+With `--live`, your model, version and hardware will differ from ours, so the numbers will too. What should hold is the shape of the result:
+
+- one distinct answer across greedy samples within a run;
+- many distinct answers at $T = 0.7$ and above;
+- an answer probability far below $10^{-10}$;
+- a per-token entropy of a bit or two.
+
+Check the answer's claims against the stock table yourself; do not assume they are right because the numbers above are normal.
+
+Run the checkpoint offline. Its output must match the fixture shown in Part B exactly, and it contains no supplier endpoint or purchasing function.
+
+## Learner verification
+
+Verify the fundamentals independently of the code under test:
+
+1. **Softmax by hand.** Pick three logits, compute softmax with a calculator, and compare. Then add 100 to each logit and confirm that nothing changes.
+2. **Entropy by hand.** Compute the entropy of a fair coin (1 bit) and of a fair four-sided die (2 bits) with `entropy_bits`. These are the only two numbers in the chapter you should know without computing.
+3. **The sampler against the test that would catch a bug.** Introduce an off-by-one in `sample` (return `i + 1`), rerun the experiment, and confirm that the chi-square $z$ explodes. A check that cannot fail on a broken sampler proves nothing about a good one.
+4. **The tokenizer round trip.** Confirm that `decode(encode(text, merges))` returns the original text for any text: every byte of every language, and emoji. Byte-level BPE guarantees this; say why.
+
+Then verify the brief, as Part B describes: each stock claim against the table, and no claim of an action the program cannot take.
 
 ## Vocabulary and check your understanding
 
-A **snapshot** is the set of facts serialized at a particular moment. A **response fixture** is an authored example of provider output used to reproduce a code path. A **completion envelope** carries both generated content and protocol fields describing the response. A **tool request** is generated data that another component may validate and execute. A **receipt**, later in the book, is evidence from the system responsible for an external operation.
+- **Token:** a unit of text the model reads and writes. **Tokenizer:** the function from text to tokens. **Byte-pair encoding (BPE):** a tokenizer built by repeatedly merging the most frequent adjacent pair.
+- **Logit:** a model's unnormalized score for one candidate next token.
+- **Softmax:** the map from logits to probabilities, $e^{z_i} / \sum_j e^{z_j}$.
+- **Temperature:** a divisor of the logits that sharpens ($T < 1$) or flattens ($T > 1$) the distribution. **Greedy decoding:** always choosing the most likely token, the $T \to 0$ limit.
+- **Top-p (nucleus) sampling:** sampling only from the most likely tokens that together reach probability $p$.
+- **Entropy:** the average surprise of one draw, $-\sum p \log_2 p$ bits.
+- **Cross-entropy:** the average number of bits a model needs per token of a given text. It is the loss language models are trained to minimize. **Perplexity:** $2^{\text{cross-entropy}}$.
+- **Held-out data:** text the model did not train on, the only honest place to measure it. **Overfitting:** improving on training data while getting worse on held-out data.
+- **Snapshot:** the facts serialized into one request. **Response fixture:** an authored example response used to test code. **Completion envelope:** the response's protocol fields around the generated text.
 
-Explain these situations without looking back at the code:
+Answer without looking back:
 
-1. The offline checkpoint passes, but the local model server is stopped. Which part of the system has been tested, and which part remains untested?
-2. The model returns a completed response saying that it placed an order. What evidence would be needed before you could repeat that claim to Lucy?
-3. You change vanilla's count after calling `messages(SHOP)`. Why does the earlier serialized request retain its old count?
-4. A response contains useful-looking text but reports a length limit. Why does the parser refuse to present it as a completed brief?
-5. A second model gives better prose. Which parts of the eventual runtime should continue to work without being rewritten?
-
-The important explanations point to boundaries. Fixtures do not prove network availability. Text does not prove a purchase. A snapshot does not include future changes. A different model should not own a different definition of stock identity or spending authority.
+1. Why is it a mistake to compare two models by per-token perplexity when they use different tokenizers? What do you compare instead?
+2. Derive softmax from the requirement that logit differences are log-odds.
+3. A colleague sets temperature to 0 and writes a test that compares the model's answer to a stored string. What will happen, and why?
+4. A model assigns probability $10^{-20}$ to its own answer. Is it unsure of its facts?
+5. Why does adding $\alpha$ to every count help on held-out text, and what happens if $\alpha$ is too large?
+6. The offline checkpoint passes, but the local model server is stopped. What has been tested, and what has not?
+7. A completed response says the model placed an order. What evidence would you need before repeating that to Lucy?
 
 ## Summary
 
-You have built a direct model request from explicit shop data and a parser for one completed plain-text response. You can run the surrounding program offline, make an explicit live call, and distinguish transport success from factual correctness. The request uses stable product identities and makes its currency visible. You also have a failure experiment showing why a model cannot infer an unreported change in stock.
+A model call is four steps you have now built: text to tokens, tokens to logits, logits to a distribution, a distribution to a sampled token, repeated. You derived softmax from what probabilities over tokens must satisfy. You proved that temperature raises entropy at the rate $\mathrm{Var}(z)/T^3$ and checked it numerically. You tested a sampler the way statisticians do. You showed that next-token training is cross-entropy minimization, and found overfitting in held-out bits per character, the only fair unit across tokenizers.
 
-The program still depends on the facts you put into its request. In [Chapter 2](../ch02/profrod-sovereign-agent-ch02-pydantic-shop-tools-chapter.md), you will give it tools that read current stock and calculate replenishment quantities in ordinary Python. That is the next step toward an agent Lucy can use: its recommendations will have observations and deterministic calculations behind them.
+On a real model you read the same quantities from log-probabilities. You found an answer that was fluent, low-probability as every long answer is, not repeatable at temperature 0, and wrong. That is why Part B treats every response as a sample to check against facts, and why the program Lucy runs keeps its own stock facts separate from the model's prose.
+
+In [Chapter 2](../ch02/profrod-sovereign-agent-ch02-pydantic-shop-tools-chapter.md), the model stops receiving facts in its prompt and starts asking for them through tools. There you will see that asking a model for structured output is itself a constraint on the distribution you built here.
 
 ## Keep building with Prof Rod
 

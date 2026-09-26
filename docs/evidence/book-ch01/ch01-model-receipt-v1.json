@@ -1,0 +1,183 @@
+{
+  "schema": 1,
+  "experiment": "ch01-model-v1",
+  "recorded": "2026-09-26",
+  "python": "3.14.3",
+  "platform": "Darwin 25.6.0 (arm64)",
+  "tokenization": [
+    {
+      "merges": 0,
+      "tokens": 989,
+      "characters_per_token": 1.0,
+      "train_bits_per_token": 2.717,
+      "train_bits_per_character": 2.714,
+      "held_out_bits_per_character": 2.722
+    },
+    {
+      "merges": 25,
+      "tokens": 677,
+      "characters_per_token": 1.461,
+      "train_bits_per_token": 2.399,
+      "train_bits_per_character": 1.639,
+      "held_out_bits_per_character": 1.754
+    },
+    {
+      "merges": 50,
+      "tokens": 543,
+      "characters_per_token": 1.821,
+      "train_bits_per_token": 2.153,
+      "train_bits_per_character": 1.18,
+      "held_out_bits_per_character": 1.319
+    },
+    {
+      "merges": 100,
+      "tokens": 377,
+      "characters_per_token": 2.623,
+      "train_bits_per_token": 1.688,
+      "train_bits_per_character": 0.642,
+      "held_out_bits_per_character": 0.751
+    },
+    {
+      "merges": 134,
+      "tokens": 309,
+      "characters_per_token": 3.201,
+      "train_bits_per_token": 1.541,
+      "train_bits_per_character": 0.48,
+      "held_out_bits_per_character": 0.795
+    }
+  ],
+  "smoothing_at_100_merges": [
+    {
+      "alpha": 1.0,
+      "train_bits_per_character": 2.647,
+      "held_out_bits_per_character": 2.598
+    },
+    {
+      "alpha": 0.3,
+      "train_bits_per_character": 2.186,
+      "held_out_bits_per_character": 2.16
+    },
+    {
+      "alpha": 0.1,
+      "train_bits_per_character": 1.708,
+      "held_out_bits_per_character": 1.708
+    },
+    {
+      "alpha": 0.03,
+      "train_bits_per_character": 1.231,
+      "held_out_bits_per_character": 1.26
+    },
+    {
+      "alpha": 0.01,
+      "train_bits_per_character": 0.915,
+      "held_out_bits_per_character": 0.97
+    },
+    {
+      "alpha": 0.003,
+      "train_bits_per_character": 0.72,
+      "held_out_bits_per_character": 0.804
+    },
+    {
+      "alpha": 0.001,
+      "train_bits_per_character": 0.642,
+      "held_out_bits_per_character": 0.751
+    },
+    {
+      "alpha": 0.0001,
+      "train_bits_per_character": 0.6,
+      "held_out_bits_per_character": 0.757
+    }
+  ],
+  "context": ".",
+  "temperature": [
+    {
+      "temperature": 0.25,
+      "entropy_bits": 0.0,
+      "dH_dT_derived": 0.0,
+      "dH_dT_finite_difference": 0.0,
+      "top_token_probability": 1.0
+    },
+    {
+      "temperature": 0.5,
+      "entropy_bits": 0.0,
+      "dH_dT_derived": 0.001,
+      "dH_dT_finite_difference": 0.001,
+      "top_token_probability": 1.0
+    },
+    {
+      "temperature": 1.0,
+      "entropy_bits": 0.2746,
+      "dH_dT_derived": 2.4247,
+      "dH_dT_finite_difference": 2.4247,
+      "top_token_probability": 0.9826
+    },
+    {
+      "temperature": 1.5,
+      "entropy_bits": 3.6644,
+      "dH_dT_derived": 9.1996,
+      "dH_dT_finite_difference": 9.1996,
+      "top_token_probability": 0.6749
+    },
+    {
+      "temperature": 2.0,
+      "entropy_bits": 6.9202,
+      "dH_dT_derived": 3.6034,
+      "dH_dT_finite_difference": 3.6034,
+      "top_token_probability": 0.2849
+    }
+  ],
+  "sampling": {
+    "draws": 20000,
+    "largest_deviation_in_standard_errors": 4.05,
+    "tokens": 356,
+    "chi_square": 346.7,
+    "degrees_of_freedom": 355,
+    "chi_square_z": -0.31,
+    "top_tokens": [
+      {
+        "token": "\n",
+        "probability": 0.9826,
+        "observed": 0.9829
+      },
+      {
+        "token": "\u0000",
+        "probability": 0.0,
+        "observed": 0.0001
+      },
+      {
+        "token": "\u0001",
+        "probability": 0.0,
+        "observed": 0.0001
+      },
+      {
+        "token": "\u0002",
+        "probability": 0.0,
+        "observed": 0.0
+      },
+      {
+        "token": "\u0003",
+        "probability": 0.0,
+        "observed": 0.0001
+      }
+    ]
+  },
+  "live": {
+    "model": "qwen2.5:0.5b",
+    "greedy_answer": "To maximize the number of tubs Lucy can buy while meeting her target quantities for each flavor, she should prioritize buying more vanilla than chocolate and strawberry. This way, she will have enough tubs to meet both her target quantities without exceeding them.",
+    "answer_tokens": 49,
+    "answer_log_probability_nats": -49.921,
+    "answer_probability": 2.0877259214133404e-22,
+    "mean_top5_entropy_bits_per_token": 1.598,
+    "usage": {
+      "prompt_tokens": 75,
+      "completion_tokens": 50,
+      "total_tokens": 125
+    },
+    "distinct_answers_in_10_samples": {
+      "0.0": 1,
+      "0.7": 10,
+      "1.5": 10
+    },
+    "note": "Entropy is estimated from the top 5 alternatives plus one bucket for the rest, so it is a lower bound on the true per-token entropy."
+  }
+}
