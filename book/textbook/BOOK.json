@@ -144,7 +144,7 @@
     {
       "number": 18,
       "lessonId": "operation",
-      "title": "Deploy and maintain the agent",
+      "title": "What a model call costs, and a deployment that survives",
       "path": "ch18/profrod-sovereign-agent-ch18-deployment-restoration-chapter.md",
       "checkpoint": "checkpoints/profrod_sovereign_agent_ch18_deployment_restoration_checkpoint.py",
       "status": "DRAFT"
