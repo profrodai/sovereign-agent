@@ -25,6 +25,23 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[1]
 ARCHIVE = ROOT / "docs/archive/book-20260909"
 HISTORICAL_RUNTIME = "34e439f8e2124d205bc6d8c06de6033539267512"
+
+
+class HistoricalRuntimeUnavailableError(RuntimeError):
+    """The pinned runtime is not in this checkout's history (no .git, or a shallow clone)."""
+
+
+def historical_runtime_available() -> bool:
+    return (
+        subprocess.run(
+            ["git", "cat-file", "-e", f"{HISTORICAL_RUNTIME}^{{commit}}"],
+            cwd=ROOT,
+            capture_output=True,
+        ).returncode
+        == 0
+    )
+
+
 HISTORICAL_TESTS = (
     "test_always_on_book.py",
     "test_book_snippets_verifier.py",
@@ -119,6 +136,10 @@ def projection():
     if not ARCHIVE.is_dir():
         raise FileNotFoundError(f"historical book archive is missing: {ARCHIVE}")
     verify_archive()
+    if not historical_runtime_available():
+        raise HistoricalRuntimeUnavailableError(
+            f"historical runtime {HISTORICAL_RUNTIME[:7]} is not in this checkout's Git history"
+        )
     with tempfile.TemporaryDirectory(prefix="sovereign-historical-book-") as temporary:
         root = Path(temporary)
         ignore = shutil.ignore_patterns("__pycache__", ".pytest_cache", "*.pyc")
