@@ -38,3 +38,34 @@ def test_discovery_refuses_malformed_tool_identity(tool):
             allowed=frozenset(),
             environment={},
         )
+
+
+def _healthy_client():
+    return MCPClient(
+        [sys.executable, "-c", PEER, json.dumps({"tools": []})],
+        allowed=frozenset(),
+        environment={},
+    )
+
+
+def test_close_tolerates_eperm_only_after_the_peer_exited(monkeypatch):
+    # macOS reports EPERM from killpg for an exited, unreaped group leader. That must not fail
+    # cleanup, but the same refusal for a peer that is still running must not be swallowed.
+    import sovereign_agent.mcp_client as mcp_client
+
+    def refuse(pid, sig):
+        raise PermissionError(1, "Operation not permitted")
+
+    exited = _healthy_client()
+    exited.process.stdin.close()
+    exited.process.wait(timeout=5)
+    monkeypatch.setattr(mcp_client.os, "killpg", refuse)
+    exited.close()
+
+    running = _healthy_client()
+    try:
+        with pytest.raises(PermissionError):
+            running.close()
+    finally:
+        running.process.kill()
+        running.process.wait(timeout=5)
