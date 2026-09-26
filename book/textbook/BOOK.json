@@ -128,7 +128,7 @@
     {
       "number": 16,
       "lessonId": "improvement",
-      "title": "Improve behavior with evaluated changes",
+      "title": "Optimizing against an evaluation: the winner's curse and preferences",
       "path": "ch16/profrod-sovereign-agent-ch16-controlled-improvement-chapter.md",
       "checkpoint": "checkpoints/profrod_sovereign_agent_ch16_controlled_improvement_checkpoint.py",
       "status": "DRAFT"

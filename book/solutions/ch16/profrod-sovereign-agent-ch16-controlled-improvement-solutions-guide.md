@@ -1,4 +1,4 @@
-# Chapter 16: Improve behavior with evaluated changes
+# Chapter 16: Optimizing against an evaluation: the winner's curse and preferences
 
 > **Learn with Prof Rod** — *Build Your Always-On AI Agent From Scratch*.
 > **Read the full book and get the latest learning materials:** [https://profrod.ai/book](https://profrod.ai/book).
@@ -13,9 +13,9 @@ Retain your own attempt before reading these worked solutions. Explain the reaso
 | Session | Notebook | Matching text | Purpose |
 |---|---|---|---|
 | A · 90 minutes | [A: controlled improvement](profrod-sovereign-agent-ch16-a-controlled-improvement-solution.ipynb) | [Markdown](profrod-sovereign-agent-ch16-a-controlled-improvement-solution.md) | Construct, connect and explain |
-| B · 90 minutes | [B: improvement repair transfer](profrod-sovereign-agent-ch16-b-improvement-repair-transfer-solution.ipynb) | [Markdown](profrod-sovereign-agent-ch16-b-improvement-repair-transfer-solution.md) | Diagnose, repair and transfer |
+| B · 90 minutes | [B: winner's curse and preferences](profrod-sovereign-agent-ch16-b-winners-curse-and-preferences-solution.ipynb) | [Markdown](profrod-sovereign-agent-ch16-b-winners-curse-and-preferences-solution.md) | Derive, check against simulation and transfer |
 
-Each notebook includes its own setup, first-principles introductions and supplied teaching runtime. Use a Python 3.14 Jupyter kernel and Pydantic 2. No repository checkout, previous notebook kernel or live account is needed. Unit B can use an explicitly selected successful Unit A handoff; an invalid selected file refuses rather than substituting an answer.
+Each notebook includes its own setup, first-principles introductions and supplied teaching runtime. Use a Python 3.14 Jupyter kernel; Unit A also needs Pydantic 2, and Unit B only the standard library. No repository checkout, previous notebook kernel or live account is needed. Unit B can use an explicitly selected successful Unit A handoff; an invalid selected file refuses rather than substituting an answer.
 
 Ninety minutes is the planned work allowance per unit, excluding installation. Actual completion time and understanding require classroom observation.
 

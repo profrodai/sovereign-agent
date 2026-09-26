@@ -307,7 +307,7 @@ def bm25_scores(query, documents, k1=1.5, b=0.75):
     for tokens in tokenized:
         frequency = Counter(tokens)
         score = 0.0
-        for term in set(terms(query)):
+        for term in sorted(set(terms(query))):
             f = frequency[term]
             if f:
                 idf = math.log(
@@ -574,7 +574,7 @@ def reference_bm25(query, documents, k1=1.5, b=0.75):
     out = []
     for bag, length in zip(bags, lengths, strict=True):
         s = 0.0
-        for term in set(terms(query)):
+        for term in sorted(set(terms(query))):
             n = sum(1 for other in bags if term in other)
             if bag[term]:
                 idf = math.log((len(bags) - n + 0.5) / (n + 0.5) + 1)

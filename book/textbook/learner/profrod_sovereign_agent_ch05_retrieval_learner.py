@@ -47,7 +47,8 @@ def bm25_scores(
     for tokens in tokenized:
         frequency = Counter(tokens)
         score = 0.0
-        for term in set(terms(query)):
+        # Sorted, so the floating-point sum, and any exact tie, does not depend on hash order.
+        for term in sorted(set(terms(query))):
             f = frequency[term]
             if not f:
                 continue

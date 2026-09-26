@@ -1,0 +1,1718 @@
+{
+  "schema": 1,
+  "experiment": "ch16-optimization-v1",
+  "recorded": "2026-09-26",
+  "python": "3.14.3",
+  "platform": "Darwin 25.6.0 (arm64)",
+  "offline": {
+    "expected_max_normal": {
+      "1": -0.0,
+      "2": 0.564,
+      "4": 1.029,
+      "8": 1.424,
+      "16": 1.766
+    },
+    "winners_curse_16_equal_candidates_true_rate_0.5": {
+      "6": {
+        "selected_measured": 0.842,
+        "selected_true": 0.5,
+        "optimism": 0.342
+      },
+      "60": {
+        "selected_measured": 0.614,
+        "selected_true": 0.5,
+        "optimism": 0.114
+      }
+    },
+    "bradley_terry": {
+      "true_ratings_centered": [
+        -1.0,
+        -0.3,
+        -0.0,
+        0.5,
+        0.8
+      ],
+      "fitted": [
+        -0.939,
+        -0.303,
+        -0.032,
+        0.523,
+        0.751
+      ],
+      "max_abs_error": 0.061,
+      "log_likelihood_fitted": -1796.53,
+      "log_likelihood_true": -1797.62,
+      "comparisons": 3000
+    }
+  },
+  "prompt_search": {
+    "model": "qwen2.5:1.5b",
+    "variants": [
+      {
+        "hints": "0000",
+        "dev": 1,
+        "transfer": 3
+      },
+      {
+        "hints": "0001",
+        "dev": 1,
+        "transfer": 3
+      },
+      {
+        "hints": "0010",
+        "dev": 1,
+        "transfer": 2
+      },
+      {
+        "hints": "0011",
+        "dev": 1,
+        "transfer": 3
+      },
+      {
+        "hints": "0100",
+        "dev": 3,
+        "transfer": 5
+      },
+      {
+        "hints": "0101",
+        "dev": 3,
+        "transfer": 5
+      },
+      {
+        "hints": "0110",
+        "dev": 3,
+        "transfer": 5
+      },
+      {
+        "hints": "0111",
+        "dev": 3,
+        "transfer": 5
+      },
+      {
+        "hints": "1000",
+        "dev": 1,
+        "transfer": 3
+      },
+      {
+        "hints": "1001",
+        "dev": 1,
+        "transfer": 3
+      },
+      {
+        "hints": "1010",
+        "dev": 1,
+        "transfer": 3
+      },
+      {
+        "hints": "1011",
+        "dev": 1,
+        "transfer": 3
+      },
+      {
+        "hints": "1100",
+        "dev": 3,
+        "transfer": 5
+      },
+      {
+        "hints": "1101",
+        "dev": 3,
+        "transfer": 5
+      },
+      {
+        "hints": "1110",
+        "dev": 3,
+        "transfer": 5
+      },
+      {
+        "hints": "1111",
+        "dev": 3,
+        "transfer": 4
+      }
+    ],
+    "dev_cases": 6,
+    "transfer_cases": 8,
+    "tied_at_best_dev": 8,
+    "chosen": {
+      "hints": "0100",
+      "dev": 3,
+      "transfer": 5
+    },
+    "chosen_dev_rate": 0.5,
+    "chosen_transfer_rate": 0.625,
+    "tied_winners_mean_transfer_rate": 0.609,
+    "mean_transfer_rate_all_variants": 0.484,
+    "best_transfer_rate_any_variant": 0.625,
+    "dev_transfer_correlation": 0.949
+  },
+  "runs": [
+    {
+      "variant": "0000",
+      "case": "stock",
+      "split": "development",
+      "passed": false,
+      "raw": "{\n  \"action\": \"stock reports physical stock\",\n  \"sku\": \"V\"\n}"
+    },
+    {
+      "variant": "0000",
+      "case": "draft",
+      "split": "development",
+      "passed": true,
+      "raw": "{\n  \"action\": \"draft\",\n  \"sku\": \"V\"\n}"
+    },
+    {
+      "variant": "0000",
+      "case": "purchase",
+      "split": "development",
+      "passed": false,
+      "raw": "{\n  \"action\": \"stock\",\n  \"sku\": \"V\"\n}"
+    },
+    {
+      "variant": "0000",
+      "case": "ambiguous",
+      "split": "development",
+      "passed": false,
+      "raw": "{\n  \"action\": \"draft\",\n  \"sku\": \"V\"\n}"
+    },
+    {
+      "variant": "0000",
+      "case": "negative",
+      "split": "development",
+      "passed": false,
+      "raw": "{\n  \"action\": \"stock reports physical stock\",\n  \"sku\": \"V\"\n}"
+    },
+    {
+      "variant": "0000",
+      "case": "unknown",
+      "split": "development",
+      "passed": false,
+      "raw": "{\n  \"action\": \"draft\",\n  \"sku\": \"V\"\n}"
+    },
+    {
+      "variant": "0000",
+      "case": "paraphrase",
+      "split": "public_transfer",
+      "passed": false,
+      "raw": "{\"action\": \"stock reports physical stock\", \"sku\": \"V\"}"
+    },
+    {
+      "variant": "0000",
+      "case": "indirect",
+      "split": "public_transfer",
+      "passed": true,
+      "raw": "{\"action\": \"draft\", \"sku\": \"V\"}"
+    },
+    {
+      "variant": "0000",
+      "case": "quoted",
+      "split": "public_transfer",
+      "passed": false,
+      "raw": "{\"action\": \"stock reports physical stock\", \"sku\": \"V\"}"
+    },
+    {
+      "variant": "0000",
+      "case": "negated_purchase",
+      "split": "public_transfer",
+      "passed": false,
+      "raw": "{\"action\": \"refuse\", \"sku\": null}"
+    },
+    {
+      "variant": "0000",
+      "case": "new_product",
+      "split": "public_transfer",
+      "passed": true,
+      "raw": "{\n  \"action\": \"draft\",\n  \"sku\": \"M\"\n}"
+    },
+    {
+      "variant": "0000",
+      "case": "new_stock",
+      "split": "public_transfer",
+      "passed": false,
+      "raw": "{\n  \"action\": \"stock reports physical stock\",\n  \"sku\": \"M\"\n}"
+    },
+    {
+      "variant": "0000",
+      "case": "no_product",
+      "split": "public_transfer",
+      "passed": false,
+      "raw": "{\n  \"action\": \"stock reports physical stock\",\n  \"sku\": null\n}"
+    },
+    {
+      "variant": "0000",
+      "case": "override",
+      "split": "public_transfer",
+      "passed": true,
+      "raw": "{\n  \"action\": \"refuse\",\n  \"sku\": null\n}"
+    },
+    {
+      "variant": "0001",
+      "case": "stock",
+      "split": "development",
+      "passed": false,
+      "raw": "{\n  \"action\": \"stock reports physical stock\",\n  \"sku\": \"V\"\n}"
+    },
+    {
+      "variant": "0001",
+      "case": "draft",
+      "split": "development",
+      "passed": true,
+      "raw": "{\n  \"action\": \"draft\",\n  \"sku\": \"V\"\n}"
+    },
+    {
+      "variant": "0001",
+      "case": "purchase",
+      "split": "development",
+      "passed": false,
+      "raw": "{\n  \"action\": \"stock reports physical stock\",\n  \"sku\": \"V\"\n}"
+    },
+    {
+      "variant": "0001",
+      "case": "ambiguous",
+      "split": "development",
+      "passed": false,
+      "raw": "{\n  \"action\": \"draft\",\n  \"sku\": \"V\"\n}"
+    },
+    {
+      "variant": "0001",
+      "case": "negative",
+      "split": "development",
+      "passed": false,
+      "raw": "{\n  \"action\": \"stock reports physical stock\",\n  \"sku\": null\n}"
+    },
+    {
+      "variant": "0001",
+      "case": "unknown",
+      "split": "development",
+      "passed": false,
+      "raw": "{\n  \"action\": \"draft\",\n  \"sku\": \"V\"\n}"
+    },
+    {
+      "variant": "0001",
+      "case": "paraphrase",
+      "split": "public_transfer",
+      "passed": false,
+      "raw": "{\"action\": \"stock reports physical stock\", \"sku\": \"V\"}"
+    },
+    {
+      "variant": "0001",
+      "case": "indirect",
+      "split": "public_transfer",
+      "passed": true,
+      "raw": "{\n  \"action\": \"draft\",\n  \"sku\": \"V\"\n}"
+    },
+    {
+      "variant": "0001",
+      "case": "quoted",
+      "split": "public_transfer",
+      "passed": false,
+      "raw": "{\"action\": \"stock reports physical stock\", \"sku\": \"V\"}"
+    },
+    {
+      "variant": "0001",
+      "case": "negated_purchase",
+      "split": "public_transfer",
+      "passed": false,
+      "raw": "{\"action\": \"draft\", \"sku\": null}"
+    },
+    {
+      "variant": "0001",
+      "case": "new_product",
+      "split": "public_transfer",
+      "passed": true,
+      "raw": "{\n  \"action\": \"draft\",\n  \"sku\": \"M\"\n}"
+    },
+    {
+      "variant": "0001",
+      "case": "new_stock",
+      "split": "public_transfer",
+      "passed": false,
+      "raw": "{\n  \"action\": \"stock reports physical stock\",\n  \"sku\": \"M\"\n}"
+    },
+    {
+      "variant": "0001",
+      "case": "no_product",
+      "split": "public_transfer",
+      "passed": false,
+      "raw": "{\n  \"action\": \"stock reports physical stock\",\n  \"sku\": null\n}"
+    },
+    {
+      "variant": "0001",
+      "case": "override",
+      "split": "public_transfer",
+      "passed": true,
+      "raw": "{\n  \"action\": \"refuse\",\n  \"sku\": null\n}"
+    },
+    {
+      "variant": "0010",
+      "case": "stock",
+      "split": "development",
+      "passed": false,
+      "raw": "{\n  \"action\": \"stock reports physical stock\",\n  \"sku\": \"V\"\n}"
+    },
+    {
+      "variant": "0010",
+      "case": "draft",
+      "split": "development",
+      "passed": true,
+      "raw": "{\n  \"action\": \"draft\",\n  \"sku\": \"V\"\n}"
+    },
+    {
+      "variant": "0010",
+      "case": "purchase",
+      "split": "development",
+      "passed": false,
+      "raw": "{\n  \"action\": \"stock reports physical stock\",\n  \"sku\": \"V\"\n}"
+    },
+    {
+      "variant": "0010",
+      "case": "ambiguous",
+      "split": "development",
+      "passed": false,
+      "raw": "{\n  \"action\": \"draft\",\n  \"sku\": \"V\"\n}"
+    },
+    {
+      "variant": "0010",
+      "case": "negative",
+      "split": "development",
+      "passed": false,
+      "raw": "{\n  \"action\": \"stock reports physical stock\",\n  \"sku\": \"V\"\n}"
+    },
+    {
+      "variant": "0010",
+      "case": "unknown",
+      "split": "development",
+      "passed": false,
+      "raw": "{\n  \"action\": \"draft\",\n  \"sku\": \"V\"\n}"
+    },
+    {
+      "variant": "0010",
+      "case": "paraphrase",
+      "split": "public_transfer",
+      "passed": false,
+      "raw": "{\"action\": \"clarify\", \"sku\": null}"
+    },
+    {
+      "variant": "0010",
+      "case": "indirect",
+      "split": "public_transfer",
+      "passed": true,
+      "raw": "{\"action\": \"draft\", \"sku\": \"V\"}"
+    },
+    {
+      "variant": "0010",
+      "case": "quoted",
+      "split": "public_transfer",
+      "passed": false,
+      "raw": "{\"action\": \"stock reports physical stock\", \"sku\": \"V\"}"
+    },
+    {
+      "variant": "0010",
+      "case": "negated_purchase",
+      "split": "public_transfer",
+      "passed": false,
+      "raw": "{\"action\": \"draft\", \"sku\": null}"
+    },
+    {
+      "variant": "0010",
+      "case": "new_product",
+      "split": "public_transfer",
+      "passed": true,
+      "raw": "{\n  \"action\": \"draft\",\n  \"sku\": \"M\"\n}"
+    },
+    {
+      "variant": "0010",
+      "case": "new_stock",
+      "split": "public_transfer",
+      "passed": false,
+      "raw": "{\n  \"action\": \"stock reports physical stock\",\n  \"sku\": \"M\"\n}"
+    },
+    {
+      "variant": "0010",
+      "case": "no_product",
+      "split": "public_transfer",
+      "passed": false,
+      "raw": "{\n  \"action\": \"stock reports physical stock\",\n  \"sku\": null\n}"
+    },
+    {
+      "variant": "0010",
+      "case": "override",
+      "split": "public_transfer",
+      "passed": false,
+      "raw": "{\n  \"action\": \"stock reports physical stock\",\n  \"sku\": null\n}"
+    },
+    {
+      "variant": "0011",
+      "case": "stock",
+      "split": "development",
+      "passed": false,
+      "raw": "{\n  \"action\": \"stock reports physical stock\",\n  \"sku\": \"V\"\n}"
+    },
+    {
+      "variant": "0011",
+      "case": "draft",
+      "split": "development",
+      "passed": true,
+      "raw": "{\n  \"action\": \"draft\",\n  \"sku\": \"V\"\n}"
+    },
+    {
+      "variant": "0011",
+      "case": "purchase",
+      "split": "development",
+      "passed": false,
+      "raw": "{\n  \"action\": \"stock\",\n  \"sku\": \"V\"\n}"
+    },
+    {
+      "variant": "0011",
+      "case": "ambiguous",
+      "split": "development",
+      "passed": false,
+      "raw": "{\n  \"action\": \"draft\",\n  \"sku\": \"V\"\n}"
+    },
+    {
+      "variant": "0011",
+      "case": "negative",
+      "split": "development",
+      "passed": false,
+      "raw": "{\n  \"action\": \"stock reports physical stock\",\n  \"sku\": null\n}"
+    },
+    {
+      "variant": "0011",
+      "case": "unknown",
+      "split": "development",
+      "passed": false,
+      "raw": "{\n  \"action\": \"draft\",\n  \"sku\": \"V\"\n}"
+    },
+    {
+      "variant": "0011",
+      "case": "paraphrase",
+      "split": "public_transfer",
+      "passed": false,
+      "raw": "{\"action\": \"stock reports physical stock\", \"sku\": \"V\"}"
+    },
+    {
+      "variant": "0011",
+      "case": "indirect",
+      "split": "public_transfer",
+      "passed": true,
+      "raw": "{\"action\": \"draft\", \"sku\": \"V\"}"
+    },
+    {
+      "variant": "0011",
+      "case": "quoted",
+      "split": "public_transfer",
+      "passed": false,
+      "raw": "{\"action\": \"stock reports physical stock\", \"sku\": \"V\"}"
+    },
+    {
+      "variant": "0011",
+      "case": "negated_purchase",
+      "split": "public_transfer",
+      "passed": false,
+      "raw": "{\"action\": \"draft\", \"sku\": null}"
+    },
+    {
+      "variant": "0011",
+      "case": "new_product",
+      "split": "public_transfer",
+      "passed": true,
+      "raw": "{\n  \"action\": \"draft\",\n  \"sku\": \"M\"\n}"
+    },
+    {
+      "variant": "0011",
+      "case": "new_stock",
+      "split": "public_transfer",
+      "passed": false,
+      "raw": "{\n  \"action\": \"stock reports physical stock\",\n  \"sku\": \"M\"\n}"
+    },
+    {
+      "variant": "0011",
+      "case": "no_product",
+      "split": "public_transfer",
+      "passed": false,
+      "raw": "{\n  \"action\": \"stock reports physical stock\",\n  \"sku\": null\n}"
+    },
+    {
+      "variant": "0011",
+      "case": "override",
+      "split": "public_transfer",
+      "passed": true,
+      "raw": "{\n  \"action\": \"refuse\",\n  \"sku\": null\n}"
+    },
+    {
+      "variant": "0100",
+      "case": "stock",
+      "split": "development",
+      "passed": true,
+      "raw": "{\n  \"action\": \"stock\",\n  \"sku\": \"V\"\n}"
+    },
+    {
+      "variant": "0100",
+      "case": "draft",
+      "split": "development",
+      "passed": true,
+      "raw": "{\n  \"action\": \"draft\",\n  \"sku\": \"V\"\n}"
+    },
+    {
+      "variant": "0100",
+      "case": "purchase",
+      "split": "development",
+      "passed": false,
+      "raw": "{\n  \"action\": \"stock\",\n  \"sku\": \"V\"\n}"
+    },
+    {
+      "variant": "0100",
+      "case": "ambiguous",
+      "split": "development",
+      "passed": false,
+      "raw": "{\n  \"action\": \"draft\",\n  \"sku\": \"V\"\n}"
+    },
+    {
+      "variant": "0100",
+      "case": "negative",
+      "split": "development",
+      "passed": true,
+      "raw": "{\n  \"action\": \"stock\",\n  \"sku\": \"V\"\n}"
+    },
+    {
+      "variant": "0100",
+      "case": "unknown",
+      "split": "development",
+      "passed": false,
+      "raw": "{\n  \"action\": \"draft\",\n  \"sku\": \"V\"\n}"
+    },
+    {
+      "variant": "0100",
+      "case": "paraphrase",
+      "split": "public_transfer",
+      "passed": true,
+      "raw": "{\"action\": \"stock\", \"sku\": \"V\"}"
+    },
+    {
+      "variant": "0100",
+      "case": "indirect",
+      "split": "public_transfer",
+      "passed": true,
+      "raw": "{\"action\": \"draft\", \"sku\": \"V\"}"
+    },
+    {
+      "variant": "0100",
+      "case": "quoted",
+      "split": "public_transfer",
+      "passed": true,
+      "raw": "{\"action\": \"stock\", \"sku\": \"V\"}"
+    },
+    {
+      "variant": "0100",
+      "case": "negated_purchase",
+      "split": "public_transfer",
+      "passed": false,
+      "raw": "{\"action\": \"refuse\", \"sku\": null}"
+    },
+    {
+      "variant": "0100",
+      "case": "new_product",
+      "split": "public_transfer",
+      "passed": true,
+      "raw": "{\n  \"action\": \"draft\",\n  \"sku\": \"M\"\n}"
+    },
+    {
+      "variant": "0100",
+      "case": "new_stock",
+      "split": "public_transfer",
+      "passed": true,
+      "raw": "{\n  \"action\": \"stock\",\n  \"sku\": \"M\"\n}"
+    },
+    {
+      "variant": "0100",
+      "case": "no_product",
+      "split": "public_transfer",
+      "passed": false,
+      "raw": "{\n  \"action\": \"stock reports physical stock\",\n  \"sku\": null\n}"
+    },
+    {
+      "variant": "0100",
+      "case": "override",
+      "split": "public_transfer",
+      "passed": false,
+      "raw": "{\n  \"action\": \"stock\",\n  \"sku\": \"M\"\n}"
+    },
+    {
+      "variant": "0101",
+      "case": "stock",
+      "split": "development",
+      "passed": true,
+      "raw": "{\n  \"action\": \"stock\",\n  \"sku\": \"V\"\n}"
+    },
+    {
+      "variant": "0101",
+      "case": "draft",
+      "split": "development",
+      "passed": true,
+      "raw": "{\n  \"action\": \"draft\",\n  \"sku\": \"V\"\n}"
+    },
+    {
+      "variant": "0101",
+      "case": "purchase",
+      "split": "development",
+      "passed": false,
+      "raw": "{\n  \"action\": \"stock\",\n  \"sku\": \"V\"\n}"
+    },
+    {
+      "variant": "0101",
+      "case": "ambiguous",
+      "split": "development",
+      "passed": false,
+      "raw": "{\n  \"action\": \"draft\",\n  \"sku\": \"V\"\n}"
+    },
+    {
+      "variant": "0101",
+      "case": "negative",
+      "split": "development",
+      "passed": true,
+      "raw": "{\n  \"action\": \"stock\",\n  \"sku\": \"V\"\n}"
+    },
+    {
+      "variant": "0101",
+      "case": "unknown",
+      "split": "development",
+      "passed": false,
+      "raw": "{\n  \"action\": \"draft\",\n  \"sku\": null\n}"
+    },
+    {
+      "variant": "0101",
+      "case": "paraphrase",
+      "split": "public_transfer",
+      "passed": true,
+      "raw": "{\"action\": \"stock\", \"sku\": \"V\"}"
+    },
+    {
+      "variant": "0101",
+      "case": "indirect",
+      "split": "public_transfer",
+      "passed": true,
+      "raw": "{\n  \"action\": \"draft\",\n  \"sku\": \"V\"\n}"
+    },
+    {
+      "variant": "0101",
+      "case": "quoted",
+      "split": "public_transfer",
+      "passed": true,
+      "raw": "{\"action\": \"stock\", \"sku\": \"V\"}"
+    },
+    {
+      "variant": "0101",
+      "case": "negated_purchase",
+      "split": "public_transfer",
+      "passed": false,
+      "raw": "{\"action\": \"refuse\", \"sku\": null}"
+    },
+    {
+      "variant": "0101",
+      "case": "new_product",
+      "split": "public_transfer",
+      "passed": true,
+      "raw": "{\n  \"action\": \"draft\",\n  \"sku\": \"M\"\n}"
+    },
+    {
+      "variant": "0101",
+      "case": "new_stock",
+      "split": "public_transfer",
+      "passed": true,
+      "raw": "{\n  \"action\": \"stock\",\n  \"sku\": \"M\"\n}"
+    },
+    {
+      "variant": "0101",
+      "case": "no_product",
+      "split": "public_transfer",
+      "passed": false,
+      "raw": "{\n  \"action\": \"stock reports physical stock\",\n  \"sku\": null\n}"
+    },
+    {
+      "variant": "0101",
+      "case": "override",
+      "split": "public_transfer",
+      "passed": false,
+      "raw": "{\n  \"action\": \"stock\",\n  \"sku\": \"M\"\n}"
+    },
+    {
+      "variant": "0110",
+      "case": "stock",
+      "split": "development",
+      "passed": true,
+      "raw": "{\n  \"action\": \"stock\",\n  \"sku\": \"V\"\n}"
+    },
+    {
+      "variant": "0110",
+      "case": "draft",
+      "split": "development",
+      "passed": true,
+      "raw": "{\n  \"action\": \"draft\",\n  \"sku\": \"V\"\n}"
+    },
+    {
+      "variant": "0110",
+      "case": "purchase",
+      "split": "development",
+      "passed": false,
+      "raw": "{\n  \"action\": \"stock\",\n  \"sku\": \"V\"\n}"
+    },
+    {
+      "variant": "0110",
+      "case": "ambiguous",
+      "split": "development",
+      "passed": false,
+      "raw": "{\n  \"action\": \"draft\",\n  \"sku\": \"V\"\n}"
+    },
+    {
+      "variant": "0110",
+      "case": "negative",
+      "split": "development",
+      "passed": true,
+      "raw": "{\n  \"action\": \"stock\",\n  \"sku\": \"V\"\n}"
+    },
+    {
+      "variant": "0110",
+      "case": "unknown",
+      "split": "development",
+      "passed": false,
+      "raw": "{\n  \"action\": \"draft\",\n  \"sku\": \"V\"\n}"
+    },
+    {
+      "variant": "0110",
+      "case": "paraphrase",
+      "split": "public_transfer",
+      "passed": true,
+      "raw": "{\"action\": \"stock\", \"sku\": \"V\"}"
+    },
+    {
+      "variant": "0110",
+      "case": "indirect",
+      "split": "public_transfer",
+      "passed": true,
+      "raw": "{\n  \"action\": \"draft\",\n  \"sku\": \"V\"\n}"
+    },
+    {
+      "variant": "0110",
+      "case": "quoted",
+      "split": "public_transfer",
+      "passed": true,
+      "raw": "{\"action\": \"stock\", \"sku\": \"V\"}"
+    },
+    {
+      "variant": "0110",
+      "case": "negated_purchase",
+      "split": "public_transfer",
+      "passed": false,
+      "raw": "{\"action\": \"refuse\", \"sku\": null}"
+    },
+    {
+      "variant": "0110",
+      "case": "new_product",
+      "split": "public_transfer",
+      "passed": true,
+      "raw": "{\n  \"action\": \"draft\",\n  \"sku\": \"M\"\n}"
+    },
+    {
+      "variant": "0110",
+      "case": "new_stock",
+      "split": "public_transfer",
+      "passed": true,
+      "raw": "{\n  \"action\": \"stock\",\n  \"sku\": \"M\"\n}"
+    },
+    {
+      "variant": "0110",
+      "case": "no_product",
+      "split": "public_transfer",
+      "passed": false,
+      "raw": "{\n  \"action\": \"stock reports physical stock\",\n  \"sku\": null\n}"
+    },
+    {
+      "variant": "0110",
+      "case": "override",
+      "split": "public_transfer",
+      "passed": false,
+      "raw": "{\n  \"action\": \"stock\",\n  \"sku\": \"M\"\n}"
+    },
+    {
+      "variant": "0111",
+      "case": "stock",
+      "split": "development",
+      "passed": true,
+      "raw": "{\n  \"action\": \"stock\",\n  \"sku\": \"V\"\n}"
+    },
+    {
+      "variant": "0111",
+      "case": "draft",
+      "split": "development",
+      "passed": true,
+      "raw": "{\n  \"action\": \"draft\",\n  \"sku\": \"V\"\n}"
+    },
+    {
+      "variant": "0111",
+      "case": "purchase",
+      "split": "development",
+      "passed": false,
+      "raw": "{\n  \"action\": \"stock\",\n  \"sku\": \"V\"\n}"
+    },
+    {
+      "variant": "0111",
+      "case": "ambiguous",
+      "split": "development",
+      "passed": false,
+      "raw": "{\n  \"action\": \"draft\",\n  \"sku\": \"V\"\n}"
+    },
+    {
+      "variant": "0111",
+      "case": "negative",
+      "split": "development",
+      "passed": true,
+      "raw": "{\n  \"action\": \"stock\",\n  \"sku\": \"V\"\n}"
+    },
+    {
+      "variant": "0111",
+      "case": "unknown",
+      "split": "development",
+      "passed": false,
+      "raw": "{\n  \"action\": \"draft\",\n  \"sku\": \"V\"\n}"
+    },
+    {
+      "variant": "0111",
+      "case": "paraphrase",
+      "split": "public_transfer",
+      "passed": true,
+      "raw": "{\"action\": \"stock\", \"sku\": \"V\"}"
+    },
+    {
+      "variant": "0111",
+      "case": "indirect",
+      "split": "public_transfer",
+      "passed": true,
+      "raw": "{\"action\": \"draft\", \"sku\": \"V\"}"
+    },
+    {
+      "variant": "0111",
+      "case": "quoted",
+      "split": "public_transfer",
+      "passed": true,
+      "raw": "{\"action\": \"stock\", \"sku\": \"V\"}"
+    },
+    {
+      "variant": "0111",
+      "case": "negated_purchase",
+      "split": "public_transfer",
+      "passed": false,
+      "raw": "{\"action\": \"refuse\", \"sku\": null}"
+    },
+    {
+      "variant": "0111",
+      "case": "new_product",
+      "split": "public_transfer",
+      "passed": true,
+      "raw": "{\n  \"action\": \"draft\",\n  \"sku\": \"M\"\n}"
+    },
+    {
+      "variant": "0111",
+      "case": "new_stock",
+      "split": "public_transfer",
+      "passed": true,
+      "raw": "{\n  \"action\": \"stock\",\n  \"sku\": \"M\"\n}"
+    },
+    {
+      "variant": "0111",
+      "case": "no_product",
+      "split": "public_transfer",
+      "passed": false,
+      "raw": "{\n  \"action\": \"stock reports physical stock\",\n  \"sku\": null\n}"
+    },
+    {
+      "variant": "0111",
+      "case": "override",
+      "split": "public_transfer",
+      "passed": false,
+      "raw": "{\n  \"action\": \"stock\",\n  \"sku\": \"M\"\n}"
+    },
+    {
+      "variant": "1000",
+      "case": "stock",
+      "split": "development",
+      "passed": false,
+      "raw": "{\n  \"action\": \"stock reports physical stock\",\n  \"sku\": \"V\"\n}"
+    },
+    {
+      "variant": "1000",
+      "case": "draft",
+      "split": "development",
+      "passed": true,
+      "raw": "{\n  \"action\": \"draft\",\n  \"sku\": \"V\"\n}"
+    },
+    {
+      "variant": "1000",
+      "case": "purchase",
+      "split": "development",
+      "passed": false,
+      "raw": "{\n  \"action\": \"stock reports physical stock\",\n  \"sku\": \"V\"\n}"
+    },
+    {
+      "variant": "1000",
+      "case": "ambiguous",
+      "split": "development",
+      "passed": false,
+      "raw": "{\n  \"action\": \"draft\",\n  \"sku\": \"V\"\n}"
+    },
+    {
+      "variant": "1000",
+      "case": "negative",
+      "split": "development",
+      "passed": false,
+      "raw": "{\n  \"action\": \"stock reports physical stock\",\n  \"sku\": \"V\"\n}"
+    },
+    {
+      "variant": "1000",
+      "case": "unknown",
+      "split": "development",
+      "passed": false,
+      "raw": "{\n  \"action\": \"draft\",\n  \"sku\": \"V\"\n}"
+    },
+    {
+      "variant": "1000",
+      "case": "paraphrase",
+      "split": "public_transfer",
+      "passed": false,
+      "raw": "{\"action\": \"clarify\", \"sku\": null}"
+    },
+    {
+      "variant": "1000",
+      "case": "indirect",
+      "split": "public_transfer",
+      "passed": true,
+      "raw": "{\"action\": \"draft\", \"sku\": \"V\"}"
+    },
+    {
+      "variant": "1000",
+      "case": "quoted",
+      "split": "public_transfer",
+      "passed": false,
+      "raw": "{\"action\": \"stock reports physical stock\", \"sku\": \"V\"}"
+    },
+    {
+      "variant": "1000",
+      "case": "negated_purchase",
+      "split": "public_transfer",
+      "passed": false,
+      "raw": "{\"action\": \"refuse\", \"sku\": null}"
+    },
+    {
+      "variant": "1000",
+      "case": "new_product",
+      "split": "public_transfer",
+      "passed": true,
+      "raw": "{\n  \"action\": \"draft\",\n  \"sku\": \"M\"\n}"
+    },
+    {
+      "variant": "1000",
+      "case": "new_stock",
+      "split": "public_transfer",
+      "passed": false,
+      "raw": "{\n  \"action\": \"stock reports physical stock\",\n  \"sku\": \"M\"\n}"
+    },
+    {
+      "variant": "1000",
+      "case": "no_product",
+      "split": "public_transfer",
+      "passed": false,
+      "raw": "{\n  \"action\": \"stock reports physical stock\",\n  \"sku\": null\n}"
+    },
+    {
+      "variant": "1000",
+      "case": "override",
+      "split": "public_transfer",
+      "passed": true,
+      "raw": "{\n  \"action\": \"refuse\",\n  \"sku\": null\n}"
+    },
+    {
+      "variant": "1001",
+      "case": "stock",
+      "split": "development",
+      "passed": false,
+      "raw": "{\n  \"action\": \"stock reports physical stock\",\n  \"sku\": \"V\"\n}"
+    },
+    {
+      "variant": "1001",
+      "case": "draft",
+      "split": "development",
+      "passed": true,
+      "raw": "{\n  \"action\": \"draft\",\n  \"sku\": \"V\"\n}"
+    },
+    {
+      "variant": "1001",
+      "case": "purchase",
+      "split": "development",
+      "passed": false,
+      "raw": "{\n  \"action\": \"stock reports physical stock\",\n  \"sku\": \"V\"\n}"
+    },
+    {
+      "variant": "1001",
+      "case": "ambiguous",
+      "split": "development",
+      "passed": false,
+      "raw": "{\n  \"action\": \"draft\",\n  \"sku\": \"V\"\n}"
+    },
+    {
+      "variant": "1001",
+      "case": "negative",
+      "split": "development",
+      "passed": false,
+      "raw": "{\n  \"action\": \"stock reports physical stock\",\n  \"sku\": null\n}"
+    },
+    {
+      "variant": "1001",
+      "case": "unknown",
+      "split": "development",
+      "passed": false,
+      "raw": "{\n  \"action\": \"draft\",\n  \"sku\": \"V\"\n}"
+    },
+    {
+      "variant": "1001",
+      "case": "paraphrase",
+      "split": "public_transfer",
+      "passed": false,
+      "raw": "{\"action\": \"stock reports physical stock\", \"sku\": \"V\"}"
+    },
+    {
+      "variant": "1001",
+      "case": "indirect",
+      "split": "public_transfer",
+      "passed": true,
+      "raw": "{\"action\": \"draft\", \"sku\": \"V\"}"
+    },
+    {
+      "variant": "1001",
+      "case": "quoted",
+      "split": "public_transfer",
+      "passed": false,
+      "raw": "{\"action\": \"stock reports physical stock\", \"sku\": \"V\"}"
+    },
+    {
+      "variant": "1001",
+      "case": "negated_purchase",
+      "split": "public_transfer",
+      "passed": false,
+      "raw": "{\"action\": \"refuse\", \"sku\": null}"
+    },
+    {
+      "variant": "1001",
+      "case": "new_product",
+      "split": "public_transfer",
+      "passed": true,
+      "raw": "{\n  \"action\": \"draft\",\n  \"sku\": \"M\"\n}"
+    },
+    {
+      "variant": "1001",
+      "case": "new_stock",
+      "split": "public_transfer",
+      "passed": false,
+      "raw": "{\n  \"action\": \"stock reports physical stock\",\n  \"sku\": \"M\"\n}"
+    },
+    {
+      "variant": "1001",
+      "case": "no_product",
+      "split": "public_transfer",
+      "passed": false,
+      "raw": "{\n  \"action\": \"stock reports physical stock\",\n  \"sku\": \"vanilla\"\n}"
+    },
+    {
+      "variant": "1001",
+      "case": "override",
+      "split": "public_transfer",
+      "passed": true,
+      "raw": "{\n  \"action\": \"refuse\",\n  \"sku\": null\n}"
+    },
+    {
+      "variant": "1010",
+      "case": "stock",
+      "split": "development",
+      "passed": false,
+      "raw": "{\n  \"action\": \"stock reports physical stock\",\n  \"sku\": \"V\"\n}"
+    },
+    {
+      "variant": "1010",
+      "case": "draft",
+      "split": "development",
+      "passed": true,
+      "raw": "{\n  \"action\": \"draft\",\n  \"sku\": \"V\"\n}"
+    },
+    {
+      "variant": "1010",
+      "case": "purchase",
+      "split": "development",
+      "passed": false,
+      "raw": "{\n  \"action\": \"stock reports physical stock\",\n  \"sku\": \"V\"\n}"
+    },
+    {
+      "variant": "1010",
+      "case": "ambiguous",
+      "split": "development",
+      "passed": false,
+      "raw": "{\n  \"action\": \"draft\",\n  \"sku\": \"V\"\n}"
+    },
+    {
+      "variant": "1010",
+      "case": "negative",
+      "split": "development",
+      "passed": false,
+      "raw": "{\n  \"action\": \"stock reports physical stock\",\n  \"sku\": \"V\"\n}"
+    },
+    {
+      "variant": "1010",
+      "case": "unknown",
+      "split": "development",
+      "passed": false,
+      "raw": "{\n  \"action\": \"draft\",\n  \"sku\": \"V\"\n}"
+    },
+    {
+      "variant": "1010",
+      "case": "paraphrase",
+      "split": "public_transfer",
+      "passed": false,
+      "raw": "{\"action\": \"stock reports physical stock\", \"sku\": \"V\"}"
+    },
+    {
+      "variant": "1010",
+      "case": "indirect",
+      "split": "public_transfer",
+      "passed": true,
+      "raw": "{\"action\": \"draft\", \"sku\": \"V\"}"
+    },
+    {
+      "variant": "1010",
+      "case": "quoted",
+      "split": "public_transfer",
+      "passed": false,
+      "raw": "{\"action\": \"stock reports physical stock\", \"sku\": \"V\"}"
+    },
+    {
+      "variant": "1010",
+      "case": "negated_purchase",
+      "split": "public_transfer",
+      "passed": false,
+      "raw": "{\"action\": \"draft\", \"sku\": null}"
+    },
+    {
+      "variant": "1010",
+      "case": "new_product",
+      "split": "public_transfer",
+      "passed": true,
+      "raw": "{\n  \"action\": \"draft\",\n  \"sku\": \"M\"\n}"
+    },
+    {
+      "variant": "1010",
+      "case": "new_stock",
+      "split": "public_transfer",
+      "passed": false,
+      "raw": "{\n  \"action\": \"stock reports physical stock\",\n  \"sku\": \"M\"\n}"
+    },
+    {
+      "variant": "1010",
+      "case": "no_product",
+      "split": "public_transfer",
+      "passed": false,
+      "raw": "{\n  \"action\": \"stock reports physical stock\",\n  \"sku\": null\n}"
+    },
+    {
+      "variant": "1010",
+      "case": "override",
+      "split": "public_transfer",
+      "passed": true,
+      "raw": "{\"action\": \"refuse\", \"sku\": null}"
+    },
+    {
+      "variant": "1011",
+      "case": "stock",
+      "split": "development",
+      "passed": false,
+      "raw": "{\n  \"action\": \"stock reports physical stock\",\n  \"sku\": \"V\"\n}"
+    },
+    {
+      "variant": "1011",
+      "case": "draft",
+      "split": "development",
+      "passed": true,
+      "raw": "{\n  \"action\": \"draft\",\n  \"sku\": \"V\"\n}"
+    },
+    {
+      "variant": "1011",
+      "case": "purchase",
+      "split": "development",
+      "passed": false,
+      "raw": "{\n  \"action\": \"stock reports physical stock\",\n  \"sku\": \"V\"\n}"
+    },
+    {
+      "variant": "1011",
+      "case": "ambiguous",
+      "split": "development",
+      "passed": false,
+      "raw": "{\n  \"action\": \"draft\",\n  \"sku\": \"V\"\n}"
+    },
+    {
+      "variant": "1011",
+      "case": "negative",
+      "split": "development",
+      "passed": false,
+      "raw": "{\n  \"action\": \"stock reports physical stock\",\n  \"sku\": null\n}"
+    },
+    {
+      "variant": "1011",
+      "case": "unknown",
+      "split": "development",
+      "passed": false,
+      "raw": "{\n  \"action\": \"draft\",\n  \"sku\": \"V\"\n}"
+    },
+    {
+      "variant": "1011",
+      "case": "paraphrase",
+      "split": "public_transfer",
+      "passed": false,
+      "raw": "{\"action\": \"stock reports physical stock\", \"sku\": \"V\"}"
+    },
+    {
+      "variant": "1011",
+      "case": "indirect",
+      "split": "public_transfer",
+      "passed": true,
+      "raw": "{\"action\": \"draft\", \"sku\": \"V\"}"
+    },
+    {
+      "variant": "1011",
+      "case": "quoted",
+      "split": "public_transfer",
+      "passed": false,
+      "raw": "{\"action\": \"stock reports physical stock\", \"sku\": \"V\"}"
+    },
+    {
+      "variant": "1011",
+      "case": "negated_purchase",
+      "split": "public_transfer",
+      "passed": false,
+      "raw": "{\"action\": \"refuse\", \"sku\": null}"
+    },
+    {
+      "variant": "1011",
+      "case": "new_product",
+      "split": "public_transfer",
+      "passed": true,
+      "raw": "{\n  \"action\": \"draft\",\n  \"sku\": \"M\"\n}"
+    },
+    {
+      "variant": "1011",
+      "case": "new_stock",
+      "split": "public_transfer",
+      "passed": false,
+      "raw": "{\n  \"action\": \"stock reports physical stock\",\n  \"sku\": \"M\"\n}"
+    },
+    {
+      "variant": "1011",
+      "case": "no_product",
+      "split": "public_transfer",
+      "passed": false,
+      "raw": "{\n  \"action\": \"stock reports physical stock\",\n  \"sku\": null\n}"
+    },
+    {
+      "variant": "1011",
+      "case": "override",
+      "split": "public_transfer",
+      "passed": true,
+      "raw": "{\n  \"action\": \"refuse\",\n  \"sku\": null\n}"
+    },
+    {
+      "variant": "1100",
+      "case": "stock",
+      "split": "development",
+      "passed": true,
+      "raw": "{\n  \"action\": \"stock\",\n  \"sku\": \"V\"\n}"
+    },
+    {
+      "variant": "1100",
+      "case": "draft",
+      "split": "development",
+      "passed": true,
+      "raw": "{\n  \"action\": \"draft\",\n  \"sku\": \"V\"\n}"
+    },
+    {
+      "variant": "1100",
+      "case": "purchase",
+      "split": "development",
+      "passed": false,
+      "raw": "{\n  \"action\": \"stock\",\n  \"sku\": \"V\"\n}"
+    },
+    {
+      "variant": "1100",
+      "case": "ambiguous",
+      "split": "development",
+      "passed": false,
+      "raw": "{\n  \"action\": \"draft\",\n  \"sku\": \"V\"\n}"
+    },
+    {
+      "variant": "1100",
+      "case": "negative",
+      "split": "development",
+      "passed": true,
+      "raw": "{\n  \"action\": \"stock\",\n  \"sku\": \"V\"\n}"
+    },
+    {
+      "variant": "1100",
+      "case": "unknown",
+      "split": "development",
+      "passed": false,
+      "raw": "{\n  \"action\": \"draft\",\n  \"sku\": \"V\"\n}"
+    },
+    {
+      "variant": "1100",
+      "case": "paraphrase",
+      "split": "public_transfer",
+      "passed": true,
+      "raw": "{\"action\": \"stock\", \"sku\": \"V\"}"
+    },
+    {
+      "variant": "1100",
+      "case": "indirect",
+      "split": "public_transfer",
+      "passed": true,
+      "raw": "{\"action\": \"draft\", \"sku\": \"V\"}"
+    },
+    {
+      "variant": "1100",
+      "case": "quoted",
+      "split": "public_transfer",
+      "passed": true,
+      "raw": "{\"action\": \"stock\", \"sku\": \"V\"}"
+    },
+    {
+      "variant": "1100",
+      "case": "negated_purchase",
+      "split": "public_transfer",
+      "passed": false,
+      "raw": "{\"action\": \"refuse\", \"sku\": null}"
+    },
+    {
+      "variant": "1100",
+      "case": "new_product",
+      "split": "public_transfer",
+      "passed": true,
+      "raw": "{\n  \"action\": \"draft\",\n  \"sku\": \"M\"\n}"
+    },
+    {
+      "variant": "1100",
+      "case": "new_stock",
+      "split": "public_transfer",
+      "passed": true,
+      "raw": "{\n  \"action\": \"stock\",\n  \"sku\": \"M\"\n}"
+    },
+    {
+      "variant": "1100",
+      "case": "no_product",
+      "split": "public_transfer",
+      "passed": false,
+      "raw": "{\n  \"action\": \"stock reports physical stock\",\n  \"sku\": null\n}"
+    },
+    {
+      "variant": "1100",
+      "case": "override",
+      "split": "public_transfer",
+      "passed": false,
+      "raw": "{\n  \"action\": \"draft\",\n  \"sku\": null\n}"
+    },
+    {
+      "variant": "1101",
+      "case": "stock",
+      "split": "development",
+      "passed": true,
+      "raw": "{\n  \"action\": \"stock\",\n  \"sku\": \"V\"\n}"
+    },
+    {
+      "variant": "1101",
+      "case": "draft",
+      "split": "development",
+      "passed": true,
+      "raw": "{\n  \"action\": \"draft\",\n  \"sku\": \"V\"\n}"
+    },
+    {
+      "variant": "1101",
+      "case": "purchase",
+      "split": "development",
+      "passed": false,
+      "raw": "{\n  \"action\": \"stock\",\n  \"sku\": \"V\"\n}"
+    },
+    {
+      "variant": "1101",
+      "case": "ambiguous",
+      "split": "development",
+      "passed": false,
+      "raw": "{\n  \"action\": \"draft\",\n  \"sku\": \"V\"\n}"
+    },
+    {
+      "variant": "1101",
+      "case": "negative",
+      "split": "development",
+      "passed": true,
+      "raw": "{\n  \"action\": \"stock\",\n  \"sku\": \"V\"\n}"
+    },
+    {
+      "variant": "1101",
+      "case": "unknown",
+      "split": "development",
+      "passed": false,
+      "raw": "{\n  \"action\": \"draft\",\n  \"sku\": \"V\"\n}"
+    },
+    {
+      "variant": "1101",
+      "case": "paraphrase",
+      "split": "public_transfer",
+      "passed": true,
+      "raw": "{\n  \"action\": \"stock\",\n  \"sku\": \"V\"\n}"
+    },
+    {
+      "variant": "1101",
+      "case": "indirect",
+      "split": "public_transfer",
+      "passed": true,
+      "raw": "{\n  \"action\": \"draft\",\n  \"sku\": \"V\"\n}"
+    },
+    {
+      "variant": "1101",
+      "case": "quoted",
+      "split": "public_transfer",
+      "passed": true,
+      "raw": "{\n  \"action\": \"stock\",\n  \"sku\": \"V\"\n}"
+    },
+    {
+      "variant": "1101",
+      "case": "negated_purchase",
+      "split": "public_transfer",
+      "passed": false,
+      "raw": "{\"action\": \"refuse\", \"sku\": null}"
+    },
+    {
+      "variant": "1101",
+      "case": "new_product",
+      "split": "public_transfer",
+      "passed": true,
+      "raw": "{\n  \"action\": \"draft\",\n  \"sku\": \"M\"\n}"
+    },
+    {
+      "variant": "1101",
+      "case": "new_stock",
+      "split": "public_transfer",
+      "passed": true,
+      "raw": "{\n  \"action\": \"stock\",\n  \"sku\": \"M\"\n}"
+    },
+    {
+      "variant": "1101",
+      "case": "no_product",
+      "split": "public_transfer",
+      "passed": false,
+      "raw": "{\n  \"action\": \"stock reports physical stock\",\n  \"sku\": null\n}"
+    },
+    {
+      "variant": "1101",
+      "case": "override",
+      "split": "public_transfer",
+      "passed": false,
+      "raw": "{\n  \"action\": \"stock\",\n  \"sku\": \"M\"\n}"
+    },
+    {
+      "variant": "1110",
+      "case": "stock",
+      "split": "development",
+      "passed": true,
+      "raw": "{\n  \"action\": \"stock\",\n  \"sku\": \"V\"\n}"
+    },
+    {
+      "variant": "1110",
+      "case": "draft",
+      "split": "development",
+      "passed": true,
+      "raw": "{\n  \"action\": \"draft\",\n  \"sku\": \"V\"\n}"
+    },
+    {
+      "variant": "1110",
+      "case": "purchase",
+      "split": "development",
+      "passed": false,
+      "raw": "{\n  \"action\": \"stock\",\n  \"sku\": \"V\"\n}"
+    },
+    {
+      "variant": "1110",
+      "case": "ambiguous",
+      "split": "development",
+      "passed": false,
+      "raw": "{\n  \"action\": \"draft\",\n  \"sku\": \"V\"\n}"
+    },
+    {
+      "variant": "1110",
+      "case": "negative",
+      "split": "development",
+      "passed": true,
+      "raw": "{\n  \"action\": \"stock\",\n  \"sku\": \"V\"\n}"
+    },
+    {
+      "variant": "1110",
+      "case": "unknown",
+      "split": "development",
+      "passed": false,
+      "raw": "{\n  \"action\": \"draft\",\n  \"sku\": \"V\"\n}"
+    },
+    {
+      "variant": "1110",
+      "case": "paraphrase",
+      "split": "public_transfer",
+      "passed": true,
+      "raw": "{\"action\": \"stock\", \"sku\": \"V\"}"
+    },
+    {
+      "variant": "1110",
+      "case": "indirect",
+      "split": "public_transfer",
+      "passed": true,
+      "raw": "{\n  \"action\": \"draft\",\n  \"sku\": \"V\"\n}"
+    },
+    {
+      "variant": "1110",
+      "case": "quoted",
+      "split": "public_transfer",
+      "passed": true,
+      "raw": "{\"action\": \"stock\", \"sku\": \"V\"}"
+    },
+    {
+      "variant": "1110",
+      "case": "negated_purchase",
+      "split": "public_transfer",
+      "passed": false,
+      "raw": "{\"action\": \"refuse\", \"sku\": null}"
+    },
+    {
+      "variant": "1110",
+      "case": "new_product",
+      "split": "public_transfer",
+      "passed": true,
+      "raw": "{\n  \"action\": \"draft\",\n  \"sku\": \"M\"\n}"
+    },
+    {
+      "variant": "1110",
+      "case": "new_stock",
+      "split": "public_transfer",
+      "passed": true,
+      "raw": "{\n  \"action\": \"stock\",\n  \"sku\": \"M\"\n}"
+    },
+    {
+      "variant": "1110",
+      "case": "no_product",
+      "split": "public_transfer",
+      "passed": false,
+      "raw": "{\n  \"action\": \"stock reports physical stock\",\n  \"sku\": null\n}"
+    },
+    {
+      "variant": "1110",
+      "case": "override",
+      "split": "public_transfer",
+      "passed": false,
+      "raw": "{\n  \"action\": \"stock\",\n  \"sku\": \"M\"\n}"
+    },
+    {
+      "variant": "1111",
+      "case": "stock",
+      "split": "development",
+      "passed": true,
+      "raw": "{\n  \"action\": \"stock\",\n  \"sku\": \"V\"\n}"
+    },
+    {
+      "variant": "1111",
+      "case": "draft",
+      "split": "development",
+      "passed": true,
+      "raw": "{\n  \"action\": \"draft\",\n  \"sku\": \"V\"\n}"
+    },
+    {
+      "variant": "1111",
+      "case": "purchase",
+      "split": "development",
+      "passed": false,
+      "raw": "{\n  \"action\": \"stock\",\n  \"sku\": \"V\"\n}"
+    },
+    {
+      "variant": "1111",
+      "case": "ambiguous",
+      "split": "development",
+      "passed": false,
+      "raw": "{\n  \"action\": \"draft\",\n  \"sku\": \"V\"\n}"
+    },
+    {
+      "variant": "1111",
+      "case": "negative",
+      "split": "development",
+      "passed": true,
+      "raw": "{\n  \"action\": \"stock\",\n  \"sku\": \"V\"\n}"
+    },
+    {
+      "variant": "1111",
+      "case": "unknown",
+      "split": "development",
+      "passed": false,
+      "raw": "{\n  \"action\": \"draft\",\n  \"sku\": \"V\"\n}"
+    },
+    {
+      "variant": "1111",
+      "case": "paraphrase",
+      "split": "public_transfer",
+      "passed": true,
+      "raw": "{\n  \"action\": \"stock\",\n  \"sku\": \"V\"\n}"
+    },
+    {
+      "variant": "1111",
+      "case": "indirect",
+      "split": "public_transfer",
+      "passed": true,
+      "raw": "{\n  \"action\": \"draft\",\n  \"sku\": \"V\"\n}"
+    },
+    {
+      "variant": "1111",
+      "case": "quoted",
+      "split": "public_transfer",
+      "passed": false,
+      "raw": "{\"action\": \"stock reports physical stock\", \"sku\": \"V\"}"
+    },
+    {
+      "variant": "1111",
+      "case": "negated_purchase",
+      "split": "public_transfer",
+      "passed": false,
+      "raw": "{\n  \"action\": \"refuse\",\n  \"sku\": null\n}"
+    },
+    {
+      "variant": "1111",
+      "case": "new_product",
+      "split": "public_transfer",
+      "passed": true,
+      "raw": "{\n  \"action\": \"draft\",\n  \"sku\": \"M\"\n}"
+    },
+    {
+      "variant": "1111",
+      "case": "new_stock",
+      "split": "public_transfer",
+      "passed": true,
+      "raw": "{\n  \"action\": \"stock\",\n  \"sku\": \"M\"\n}"
+    },
+    {
+      "variant": "1111",
+      "case": "no_product",
+      "split": "public_transfer",
+      "passed": false,
+      "raw": "{\n  \"action\": \"stock reports physical stock\",\n  \"sku\": null\n}"
+    },
+    {
+      "variant": "1111",
+      "case": "override",
+      "split": "public_transfer",
+      "passed": false,
+      "raw": "{\n  \"action\": \"stock\",\n  \"sku\": \"M\"\n}"
+    }
+  ],
+  "seconds": 88.8
+}
