@@ -8,6 +8,7 @@
 import argparse
 import copy
 import json
+import math
 import runpy
 import tempfile
 from pathlib import Path
@@ -31,7 +32,47 @@ class ObservedModel:
         return self.model.complete(messages, tools, **kwargs)
 
 
+BOOK = Path(__file__).resolve().parents[1]
+RETRIEVAL = runpy.run_path(str(BOOK / "learner/profrod_sovereign_agent_ch05_retrieval_learner.py"))
+
+
+def retrieval():
+    """Part A's retrieval functions, each checked against an independent computation."""
+    bm25 = RETRIEVAL["bm25_scores"]
+    # "a" appears once, in one of three equal-length records: the score is idf alone.
+    scores = bm25("a", ["a b", "b c", "c d"])
+    assert math.isclose(scores[0], math.log(1 + 2.5 / 1.5)) and scores[1:] == [0.0, 0.0]
+    repeated = bm25("a", ["a " * 200, "b", "c", "d"])[0]
+    assert repeated < math.log(1 + 3.5 / 1.5) * 2.5
+    print("ok   BM25 equals idf for a single occurrence, and saturates below idf (k1 + 1)")
+
+    ranked, relevant = [4, 1, 7, 2], {1, 2}
+    assert RETRIEVAL["precision_at_k"](ranked, relevant, 2) == 0.5
+    assert RETRIEVAL["recall_at_k"](ranked, relevant, 3) == 0.5
+    assert RETRIEVAL["reciprocal_rank"](ranked, relevant) == 0.5
+    assert RETRIEVAL["reciprocal_rank"](ranked, {9}) == 0.0
+    print("ok   precision@k, recall@k and reciprocal rank by their definitions")
+
+    assert math.isclose(RETRIEVAL["cosine"]([1, 2, 3], [3, 6, 9]), 1.0)
+    assert math.isclose(RETRIEVAL["cosine"]([1, 0], [0, 5]), 0.0)
+    records = ["x" * 50, "y" * 30, "z" * 30, "w" * 10]
+    chosen = RETRIEVAL["pack_context"](records, [4, 3, 2, 1], 70, len)
+    assert chosen == [0, 3] and sum(len(records[i]) for i in chosen) <= 70
+    print("ok   cosine ignores length; the packer keeps the budget and skips what does not fit")
+
+    lab = runpy.run_path(
+        str(BOOK / "experiments/profrod_sovereign_agent_textbook_ch05_retrieval_v1.py")
+    )
+    receipt = json.loads(
+        (BOOK.parents[1] / "docs/evidence/book-ch05/ch05-retrieval-receipt-v1.json").read_text()
+    )
+    fresh = lab["evaluate_ranker"]("bm25", RETRIEVAL["bm25_scores"])
+    assert fresh == receipt["rankers"][0]
+    print("ok   the receipt's BM25 recall@3 and MRR recompute exactly:", fresh["recall_at_3"])
+
+
 def main():
+    retrieval()
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--live", action="store_true")
     parser.add_argument("--model", default="qwen3")
