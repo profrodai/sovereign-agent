@@ -1,4 +1,4 @@
-# Chapter 3 — Build the model and tool loop
+# Chapter 3 — The agent loop: why reliability compounds, and a loop that stops
 
 > **Learn with Prof Rod** — *Build Your Always-On AI Agent From Scratch*.
 > **Read the full book and get the latest learning materials:** [https://profrod.ai/book](https://profrod.ai/book).
@@ -10,23 +10,256 @@
 
 Lucy asks, “What needs ordering this morning?” Answering well requires more than a single generated paragraph. The program must obtain current stock, calculate useful drafts, and explain the results. In Chapter 2 you called the tools yourself. Now the model will select requests, your dispatcher will execute permitted operations, and the model will receive the observations before deciding what to do next.
 
-Practice this chapter with the [bounded-loop practice](../../exercises/ch03/profrod-sovereign-agent-ch03-agent-loop-exercise-guide.md). Unit A connects a learner-owned admission decision to the model/tool loop; Unit B mutates and repairs the real failed-call accounting in a temporary source copy. Solutions and holdouts remain separate from the student notebooks.
+Practice this chapter with the [chapter 3 units](../../exercises/ch03/profrod-sovereign-agent-ch03-agent-loop-exercise-guide.md). Unit A connects a learner-owned admission decision to the model and tool loop. Unit B derives the reliability of a loop that recovers from errors, tests the formula against a simulated agent with a negative control, and measures from retry data whether retries are independent. Solutions and holdouts remain separate from the student notebooks.
 
 That repeated exchange is the agent loop. It is small enough to write directly, but leaving it unbounded would create an expensive failure mode: the model could repeat a lookup indefinitely, request an oversized batch, or keep working after you asked the program to stop. The loop therefore needs an explicit result even when it does not produce a final answer.
+
+This chapter starts with the arithmetic of that loop. Why do agents that handle short tasks fail on long ones? What do recovery and retries buy? How large must a budget be? You will derive each answer, then test it against a real model running your own loop. Then you will build the loop, in Part B.
 
 We will first use authored model responses so that each failure can be reproduced. Then we will run the same interface against the local HTTP model. The authored responses prove how the runtime reacts; the live run investigates whether a model chooses useful requests. Neither kind of evidence substitutes for the other.
 
 ## Learning objectives
 
-Build the model–tool–observation cycle in Python, retain an inspectable transcript, and stop it with explicit limits on calls, output, context, estimated cost, and elapsed time.
+By the end you will be able to:
 
-Your first successful run will execute three model calls and three tool calls, producing vanilla and strawberry drafts totalling 2,600 cents. You will then provoke repeated identifiers, exhausted budgets, and a model failure. Each experiment must end with a specific status instead of hanging or silently pretending to finish Lucy's task.
+1. Derive why task success decays as $p^{n}$ over independent steps, and compute a loop's reliability half-life, $n_{1/2} \approx 0.69/(1-p)$.
+2. Model recovery as a two-state Markov chain, derive its closed form, and explain why observable errors change the long-run outcome.
+3. Derive what retries buy under independence and under a hard fraction, and test which one a real model follows.
+4. Choose a loop budget from the tail of a geometric distribution.
+5. Measure where a real loop's errors actually occur, and move a failing step out of the model when it can be computed.
+6. Build the model–tool–observation cycle with an inspectable transcript, stopped by explicit limits on calls, output, context, estimated cost and time.
+
+Your first successful loop run will make three model calls and three tool calls, producing vanilla and strawberry drafts totalling 2,600 cents. You will then provoke repeated identifiers, exhausted budgets and a model failure; each must end with a specific status instead of hanging or silently pretending to finish.
 
 ## Keep your implementation in a file
 
 Continue from the repository root. Create `book/textbook/learner/profrod_sovereign_agent_ch03_agent_loop_learner.py` and save this chapter's imports, class and function definitions, plus the assignments to `shop_tools`, `ToolCall`, `first` and `messages`. Run the print statements and failure experiments separately. Chapter 2's learner file supplies the dispatcher and request type you constructed. The completed learner files are included for comparison, and the Chapter 3 checkpoint loads your learner file, so changing its loop changes both the offline and live commands.
 
+The reliability functions (`chain_success`, `success_with_recovery`, `retry_success`, `finish_within`) are part of the same learner file. The chapter's experiment runs your loop against a real model and records a receipt:
+
+```bash
+uv run python book/textbook/experiments/profrod_sovereign_agent_textbook_ch03_reliability_v1.py --out ch03-reliability-receipt.json
+```
+
 The only supplied runtime component used by the live path is the bounded HTTP transport, identified and explained below. The loop, request parsing, tool schemas and tool dispatcher are all code you write in Chapters 2 and 3.
+
+## Part A: why agent loops fail, in arithmetic
+
+Before building the loop, understand what it does to reliability. This is the most important quantitative fact about agents, and most people who build them have never written it down.
+
+### A loop is a sequence of decisions
+
+An agent run alternates two kinds of step. The **model** reads everything so far (instructions, requests, tool results) and chooses an action: call a tool with some arguments, or answer. The **runtime** executes the action and appends the observation. The model is a **policy**: a function from history to a distribution over actions, sampled exactly as Chapter 1 sampled the next token. The loop ends when the model answers, or when a limit stops it.
+
+Each step can go wrong in its own way:
+
+- the wrong tool;
+- a malformed argument;
+- a correct call whose result is then misread;
+- a lookup that is skipped entirely.
+
+To reason about the whole run we need a model of how step errors combine.
+
+### Reliability compounds
+
+Suppose each step succeeds with probability $p$, independently of the others, and the task needs all $n$ steps to succeed. Then
+
+$$
+P(\text{task succeeds}) \;=\; p^{\,n}.
+$$
+
+The consequences are harsher than intuition suggests.
+
+**Listing:** Per-step reliability against task length.
+
+```python
+import runpy
+
+loop = runpy.run_path("book/textbook/learner/profrod_sovereign_agent_ch03_agent_loop_learner.py")
+for p in (0.99, 0.95, 0.90):
+    print(p, [round(loop["chain_success"](p, n), 3) for n in (1, 5, 10, 20, 50)])
+```
+
+```text
+0.99 [0.99, 0.951, 0.904, 0.818, 0.605]
+0.95 [0.95, 0.774, 0.599, 0.358, 0.077]
+0.9 [0.9, 0.59, 0.349, 0.122, 0.005]
+```
+
+A step that works 95% of the time sounds dependable. Twenty of them in a row succeed barely a third of the time. It helps to know the **half-life**: the number of steps after which success has fallen to one half. Solving $p^{n} = \tfrac12$ gives $n_{1/2} = \ln 2 / (-\ln p)$. For $p$ close to 1, $-\ln p \approx 1 - p$, so
+
+$$
+n_{1/2} \;\approx\; \frac{0.69}{1 - p}.
+$$
+
+At 95% per step the half-life is about 14 steps; at 99%, about 69. **Halving the per-step error rate doubles the length of task an agent can do.** This is why the per-step error rate, not headline benchmark accuracy, decides whether an agent can do long work. It is also why this book keeps its loops short, and its steps checkable.
+
+### Recovery changes the arithmetic
+
+Independence is a pessimistic assumption in one direction. A good loop notices some errors and repairs them: a tool refuses a malformed request, the model sees the refusal, and it tries again. Model this with two states: **on track** and **off track**.
+
+- From on track, a step stays on track with probability $p$ and goes off track with probability $1 - p$.
+- From off track, a step recovers with probability $r$ and stays off track with probability $1 - r$.
+
+```mermaid
+stateDiagram-v2
+    direction LR
+    OnTrack: On track
+    OffTrack: Off track
+    [*] --> OnTrack
+    OnTrack --> OnTrack: p
+    OnTrack --> OffTrack: 1 - p
+    OffTrack --> OnTrack: r
+    OffTrack --> OffTrack: 1 - r
+```
+
+**Figure:** A loop with recovery as a two-state chain: an error takes it off track, and an observed error lets it return.
+
+This is a two-state **Markov chain**. Let $a_k$ be the probability of being on track after $k$ steps, starting on track ($a_0 = 1$). Then
+
+$$
+a_{k+1} \;=\; p\,a_k + r\,(1 - a_k) \;=\; r + (p - r)\,a_k.
+$$
+
+Its fixed point satisfies $\pi = r + (p - r)\pi$, so $\pi = r / (1 - p + r)$. The distance from the fixed point shrinks by a factor $p - r$ each step: $a_k - \pi = (p - r)(a_{k-1} - \pi)$. Therefore
+
+$$
+a_n \;=\; \pi + (1 - \pi)(p - r)^{n}, \qquad \pi = \frac{r}{1 - p + r}.
+$$
+
+With no recovery ($r = 0$) this is $p^n$ again. With any recovery at all, success no longer decays to zero. It settles at $\pi$, the long-run share of time spent on track.
+
+**Listing:** Success after n steps, with and without recovery.
+
+```python
+for r in (0.0, 0.3, 0.8):
+    print(r, [round(loop["success_with_recovery"](0.95, r, n), 3) for n in (1, 10, 20, 50)])
+```
+
+```text
+0.0 [0.95, 0.599, 0.358, 0.077]
+0.3 [0.95, 0.859, 0.857, 0.857]
+0.8 [0.95, 0.941, 0.941, 0.941]
+```
+
+With $p = 0.95$ and a 30% chance of recovering from each error, a 50-step task succeeds about 86% of the time, instead of 8%. The engineering lesson is concrete. **Make errors observable and recoverable.** A tool that returns a clear refusal, and a loop that shows it to the model, raise $r$. A tool that fails silently, or an error the model never sees, keeps $r = 0$ and returns you to $p^n$. The validation in Chapter 2 and the explicit statuses in this chapter's loop are how $r$ gets above zero.
+
+### What retries buy
+
+When a whole run fails, the obvious fix is to run it again. If attempts are independent and each succeeds with probability $q$, then at least one of $k$ attempts succeeds with probability
+
+$$
+1 - (1 - q)^{k},
+$$
+
+which approaches 1 quickly: 90% per attempt becomes 99.9% in three attempts. But attempts at the *same task* are rarely independent. Some tasks are hard for this model in a way no amount of resampling fixes: an ambiguous instruction, a missing fact, a calculation it cannot do. Model a fraction $h$ of tasks as **hard** (never solved) and the rest as solved with probability $q$ per attempt:
+
+$$
+P(\text{solved within } k) \;=\; (1 - h)\bigl(1 - (1 - q)^{k}\bigr) \;\longrightarrow\; 1 - h.
+$$
+
+Retries converge to $1 - h$, not to 1. The first retry helps most; after that the curve flattens against the hard fraction. You can detect this in data: under independence, the chance that a failed attempt succeeds on retry equals the first-attempt success rate. When retries of failed instances succeed far less often than first attempts, a hard fraction is present, and more retries will not remove it.
+
+### Budgets
+
+Every loop in this chapter has a limit on model calls. How should you choose it? If a loop finishes on each step with probability $f$, independently, the number of steps is geometric: it has finished within $B$ steps with probability $1 - (1 - f)^{B}$, and it takes $1/f$ steps on average. To be $1 - \varepsilon$ sure it finishes, choose
+
+$$
+B \;\ge\; \frac{\ln \varepsilon}{\ln(1 - f)}.
+$$
+
+**Listing:** How large a budget must be.
+
+```python
+import math
+
+for f in (0.5, 0.3):
+    needed = math.ceil(math.log(0.01) / math.log(1 - f))
+    print(f, needed, round(loop["finish_within"](needed, f), 4))
+```
+
+```text
+0.5 7 0.9922
+0.3 13 0.9903
+```
+
+A budget is a statement about the tail. It does not make a loop succeed; it makes a loop that is not finishing stop, and report that it stopped, so the failure is observable instead of expensive.
+
+### Measured: where a real loop actually fails
+
+Models are only useful if you test them. The chapter's experiment runs *this chapter's loop* (`run_loop` and `HTTPModel` from your learner file) with a real model, `qwen2.5:1.5b` served by Ollama. The task:
+
+- **Instructions:** look up the stock of $n$ listed products with a `stock` tool, then reply with only the total number of tubs.
+- **Instances:** each is a fresh random freezer and product list; forty instances at each length, at temperature 0.
+- **Grading:** every step. Was each product looked up, and was the final total exactly right?
+
+```bash
+uv run python book/textbook/experiments/profrod_sovereign_agent_textbook_ch03_reliability_v1.py --out ch03-reliability-receipt.json --instances 40
+```
+
+One run, recorded on 2026-09-26 with Ollama 0.32.5 on macOS (arm64), took ten minutes:
+
+| $n$ | Task success (95% interval) | Lookups made correctly | Total right, when every lookup was made |
+| --- | --- | --- | --- |
+| 1 | 1.000 (0.912–1.000) | 1.000 | 1.000 |
+| 2 | 1.000 (0.912–1.000) | 1.000 | 1.000 |
+| 4 | 0.400 (0.263–0.554) | 1.000 | 0.400 |
+| 8 | 0.175 (0.087–0.320) | 0.947 | 0.189 |
+
+```mermaid
+xychart-beta
+    title "Task success against task length, qwen2.5:1.5b"
+    x-axis "Products to look up (n)" [1, 2, 4, 8]
+    y-axis "Share of tasks right" 0 --> 1
+    line [1.0, 1.0, 0.4, 0.175]
+    line [1.0, 1.0, 1.0, 0.925]
+```
+
+**Figure:** The model adding the total itself (lower line) against the program adding the recorded lookups (upper line), on the same forty runs per length.
+
+Task success falls with length, as the arithmetic predicts. But it does not fall the way $p^{n}$ does. A least-squares fit of $\log(\text{success}) = n \log p + \log a$ returns $p = 0.767$ and $a = 1.39$, and a probability above one is not a probability: the model of independent, identical steps is wrong for this task.
+
+The step columns say why. The lookups hardly ever fail: every required product was looked up in all 120 runs up to $n = 4$, and 94.7% of the time at $n = 8$. What fails is the final step, adding $n$ numbers in the model's head. That step is right every time for two numbers, 40% of the time for four and 19% for eight. The errors are not spread evenly over the steps. They concentrate in the one step whose difficulty grows with $n$.
+
+**Measure where the errors are before you model them.** $p^{n}$ is the right first approximation when steps are alike, and the wrong conclusion here. Here the fix is to remove one step, not to improve every step.
+
+The experiment tried the obvious fix first: add an `add` tool that sums a list of integers exactly, and tell the model to use it for any arithmetic.
+
+| $n$ | Task success with an `add` tool offered (95% interval) | Calls to `add` |
+| --- | --- | --- |
+| 4 | 0.325 (0.201–0.480) | 0 |
+| 8 | 0.100 (0.040–0.231) | 0 |
+
+The model never called it. **Offering a tool is not the same as the model using it**, and a system prompt is a request, not an enforcement. The reliable fix does not ask the model at all. The program already holds every stock observation it returned, so it can compute the total itself, and the model's job shrinks to choosing the lookups. Scored on the same recorded runs, that design is right whenever every lookup was made: 40 of 40 at $n = 4$, and 37 of 40 (0.925, interval 0.801–0.974) at $n = 8$. The remaining failures at $n = 8$ are the missed lookups.
+
+This is the design rule the book follows from here on. **Whatever can be computed, the program computes, and the model chooses which computation to request.** Chapter 2's `draft_order` tool computes quantities and costs for exactly this reason.
+
+Retries were measured the same way: forty instances at $n = 4$, temperature 0.8, up to four attempts each.
+
+| Attempts | Solved (measured) | Independent retries predict | Hard-fraction model predicts |
+| --- | --- | --- | --- |
+| 1 | 0.350 | 0.350 | 0.350 |
+| 2 | 0.450 | 0.577 | 0.531 |
+| 3 | 0.600 | 0.725 | 0.625 |
+| 4 | 0.725 | 0.821 | 0.673 |
+
+```mermaid
+xychart-beta
+    title "Solved within k attempts, n = 4, temperature 0.8"
+    x-axis "Attempts (k)" [1, 2, 3, 4]
+    y-axis "Share solved" 0 --> 1
+    line [0.35, 0.577, 0.725, 0.821]
+    line [0.35, 0.45, 0.6, 0.725]
+    line [0.35, 0.531, 0.625, 0.673]
+```
+
+**Figure:** Measured retries (middle line at four attempts) fall below the independent prediction (top) and above the naive hard-fraction prediction (bottom) by the fourth attempt.
+
+Independence overpredicts from the first retry on. A failed instance succeeded on its second attempt only 15% of the time (10 points of the 65% that had failed), against 35% on first attempts, because the instances that fail are the ones that are harder for this model. The hard-fraction model, fitted naively (treating the 27.5% never solved in four attempts as permanently hard), is closer at two and three attempts but underpredicts at four. Some of the "hard" instances were merely unlucky, and a longer run would separate the two. Neither model is the truth; both are ways of asking the data a precise question. The one robust conclusion: **retries buy less than independence promises**, so budget for them from measurements, not from $1 - (1 - q)^k$.
+
+## Part B: build the loop
+
+With the arithmetic in hand, build the loop itself. Every limit below is a budget in the sense of Part A, and every explicit status is an error made observable.
 
 ## Give one model call a precise contract
 
@@ -90,7 +323,7 @@ The adapter's `complete` method accepts messages, tool schemas, a remaining time
 
 Reported token usage is evidence supplied by that adapter. The loop checks its type and range, but cannot independently recount a provider's private tokenization or billing. A local model returning zero usage in an authored fixture is useful for control-flow tests; it says nothing about the consumption of a live request.
 
-### Architectural comparison — Who owns the inner cycle?
+### Architectural comparison: who owns the inner cycle?
 
 At commit `acc69a70962af6707aa8a6abba699bdaa7da95f8`, NanoClaw's authors describe its native use of Claude Code through the Claude Agent SDK and explain the choice in terms of access to Claude models and the existing toolset. They also describe alternative providers as configurable per agent group. This is documented project rationale, not a claim that every provider follows the same implementation. [Pinned NanoClaw README](https://github.com/nanocoai/nanoclaw/blob/acc69a70962af6707aa8a6abba699bdaa7da95f8/README.md)
 
@@ -720,35 +953,49 @@ The chapter's prompt makes an opening procedure explicit. In Chapter 6 we will p
 
 ## Exercises that change the decision
 
-### Exercise 1 — Repair a refused request
+### Exercise 1: Repair a refused request
 
 Author three turns: a vanilla draft with quantity eight, a corrected draft with quantity six, and a final explanation. The first handler should refuse the inconsistent quantity; the second should produce 1,500 cents. Inspect both tool observations and show that the correction used a new call identifier. Then reduce the tool budget to one and explain why the corrected request no longer executes.
 
 The exercise distinguishes recovery from an ordinary tool refusal from automatic retry after an uncertain external effect. These draft functions have no external effect, and their result clearly describes validation success or refusal. You must not transfer this retry rule unchanged to a purchasing tool whose response was lost.
 
-### Exercise 2 — New identifiers, same repeated lookup
+### Exercise 2: New identifiers, same repeated lookup
 
 Write a replay sequence of ten stock requests with ten distinct identifiers. Set the model-call limit to three and leave the tool limit above three. Predict the status, model count, and tool count before running it. The expected result is `MODEL_CALL_LIMIT` with three model calls and three tool attempts. The duplicate-identifier check should never trigger.
 
 Then set the tool limit to two while keeping the model limit at three. The third model call can return a request, but its batch must be refused with `TOOL_LIMIT`; only two tool attempts should have occurred. This reveals why model and tool counters cannot be treated as interchangeable.
 
-### Exercise 3 — A correct transcript and an incorrect answer
+### Exercise 3: A correct transcript and an incorrect answer
 
 Keep the successful stock and draft requests, but replace the final answer with “Chocolate has been purchased for 99 euros.” The loop will still return `COMPLETED`, because that status describes how the exchange ended. Write an independent check that rejects the explanation using the known draft observations and allowed currency. Keep the original correct answer as a second case so the check cannot simply reject every answer.
 
 A keyword check will catch this deliberately obvious failure, but it will not grade all paraphrases or arithmetic mistakes. State what your check proves and give an example it would miss. That limitation is the starting point for the systematic evaluation chapter, not a reason to relabel every completed turn as successful business work.
 
+### Exercise 4: the half-life of your own loop
+
+Run the experiment with `--instances 40` on a model of your choice, and report task success at each length with its interval. Is the decay geometric? Fit $\log(\text{success}) = n \log p + \log a$ and check whether $a \le 1$. If it is not, find the step where the errors concentrate, using the per-step columns.
+
+### Exercise 5: make the model add, or make the program add
+
+Change the experiment so the program, not the model, reports the total from the recorded stock observations. Measure task success at $n = 8$, and compare it with both the plain loop and the `add`-tool condition. Then write the one-sentence rule you would give a colleague designing Lucy's next tool.
+
+### Exercise 6: prove the recovery formula, then break it
+
+Prove by induction that $a_n = \pi + (1 - \pi)(p - r)^{n}$ satisfies $a_{n+1} = r + (p - r)a_n$ with $a_0 = 1$. Then give a loop in which the model's chance of recovering *decreases* with each error, and say which assumption of the two-state chain it violates, and in which direction the formula is then wrong.
+
 ## Active recall and vocabulary
 
-Explain why a model call and a tool call need separate budgets. What happens when one turn requests two tools but only one attempt remains? Why does the loop count a failed model request? What protects a handler from being invoked by a malformed batch? Which part of the design bounds a slow HTTP response, and which part still depends on trusted handlers being short and bounded?
+Answer without looking back: with 98% per-step reliability, after how many steps has success fallen to one half? Why can recovery keep success away from zero, and what must a tool do for recovery to be possible? Why did retries in the experiment buy less than independence predicts? Explain why a model call and a tool call need separate budgets. What happens when one turn requests two tools but only one attempt remains? Why does the loop count a failed model request? What protects a handler from being invoked by a malformed batch? Which part of the design bounds a slow HTTP response, and which part still depends on trusted handlers being short and bounded?
 
-A **turn** is one parsed model response. The **loop** repeatedly exchanges model turns and tool observations. A **transcript** records those exchanges in order. An **admission check** decides whether another step may begin. A **monotonic deadline** measures elapsed process time without relying on calendar-clock adjustments. A **replay fixture** supplies authored responses to test control flow. **Estimated exposure** records the local cost allowance consumed by admitted requests, including requests with uncertain remote outcomes.
+**Per-step reliability** $p$ is the probability one step succeeds. The **half-life** of a loop is the number of steps after which task success has fallen to one half. A **Markov chain** is a process whose next state depends only on its current state. A **hard fraction** is the share of tasks a model fails on every attempt. A **budget** is a limit chosen from the tail of the number of steps a task needs. A **turn** is one parsed model response. The **loop** repeatedly exchanges model turns and tool observations. A **transcript** records those exchanges in order. An **admission check** decides whether another step may begin. A **monotonic deadline** measures elapsed process time without relying on calendar-clock adjustments. A **replay fixture** supplies authored responses to test control flow. **Estimated exposure** records the local cost allowance consumed by admitted requests, including requests with uncertain remote outcomes.
 
 ## Summary
 
+You derived why agent reliability decays with task length, how recovery and retries change that, and how large a budget must be. Then you measured a real model running your own loop. Its errors did not spread evenly over the steps; they concentrated in one step, mental arithmetic, that grew harder with length. Offering an arithmetic tool did not fix it, because the model never used the tool. Having the program compute what can be computed did fix it.
+
 You wrote the agent loop and connected it to the tools from Chapter 2. The runtime retains the transcript, validates a batch before executing it, and returns explicit statuses for completion, refusal, resource limits, and model failure. The authored shift demonstrates a useful sequence, while the failure experiments establish where execution stops.
 
-Lucy now has an agent that can assemble a grounded draft during one process run. Its conversation and preferences still disappear when that process ends. Next, [Chapter 4](../ch04/profrod-sovereign-agent-ch04-sqlite-state-chapter.md) introduces the durable SQLite state boundary. [Chapter 5](../ch05/profrod-sovereign-agent-ch05-durable-memory-chapter.md) then uses that foundation for remembered facts and future context. Chapter 4 is currently a construction brief; the runnable memory demonstration uses the supplied reference store until the learner handoff is authored.
+Lucy now has an agent that can assemble a grounded draft during one process run. Its conversation and preferences still disappear when that process ends. Next, [Chapter 4](../ch04/profrod-sovereign-agent-ch04-sqlite-state-chapter.md) introduces the durable SQLite state boundary. [Chapter 5](../ch05/profrod-sovereign-agent-ch05-durable-memory-chapter.md) then uses that foundation for remembered facts and future context. Chapter 5's runnable memory demonstration still uses the supplied reference store until it is rebuilt on your Chapter 4 store.
 
 ## Keep building with Prof Rod
 

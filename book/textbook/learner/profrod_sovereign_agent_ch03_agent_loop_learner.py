@@ -288,3 +288,33 @@ def draft_evidence(result):
         ("SKU-STRAWBERRY", 4, 1100, "USD"),
         ("SKU-VANILLA", 6, 1500, "USD"),
     ]
+
+
+# Reliability of a loop, derived in Chapter 3's opening sections.
+
+
+def chain_success(p, n):
+    """n steps, each succeeding independently with probability p: all succeed with p ** n."""
+    return p**n
+
+
+def success_with_recovery(p, r, n):
+    """Two states, on track and off track. On track stays on track with probability p; off track
+    returns with probability r. Starting on track, the probability of being on track after n steps
+    is pi + (1 - pi) * (p - r) ** n, where pi = r / (1 - p + r) is the long-run share on track."""
+    if p == 1 and r == 0:
+        return 1.0
+    stationary = r / (1 - p + r)
+    return stationary + (1 - stationary) * (p - r) ** n
+
+
+def retry_success(q, k, hard=0.0):
+    """Success within k attempts when a fraction `hard` of tasks can never succeed and the rest
+    succeed independently with probability q per attempt."""
+    return (1 - hard) * (1 - (1 - q) ** k)
+
+
+def finish_within(budget, finish_probability):
+    """A loop that finishes on each step with probability f has finished within B steps with
+    probability 1 - (1 - f) ** B; its expected number of steps is 1 / f."""
+    return 1 - (1 - finish_probability) ** budget
