@@ -3951,7 +3951,7 @@ RECORDED_TURNS = [
         ]
     ),
     scripted_turn(
-        "Drafted 6 vanilla at 250p each ($15.00) and 4 strawberry at 275p each ($11.00). "
+        "Drafted 6 vanilla at 250 cents each ($15.00) and 4 strawberry at 275 cents each ($11.00). "
         "Chocolate is above its reorder point. Nothing was purchased. I can only reply in "
         "this private chat, so the staff group has not been told."
     ),

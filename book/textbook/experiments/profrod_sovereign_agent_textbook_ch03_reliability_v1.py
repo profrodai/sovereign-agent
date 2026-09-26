@@ -177,10 +177,10 @@ def wilson(successes, trials, z=1.96):
     if trials == 0:
         return (0.0, 1.0)
     phat = successes / trials
-    centre = (phat + z * z / (2 * trials)) / (1 + z * z / trials)
+    center = (phat + z * z / (2 * trials)) / (1 + z * z / trials)
     half = z * math.sqrt(phat * (1 - phat) / trials + z * z / (4 * trials * trials))
     half /= 1 + z * z / trials
-    return (round(max(0.0, centre - half), 3), round(min(1.0, centre + half), 3))
+    return (round(max(0.0, center - half), 3), round(min(1.0, center + half), 3))
 
 
 def fit_log_linear(points):

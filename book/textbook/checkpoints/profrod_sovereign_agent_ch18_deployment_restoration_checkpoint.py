@@ -5,8 +5,11 @@
 
 """Chapter 18: recover a consistent local snapshot against retained supplier history."""
 
+import bisect
 import hashlib
 import json
+import math
+import random
 import runpy
 import sqlite3
 import tempfile
@@ -164,7 +167,72 @@ def experiment(root, supplier_process):
             db.close()
 
 
+ECONOMICS = runpy.run_path(
+    str(
+        Path(__file__).resolve().parents[1]
+        / "learner/profrod_sovereign_agent_ch18_inference_economics_learner.py"
+    )
+)
+
+
+def economics():
+    """Part A's formulas, each checked against an independent computation."""
+    kv = ECONOMICS["kv_cache_bytes"]
+    # qwen2.5:1.5b: 28 layers, 2 KV heads of dimension 128, 16-bit values, one token.
+    assert kv(28, 2, 128, 1) == 2 * 28 * 2 * 128 * 2 == 28_672
+    assert kv(28, 12, 128, 1) == 6 * kv(28, 2, 128, 1)
+    print("ok   KV cache per token from the architecture; GQA divides it by 12 / 2")
+
+    assert (
+        ECONOMICS["arithmetic_intensity"](1, 2) == 1
+        and ECONOMICS["arithmetic_intensity"](8, 0.5) == 32
+    )
+    assert math.isclose(ECONOMICS["decode_ceiling"](273e9, 986e6), 273e9 / 986e6)
+    print("ok   arithmetic intensity grows with the batch; the ceiling is bandwidth over bytes")
+
+    rng = random.Random(18)
+    values = [rng.random() for _ in range(37)]
+    for q in (1, 50, 90, 99, 100):
+        chosen = ECONOMICS["percentile"](values, q)
+        at_or_below = sum(v <= chosen for v in values)
+        assert at_or_below >= q / 100 * len(values)
+        assert all(
+            sum(w <= v for w in values) < q / 100 * len(values) for v in values if v < chosen
+        )
+    print("ok   nearest-rank percentile is the smallest value covering q percent")
+
+    for calls, first, added in ((1, 300, 60), (8, 300, 60), (20, 120, 45)):
+        explicit = sum(first + k * added for k in range(calls))
+        assert ECONOMICS["loop_input_tokens"](calls, first, added) == explicit
+    assert math.isclose(ECONOMICS["cost_cents"](1_000_000, 0, 0.15, 0.60), 15)
+    print("ok   loop input equals the explicit sum of every call's transcript")
+
+    # Little's law, checked on a simulated single-server queue with random arrivals.
+    rng = random.Random(7)
+    clock = free_at = 0.0
+    spans = []
+    for _ in range(20_000):
+        clock += rng.expovariate(2.0)
+        start = max(clock, free_at)
+        free_at = start + 0.3
+        spans.append((clock, free_at))
+    horizon = spans[-1][1]
+    rate = len(spans) / horizon
+    mean_time = sum(end - begin for begin, end in spans) / len(spans)
+    # Count requests in progress at random instants, independently of the formula.
+    instants = sorted(rng.uniform(0, horizon) for _ in range(20_000))
+    starts = sorted(begin for begin, _ in spans)
+    ends = sorted(end for _, end in spans)
+    in_system = sum(bisect.bisect(starts, t) - bisect.bisect(ends, t) for t in instants) / len(
+        instants
+    )
+    predicted = ECONOMICS["concurrency"](rate, mean_time)
+    assert abs(in_system - predicted) < 0.03 * predicted
+    print(f"ok   Little's law: sampled {in_system:.2f} in progress, predicted {predicted:.2f}")
+
+
 def main():
+    economics()
     checkpoint_dir = Path(__file__).resolve().parent
     if not (
         checkpoint_dir / "profrod_sovereign_agent_ch10_spending_permissions_checkpoint.py"

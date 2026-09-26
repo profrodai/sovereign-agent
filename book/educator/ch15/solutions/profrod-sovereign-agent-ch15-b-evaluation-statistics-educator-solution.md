@@ -302,14 +302,14 @@ def wilson_interval(successes, trials, z=Z95):
         raise ValueError("need trials > 0 and 0 <= successes <= trials")
     phat = successes / trials
     denominator = 1 + z * z / trials
-    centre = (phat + z * z / (2 * trials)) / denominator
+    center = (phat + z * z / (2 * trials)) / denominator
     half = z * math.sqrt(phat * (1 - phat) / trials + z * z / (4 * trials * trials)) / denominator
-    return (max(0.0, centre - half), min(1.0, centre + half))
+    return (max(0.0, center - half), min(1.0, center + half))
 ```
 
 <details><summary>Hint 1 — the two pieces</summary>
 
-Compute the centre and the half-width separately. Both share the denominator $1 + z^2/n$.
+Compute the center and the half-width separately. Both share the denominator $1 + z^2/n$.
 
 </details>
 

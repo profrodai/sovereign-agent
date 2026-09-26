@@ -80,6 +80,8 @@ flowchart LR
 
 **Figure:** Different entry points converge on durable work while purchasing and research retain separate authority.
 
+**Wrong-currency test input:** every price in Lucy's shop is in USD cents. The stale euro preference below is a deliberate fixture that the day must correct to USD.
+
 A stale currency preference is corrected from euros to USD with a new explicit source. The scenario checks the active preference record. It does not claim that the deterministic model fixture learned from the correction; its purpose here is to prove that the integrated path retains the current preference and its provenance while other work progresses.
 
 Stock conditions then create one vanilla assignment and one strawberry assignment. Their enforced product subjects prevent either worker from drafting the other product. Both proposals remain drafts until the operator's approval messages are processed through the actual control-command path. At that moment the independent supplier still has zero orders.

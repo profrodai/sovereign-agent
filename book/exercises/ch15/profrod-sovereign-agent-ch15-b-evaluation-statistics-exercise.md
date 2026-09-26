@@ -310,7 +310,7 @@ def wilson_interval(successes, trials, z=Z95):
 
 <details><summary>Hint 1 — the two pieces</summary>
 
-Compute the centre and the half-width separately. Both share the denominator $1 + z^2/n$.
+Compute the center and the half-width separately. Both share the denominator $1 + z^2/n$.
 
 </details>
 

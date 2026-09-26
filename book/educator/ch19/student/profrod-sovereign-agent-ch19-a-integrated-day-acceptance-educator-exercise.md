@@ -3751,7 +3751,7 @@ make the totals agree.
 here; `OpenAIModel` sends the same messages to a hosted model when a key is present. The record
 always says which one ran.
 
-**Prediction:** the shop below approves one vanilla order, 6 units at 250p, then one cents of
+**Prediction:** the shop below approves one vanilla order, 6 units at 250 cents, then one cents of
 reserved allowance disappears from the ledger. Write down what `reserved_cents` and
 `order_totals_match` will say, and the exact exception line the report will carry.
 
@@ -3975,13 +3975,14 @@ RECORDED_TURNS = [
                 "arguments": {
                     "accepted": False,
                     "acknowledged": [DISAGREEMENT],
-                    "note": "The ledger reserves 1499p against 1500p of approved orders.",
+                    "note": "The ledger reserves 1499 cents against 1500 cents of approved orders.",
                 },
             }
         ]
     ),
     scripted_turn(
-        "Not accepted. The report shows 1500p of approved orders but only 1499p reserved in the "
+        "Not accepted. The report shows 1500 cents of approved orders but only 1499 cents reserved "
+        "in the "
         "ledger, and it lists that disagreement. I could not correct the ledger, so I recorded "
         "the report as not accepted with the disagreement acknowledged for Lucy to reconcile."
     ),
@@ -4020,7 +4021,7 @@ assert all(
 ```
 
 Both refusals reach the model as `tool_failed`, and the loop carries on. The ledger still
-holds 1499p, because the gate refused before the handler ran, and the one event that exists
+holds 1499 cents, because the gate refused before the handler ran, and the one event that exists
 says `accepted: false` with the disagreement quoted. In the printed report text, find the line
 under "Exceptions requiring inspection" that the acknowledgement had to match.
 
@@ -4073,7 +4074,7 @@ assert all(
 ### Challenge: repair the ledger, then replay the same transcript
 
 The transcript is data and so is the ledger. The next cell opens a third shop whose ledger is
-left as `approve` wrote it, 1500p reserved, and replays `RECORDED_TURNS` unchanged.
+left as `approve` wrote it, 1500 cents reserved, and replays `RECORDED_TURNS` unchanged.
 **Predict before running:** the report now carries no exceptions, so which of the two
 `record_acceptance` calls is admitted this time, and which is refused? Turn three's note still
 says "one cents difference"; the prose is now wrong and the event is recorded anyway. That is

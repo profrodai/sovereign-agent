@@ -1,4 +1,4 @@
-# Chapter 15 — Evaluation as measurement: error bars, paired comparisons and a harness that says what it checked
+# Chapter 15 — Evaluation as measurement: error bars and paired comparisons
 
 > **Learn with Prof Rod** — *Build Your Always-On AI Agent From Scratch*.
 > **Read the full book and get the latest learning materials:** [https://profrod.ai/book](https://profrod.ai/book).
@@ -69,7 +69,7 @@ $
 \frac{\hat p + \frac{z^2}{2n}}{1 + \frac{z^2}{n}} \;\pm\; \frac{z}{1 + \frac{z^2}{n}}\sqrt{\frac{\hat p(1-\hat p)}{n} + \frac{z^2}{4n^2}}.
 $
 
-Its centre is pulled toward one half, and it never collapses to a point.
+Its center is pulled toward one half, and it never collapses to a point.
 
 **Listing:** Two intervals for this chapter's own results.
 
@@ -349,6 +349,8 @@ Both graders agree with the person on eight answers of ten. The one that always 
 
 ## Part B: a harness that says what it checked
 
+**Wrong-currency test inputs:** every price in Lucy's shop is in USD cents. The euro, pound and pence labels in this part are deliberate wrong-currency inputs that the evaluator must reject.
+
 Part A gave the statistics. This part builds the evaluation harness that produces the observations, around the agent's real loop. It keeps the distinction Part A depends on: what was checked, and what was not.
 
 ## Build the vocabulary with one morning request
@@ -539,6 +541,8 @@ Read the following harness in four passes. First locate the outer case and repet
 Each case runs in a fresh temporary database. We insert its product and inventory records, then assemble context through the same code used by the agent. Active or candidate skill configurations are copied into that isolated case database. Live session preferences, conversation history and optional tools are not copied. Isolation keeps one scenario's work from contaminating another, while the report names what it excludes.
 
 The model factory creates a model for each case-run. This matters for fixtures with internal counters and for adapters that retain state. We preserve the adapter name, model name and reasoning setting. The loop limits accompany the report. If the model ends with an empty reply, a timeout or a tool limit, the terminal status remains visible rather than collapsing into a generic false score.
+
+### What the checks cover
 
 The checks are intentionally explicit. Exact requested quantities must match the authored multiset. The transcript must include a stock lookup; every requested operation must be allowed; every tool observation must succeed; currency labels must fit the bounded rule; no purchase record may exist. The baseline must also match the independently authored answer.
 
@@ -879,7 +883,7 @@ The last row deliberately refuses to guess the pronoun's referent. Before runnin
 
 ### Read the small experiment before the larger result
 
-The complete runnable source is [ch15_request_eval_v1.py](../experiments/profrod_sovereign_agent_textbook_ch15_request_eval_v1.py). It uses Chapter 2's Pydantic validation and Python features already used in this chapter. `Literal` restricts a field to named values; `str | None` permits either a string or no value. The `sku` default supplies `None` when it is omitted. `ConfigDict(extra="forbid", strict=True)` rejects extra fields and unwanted conversion. Parsing still needs a second, semantic check: a syntactically valid SKU must belong to this case's catalog.
+The complete runnable source is [ch15_request_eval_v1.py](../experiments/profrod_sovereign_agent_textbook_ch15_request_eval_v1.py). It uses Chapter 2's Pydantic validation and Python already used in this chapter. `Literal` restricts a field to named values; `str | None` permits either a string or no value. The `sku` default supplies `None` when it is omitted. `ConfigDict(extra="forbid", strict=True)` rejects extra fields and unwanted conversion. Parsing still needs a second, semantic check: a syntactically valid SKU must belong to this case's catalog.
 
 Run these examples from the repository root. Python's standard-library `runpy.run_path` loads the example file and returns a dictionary containing its definitions. We select the case data and functions by name. Its default execution name is not `__main__`, so the command-line entry point does not run and no model is contacted. This explicit path also works when the book directory is not an installed Python package.
 
@@ -971,6 +975,8 @@ The [complete local run](../../../docs/evidence/always-on/ch12-request-interpret
 The keyword grammar refused the quoted supplier instruction instead of reporting stock. Both model configurations repeatedly returned `"stock reports physical stock"` as the action, which violates the four-value schema. They also selected a vanilla draft when the product was unnamed or chocolate was absent from the catalog. Those latter replies passed structural validation but failed the task expectation. A purchase request produced a stock decision rather than the expected refusal. The retained rows distinguish these failure mechanisms; a single accuracy percentage would conceal them.
 
 The schema failures expose a candidate-interface problem worth investigating. Our instruction places an action label beside its description, and the model sometimes copies both. That is a plausible cause, not a demonstrated diagnosis. A next experiment could contrast explicit JSON examples with the existing wording while holding other settings fixed. Those repaired prompts would be new candidates. The cases that inspired the repair would then be development evidence, and we would author fresh requests before evaluating transfer again. We preserve the failed experiment rather than silently replacing its output.
+
+#### What the evidence supports
 
 The defensible conclusion is narrow: **these two configurations did not justify replacing this keyword grammar on this task**. More explicit contrast guidance did not improve the observed pass count. The experiment does not establish that every model or prompt fails, that keyword rules solve arbitrary requests, or that either workflow saves Lucy time. A structured form with an explicit action and product is another strong baseline; its entry effort has not been measured here. Before choosing a richer system, measure the human work of entering, correcting and approving representative requests.
 
