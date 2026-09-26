@@ -6,41 +6,20 @@
 > — bring your questions, compare experiments and share what you build.
 > **Original source and updates:** [profrodai/sovereign-agent](https://github.com/profrodai/sovereign-agent).
 
-**PLANNED — construction brief; no completed notebook or solution is published for this chapter.**
+**Available draft · two ninety-minute units · nineteen-chapter edition**
 
-This slot belongs to the single nineteen-chapter edition. Read the detailed chapter scope in the textbook's Chapter 7. The existing course material for later chapters remains available using its supplied reference runtime; completing it does not demonstrate construction of this missing foundation.
+Attempt the student work before consulting the solutions. Untouched exercises intentionally report NEEDS_WORK.
 
-The planned exercises are two independent ninety-minute units. Unit A builds and connects the component from its first principles. Unit B introduces a failure, requires a repair, and tests a changed case. Both will introduce every new library and concept where used, include predictions and progressive hints, and retain the learner's implementation and evidence.
+| Session | Notebook | Matching text | Purpose |
+|---|---|---|---|
+| A · 90 minutes | [A: durable work inbox](profrod-sovereign-agent-ch07-a-durable-work-inbox-exercise.ipynb) | [Markdown](profrod-sovereign-agent-ch07-a-durable-work-inbox-exercise.md) | Construct, connect and explain |
+| B · 90 minutes | [B: report outbox and a lost reply](profrod-sovereign-agent-ch07-b-report-outbox-lost-reply-exercise.ipynb) | [Markdown](profrod-sovereign-agent-ch07-b-report-outbox-lost-reply-exercise.md) | Diagnose, repair and transfer |
 
-The solutions volume will explain each design decision, show the failed approach and repair, and include independently calculated expectations. The educator materials will include local student and worked copies, preparation instructions, misconception prompts, timing observations and an assessment rubric. These are requirements, not claims of delivery.
+Each notebook includes its own setup, first-principles introductions and supplied tables, and needs only Python's standard library. Open either notebook in Google Colab with its badge (Colab runs Python 3.13), or use a local Python 3.12+ Jupyter kernel. No repository checkout, previous notebook kernel or live account is needed. Unit B can use an explicitly selected successful Unit A handoff; an invalid selected file refuses rather than substituting an answer.
 
-## Planned learning contract: Durable work inbox and report outbox
+Ninety minutes is the planned work allowance per unit. Actual completion time and understanding require classroom observation.
 
-**Starting knowledge and new concepts:** The SQLite construction and memory chapters. Introduce work identity, state transitions, idempotency, claims, leases, cursors and an outbox before combining them.
-
-**Unit A construction:** Admit a request and advance its input cursor in one transaction; have a worker claim and finish the request and create one report atomically.
-
-| Minutes | Work |
-|---|---|
-| 0–10 | Predict duplicate-request behavior |
-| 10–30 | Draw rows, identities and allowed transitions |
-| 30–60 | Construct admission and claim operations |
-| 60–80 | Connect finish to report creation and test duplicate input |
-| 80–90 | Retain the work and report ledger |
-
-**Unit B diagnosis and transfer:** Inject a failure after admission and before cursor advancement, then a lost acknowledgement after report delivery. Separate known failure from unknown delivery.
-
-| Minutes | Work |
-|---|---|
-| 0–15 | Retrieve transaction and identity invariants |
-| 15–35 | Inject a crash between admission and cursor write |
-| 35–60 | Repair the transaction and demonstrate restart |
-| 60–80 | Handle a lost delivery acknowledgement without guessing |
-| 80–90 | Explain pending, sent and unknown reports |
-
-**Independent acceptance examples:** Two deliveries of request ID 42 create one work row. An admission exception advances no cursor. One terminal result creates one report. A lost send acknowledgement becomes UNKNOWN and does not authorize an automatic duplicate send.
-
-[Back to this asset](../profrod-sovereign-agent-exercises-start-here.md)
+[Setup](../profrod-sovereign-agent-exercises-setup.md) · [Back to this asset](../profrod-sovereign-agent-exercises-start-here.md)
 
 ## Keep building with Prof Rod
 

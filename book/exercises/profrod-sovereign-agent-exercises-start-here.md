@@ -12,7 +12,7 @@ Work through the student notebooks, make predictions, build the missing code and
 
 [Set up your environment](profrod-sovereign-agent-exercises-setup.md) · [Download this complete asset](profrod-sovereign-agent-exercises-2026-09-10.zip)
 
-The edition has nineteen chapter slots. **Seventeen chapters currently have two ninety-minute units each: 34 units and 51 hours of available practice. Chapters 7 and 13 are planned construction briefs.** The finished plan calls for 38 units and 57 hours; those four additional units are not yet published. Existing units use a supplied runtime and can be studied while the new foundations are authored. No completed notebook is represented by an empty placeholder.
+The edition has nineteen chapter slots. **Eighteen chapters currently have two ninety-minute units each: 36 units and 54 hours of available practice. Chapter 13 is a planned construction brief.** The finished plan calls for 38 units and 57 hours; those two additional units are not yet published. Existing units use a supplied runtime and can be studied while the new foundations are authored. No completed notebook is represented by an empty placeholder.
 
 | Chapter | Topic | Availability |
 |---|---|---|
@@ -22,7 +22,7 @@ The edition has nineteen chapter slots. **Seventeen chapters currently have two 
 | 4 | [Build durable SQLite state](ch04/profrod-sovereign-agent-ch04-sqlite-state-exercise-guide.md) | Available draft — A and B, 90 minutes each |
 | 5 | [Remember across conversations](ch05/profrod-sovereign-agent-ch05-durable-memory-exercise-guide.md) | Available draft — A and B, 90 minutes each |
 | 6 | [Reuse a tested opening procedure](ch06/profrod-sovereign-agent-ch06-versioned-skills-exercise-guide.md) | Available draft — A and B, 90 minutes each |
-| 7 | [Build a durable work inbox and report outbox](ch07/profrod-sovereign-agent-ch07-durable-inbox-outbox-exercise-guide.md) | PLANNED — brief only |
+| 7 | [Build a durable work inbox and report outbox](ch07/profrod-sovereign-agent-ch07-durable-inbox-outbox-exercise-guide.md) | Available draft — A and B, 90 minutes each |
 | 8 | [Talk to the agent from your phone](ch08/profrod-sovereign-agent-ch08-telegram-messaging-exercise-guide.md) | Available draft — A and B, 90 minutes each |
 | 9 | [Wake up for schedules and stock events](ch09/profrod-sovereign-agent-ch09-schedules-stock-events-exercise-guide.md) | Available draft — A and B, 90 minutes each |
 | 10 | [Ask permission before spending](ch10/profrod-sovereign-agent-ch10-spending-permissions-exercise-guide.md) | Available draft — A and B, 90 minutes each |

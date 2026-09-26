@@ -6,7 +6,7 @@
 > — bring your questions, compare experiments and share what you build.
 > **Original source and updates:** [profrodai/sovereign-agent](https://github.com/profrodai/sovereign-agent).
 
-**Status: PLANNED, manuscript drafted.** Read the [textbook guide](../profrod-sovereign-agent-textbook-start-here.md) for setup and supplied-code boundaries. The chapter text, learner file, checkpoint and experiment below are written and run; the two ninety-minute Colab notebooks and the educator guide are still being written, and Chapters 8 and 9 still use the supplied queue until they are rebuilt on this one. Until then this chapter stays PLANNED in the book manifest, and its exercises live at the end of this page.
+**Status: DRAFT.** Read the [textbook guide](../profrod-sovereign-agent-textbook-start-here.md) for setup and supplied-code boundaries. Practice in [Exercise Book 7](../../exercises/ch07/profrod-sovereign-agent-ch07-durable-inbox-outbox-exercise-guide.md); consult [Solutions 7](../../solutions/ch07/profrod-sovereign-agent-ch07-durable-inbox-outbox-solutions-guide.md) after attempting the work. Both ninety-minute units run on Google Colab with the standard library only. Chapters 8 and 9 still use the supplied queue until they are rebuilt on this one.
 
 Lucy is in the car park with a box of cones under one arm. She taps "Prepare the opening brief" on her phone, the signal drops, and she taps it again. Two things can go wrong from here, and they are different.
 
@@ -31,7 +31,7 @@ You bring the Chapter 4 store and transactions, and the Chapter 3 loop. No queue
 Create `book/textbook/learner/profrod_sovereign_agent_ch07_work_queue_learner.py`. It loads your Chapter 4 learner file for `StateStore`. The repository includes a completed comparison copy; the Chapter 7 checkpoint loads the learner file and checks it against this chapter's acceptance examples, running each request through your Chapter 3 loop with authored model turns:
 
 ```bash
-uv run python book/textbook/checkpoints/profrod_sovereign_agent_ch07_durable_work_checkpoint.py
+uv run python book/textbook/checkpoints/profrod_sovereign_agent_ch07_durable_inbox_outbox_checkpoint.py
 ```
 
 The queue code needs Python 3.12 or newer. The checkpoint also runs your Chapter 2 and 3 files, which currently use Python 3.14 syntax.

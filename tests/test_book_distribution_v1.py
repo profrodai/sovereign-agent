@@ -31,12 +31,12 @@ def book(tmp_path: Path) -> Path:
             chapter.mkdir()
             (chapter / distribution.chapter_name(number, asset)).write_text(
                 distribution.brand_markdown(
-                    f"# Chapter {number}\n\n" + ("PLANNED\n" if number in {7, 13} else "DRAFT\n")
+                    f"# Chapter {number}\n\n" + ("PLANNED\n" if number in {13} else "DRAFT\n")
                 )
             )
     (root / "textbook/checkpoints").mkdir()
     for number in range(1, 20):
-        planned = number in {7, 13}
+        planned = number in {13}
         prefix = f"ch{number:02d}"
         chapters.append(
             {
