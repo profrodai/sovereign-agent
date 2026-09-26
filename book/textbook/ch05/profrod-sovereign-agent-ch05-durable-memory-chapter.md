@@ -793,6 +793,10 @@ assert outcome == 0
 ```
 
 ```text
+ok   BM25 equals idf for a single occurrence, and saturates below idf (k1 + 1)
+ok   precision@k, recall@k and reciprocal rank by their definitions
+ok   cosine ignores length; the packer keeps the budget and skips what does not fit
+ok   the receipt's BM25 recall@3 and MRR recompute exactly: 0.875
 After reopening: Ask for morning delivery
 After correction: Ask for afternoon delivery
 Forgotten value in future context: False
