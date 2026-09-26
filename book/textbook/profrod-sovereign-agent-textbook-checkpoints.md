@@ -17,7 +17,7 @@ Run from the complete repository root using the [frozen environment](profrod-sov
 | 3 | [The agent loop: why reliability compounds, and a loop that stops](ch03/profrod-sovereign-agent-ch03-agent-loop-chapter.md) | [ch03.py](checkpoints/profrod_sovereign_agent_ch03_agent_loop_checkpoint.py) |
 | 4 | [Build durable state with SQLite](ch04/profrod-sovereign-agent-ch04-sqlite-state-chapter.md) | [ch04.py](checkpoints/profrod_sovereign_agent_ch04_sqlite_state_checkpoint.py) |
 | 5 | [Memory and retrieval: what the model sees, and a memory that forgets](ch05/profrod-sovereign-agent-ch05-durable-memory-chapter.md) | [ch05.py](checkpoints/profrod_sovereign_agent_ch05_durable_memory_checkpoint.py) |
-| 6 | [Reuse a tested opening procedure](ch06/profrod-sovereign-agent-ch06-versioned-skills-chapter.md) | [ch06.py](checkpoints/profrod_sovereign_agent_ch06_versioned_skills_checkpoint.py) |
+| 6 | [In-context learning: why a skill's exact words must be tested](ch06/profrod-sovereign-agent-ch06-versioned-skills-chapter.md) | [ch06.py](checkpoints/profrod_sovereign_agent_ch06_versioned_skills_checkpoint.py) |
 | 7 | [Build a durable work inbox and report outbox](ch07/profrod-sovereign-agent-ch07-durable-inbox-outbox-chapter.md) | [ch07.py](checkpoints/profrod_sovereign_agent_ch07_durable_inbox_outbox_checkpoint.py) |
 | 8 | [Talk to the agent from your phone](ch08/profrod-sovereign-agent-ch08-telegram-messaging-chapter.md) | [ch08.py](checkpoints/profrod_sovereign_agent_ch08_telegram_messaging_checkpoint.py) |
 | 9 | [Wake up for schedules and stock events](ch09/profrod-sovereign-agent-ch09-schedules-stock-events-chapter.md) | [ch09.py](checkpoints/profrod_sovereign_agent_ch09_schedules_stock_events_checkpoint.py) |
