@@ -3942,7 +3942,7 @@ RECORDED_TURNS = [
         calls=[{"name": "draft_order", "arguments": {"sku": "SKU-STRAWBERRY", "quantity": 4}}]
     ),
     scripted_turn(
-        "Drafted 6 vanilla at 250p each and 4 strawberry at 275p each. Chocolate is above its "
+        "Drafted 6 vanilla at 250 cents each and 4 strawberry at 275 cents each. Chocolate is above its "
         "reorder point. The first strawberry draft was refused because 3 is not the need."
     ),
 ]

@@ -4265,8 +4265,8 @@ RECORDED_TURNS = [
     scripted_turn(calls=[{"name": "order_status", "arguments": {}}]),
     scripted_turn(calls=[{"name": "send_order", "arguments": {"sku": "SKU-VANILLA"}}]),
     scripted_turn(
-        "Vanilla, 6 tubs at 250p, was sent once. The first reply was lost, so the ledger held "
-        "1500p as reserved; the retry found the supplier's receipt and the order is confirmed. "
+        "Vanilla, 6 tubs at 250 cents, was sent once. The first reply was lost, so the ledger held "
+        "1500 cents as reserved; the retry found the supplier's receipt and the order is confirmed. "
         "The strawberry proposal was refused because Lucy only authorized vanilla."
     ),
 ]
@@ -4304,7 +4304,7 @@ assert all(
 ```
 
 The refused strawberry proposal is an ordinary failed observation; the loop carries on. The
-interesting observation is the fourth: `UNKNOWN`, 1500p reserved, nothing spent, one supplier
+interesting observation is the fourth: `UNKNOWN`, 1500 cents reserved, nothing spent, one supplier
 row already committed. The runtime knew less than the supplier, and said so. The retry sent
 nothing: `execute` saw `UNKNOWN`, called `lookup`, found the receipt and settled once. One
 `intent` event, one `reconciled` event, one remote row.

@@ -69,7 +69,7 @@ $
 \frac{\hat p + \frac{z^2}{2n}}{1 + \frac{z^2}{n}} \;\pm\; \frac{z}{1 + \frac{z^2}{n}}\sqrt{\frac{\hat p(1-\hat p)}{n} + \frac{z^2}{4n^2}}.
 $
 
-Its centre is pulled toward one half, and it never collapses to a point.
+Its center is pulled toward one half, and it never collapses to a point.
 
 **Listing:** Two intervals for this chapter's own results.
 
