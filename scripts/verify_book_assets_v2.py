@@ -30,6 +30,10 @@ ROOT = Path(__file__).resolve().parents[1]
 BOOK = ROOT / "book"
 ASSETS = ("textbook", "exercises", "solutions", "educator")
 PLANNED = {4, 7, 13}
+# PLANNED chapters whose manuscript is drafted before their notebooks: their listings and
+# checkpoint are checked now, so the text cannot rot while the notebooks are written. A chapter
+# leaves this map when BOOK.json marks it DRAFT (which requires its notebooks).
+IN_PROGRESS = {4: "checkpoints/profrod_sovereign_agent_ch04_sqlite_state_checkpoint.py"}
 AVAILABLE = set(range(1, 20)) - PLANNED
 EXPECTED = {f"ch{chapter:02d}-{letter}" for chapter in AVAILABLE for letter in "ab"}
 RECEIPT = ROOT / "docs/evidence/book-four-assets/verification-v2.json"
@@ -170,6 +174,21 @@ def verify_textbook() -> None:
             cwd=ROOT,
             check=True,
             timeout=60,
+        )
+    for chapter, checkpoint in IN_PROGRESS.items():
+        row = next(row for row in manifest["chapters"] if row["number"] == chapter)
+        assert row["status"] == "PLANNED", (
+            f"ch{chapter:02d} is {row['status']}; remove it from IN_PROGRESS"
+        )
+        count, matched, errors = checker(BOOK / "textbook" / row["path"])
+        assert not errors, "\n".join(errors)
+        assert count >= 2 and matched >= 2, row["lessonId"]
+        subprocess.run(
+            [sys.executable, str(BOOK / "textbook" / checkpoint)], cwd=ROOT, check=True, timeout=60
+        )
+        print(
+            f"IN PROGRESS: ch{chapter:02d} manuscript: {count} examples and "
+            f"{matched} output pairs; checkpoint ran."
         )
     print(f"ACTIVE TEXTBOOK: 16 draft checkpoints; {examples} examples and {pairs} output pairs.")
     print("Chapters 4, 7 and 13 remain PLANNED. No publication or classroom-quality acceptance.")
