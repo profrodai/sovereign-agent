@@ -39,6 +39,7 @@ UNIT_TOPICS = {
     4: ("durable-state-store", "interrupted-migration"),
     5: ("durable-memory", "memory-repair-transfer"),
     6: ("versioned-skills", "skill-repair-transfer"),
+    7: ("durable-work-inbox", "report-outbox-lost-reply"),
     8: ("private-telegram-messaging", "messaging-repair-transfer"),
     9: ("schedules-stock-events", "scheduling-repair-transfer"),
     10: ("exact-spending-approval", "approval-repair-transfer"),

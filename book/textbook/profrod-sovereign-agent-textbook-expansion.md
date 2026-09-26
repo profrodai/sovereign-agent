@@ -8,7 +8,7 @@
 
 **Updated:** 2026-09-09 · **Status:** ACTIVE CONSTRUCTION PLAN
 
-The current teaching collection has one nineteen-chapter map and four reader-facing assets: Teaching Book, Exercise Book, Solutions Book and Educator Guide. This plan records the work after reorganizing those assets. Sixteen manuscript drafts and their reference checkpoints have been retained. Chapter 4, the first missing foundation, is now a drafted chapter with a learner-owned store, checkpoint, experiment and two practical units. Chapters 7 and 13 remain clearly marked construction briefs; Chapter 7's manuscript is drafted.
+The current teaching collection has one nineteen-chapter map and four reader-facing assets: Teaching Book, Exercise Book, Solutions Book and Educator Guide. This plan records the work after reorganizing those assets. Sixteen manuscript drafts and their reference checkpoints have been retained. Chapter 4, the first missing foundation, is now a drafted chapter with a learner-owned store, checkpoint, experiment and two practical units. Chapter 7 is drafted too, with a learner-owned work queue on that store, checkpoint, experiment and two practical units. Chapter 13 remains a clearly marked construction brief.
 
 The quality benchmark is a self-contained professional technical textbook. “Manning level” describes teaching and editorial quality, not a publisher destination. No publisher submission belongs in this plan.
 

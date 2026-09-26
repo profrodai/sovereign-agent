@@ -8,7 +8,7 @@
 
 **Status: DRAFT.** Read the [textbook guide](../profrod-sovereign-agent-textbook-start-here.md) for setup and supplied-code boundaries. Practice in [Exercise Book 8](../../exercises/ch08/profrod-sovereign-agent-ch08-telegram-messaging-exercise-guide.md); consult [Solutions 8](../../solutions/ch08/profrod-sovereign-agent-ch08-telegram-messaging-solutions-guide.md) after attempting the work.
 
-The planned Chapter 7 gives durable work and report creation their own construction lesson. This draft retains its existing queue, cursor and outbox explanations and supplied reference implementation until that learner handoff is authored. Read [Chapter 7](../ch07/profrod-sovereign-agent-ch07-durable-inbox-outbox-chapter.md) for the intended separation and acceptance cases.
+Chapter 7 now builds durable work and report creation as its own lesson. This draft still retains its existing queue, cursor and outbox explanations and supplied reference implementation until it is rebuilt on the learner's Chapter 7 queue. Read [Chapter 7](../ch07/profrod-sovereign-agent-ch07-durable-inbox-outbox-chapter.md) for the separation and acceptance cases.
 
 Lucy has left the shop to collect packaging. She wants to ask for the opening brief without returning to the development terminal. The agent already knows how to inspect stock, create drafts and use a tested opening procedure. A phone interface should deliver Lucy's request into that same program and return its result. It should not create a second agent with a separate memory and a different interpretation of her preferences.
 
