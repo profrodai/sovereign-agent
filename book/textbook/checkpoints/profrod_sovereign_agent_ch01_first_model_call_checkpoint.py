@@ -3,12 +3,21 @@
 # Join the Prof Rod learner community: https://profrod.ai/community
 # Original source and updates: https://github.com/profrodai/sovereign-agent
 
-"""Chapter 1: one explicit model request, with an offline response fixture."""
+"""Chapter 1: what a model call computes, then one explicit request, with an offline fixture.
+
+The fundamentals come first: the learner file's tokenizer, softmax, temperature, sampler and
+cross-entropy are checked against properties derived in the chapter, including a negative control
+that a broken sampler must fail.
+"""
 
 import argparse
 import copy
 import hashlib
 import json
+import math
+import random
+import runpy
+from pathlib import Path
 from urllib.request import HTTPRedirectHandler, Request, build_opener
 
 SHOP = {
@@ -141,11 +150,67 @@ OFFLINE_RESPONSE = {
 }
 
 
+def fundamentals():
+    learner = runpy.run_path(
+        str(
+            Path(__file__).resolve().parents[1]
+            / "learner"
+            / "profrod_sovereign_agent_ch01_model_call_learner.py"
+        )
+    )
+    notes = learner["SHOP_NOTES"]
+    merges = learner["train_bpe"](notes, 100)
+    for text in (notes, learner["HELD_OUT_NOTES"], " pistachio", "Crème brûlée, 🍦"):
+        assert learner["decode"](learner["encode"](text, merges)) == text
+    print("ok   any text round-trips through the tokenizer, accented and emoji included")
+
+    softmax = learner["softmax"]
+    shifted = softmax([z + 100 for z in (2.0, 1.0, 0.0)])
+    assert all(math.isclose(a, b) for a, b in zip(shifted, softmax([2.0, 1.0, 0.0]), strict=True))
+    assert math.isclose(sum(softmax([1000.0, 999.0, 998.0])), 1.0)
+    print("ok   softmax ignores a shift and stays finite at large logits")
+
+    model = learner["train_bigram"](learner["encode"](notes, merges), merges)
+    logits = model.logits(b".")
+    entropy = learner["entropy_bits"]
+    for t in (0.75, 1.0, 1.5):
+        p = softmax(logits, t)
+        mean = sum(pi * z for pi, z in zip(p, logits, strict=True))
+        variance = sum(pi * (z - mean) ** 2 for pi, z in zip(p, logits, strict=True))
+        numeric = (entropy(softmax(logits, t + 1e-5)) - entropy(softmax(logits, t - 1e-5))) / 2e-5
+        assert math.isclose(variance / t**3 / math.log(2), numeric, rel_tol=1e-4)
+    print("ok   dH/dT = Var(z) / T^3 matches a numerical derivative")
+
+    def chi_square_z(sampler):
+        p = softmax(model.logits(b" of"))
+        rng, counts, draws = random.Random(3), [0] * len(p), 20_000
+        for _ in range(draws):
+            counts[sampler(p, rng)] += 1
+        chi = sum((c - draws * pi) ** 2 / (draws * pi) for pi, c in zip(p, counts, strict=True))
+        return (chi - (len(p) - 1)) / math.sqrt(2 * (len(p) - 1))
+
+    assert abs(chi_square_z(learner["sample"])) < 3
+    print("ok   the sampler's frequencies pass a chi-square test")
+
+    def off_by_one(p, rng):
+        return min(len(p) - 1, learner["sample"](p, rng) + 1)
+
+    assert chi_square_z(off_by_one) > 100
+    print("ok   negative control: an off-by-one sampler fails the same test")
+
+    held_out = learner["encode"](learner["HELD_OUT_NOTES"], merges)
+    assert 1 < learner["perplexity"](model, held_out) < 10
+    print(
+        "ok   held-out perplexity is finite and small, because smoothing keeps every token possible"
+    )
+
+
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--live", action="store_true")
     parser.add_argument("--model", default="qwen3")
     args = parser.parse_args()
+    fundamentals()
     built = build(SHOP)
     body = built["body"]
     body["model"] = args.model
