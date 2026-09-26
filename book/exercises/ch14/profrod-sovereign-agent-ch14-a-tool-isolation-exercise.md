@@ -3817,7 +3817,8 @@ RECORDED_TURNS = [
         calls=[{"name": "reserve_stock", "arguments": {"sku": "SKU-CHOCOLATE", "quantity": 2}}]
     ),
     scripted_turn(
-        "Drafted 6 vanilla at 250 cents each and 4 strawberry at 275 cents each; chocolate is above its "
+        "Drafted 6 vanilla at 250 cents each and 4 strawberry at 275 cents each; chocolate is "
+        "above its "
         "reorder point. The private cash report is not available to this assistant, and the "
         "chocolate hold needs Lucy's write authority, so nothing was reserved."
     ),

@@ -3991,8 +3991,10 @@ RECORDED_TURNS = [
     ),
     scripted_turn(calls=[{"name": "draft_budget", "arguments": {}}]),
     scripted_turn(
-        "Drafted 6 vanilla at 250 cents, 1500 cents in total. Strawberry needs 4 at 275 cents, 1100 cents, which "
-        "would take drafts to 2600 cents against a 2500 cents budget, so it was refused and needs Lucy's "
+        "Drafted 6 vanilla at 250 cents, 1500 cents in total. Strawberry needs 4 at 275 cents, "
+        "1100 cents, which "
+        "would take drafts to 2600 cents against a 2500 cents budget, so it was refused and needs "
+        "Lucy's "
         "decision. Chocolate is above its reorder point. Nothing was purchased."
     ),
 ]

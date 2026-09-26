@@ -3968,7 +3968,8 @@ RECORDED_TURNS = [
     ),
     scripted_turn(calls=[{"name": "spending", "arguments": {}}]),
     scripted_turn(
-        "Approved 6 vanilla at 250 cents, 1500 cents now reserved. The 4 strawberry proposal at 1100 cents is "
+        "Approved 6 vanilla at 250 cents, 1500 cents now reserved. The 4 strawberry proposal at "
+        "1100 cents is "
         "recorded as a draft: together they would exceed the 2000 cents ceiling, so it waits for "
         "Lucy's own approval. Nothing has been sent to a supplier."
     ),

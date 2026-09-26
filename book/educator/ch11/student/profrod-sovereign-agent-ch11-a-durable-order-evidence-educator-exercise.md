@@ -4138,7 +4138,8 @@ RECORDED_TURNS = [
     scripted_turn(calls=[{"name": "send_order", "arguments": {"sku": "SKU-VANILLA"}}]),
     scripted_turn(
         "Vanilla, 6 tubs at 250 cents, was sent once. The first reply was lost, so the ledger held "
-        "1500 cents as reserved; the retry found the supplier's receipt and the order is confirmed. "
+        "1500 cents as reserved; the retry found the supplier's receipt and the order is "
+        "confirmed. "
         "The strawberry proposal was refused because Lucy only authorized vanilla."
     ),
 ]

@@ -4065,7 +4065,8 @@ RECORDED_TURNS = [
         ]
     ),
     scripted_turn(
-        "Not accepted. The report shows 1500 cents of approved orders but only 1499 cents reserved in the "
+        "Not accepted. The report shows 1500 cents of approved orders but only 1499 cents reserved "
+        "in the "
         "ledger, and it lists that disagreement. I could not correct the ledger, so I recorded "
         "the report as not accepted with the disagreement acknowledged for Lucy to reconcile."
     ),
