@@ -16,11 +16,11 @@ The edition has nineteen chapter slots. **Eighteen chapters currently have two n
 
 | Chapter | Topic | Availability |
 |---|---|---|
-| 1 | [Make the first model call for Lucy](ch01/profrod-sovereign-agent-ch01-first-model-call-educator-guide.md) | Available draft — A and B, 90 minutes each |
-| 2 | [Give the agent reliable shop tools](ch02/profrod-sovereign-agent-ch02-pydantic-shop-tools-educator-guide.md) | Available draft — A and B, 90 minutes each |
-| 3 | [Build the model and tool loop](ch03/profrod-sovereign-agent-ch03-agent-loop-educator-guide.md) | Available draft — A and B, 90 minutes each |
+| 1 | [What a model call is: tokens, probabilities and Lucy's first brief](ch01/profrod-sovereign-agent-ch01-first-model-call-educator-guide.md) | Available draft — A and B, 90 minutes each |
+| 2 | [Structured output and typed tools: what a schema guarantees](ch02/profrod-sovereign-agent-ch02-pydantic-shop-tools-educator-guide.md) | Available draft — A and B, 90 minutes each |
+| 3 | [The agent loop: why reliability compounds, and a loop that stops](ch03/profrod-sovereign-agent-ch03-agent-loop-educator-guide.md) | Available draft — A and B, 90 minutes each |
 | 4 | [Build durable SQLite state](ch04/profrod-sovereign-agent-ch04-sqlite-state-educator-guide.md) | Available draft — A and B, 90 minutes each |
-| 5 | [Remember across conversations](ch05/profrod-sovereign-agent-ch05-durable-memory-educator-guide.md) | Available draft — A and B, 90 minutes each |
+| 5 | [Memory and retrieval: what the model sees, and a memory that forgets](ch05/profrod-sovereign-agent-ch05-durable-memory-educator-guide.md) | Available draft — A and B, 90 minutes each |
 | 6 | [Reuse a tested opening procedure](ch06/profrod-sovereign-agent-ch06-versioned-skills-educator-guide.md) | Available draft — A and B, 90 minutes each |
 | 7 | [Build a durable work inbox and report outbox](ch07/profrod-sovereign-agent-ch07-durable-inbox-outbox-educator-guide.md) | Available draft — A and B, 90 minutes each |
 | 8 | [Talk to the agent from your phone](ch08/profrod-sovereign-agent-ch08-telegram-messaging-educator-guide.md) | Available draft — A and B, 90 minutes each |
@@ -30,10 +30,10 @@ The edition has nineteen chapter slots. **Eighteen chapters currently have two n
 | 12 | [Recover work after a process crash](ch12/profrod-sovereign-agent-ch12-worker-recovery-educator-guide.md) | Available draft — A and B, 90 minutes each |
 | 13 | [Build an MCP client and tool server](ch13/profrod-sovereign-agent-ch13-mcp-tools-educator-guide.md) | PLANNED — brief only |
 | 14 | [Isolate tools and untrusted content](ch14/profrod-sovereign-agent-ch14-tool-isolation-educator-guide.md) | Available draft — A and B, 90 minutes each |
-| 15 | [Measure whether the agent helps](ch15/profrod-sovereign-agent-ch15-agent-evaluation-educator-guide.md) | Available draft — A and B, 90 minutes each |
+| 15 | [Evaluation as measurement: error bars and paired comparisons](ch15/profrod-sovereign-agent-ch15-agent-evaluation-educator-guide.md) | Available draft — A and B, 90 minutes each |
 | 16 | [Improve behavior with evaluated changes](ch16/profrod-sovereign-agent-ch16-controlled-improvement-educator-guide.md) | Available draft — A and B, 90 minutes each |
 | 17 | [Delegate one bounded task](ch17/profrod-sovereign-agent-ch17-bounded-delegation-educator-guide.md) | Available draft — A and B, 90 minutes each |
-| 18 | [Deploy and maintain the agent](ch18/profrod-sovereign-agent-ch18-deployment-restoration-educator-guide.md) | Available draft — A and B, 90 minutes each |
+| 18 | [What a model call costs, and a deployment that survives](ch18/profrod-sovereign-agent-ch18-deployment-restoration-educator-guide.md) | Available draft — A and B, 90 minutes each |
 | 19 | [Lucy leaves the shop for a day](ch19/profrod-sovereign-agent-ch19-integrated-shop-day-educator-guide.md) | Available draft — A and B, 90 minutes each |
 
 ## How to use this asset

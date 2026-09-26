@@ -1,4 +1,4 @@
-# Chapter 2: Give the agent reliable shop tools
+# Chapter 2: Structured output and typed tools: what a schema guarantees
 
 > **Learn with Prof Rod** — *Build Your Always-On AI Agent From Scratch*.
 > **Read the full book and get the latest learning materials:** [https://profrod.ai/book](https://profrod.ai/book).
