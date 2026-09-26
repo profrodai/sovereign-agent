@@ -13,7 +13,7 @@
 | Session | Distribute to learners | Worked demonstration | Text versions |
 |---|---|---|---|
 | A · 90 minutes | [Student notebook](student/profrod-sovereign-agent-ch05-a-durable-memory-educator-exercise.ipynb) | [Worked notebook](solutions/profrod-sovereign-agent-ch05-a-durable-memory-educator-solution.ipynb) | [Student](student/profrod-sovereign-agent-ch05-a-durable-memory-educator-exercise.md) · [Worked](solutions/profrod-sovereign-agent-ch05-a-durable-memory-educator-solution.md) |
-| B · 90 minutes | [Student notebook](student/profrod-sovereign-agent-ch05-b-memory-repair-transfer-educator-exercise.ipynb) | [Worked notebook](solutions/profrod-sovereign-agent-ch05-b-memory-repair-transfer-educator-solution.ipynb) | [Student](student/profrod-sovereign-agent-ch05-b-memory-repair-transfer-educator-exercise.md) · [Worked](solutions/profrod-sovereign-agent-ch05-b-memory-repair-transfer-educator-solution.md) |
+| B · 90 minutes | [Student notebook](student/profrod-sovereign-agent-ch05-b-retrieval-and-recall-educator-exercise.ipynb) | [Worked notebook](solutions/profrod-sovereign-agent-ch05-b-retrieval-and-recall-educator-solution.ipynb) | [Student](student/profrod-sovereign-agent-ch05-b-retrieval-and-recall-educator-exercise.md) · [Worked](solutions/profrod-sovereign-agent-ch05-b-retrieval-and-recall-educator-solution.md) |
 
 Rehearse using the worked notebook in a fresh Python 3.14 kernel before class. Distribute only the student files until learners have retained a first attempt. Both versions embed their runtime; no sibling book directory or live account is required. Preserve predictions, the highest hint used, changed-case results and actual time spent. Record understanding from explanations, not Run All success.
 
