@@ -1,4 +1,4 @@
-# Teach Chapter 17: Delegate one bounded task
+# Teach Chapter 17: When a second agent pays: parallelism, errors and bounded delegation
 
 > **Learn with Prof Rod** — *Build Your Always-On AI Agent From Scratch*.
 > **Read the full book and get the latest learning materials:** [https://profrod.ai/book](https://profrod.ai/book).

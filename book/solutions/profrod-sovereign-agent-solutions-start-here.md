@@ -32,7 +32,7 @@ The edition has nineteen chapter slots. **Eighteen chapters currently have two n
 | 14 | [Prompt injection and isolation: words steer the model, boundaries hold](ch14/profrod-sovereign-agent-ch14-tool-isolation-solutions-guide.md) | Available draft — A and B, 90 minutes each |
 | 15 | [Evaluation as measurement: error bars and paired comparisons](ch15/profrod-sovereign-agent-ch15-agent-evaluation-solutions-guide.md) | Available draft — A and B, 90 minutes each |
 | 16 | [Optimizing against an evaluation: the winner's curse and preferences](ch16/profrod-sovereign-agent-ch16-controlled-improvement-solutions-guide.md) | Available draft — A and B, 90 minutes each |
-| 17 | [Delegate one bounded task](ch17/profrod-sovereign-agent-ch17-bounded-delegation-solutions-guide.md) | Available draft — A and B, 90 minutes each |
+| 17 | [When a second agent pays: parallelism, errors and bounded delegation](ch17/profrod-sovereign-agent-ch17-bounded-delegation-solutions-guide.md) | Available draft — A and B, 90 minutes each |
 | 18 | [What a model call costs, and a deployment that survives](ch18/profrod-sovereign-agent-ch18-deployment-restoration-solutions-guide.md) | Available draft — A and B, 90 minutes each |
 | 19 | [Lucy leaves the shop for a day](ch19/profrod-sovereign-agent-ch19-integrated-shop-day-solutions-guide.md) | Available draft — A and B, 90 minutes each |
 

@@ -6,7 +6,9 @@
 """Actual concurrent research and stock work, cancellation and bounded replacement."""
 
 import json
+import math
 import os
+import runpy
 import subprocess
 import sys
 import tempfile
@@ -52,7 +54,37 @@ def child():
     db.close()
 
 
+BOOK = Path(__file__).resolve().parents[1]
+DELEGATION = runpy.run_path(
+    str(BOOK / "learner/profrod_sovereign_agent_ch17_delegation_learner.py")
+)
+
+
+def delegation_arithmetic():
+    """Part A's formulas by independent checks, and the receipt recomputed from its runs."""
+    amdahl, vote = DELEGATION["amdahl_speedup"], DELEGATION["majority_accuracy"]
+    assert amdahl(1.0, 4) == 4 and amdahl(0.0, 8) == 1
+    assert math.isclose(amdahl(0.9, 10**9), 10, rel_tol=1e-6)
+    assert math.isclose(vote(0.5, 5), 0.5)
+    assert all(vote(p, 3) > p for p in (0.6, 0.8, 0.95)) and all(vote(p, 3) < p for p in (0.1, 0.4))
+    assert math.isclose(vote(0.7, 3), 0.7**3 + 3 * 0.7**2 * 0.3)
+    print("ok   Amdahl's limits, and Condorcet: voting helps above one half, hurts below")
+    receipt = json.loads(
+        (BOOK.parents[1] / "docs/evidence/book-ch17/ch17-delegation-receipt-v1.json").read_text()
+    )
+    correct = [[False] * 10 for _ in range(12)]
+    for run in receipt["runs"]:
+        correct[run["question"]][run["sample"]] = run["correct"]
+    accuracy = [round(sum(row) / 10, 2) for row in correct]
+    assert accuracy == receipt["sampling"]["accuracy"]
+    for task in receipt["sampling"]["composed"]:
+        joint = sum(all(correct[q][s] for q in task["questions"]) for s in range(10)) / 10
+        assert joint == task["measured"]
+    print("ok   accuracies and composed successes recompute from the retained answers")
+
+
 def main():
+    delegation_arithmetic()
     with tempfile.TemporaryDirectory(prefix="lucy-delegation-") as temporary:
         root = Path(temporary)
         db = Database(root / "agent.sqlite")
