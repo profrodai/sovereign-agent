@@ -1,4 +1,4 @@
-# Teach Chapter 12: Recover work after a process crash
+# Teach Chapter 12: Slow or dead: leases, fencing and crash recovery
 
 > **Learn with Prof Rod** — *Build Your Always-On AI Agent From Scratch*.
 > **Read the full book and get the latest learning materials:** [https://profrod.ai/book](https://profrod.ai/book).

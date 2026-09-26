@@ -181,6 +181,42 @@ def experiment(root, *, kill):
             db.close()
 
 
+BOOK = Path(__file__).resolve().parents[1]
+LEASE = runpy.run_path(str(BOOK / "learner/profrod_sovereign_agent_ch12_leases_learner.py"))
+
+
+def lease_arithmetic():
+    """Part A's formulas by independent checks, and the receipt recomputed from its trials."""
+    turns = [0.2, 0.4, 0.4, 0.9, 2.0]
+    assert LEASE["false_expiry_share"](turns, 0.4) == 0.4 and LEASE["percentile"](turns, 50) == 0.4
+    assert LEASE["shortest_lease"](turns, 0.2) == 0.9 and LEASE["shortest_lease"](turns, 0) == 2.0
+    assert LEASE["detection_delay"](5, 1, 0.1) == 4.55
+    assert LEASE["fenced"](2, 2) and not LEASE["fenced"](1, 2)
+    print("ok   false expiry is the tail beyond the lease; only the current generation writes")
+    receipt = json.loads(
+        (BOOK.parents[1] / "docs/evidence/book-ch12/ch12-leases-receipt-v1.json").read_text()
+    )
+    pilot = receipt["pilot_turn_seconds"]
+    for row in receipt["false_expiry"]:
+        trials = [t for t in receipt["trials"] if t["rule"] == row["rule"]]
+        share = LEASE["false_expiry_share"](pilot, row["lease_seconds"])
+        assert round(share, 3) == row["predicted_false_expiry"]
+        taken = sum(t["taken_over_while_working"] for t in trials)
+        assert round(taken / len(trials), 3) == row["measured_false_expiry"]
+        assert all(
+            not t["worker_completion_accepted"] for t in trials if t["taken_over_while_working"]
+        )
+    crash = receipt["detection"]
+    assert round(sum(crash["delays"]) / len(crash["delays"]), 3) == crash["measured_mean_delay"]
+    for row in receipt["recovery"]:
+        runs = [
+            [c["name"] for c in r["calls"]] for r in receipt["runs"] if r["model"] == row["model"]
+        ]
+        assert row["placed_again"] == sum("place_order" in names for names in runs)
+        assert row["looked_up"] == sum("lookup_order" in names for names in runs)
+    print("ok   false expiries, refused stale completions and re-orders recompute from the receipt")
+
+
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--worker", type=Path)
@@ -190,6 +226,7 @@ def main():
     if args.worker:
         old_worker(args.worker, args.supplier)
         return
+    lease_arithmetic()
     with tempfile.TemporaryDirectory(prefix="lucy-worker-") as directory:
         root = Path(directory)
         results = [experiment(root / "killed", kill=True), experiment(root / "stale", kill=False)]

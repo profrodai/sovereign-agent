@@ -27,7 +27,7 @@ The edition has nineteen chapter slots. **Eighteen chapters currently have two n
 | 9 | [Wake up for schedules and stock events](ch09/profrod-sovereign-agent-ch09-schedules-stock-events-educator-guide.md) | Available draft — A and B, 90 minutes each |
 | 10 | [Ask permission before spending](ch10/profrod-sovereign-agent-ch10-spending-permissions-educator-guide.md) | Available draft — A and B, 90 minutes each |
 | 11 | [Exactly one order: lost replies, retries and idempotency](ch11/profrod-sovereign-agent-ch11-ambiguous-supplier-order-educator-guide.md) | Available draft — A and B, 90 minutes each |
-| 12 | [Recover work after a process crash](ch12/profrod-sovereign-agent-ch12-worker-recovery-educator-guide.md) | Available draft — A and B, 90 minutes each |
+| 12 | [Slow or dead: leases, fencing and crash recovery](ch12/profrod-sovereign-agent-ch12-worker-recovery-educator-guide.md) | Available draft — A and B, 90 minutes each |
 | 13 | [Build an MCP client and tool server](ch13/profrod-sovereign-agent-ch13-mcp-tools-educator-guide.md) | PLANNED — brief only |
 | 14 | [Prompt injection and isolation: words steer the model, boundaries hold](ch14/profrod-sovereign-agent-ch14-tool-isolation-educator-guide.md) | Available draft — A and B, 90 minutes each |
 | 15 | [Evaluation as measurement: error bars and paired comparisons](ch15/profrod-sovereign-agent-ch15-agent-evaluation-educator-guide.md) | Available draft — A and B, 90 minutes each |

@@ -23,7 +23,7 @@ Run from the complete repository root using the [frozen environment](profrod-sov
 | 9 | [Wake up for schedules and stock events](ch09/profrod-sovereign-agent-ch09-schedules-stock-events-chapter.md) | [ch09.py](checkpoints/profrod_sovereign_agent_ch09_schedules_stock_events_checkpoint.py) |
 | 10 | [Ask permission before spending](ch10/profrod-sovereign-agent-ch10-spending-permissions-chapter.md) | [ch10.py](checkpoints/profrod_sovereign_agent_ch10_spending_permissions_checkpoint.py) |
 | 11 | [Exactly one order: lost replies, retries and idempotency](ch11/profrod-sovereign-agent-ch11-ambiguous-supplier-order-chapter.md) | [ch11.py](checkpoints/profrod_sovereign_agent_ch11_ambiguous_supplier_order_checkpoint.py) |
-| 12 | [Recover work after a process crash](ch12/profrod-sovereign-agent-ch12-worker-recovery-chapter.md) | [ch12.py](checkpoints/profrod_sovereign_agent_ch12_worker_recovery_checkpoint.py) |
+| 12 | [Slow or dead: leases, fencing and crash recovery](ch12/profrod-sovereign-agent-ch12-worker-recovery-chapter.md) | [ch12.py](checkpoints/profrod_sovereign_agent_ch12_worker_recovery_checkpoint.py) |
 | 13 | [Connect an external tool with MCP](ch13/profrod-sovereign-agent-ch13-mcp-tools-chapter.md) | PLANNED — no executable checkpoint |
 | 14 | [Prompt injection and isolation: words steer the model, boundaries hold](ch14/profrod-sovereign-agent-ch14-tool-isolation-chapter.md) | [ch14.py](checkpoints/profrod_sovereign_agent_ch14_tool_isolation_checkpoint.py) |
 | 15 | [Evaluation as measurement: error bars and paired comparisons](ch15/profrod-sovereign-agent-ch15-agent-evaluation-chapter.md) | [ch15.py](checkpoints/profrod_sovereign_agent_ch15_agent_evaluation_checkpoint.py) |
