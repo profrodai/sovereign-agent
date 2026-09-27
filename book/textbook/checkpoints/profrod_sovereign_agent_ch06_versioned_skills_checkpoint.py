@@ -8,6 +8,7 @@
 import argparse
 import json
 import runpy
+import statistics
 import tempfile
 from pathlib import Path
 
@@ -24,8 +25,40 @@ from sovereign_agent.assistant_context import (
 from sovereign_agent.database import Database
 from sovereign_agent.model_turn import HTTPModel
 
+BOOK = Path(__file__).resolve().parents[1]
+SENSITIVITY = runpy.run_path(
+    str(BOOK / "learner/profrod_sovereign_agent_ch06_prompt_sensitivity_learner.py")
+)
+
+
+def prompt_sensitivity():
+    """Part A's measures, checked by definition and against the receipt's retained answers."""
+    label_of, spread = SENSITIVITY["label_of"], SENSITIVITY["spread"]
+    assert label_of("Stock.") == "stock" and label_of("I would refuse this") == "refuse"
+    assert label_of("pay") is None
+    values = [0.25, 0.5, 0.75, 0.5]
+    assert abs(spread(values)["sd"] - statistics.stdev(values)) < 1e-12
+    assert SENSITIVITY["all_agree_share"]([[True, False, True], [True, True, True]]) == 2 / 3
+    print("ok   labels, spread and agreement by their definitions")
+    receipt = json.loads(
+        (
+            BOOK.parents[1] / "docs/evidence/book-ch06/ch06-prompt-sensitivity-receipt-v1.json"
+        ).read_text()
+    )
+    for model in receipt["models"]:
+        rows = {}
+        for run in receipt["runs"]:
+            if run["model"] == model["model"]:
+                rows.setdefault(run["prompt"], []).append(
+                    label_of(run["answer"]) == run["expected"]
+                )
+        recomputed = {name: round(sum(r) / len(r), 3) for name, r in rows.items()}
+        assert recomputed == model["accuracy_by_prompt"], model["model"]
+    print("ok   every prompt's accuracy recomputes from the retained answers")
+
 
 def main():
+    prompt_sensitivity()
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--live", action="store_true")
     parser.add_argument("--model", default="qwen3")

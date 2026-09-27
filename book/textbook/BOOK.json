@@ -48,7 +48,7 @@
     {
       "number": 6,
       "lessonId": "skills",
-      "title": "Reuse a tested opening procedure",
+      "title": "In-context learning: why a skill's exact words must be tested",
       "path": "ch06/profrod-sovereign-agent-ch06-versioned-skills-chapter.md",
       "checkpoint": "checkpoints/profrod_sovereign_agent_ch06_versioned_skills_checkpoint.py",
       "status": "DRAFT"
