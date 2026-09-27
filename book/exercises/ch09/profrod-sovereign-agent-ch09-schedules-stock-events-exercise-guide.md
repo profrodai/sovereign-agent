@@ -1,4 +1,4 @@
-# Chapter 9: Wake up for schedules and stock events
+# Chapter 9: Events at random: queues, utilization and scheduled work
 
 > **Learn with Prof Rod** — *Build Your Always-On AI Agent From Scratch*.
 > **Read the full book and get the latest learning materials:** [https://profrod.ai/book](https://profrod.ai/book).
