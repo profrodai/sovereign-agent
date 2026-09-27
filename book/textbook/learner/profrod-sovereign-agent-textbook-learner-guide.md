@@ -19,6 +19,7 @@ Each file below is the completed comparison implementation for one chapter's con
 | 6 | `profrod_sovereign_agent_ch06_prompt_sensitivity_learner.py` | Labels from free text, accuracy, spread across prompts, case-sampling noise and agreement |
 | 7 | `profrod_sovereign_agent_ch07_work_queue_learner.py` | The durable work queue |
 | 11 | `profrod_sovereign_agent_ch11_retries_learner.py` | Attempts and duplicate effects of retries, capped attempts under timeouts, percentiles and a stable operation key |
+| 12 | `profrod_sovereign_agent_ch12_leases_learner.py` | False expiry from turn lengths, the shortest safe lease, detection delay and the fencing rule |
 | 14 | `profrod_sovereign_agent_ch14_injection_learner.py` | Attempted-action checks, attack success rates with intervals, and spotlighting |
 | 15 | `profrod_sovereign_agent_ch15_evaluation_statistics_learner.py` | Wilson intervals, clustered standard errors, McNemar's test, sample size, pass@k and kappa |
 | 16 | `profrod_sovereign_agent_ch16_optimization_learner.py` | The expected maximum of k normals, the winner's curse, and Bradley–Terry ratings fitted from preferences |

@@ -1,4 +1,4 @@
-# Chapter 12 — Recover work after a process crash
+# Chapter 12 — Slow or dead: leases, fencing and crash recovery
 
 > **Learn with Prof Rod** — *Build Your Always-On AI Agent From Scratch*.
 > **Read the full book and get the latest learning materials:** [https://profrod.ai/book](https://profrod.ai/book).
@@ -10,15 +10,181 @@
 
 The supplier's order survived a lost response in Chapter 11. Now the process performing Lucy's work disappears. Its Python variables, open connection and current model conversation are gone. A replacement can reopen SQLite, but that alone does not tell it which assignment to continue or prevent the previous process from writing if it was merely delayed rather than dead.
 
-We will construct durable claims with expiring ownership and increasing generations. Every controlled write will check the claim against current records. The final experiment first kills an actual worker process, then repeats the scenario with an old worker that stays alive. Those are different failures. An implementation that only works when the old process has definitely stopped is insufficient for the second case.
+Part A first measures how long a lease should be, and what a model does when it is asked to take over a crashed turn. Part B then constructs durable claims with expiring ownership and increasing generations. Every controlled write will check the claim against current records. The final experiment first kills an actual worker process, then repeats the scenario with an old worker that stays alive. Those are different failures. An implementation that only works when the old process has definitely stopped is insufficient for the second case.
 
 The authority boundary from [Chapter 11](../ch11/profrod-sovereign-agent-ch11-ambiguous-supplier-order-chapter.md) remains in place. A replacement continues the existing approved operation and uses the same supplier identity. It does not ask a new model to reconstruct a purchase from a conversational summary. We will make that requirement observable by supplying a model object that fails if recovery tries to call it.
 
 ## Learning objectives
 
-Separate a durable assignment from its executing process; claim eligible work atomically; explain leases and ownership generations; reject stale transcript, completion and supplier writes; and recover an existing approved operation after a real process kill. You will also distinguish process health, work progress, cancellation and external completion, rather than treating them as one green status.
+Part A measures leases. After it you should be able to:
+
+- explain why a crashed worker cannot be told apart from a slow one, and what a lease does instead;
+- predict the false-expiry rate of a lease from the distribution of turn lengths;
+- derive the detection delay of a crash, and explain the trade-off with false expiry;
+- explain why a replacement must continue from records rather than ask a model what happened.
+
+Part B builds recovery. After it you should be able to:
+
+- separate a durable assignment from its executing process;
+- claim eligible work atomically;
+- explain leases and ownership generations;
+- reject stale transcript, completion and supplier writes;
+- recover an existing approved operation after a real process kill.
+
+You will also distinguish process health, work progress, cancellation and external completion, rather than treating them as one green status.
 
 The deliverable is a replacement worker that resumes eligible work while stale holders cannot make newly authorized writes through the controlled boundary. The checkpoint uses separate worker and HTTP supplier processes on a POSIX host. It observes actual lease expiry without rewriting the clock or ledger, and independently counts the supplier's orders.
+
+## Part A: slow or dead?
+
+A replacement worker faces a question it cannot answer directly: has the previous worker died, or is it only slow? This part shows why the question has no certain answer, and how a lease turns it into two measurable errors. It then measures both errors on real model turns, and tests what a model does when it is asked to take over a crashed turn. The rest of the chapter builds on the answers.
+
+The functions live in [the chapter's learner file](../learner/profrod_sovereign_agent_ch12_leases_learner.py).
+
+```python
+import json
+import runpy
+
+lease = runpy.run_path("book/textbook/learner/profrod_sovereign_agent_ch12_leases_learner.py")
+measured = json.loads(open("docs/evidence/book-ch12/ch12-leases-receipt-v1.json").read())
+```
+
+### Silence cannot say which
+
+A worker that has said nothing for ten seconds may have crashed. It may also be waiting for a slow model call, paused by the operating system, or cut off from the database by a busy disk. In a system with no upper bound on how long a step can take, silence is consistent with all of these. This is the heart of a famous result by Fischer, Lynch and Paterson: in such an **asynchronous** system, no deterministic protocol can guarantee that processes reach agreement if even one of them may crash. The intuition is the one above: a crashed process cannot be told apart from a slow one.
+
+Practical systems escape by adding time. A **lease** gives the holder the work for $T$ seconds. After that, another worker may take it, whether or not the first is dead. The lease does not answer the slow-or-dead question; it replaces it with a rule. The rule can err in two ways. A lease that is too short takes work away from a worker that is still working: a **false expiry**. A lease that is too long leaves a dead worker's work waiting: a **detection delay**.
+
+### False expiry is the latency tail
+
+This book's runtime takes a lease at the start of a turn and does not renew it during the turn. A turn that takes longer than $T$ outlives its lease, so
+
+$
+P(\text{false expiry}) = P(\text{turn} > T).
+$
+
+The lease must be chosen from the distribution of turn lengths, and the part that matters is the tail. The experiment measured 40 real turns: `qwen2.5:0.5b` answering eight kinds of shop task, with up to 256 generated tokens.
+
+```bash
+uv run python book/textbook/experiments/profrod_sovereign_agent_textbook_ch12_leases_v1.py \
+    --out ch12-leases-receipt.json
+```
+
+**Listing:** The pilot's turn lengths and the lease each target would need.
+
+```python
+pilot = measured["pilot_turn_seconds"]
+for q in (50, 90, 100):
+    print(f"p{q} turn: {lease['percentile'](pilot, q)} s")
+for target in (0.5, 0.1, 0.05, 0.0):
+    print(f"false expiry at most {target}: lease {lease['shortest_lease'](pilot, target)} s")
+```
+
+```text
+p50 turn: 0.539 s
+p90 turn: 1.334 s
+p100 turn: 2.669 s
+false expiry at most 0.5: lease 0.539 s
+false expiry at most 0.1: lease 1.334 s
+false expiry at most 0.05: lease 1.449 s
+false expiry at most 0.0: lease 2.669 s
+```
+
+Half the turns finished within 0.54 seconds, but the tail is long: the 90th percentile is 1.33 seconds and the slowest turn took 2.67, five times the median. The cluster near 1.33 seconds is consistent with turns that reached the 256-token cap. [Chapter 18](../ch18/profrod-sovereign-agent-ch18-deployment-restoration-chapter.md)'s fitted step time, applied to this model's weights, puts 256 tokens at about 1.2 seconds, plus the prompt. The two slowest turns took about twice that. A lease short enough to feel responsive would take work away from live workers again and again.
+
+The experiment then ran 20 new turns under each of three leases. A worker claimed the work, ran one turn and completed it with a **fenced** write: one that lands only if the worker's generation is still the current one. A replacement looked for expired work every 50 milliseconds and claimed it.
+
+**Listing:** False expiries, predicted from the pilot and measured on new turns.
+
+```python
+for row in measured["false_expiry"]:
+    print(
+        f"{row['rule']:23} lease {row['lease_seconds']} s: "
+        f"predicted {row['predicted_false_expiry']}, measured {row['measured_false_expiry']}; "
+        f"stale completions accepted "
+        f"{row['stale_completions_accepted']}"
+    )
+```
+
+```text
+pilot median            lease 0.539 s: predicted 0.5, measured 0.45; stale completions accepted 0
+pilot 90th percentile   lease 1.334 s: predicted 0.1, measured 0; stale completions accepted 0
+twice the pilot maximum lease 5.338 s: predicted 0.0, measured 0; stale completions accepted 0
+```
+
+The median lease took work from a live worker in 9 of 20 turns, close to the predicted half. At the 90th percentile the prediction was 2 of 20, and none happened. With 20 trials, seeing none has probability $0.9^{20} \approx 0.12$, so this is not evidence against the prediction. In every takeover, the fence refused the old worker's completion when it finally arrived, so a late result could not overwrite the replacement's claim. The false expiries cost repeated work, not correctness.
+
+### Detection delay is the lease
+
+Now suppose the worker really crashes. Its lease started with its turn, so a crash at time $c$ into a turn is noticed when the lease runs out, $T - c$ later, plus the wait until the replacement next looks. If crashes fall uniformly within a turn of length $D$, and the replacement looks every $s$ seconds,
+
+$
+E[\text{delay}] = T - \frac{D}{2} + \frac{s}{2}.
+$
+
+The experiment stopped a worker at a random moment within a typical turn, 20 times, under the safe lease of twice the pilot maximum.
+
+**Listing:** Detection delay, predicted and measured.
+
+```python
+crash = measured["detection"]
+print("lease", crash["lease_seconds"], "s; typical turn", crash["turn_seconds"], "s")
+print("predicted mean delay", crash["predicted_mean_delay"], "s")
+print("measured mean delay", crash["measured_mean_delay"], "s")
+```
+
+```text
+lease 5.338 s; typical turn 0.539 s
+predicted mean delay 5.094 s
+measured mean delay 5.115 s
+```
+
+The measured delay, 5.12 seconds, is within 0.03 seconds of the prediction, and nearly all of it is the lease itself. The lease that made false expiry vanish also makes every crash wait about five seconds before anyone notices: ten times the typical turn.
+
+```mermaid
+xychart-beta
+    title "Share of the pilot's turns that outlive a lease"
+    x-axis "lease (seconds)" [0.25, 0.5, 1, 1.5, 2, 2.5, 3]
+    y-axis "false expiry share" 0 --> 1
+    line [0.875, 0.625, 0.325, 0.05, 0.05, 0.05, 0]
+```
+
+**Figure:** The two errors pull in opposite directions. Each extra second of lease removes false expiries from the tail, and adds about a second to the time a crashed worker's job waits.
+
+### A replacement must not ask the model what happened
+
+The replacement now holds the work. The tempting way to continue is to hand the old conversation to a model and say "carry on". The experiment tried exactly that. A worker had called `place_order` for Lucy's six tubs and stopped before the supplier's reply was recorded. Each of two models received that transcript, a `lookup_order` tool, and the message that it was the replacement and should continue the task, 20 times.
+
+**Listing:** What the replacement model did.
+
+```python
+for row in measured["recovery"]:
+    print(
+        f"{row['model']}: placed the order again {row['placed_again']}/{row['samples']}, "
+        f"looked it up {row['looked_up']}/{row['samples']}"
+    )
+```
+
+```text
+qwen2.5:0.5b: placed the order again 14/20, looked it up 0/20
+qwen2.5:1.5b: placed the order again 1/20, looked it up 1/20
+```
+
+`qwen2.5:0.5b` placed the order again in 14 of 20 samples and never looked it up. If the first order was accepted, each of those is a second order for Lucy: exactly the uncertain case of [Chapter 11](../ch11/profrod-sovereign-agent-ch11-ambiguous-supplier-order-chapter.md). `qwen2.5:1.5b` called a tool in only 2 of 20 samples, once to order again and once to look the order up. Most of its replies asked Lucy for the supplier's response, and some said in text that they would place the order again.
+
+Neither behavior is a recovery procedure. The records already say what to do. An approved operation with a stable key exists and its outcome is uncertain, so the replacement must look it up by that key before anything else.
+
+### The decision
+
+Three rules follow, and Part B implements each:
+
+- **Choose the lease from the measured tail, with margin.** A bound on the turn, such as a token cap, makes the tail predictable. Measurement still decides, because the pilot's two slowest turns took about twice as long as the cap alone implies.
+- **Fence every write,** because false expiry will sometimes happen. A lease without a fence is only a hope that the old worker has stopped.
+- **Recover from records, not from the model.** The approved operation and its key are already durable. A replacement that continues them cannot place a second order, whatever a model would have done.
+
+## Part B: recover work after a process crash
+
+Part A measured the lease and showed why the replacement must not improvise. This part builds the claim, the fence and the recovery path, and tests them with a worker process that is really killed and one that is really still alive.
 
 ## An assignment outlives the process that holds it
 
@@ -528,15 +694,27 @@ In a disposable copy of the observation function, omit the current-holder check 
 
 Queue work in two different sessions and allow both to claim independently. Give each a proposed order that individually fits policy but whose combined reservations exceed the account ceiling. Verify that session concurrency is permitted while only the affordable reservation is admitted. Explain why a per-session lock cannot replace the account-level transaction from Chapter 10.
 
+### Exercise 5 — Renew the lease, and measure what it costs
+
+Change the experiment so the worker renews its lease halfway through each turn, from a second thread, and set the lease to the pilot median. Measure false expiry and detection delay again. Renewal lets a short lease survive a long turn. What new failure appears if the renewing thread keeps running after the turn itself has hung?
+
+### Exercise 6 — Give the replacement the records
+
+Rerun the recovery measurement, but add the durable record to the replacement's message: the operation key, its status `UNKNOWN` and the rule that an unknown operation must be looked up first. Count re-orders and lookups for both models. Then explain why the checkpoint's replacement makes no model call at all, and when a model call during recovery would still be appropriate.
+
 ## Active recall
+
+Without rereading: why can a replacement not tell whether the previous worker died? Predict the false-expiry rate of a lease set at the median turn length. What does the detection delay consist of? What did the replacement models do with the crashed transcript?
 
 What survives a process kill? Why is an expired lease not evidence that its process died? Which value distinguishes two acquisitions with the same owner label? Why must ownership be checked inside an observation transaction? When may a replacement continue without a model call? What must still be reconciled if an old authorized request completes after replacement?
 
 ## Vocabulary
 
-A **claim** is the current holding of a durable assignment. A **lease** limits that holding in time. A **generation** distinguishes successive acquisitions or invalidations. A **fence** rejects an outdated holder at a controlled boundary. **Liveness** is evidence about a process; **progress** is evidence about its work. **Recovery** continues from durable state, while **reconciliation** determines the outcome of an effect whose external result is uncertain.
+An **asynchronous** system has no bound on how long a step can take. A **false expiry** is a lease that runs out while its holder is still working; the **detection delay** is the time from a crash until a replacement claims the work. A **claim** is the current holding of a durable assignment. A **lease** limits that holding in time. A **generation** distinguishes successive acquisitions or invalidations. A **fence** rejects an outdated holder at a controlled boundary. **Liveness** is evidence about a process; **progress** is evidence about its work. **Recovery** continues from durable state, while **reconciliation** determines the outcome of an effect whose external result is uncertain.
 
 ## Summary
+
+No protocol can tell a crashed worker from a slow one, so a lease replaces the question with a rule. On real model turns, a lease at the median turn length took work from a live worker nine times in twenty, as the arithmetic predicted. A lease long enough to make false expiry vanish left every crash waiting about five seconds, as predicted. Fencing made the false expiries harmless. Handed the crashed transcript, one model placed Lucy's order again in 14 of 20 samples, so recovery continues from records, not from the model.
 
 You constructed atomic work acquisition and current-holder checks, then connected them to transcript and completion writes. The real-process checkpoint replaced a killed worker and refused a still-living stale worker without duplicating the supplier order. Existing operational records carried the approved purchase forward without a new model call. Next, [Chapter 13](../ch13/profrod-sovereign-agent-ch13-mcp-tools-chapter.md) defines the bounded MCP protocol lesson before [Chapter 14](../ch14/profrod-sovereign-agent-ch14-tool-isolation-chapter.md) constrains untrusted content and executable tools. Chapter 13 is currently a construction brief; Chapter 14 retains the existing protocol construction until the expanded lesson is authored.
 

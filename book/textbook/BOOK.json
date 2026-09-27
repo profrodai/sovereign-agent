@@ -96,7 +96,7 @@
     {
       "number": 12,
       "lessonId": "worker-recovery",
-      "title": "Recover work after a process crash",
+      "title": "Slow or dead: leases, fencing and crash recovery",
       "path": "ch12/profrod-sovereign-agent-ch12-worker-recovery-chapter.md",
       "checkpoint": "checkpoints/profrod_sovereign_agent_ch12_worker_recovery_checkpoint.py",
       "status": "DRAFT"
