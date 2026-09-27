@@ -1,4 +1,4 @@
-# Chapter 9 — Wake up for schedules and stock events
+# Chapter 9 — Events at random: queues, utilization and scheduled work
 
 > **Learn with Prof Rod** — *Build Your Always-On AI Agent From Scratch*.
 > **Read the full book and get the latest learning materials:** [https://profrod.ai/book](https://profrod.ai/book).
@@ -10,15 +10,222 @@
 
 Lucy has learned to ask for a replenishment brief from her phone. Now she wants the brief before she asks. A second request follows: if vanilla becomes scarce during the day, prepare another draft. Repeating yesterday's prompt in a terminal would work while the builder was present. Lucy needs the host to notice these conditions and retain the resulting work while everyone is elsewhere.
 
-We will build two producers for the durable work queue from [Chapter 8](../ch08/profrod-sovereign-agent-ch08-telegram-messaging-chapter.md). One observes the clock. The other observes stock. Neither calls a model. The existing worker consumes their records, loads the current session context and runs the bounded loop. A standard Linux service manager keeps that worker available after the terminal closes.
+Part A first measures how long work waits when events arrive at random. Part B then builds two producers for the durable work queue from [Chapter 8](../ch08/profrod-sovereign-agent-ch08-telegram-messaging-chapter.md). One observes the clock. The other observes stock. Neither calls a model. The existing worker consumes their records, loads the current session context and runs the bounded loop. A standard Linux service manager keeps that worker available after the terminal closes.
 
 There is also a less obvious failure to repair. During this chapter's live experiment, the model requested a correct seven-tub draft worth $17.50, then described it as $15.00. A queue can preserve a wrong report perfectly. We will use the structured tool results to render the quantities and amounts Lucy sees, while retaining the original model response for evaluation.
 
 ## Learning objectives
 
-By the end of this chapter you can implement a bounded scheduler pass, choose and test a missed-run policy, turn a persistent stock condition into one scoped work item per observed episode, and connect both producers to an unattended worker. You can distinguish process liveness, work admission, successful execution and a correct displayed result. You will also know which parts of a fixed-interval timer do not implement a local-calendar appointment.
+Part A measures queues. After it you should be able to:
+
+- compute a worker's utilization, and explain why the queue grows without bound at or above 1;
+- derive the Pollaczek–Khinchine mean wait, and explain why variable job lengths lengthen it;
+- check Little's law on a measured run;
+- size the arrival rate one worker can take for a target wait, and add the delay of a periodic rescan.
+
+Part B builds the producers. After it you should be able to:
+
+- implement a bounded scheduler pass;
+- choose and test a missed-run policy;
+- turn a persistent stock condition into one scoped work item per observed episode;
+- connect both producers to an unattended worker.
+
+You can distinguish process liveness, work admission, successful execution and a correct displayed result. You will also know which parts of a fixed-interval timer do not implement a local-calendar appointment.
 
 The deliverable is an unattended draft-producing agent. The checkpoint runs a real child process without a prompt argument and waits for a persisted result. Its optional live mode uses the local HTTP model in that child. Purchases remain unavailable: no supplier endpoint is configured, and this chapter exposes only the read and draft tools already constructed.
+
+## Part A: how long does an event wait?
+
+Schedules and stock events put work on a queue, and one worker takes it off. When events arrive faster, work waits longer, but not in proportion. This part derives how long work waits when events arrive at random, measures it with a real model doing the work, and turns the result into a rule for how busy Lucy's worker may be.
+
+The functions live in [the chapter's learner file](../learner/profrod_sovereign_agent_ch09_queueing_learner.py).
+
+```python
+import json
+import runpy
+
+q = runpy.run_path("book/textbook/learner/profrod_sovereign_agent_ch09_queueing_learner.py")
+measured = json.loads(open("docs/evidence/book-ch09/ch09-queueing-receipt-v1.json").read())
+```
+
+### Utilization
+
+Suppose jobs arrive at an average rate of $\lambda$ per second, and each takes the worker $S$ seconds, with mean $E[S]$. The worker is busy a fraction
+
+$
+\rho = \lambda\, E[S]
+$
+
+of the time: its **utilization**. If $\rho \ge 1$, work arrives faster than it can be done and the queue grows without bound. Below 1 the queue empties sometimes, but how long a job waits depends on more than $\rho$.
+
+### The Pollaczek–Khinchine formula
+
+Stock events do not arrive on a timetable. A standard model for arrivals that are independent of one another is the **Poisson process**: the gaps between arrivals are independent and exponentially distributed with mean $1/\lambda$. Under Poisson arrivals, a job that arrives waits for two things: the rest of the job in progress, and every job already queued ahead of it.
+
+The first part holds a surprise. An arrival at a random moment is more likely to land during a long job than a short one, simply because long jobs occupy more of the time. This is the **inspection paradox**. Working it through, the mean remaining service an arrival finds is $\lambda E[S^2]/2$, which depends on the second moment $E[S^2]$ and not only the mean.
+
+The second part follows from [Chapter 18](../ch18/profrod-sovereign-agent-ch18-deployment-restoration-chapter.md)'s Little's law. If the mean wait is $W$, then on average $\lambda W$ jobs are queued ahead, each needing $E[S]$. So
+
+$
+W = \frac{\lambda E[S^2]}{2} + \lambda W\, E[S]
+\quad\Longrightarrow\quad
+W = \frac{\lambda\, E[S^2]}{2\,(1 - \rho)}.
+$
+
+This is the **Pollaczek–Khinchine formula**. Writing $E[S^2] = E[S]^2 (1 + c^2)$, where $c$ is the coefficient of variation of the service time (its standard deviation over its mean), gives the form that shows what matters:
+
+$
+W = E[S] \cdot \frac{\rho}{1 - \rho} \cdot \frac{1 + c^2}{2}.
+$
+
+Two lessons are visible:
+
+- **The factor $\rho/(1 - \rho)$ explodes as the worker gets busy.** At $\rho = 0.5$ it is 1, at 0.8 it is 4 and at 0.95 it is 19.
+- **Variable job lengths multiply the wait.** With identical jobs ($c = 0$) the factor $(1 + c^2)/2$ is one half. The textbook exponential service time has $c = 1$, and the factor is 1.
+
+**Listing:** Predicted waits, in units of the mean job, for identical jobs and exponential jobs.
+
+```python
+for rho in (0.5, 0.8, 0.9, 0.95):
+    identical = q["pk_wait"](rho, 1.0, 1.0)
+    exponential = q["exponential_wait"](rho, 1.0)
+    print(rho, round(identical, 2), round(exponential, 2))
+```
+
+```text
+0.5 0.5 1.0
+0.8 2.0 4.0
+0.9 4.5 9.0
+0.95 9.5 19.0
+```
+
+### Measured: a real worker under random arrivals
+
+Each job in the experiment is one real model call: `qwen2.5:0.5b` writing Lucy a note about a stock event. There were two workloads:
+
+- **notes:** every job is a short note, capped at 120 tokens;
+- **mixed:** one job in five is instead a detailed weekly report, capped at 600 tokens.
+
+A pilot of 60 jobs per workload measured the service-time moments. Then 400 jobs arrived at random for each workload, at rates that the pilot said would make the worker 50% and 80% busy, and one worker served them in order.
+
+```bash
+uv run python book/textbook/experiments/profrod_sovereign_agent_textbook_ch09_queueing_v1.py \
+    --out ch09-queueing-receipt.json
+```
+
+**Listing:** The two workloads' service times.
+
+```python
+for name, pilot in measured["pilots"].items():
+    print(name, pilot["mean_service"], pilot["second_moment"], "c^2 =", pilot["squared_cv"])
+```
+
+```text
+notes 0.4706 0.2393 c^2 = 0.08
+mixed 0.6901 0.9855 c^2 = 1.07
+```
+
+Short notes took 0.47 seconds on average with little variation ($c^2 = 0.08$): the 120-token cap makes them nearly identical. The mixed pilot measured 0.69 seconds with $c^2 = 1.07$.
+
+But only 6 of the mixed pilot's 60 jobs, 10%, took longer than 1.5 seconds, although one job in five was meant to be a long report. In the runs, 63 and 64 of 400 jobs took that long, about 16%, and the mean service time was 0.91 seconds. The pilot had underestimated the mean by about a quarter, and that mistake matters below.
+
+**Listing:** Mean wait before service, measured and predicted.
+
+```python
+for row in measured["rows"]:
+    from_run = row["pk_wait_from_this_run"]
+    from_run = "no steady state" if from_run is None else f"{from_run} s"
+    print(
+        f"{row['workload']:5} rho {row['target_utilization']}: "
+        f"measured {row['measured_mean_wait']} s, "
+        f"Pollaczek-Khinchine {row['pk_wait_from_pilot']} s "
+        f"(from this run {from_run}), "
+        f"exponential {row['exponential_wait_from_pilot']} s"
+    )
+```
+
+```text
+notes rho 0.5: measured 0.573 s, Pollaczek-Khinchine 0.254 s (from this run 0.5 s), exponential 0.471 s
+notes rho 0.8: measured 1.214 s, Pollaczek-Khinchine 1.017 s (from this run 1.503 s), exponential 1.883 s
+mixed rho 0.5: measured 2.198 s, Pollaczek-Khinchine 0.714 s (from this run 2.208 s), exponential 0.69 s
+mixed rho 0.8: measured 38.862 s, Pollaczek-Khinchine 2.856 s (from this run no steady state), exponential 2.76 s
+```
+
+Compare each stable run with the prediction made from the service times that run actually saw. The pairs are 0.57 seconds measured against 0.50 predicted, 1.21 against 1.50, and 2.20 against 2.21. The formula tracks all three. The largest gap, 20%, is in the busiest run, where a queue's average varies most from one run to the next. The exponential column assumes $c = 1$; it is shown for comparison and is a model of neither workload.
+
+The predictions from the pilot did worse, for two different reasons:
+
+- **Rare stalls.** In the first notes run, 4 jobs of 400 stalled for up to 5.6 seconds. Rare slow jobs dominate $E[S^2]$, so they roughly doubled the predicted wait, and the measured wait followed.
+- **An unlucky pilot.** For the mixed workload, the pilot's low mean meant that a rate planned for 50% utilization gave 69%, and one planned for 80% gave 111%. At 111% there is no steady state: the queue grew throughout the run. Jobs waited 38.9 seconds on average and up to 73.7 seconds, where the plan had predicted 2.9.
+
+Mixing reports into the queue also lengthened every wait. At 69% utilization, the mixed workload waited 2.2 seconds, nearly twice as long as the notes at 85%.
+
+```mermaid
+xychart-beta
+    title "Mean wait before service in the three stable runs (seconds)"
+    x-axis ["notes, 57% busy", "notes, 85% busy", "mixed, 69% busy"]
+    y-axis "seconds" 0 --> 2.5
+    bar [0.573, 1.214, 2.198]
+    line [0.5, 1.503, 2.208]
+```
+
+**Figure:** Bars are measured; the line is the Pollaczek–Khinchine prediction from each run's own service times. The fourth run, planned for 80% and actually 111% busy, is off this scale: 38.9 seconds.
+
+**Listing:** Little's law on the same runs: the time-average number of jobs in the system against the arrival rate times the mean time in the system.
+
+```python
+for row in measured["rows"]:
+    number, product = row["littles_law_number"], row["littles_law_rate_times_stay"]
+    print(row["workload"], row["target_utilization"], number, product)
+```
+
+```text
+notes 0.5 1.195 1.195
+notes 0.8 2.894 2.931
+mixed 0.5 2.361 2.359
+mixed 0.8 42.547 48.419
+```
+
+In the three stable runs the two sides agree to within about 1%: 1.195 and 1.195, 2.894 and 2.931, and 2.361 and 2.359. Little's law needs only that the system is stable. In the overloaded run they disagree, 42.5 against 48.4, because it never reached a steady state: the queue was still growing when the last job arrived, and draining it stretched the measurement window.
+
+### How many events can one worker take?
+
+Turn the formula around to plan capacity. If Lucy wants stock notes to wait no more than $W^*$ seconds on average, the highest arrival rate one worker can take is found by solving the Pollaczek–Khinchine formula for $\lambda$:
+
+$
+\lambda^* = \frac{2 W^*}{E[S^2] + 2 W^* E[S]}.
+$
+
+**Listing:** The highest event rate, per minute, for an average wait of at most two seconds.
+
+```python
+for name, pilot in measured["pilots"].items():
+    rate = q["highest_rate"](2.0, pilot["mean_service"], pilot["second_moment"])
+    busy = rate * pilot["mean_service"]
+    print(name, round(60 * rate, 1), "jobs per minute, utilization", round(busy, 2))
+```
+
+```text
+notes 113.1 jobs per minute, utilization 0.89
+mixed 64.1 jobs per minute, utilization 0.74
+```
+
+By these figures, a worker doing only notes can take about 113 a minute, at 89% utilization, and a mixed worker about 64 a minute, at 74%. For the mixed workload the figure is optimistic, because it uses the pilot's mean, which was a quarter too low. That is exactly how the run planned for 80% ended at 111%. Plan capacity from enough jobs to include the rare long ones, and leave margin.
+
+### A periodic rescan adds its own delay
+
+The chapter's stock producer rescans on a timer rather than reacting to every change. An event that happens at a random moment waits, on average, half the rescan period before it is noticed, and then its time in the queue. The two add. A rescan every 60 seconds, like the NanoClaw sweep described later in this chapter, adds 30 seconds on average: far more than the queue itself at modest utilization. Event hints can remove that half-period; the rescan remains as the recovery path when a hint is lost.
+
+### The decision
+
+- **Keep the worker well below full utilization.** Waits scale with $\rho/(1-\rho)$, so a worker that looks only moderately busy can already be slow to answer.
+- **Measure the distribution of job lengths, not only the mean.** The same mean with more variation means longer waits for everyone.
+- **Plan from a pilot large enough to contain the rare jobs,** and re-measure in production. A quarter's error in the mean turned a planned 80% into an overloaded queue.
+- **Keep long jobs away from short, urgent ones.** A weekly report in the same queue makes every stock note wait behind it. Separate queues, or a separate worker, keep the short jobs short.
+
+## Part B: wake up for schedules and stock events
+
+Part A measured what a queue does to waiting work. This part builds the producers that fill Lucy's queue: a clock that survives restarts and a stock scanner that turns a shortage into one episode of work.
 
 ## Separate a wake-up from the work it creates
 
@@ -715,15 +922,27 @@ Start with a disarmed condition and positive need. Change on-hand stock to the t
 
 Use a model fixture that requests the correct draft but ends with the wrong currency or total. Check the raw transcript, stored result and channel payload separately. Then corrupt the structured tool result instead and require a refusal. The report renderer should not turn arbitrary text into an authoritative amount, and an invalid structured amount must not be silently repaired by guessing what the tool intended.
 
+### Exercise 5 — Give the reports their own queue
+
+Split the mixed workload into two queues with two workers: one for short notes and one for weekly reports, with the same total arrival rate. Measure the mean wait of the short notes and of the reports, and compare them with the single shared queue. Then predict both waits with the Pollaczek–Khinchine formula before you run it.
+
+### Exercise 6 — Find the knee
+
+Rerun the notes workload at utilizations 0.3, 0.6, 0.9 and 0.95, with 400 jobs each. Plot the measured mean wait against $ho$ with the prediction. Near 0.95, repeat the run with three different seeds. How much do the measured means vary, and what does that say about judging a queue from one busy afternoon?
+
 ## Active recall
+
+Without rereading: what is utilization, and what happens at 1? Derive the Pollaczek–Khinchine wait from the remaining service and Little's law. Why does a random arrival more often land in a long job? Why did the mixed workload wait longer than the notes even when it was less busy? How did the pilot's estimate turn a planned 80% into an overloaded queue?
 
 What remains durable when the worker process is absent? Why do we advance a clock job from its old due time? What observation rearms a stock condition? How does a work subject differ from a SKU mentioned in a prompt? Which check caught the $15.00 explanation, and which narrower check had already passed? Why does a fixed 86,400-second interval not fully specify an 8 a.m. local appointment?
 
 ## Vocabulary
 
-A **scheduler pass** is one bounded observation and admission step. **Coalescing** combines missed occurrences into one current task. A **stock episode** is the shortage period distinguished by the scanner's healthy and unhealthy observations. **Armed** means the next positive observation may create work. A **generation** distinguishes successive episodes. A **subject** is the immutable product scope carried with the task. **Liveness** describes the process; it does not certify the business outcome.
+**Utilization** is the share of time a worker is busy. A **Poisson process** has independent, exponentially distributed gaps between arrivals. The **Pollaczek–Khinchine formula** gives the mean wait for Poisson arrivals and any service-time distribution. The **inspection paradox** is that a random moment more often falls in a long interval. A **scheduler pass** is one bounded observation and admission step. **Coalescing** combines missed occurrences into one current task. A **stock episode** is the shortage period distinguished by the scanner's healthy and unhealthy observations. **Armed** means the next positive observation may create work. A **generation** distinguishes successive episodes. A **subject** is the immutable product scope carried with the task. **Liveness** describes the process; it does not certify the business outcome.
 
 ## Summary
+
+Waiting grows with $\rho/(1-\rho)$ and with the variability of job lengths. With a real model doing the work, the Pollaczek–Khinchine formula, fed the service times each run saw, predicted the mean wait of every stable run to within 20%. Mixing long reports into the queue made jobs wait longer even at lower utilization, and a pilot that happened to miss some long reports planned 80% utilization for a queue that ran at 111% and never caught up. A worker needs headroom, its plan needs enough measurements, and long jobs belong in their own queue.
 
 You built durable clock and stock producers around the existing work queue, made pause and missed-run behavior explicit, and carried product scope into the owned agent loop. You connected those pieces to an unattended process and a standard Linux user service. You also repaired a reporting failure by taking draft quantities and USD amounts from structured tool observations. Lucy can now receive drafts while away; the next chapter establishes the permission boundary before any draft becomes spending.
 

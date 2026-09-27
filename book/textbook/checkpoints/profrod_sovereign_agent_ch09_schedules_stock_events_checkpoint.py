@@ -7,6 +7,7 @@
 
 import argparse
 import json
+import math
 import os
 import runpy
 import subprocess
@@ -39,7 +40,39 @@ def observed_drafts(messages):
     return sorted(drafts)
 
 
+BOOK = Path(__file__).resolve().parents[1]
+QUEUE = runpy.run_path(str(BOOK / "learner/profrod_sovereign_agent_ch09_queueing_learner.py"))
+
+
+def queueing_arithmetic():
+    """Part A's formulas by independent checks, and the receipt recomputed from its records."""
+    pk, exponential = QUEUE["pk_wait"], QUEUE["exponential_wait"]
+    assert math.isclose(exponential(0.5, 1.0), pk(0.5, 1.0, 2.0)) and exponential(0.5, 1.0) == 1.0
+    assert pk(0.5, 1.0, 1.0) == 0.5  # constant service waits half as long as exponential
+    rate = QUEUE["highest_rate"](2.0, 0.5, 0.4)
+    assert math.isclose(pk(rate, 0.5, 0.4), 2.0)
+    gaps = QUEUE["arrivals"](4.0, 20_000, seed=1)
+    assert abs(gaps[-1] / len(gaps) - 0.25) < 0.01  # the mean gap is 1 / rate
+    print("ok   Pollaczek-Khinchine, its exponential case and the rate for a target wait")
+    receipt = json.loads(
+        (BOOK.parents[1] / "docs/evidence/book-ch09/ch09-queueing-receipt-v1.json").read_text()
+    )
+    for pilot in receipt["pilots"].values():
+        mean, second = QUEUE["moments"](pilot["service_seconds"])
+        assert (round(mean, 4), round(second, 4)) == (pilot["mean_service"], pilot["second_moment"])
+    for row, run in zip(receipt["rows"], receipt["runs"], strict=True):
+        records = run["records"]
+        waits = [r["started"] - r["arrived"] for r in records]
+        assert round(sum(waits) / len(waits), 3) == row["measured_mean_wait"]
+        assert all(
+            later["started"] >= earlier["finished"]
+            for earlier, later in zip(records, records[1:], strict=False)
+        )
+    print("ok   pilot moments and mean waits recompute; one job served at a time, in order")
+
+
 def main():
+    queueing_arithmetic()
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument(
         "--live",

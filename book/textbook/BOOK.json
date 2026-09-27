@@ -72,7 +72,7 @@
     {
       "number": 9,
       "lessonId": "scheduling",
-      "title": "Wake up for schedules and stock events",
+      "title": "Events at random: queues, utilization and scheduled work",
       "path": "ch09/profrod-sovereign-agent-ch09-schedules-stock-events-chapter.md",
       "checkpoint": "checkpoints/profrod_sovereign_agent_ch09_schedules_stock_events_checkpoint.py",
       "status": "DRAFT"
