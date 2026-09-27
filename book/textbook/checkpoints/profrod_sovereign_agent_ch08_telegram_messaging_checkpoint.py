@@ -7,6 +7,7 @@
 
 import argparse
 import json
+import math
 import os
 import runpy
 import tempfile
@@ -157,7 +158,41 @@ def offline():
     return 0
 
 
+BOOK = Path(__file__).resolve().parents[1]
+LATENCY = runpy.run_path(str(BOOK / "learner/profrod_sovereign_agent_ch08_latency_learner.py"))
+
+
+def latency_arithmetic():
+    """Part A's formulas by independent checks, and the receipt's fits recomputed from its rows."""
+    assert LATENCY["fit_line"]([1, 2, 3], [3, 5, 7]) == (1.0, 2.0)
+    assert LATENCY["conversation_prefill"](8, 100, cached=False) == 3600
+    assert LATENCY["conversation_prefill"](8, 100, cached=True) == 800
+    first = LATENCY["first_token_seconds"](1000, 1e-4, 1e-8, 5e-3)
+    assert math.isclose(first, 0.1 + 0.01 + 0.005)
+    whole = LATENCY["reply_seconds"](1000, 101, 1e-4, 1e-8, 5e-3)
+    assert math.isclose(whole - first, 100 * 5e-3)
+    print("ok   prefill b n + c n^2, reply time, and quadratic against linear conversation cost")
+    receipt = json.loads(
+        (BOOK.parents[1] / "docs/evidence/book-ch08/ch08-latency-receipt-v1.json").read_text()
+    )
+    for model in receipt["models"].values():
+        rows = model["prefill"]["rows"]
+        b, c = LATENCY["fit_line"](
+            [r["prompt_tokens"] for r in rows],
+            [r["prefill_seconds"] / r["prompt_tokens"] for r in rows],
+        )
+        assert round(b, 9) == model["prefill"]["seconds_per_token"]
+        assert round(c, 12) == model["prefill"]["seconds_per_token_squared"]
+        assert c > 0  # the per-token prefill cost rises with the prompt's length
+    cached, uncached = receipt["conversation"]["cached"], receipt["conversation"]["uncached"]
+    assert all(
+        a["prefill_seconds"] < b["prefill_seconds"] for a, b in zip(cached, uncached, strict=True)
+    )
+    print("ok   prefill fits recompute; cached turns always prefilled faster than uncached ones")
+
+
 def main():
+    latency_arithmetic()
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument(
         "--telegram",

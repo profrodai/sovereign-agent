@@ -18,6 +18,7 @@ Each file below is the completed comparison implementation for one chapter's con
 | 5 | `profrod_sovereign_agent_ch05_retrieval_learner.py` | BM25, cosine similarity, precision@k, recall@k, reciprocal rank and a context packer |
 | 6 | `profrod_sovereign_agent_ch06_prompt_sensitivity_learner.py` | Labels from free text, accuracy, spread across prompts, case-sampling noise and agreement |
 | 7 | `profrod_sovereign_agent_ch07_work_queue_learner.py` | The durable work queue |
+| 8 | `profrod_sovereign_agent_ch08_latency_learner.py` | A least-squares line, prefill as b n + c n², time to first token and to the whole reply, and conversation prefill with and without a cache |
 | 9 | `profrod_sovereign_agent_ch09_queueing_learner.py` | Service-time moments, utilization, the Pollaczek–Khinchine wait, the rate for a target wait, Poisson arrivals and rescan delay |
 | 10 | `profrod_sovereign_agent_ch10_calibration_learner.py` | The reorder rule, expected calibration error, auto-approval coverage and error, agreement confidence and the approval threshold |
 | 11 | `profrod_sovereign_agent_ch11_retries_learner.py` | Attempts and duplicate effects of retries, capped attempts under timeouts, percentiles and a stable operation key |

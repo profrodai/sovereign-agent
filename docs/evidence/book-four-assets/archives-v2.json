@@ -4,8 +4,8 @@
     {
       "asset": "exercises",
       "path": "exercises/profrod-sovereign-agent-exercises-2026-09-10.zip",
-      "sha256": "a075928d47fb8f510ccc0c5ba8b12284d0f4f9ea45e7e1f6925ce1e1d6084476",
-      "sourceStartSha256": "bef97649517dafa79aab49f8e40273a4e6d076ff03f3d94fda38267f41d0c530",
+      "sha256": "b55b84da5ad45d1e2e62ee0d0dfb7f3880a81d3864c03dcb3ae25ce6b3c5b35a",
+      "sourceStartSha256": "2ce850b98f694351f889d353d0c1b5c2da2fadbcec6fe142cf74bc0b658f0669",
       "startTransform": "replace-named-download-link-with-extracted-notice-v2",
       "members": {
         "ch01/profrod-sovereign-agent-ch01-a-softmax-and-sampling-exercise.ipynb": "83feffb026b1d82e73eb4773f3f6e6a95e29adf02a90b271656958cb42b2c914",
@@ -47,7 +47,7 @@
         "ch08/profrod-sovereign-agent-ch08-a-private-telegram-messaging-exercise.md": "7d19b207440110eff18f997f1e906ca61833d5905ccc75ad18b1caea15cd25e9",
         "ch08/profrod-sovereign-agent-ch08-b-messaging-repair-transfer-exercise.ipynb": "5d55bec808efb87fbb429c28fb6e9737ba335bfa1360da6df450e734e6979c7d",
         "ch08/profrod-sovereign-agent-ch08-b-messaging-repair-transfer-exercise.md": "74ba5b7905c0d0859b57c32f4487a7a58a087b92b678dbce38e969b64ea9929c",
-        "ch08/profrod-sovereign-agent-ch08-telegram-messaging-exercise-guide.md": "d5273ebc8c7a53bfc5bfa387b40df349e2fbb45c16b5b6bd90cc4eaf5fad291c",
+        "ch08/profrod-sovereign-agent-ch08-telegram-messaging-exercise-guide.md": "cc9bd4b7106d3feca7f4027d655fd1948a28e4864e39e31d731d20da25da6c28",
         "ch09/profrod-sovereign-agent-ch09-a-schedules-stock-events-exercise.ipynb": "38fb2bd6337e11852ce36783d39f74b6f2448bf32f3fee08b90a4a8977ef097e",
         "ch09/profrod-sovereign-agent-ch09-a-schedules-stock-events-exercise.md": "18097d61705dab53790ec4934287a95abba8410a50adf0bb3dbf17d54f76872c",
         "ch09/profrod-sovereign-agent-ch09-b-scheduling-repair-transfer-exercise.ipynb": "e9c48c25e6fd031624ae0c6349038fca7335cb8209546de36c394419a14fc7a4",
@@ -100,14 +100,14 @@
         "ch19/profrod-sovereign-agent-ch19-b-acceptance-repair-transfer-exercise.md": "9fea1e965486a0066fa4464f06f25296cafddf7da53848bb0ea1b1426c1e6055",
         "ch19/profrod-sovereign-agent-ch19-integrated-shop-day-exercise-guide.md": "e8a1546b96455bbb30e1b35ad1d640e558efb45ad05c8501da239c073896e4e5",
         "profrod-sovereign-agent-exercises-setup.md": "92af855580556693e9ef4702f09ad5bab7946dfee2889856722799fb234a9e0d",
-        "profrod-sovereign-agent-exercises-start-here.md": "ba784b4346c8371a01cefbd043fb06f3e49df8ff47764bd3674ce54f14d2d462"
+        "profrod-sovereign-agent-exercises-start-here.md": "2caf23968547974a91a95f184b0b802bc5cf9d7beff4709e5f8f15d7b8b27366"
       }
     },
     {
       "asset": "solutions",
       "path": "solutions/profrod-sovereign-agent-solutions-2026-09-10.zip",
-      "sha256": "57256aeae8a8da8ee73590d79d12a8e39618faa41c27befc76b4d8c2e0aaee9e",
-      "sourceStartSha256": "9f2983cbf330fb44f8d4687f28882423669a278a9b40c61d65c01028677bf1b6",
+      "sha256": "8d6dc8653fd9b862948f895b718337d5d7a60c3dacd8f62f206d7575341d56ac",
+      "sourceStartSha256": "38eb5f60841c30baee6df97f767222e86f4418ea37be3cd1bbe6e8dbdc05be73",
       "startTransform": "replace-named-download-link-with-extracted-notice-v2",
       "members": {
         "ch01/profrod-sovereign-agent-ch01-a-softmax-and-sampling-solution.ipynb": "e4c9f65386e171aa5ca4513173972ccbe6db73edd69871d55f459f383f1b084b",
@@ -149,7 +149,7 @@
         "ch08/profrod-sovereign-agent-ch08-a-private-telegram-messaging-solution.md": "b075ad10c15ab8b1cf62896d736ed4a40db87cbeb8950d3c8e026b8a07fedeae",
         "ch08/profrod-sovereign-agent-ch08-b-messaging-repair-transfer-solution.ipynb": "67dd69468dbdc93f1ddf8d89acd0768a4c286532958ac1ed0609d4d0935b829d",
         "ch08/profrod-sovereign-agent-ch08-b-messaging-repair-transfer-solution.md": "7f2e8fa5915d40e7696f836f0d0e19999e509a0db3f7c1e86388466505b860cf",
-        "ch08/profrod-sovereign-agent-ch08-telegram-messaging-solutions-guide.md": "33ee3c3f7016116252a784fbbe22b91c16f7e6af4a1a4dd0e03ac5473bc374c9",
+        "ch08/profrod-sovereign-agent-ch08-telegram-messaging-solutions-guide.md": "c33282b61df61224e8044277255befee28b7302d0b03e0a6d83860b354dfcc36",
         "ch09/profrod-sovereign-agent-ch09-a-schedules-stock-events-solution.ipynb": "78083259934e8f2da6c40a37fda1b2a0881842589509deb724470ea1b3dd80da",
         "ch09/profrod-sovereign-agent-ch09-a-schedules-stock-events-solution.md": "dfb1e62b50d9751d6a0b719aa18287307c7a90844cf8566b2074c4dc7c6c38c1",
         "ch09/profrod-sovereign-agent-ch09-b-scheduling-repair-transfer-solution.ipynb": "ff1a7bbf018bd219a2ababb0e7f7541df2ec4b922ee68e03d379441f269f6991",
@@ -202,14 +202,14 @@
         "ch19/profrod-sovereign-agent-ch19-b-acceptance-repair-transfer-solution.md": "b20893726f34efe734e87863c5cb7a2c84724b50ec109f297599e05a6f06f154",
         "ch19/profrod-sovereign-agent-ch19-integrated-shop-day-solutions-guide.md": "63c39cc0b19af662281740e84c276e04d532442218636a09b7ea275c633ad6c3",
         "profrod-sovereign-agent-solutions-setup.md": "bc7c7f6539301dc96e44acb448958ef9a24115942dff55480f242ffe4646f4f0",
-        "profrod-sovereign-agent-solutions-start-here.md": "6362a0c5ae9d00877d2222ba3f66a9a03f3736dc709becedd1599eefa4b44bbf"
+        "profrod-sovereign-agent-solutions-start-here.md": "692ac9340b19ec45581b9bc4f925cf7ea4093f0029cd89cf7348e3597cb9f26c"
       }
     },
     {
       "asset": "educator",
       "path": "educator/profrod-sovereign-agent-educator-2026-09-10.zip",
-      "sha256": "d4553df3473e6916bf39d165d252d454de8dfb058492528d84b2b4742c40c4db",
-      "sourceStartSha256": "6fd1dec7fa0cb18b0450ce1d894c7ecfc41870e5464f8cd3be942233a2c578a4",
+      "sha256": "162a40f763af157bc32c951c25b0af2f3b558ea2f3c5eca4400919bc8f4d8452",
+      "sourceStartSha256": "72cbcbfa3e0951049ff0854350dc7468a9c773227eb8d9bb056f3008ad839978",
       "startTransform": "replace-named-download-link-with-extracted-notice-v2",
       "members": {
         "ch01/profrod-sovereign-agent-ch01-first-model-call-educator-guide.md": "0a4a9158061203f3d7f1baa3a64ed8330d86fe5c34cea20e543a37f1923a9984",
@@ -282,7 +282,7 @@
         "ch07/student/profrod-sovereign-agent-ch07-a-durable-work-inbox-educator-exercise.md": "1aa7ea305d991070af71e0e6ae692da6f8ce609cc423e76f76f33181554ee9f3",
         "ch07/student/profrod-sovereign-agent-ch07-b-report-outbox-lost-reply-educator-exercise.ipynb": "6d0232924408e9a81b541a3860256f6cc626ce3096d2675b83cee8a1e6d2698e",
         "ch07/student/profrod-sovereign-agent-ch07-b-report-outbox-lost-reply-educator-exercise.md": "9fa1499638219aa1974cd5c9ad269fa59e087f6ad4a21234cb5d6c04c4501fbd",
-        "ch08/profrod-sovereign-agent-ch08-telegram-messaging-educator-guide.md": "9f1e247681bad33b4faf62f245c2250ee74d9af11ee0a41b08dc9a2998864af2",
+        "ch08/profrod-sovereign-agent-ch08-telegram-messaging-educator-guide.md": "bfcb943e6d0c277c77881d88182bded459c07e557463f13ca3715aad6629c01f",
         "ch08/profrod-sovereign-agent-ch08-telegram-messaging-teaching-guide.md": "ba8b0d1c86b37cb96a04a777c7f76f1445625737b494429637ab5a799acec480",
         "ch08/solutions/profrod-sovereign-agent-ch08-a-private-telegram-messaging-educator-solution.ipynb": "869bc1aa86f65d25c799b4eba65ad8f1f82433c91240139b3f776d7070c4cc86",
         "ch08/solutions/profrod-sovereign-agent-ch08-a-private-telegram-messaging-educator-solution.md": "b075ad10c15ab8b1cf62896d736ed4a40db87cbeb8950d3c8e026b8a07fedeae",
@@ -395,7 +395,7 @@
         "ch19/student/profrod-sovereign-agent-ch19-b-acceptance-repair-transfer-educator-exercise.md": "9fea1e965486a0066fa4464f06f25296cafddf7da53848bb0ea1b1426c1e6055",
         "profrod-sovereign-agent-educator-classroom-observations.md": "2b5c6d2423a6bb6707765df52686d8aab08095f96d12a8286592c581a3712229",
         "profrod-sovereign-agent-educator-setup.md": "7ae1e87189de51965936ad190ea4dbffde8de6bbb0cb2e1807fa2ac12eb37c48",
-        "profrod-sovereign-agent-educator-start-here.md": "f6847ea1c8c9063f45d79e055046bec0c91edb17933b3a60a618890dd9c71ead"
+        "profrod-sovereign-agent-educator-start-here.md": "63d8a5a84b1012043c3a61954f61c206d8b3bd23b1b697ab6f3092937bcd1b44"
       }
     }
   ]
