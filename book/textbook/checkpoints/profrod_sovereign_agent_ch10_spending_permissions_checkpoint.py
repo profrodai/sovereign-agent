@@ -6,6 +6,7 @@
 """Chapter 10: exact approval survives restart, while obsolete authority cannot send."""
 
 import json
+import runpy
 import sqlite3
 import subprocess
 import sys
@@ -206,7 +207,40 @@ def experiment(root):
             db.close()
 
 
+BOOK = Path(__file__).resolve().parents[1]
+CAL = runpy.run_path(str(BOOK / "learner/profrod_sovereign_agent_ch10_calibration_learner.py"))
+
+
+def calibration_arithmetic():
+    """Part A's formulas by independent checks, and the receipt recomputed from its runs."""
+    assert CAL["reorder_quantity"](7, 5, 2) == 3 and CAL["reorder_quantity"](9, 1, 5) == 0
+    assert CAL["calibration_error"]([1.0, 1.0], [True, False]) == 0.5
+    assert CAL["calibration_error"]([0.5, 0.5], [True, False]) == 0.0
+    assert CAL["auto_approval"]([0.95, 0.5], [False, True], 0.9) == (0.5, 1.0)
+    assert CAL["agreement"]([3, 3, 7, 1, 3]) == (3, 0.6)
+    assert round(CAL["approval_threshold"](1500, 50), 3) == 0.967
+    print("ok   calibration error, agreement and the approval threshold")
+    receipt = json.loads(
+        (BOOK.parents[1] / "docs/evidence/book-ch10/ch10-calibration-receipt-v1.json").read_text()
+    )
+    for s in receipt["situations"]:
+        assert s["answer"] == CAL["reorder_quantity"](s["on_hand"], s["daily"], s["days"])
+    for row in receipt["rows"]:
+        runs = [r for r in receipt["runs"] if r["model"] == row["model"] and "sample" in r]
+        for run in runs:
+            assert run["correct"] == (
+                run["quantity"] == receipt["situations"][run["situation"]]["answer"]
+            )
+        confidences = [r["confidence"] for r in runs]
+        correct = [r["correct"] for r in runs]
+        assert round(sum(correct) / len(correct), 3) == row["accuracy"]
+        error = CAL["calibration_error"](confidences, correct)
+        assert round(error, 3) == row["stated_calibration_error"]
+    print("ok   answers regraded, accuracy and calibration error recompute from the receipt")
+
+
 def main():
+    calibration_arithmetic()
     with tempfile.TemporaryDirectory(prefix="lucy-approval-") as directory:
         experiment(Path(directory))
 

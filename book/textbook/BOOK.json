@@ -80,7 +80,7 @@
     {
       "number": 10,
       "lessonId": "approval",
-      "title": "Ask permission before spending",
+      "title": "When to ask: calibration, oversight and spending permission",
       "path": "ch10/profrod-sovereign-agent-ch10-spending-permissions-chapter.md",
       "checkpoint": "checkpoints/profrod_sovereign_agent_ch10_spending_permissions_checkpoint.py",
       "status": "DRAFT"
