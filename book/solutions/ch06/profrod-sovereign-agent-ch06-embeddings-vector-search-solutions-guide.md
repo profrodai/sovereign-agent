@@ -6,44 +6,20 @@
 > — bring your questions, compare experiments and share what you build.
 > **Original source and updates:** [profrodai/sovereign-agent](https://github.com/profrodai/sovereign-agent).
 
-**PLANNED — construction brief; no completed notebook or solution is published for this chapter.**
+**Available draft · two ninety-minute units · twenty-chapter edition**
 
-This slot belongs to the single twenty-chapter edition. Read the detailed chapter scope in the textbook's Chapter 6. The existing course material for later chapters remains available using its supplied reference runtime; completing it does not demonstrate construction of this missing foundation.
+Retain your own attempt before reading these worked solutions. Explain the reasoning, then solve a changed case without looking.
 
-The planned exercises are two independent ninety-minute units. Unit A builds and connects the component from its first principles. Unit B introduces a failure, requires a repair, and tests a changed case. Both will introduce every new library and concept where used, include predictions and progressive hints, and retain the learner's implementation and evidence.
+| Session | Notebook | Matching text | Purpose |
+|---|---|---|---|
+| A · 90 minutes | [A: embeddings and a vector store](profrod-sovereign-agent-ch06-a-embeddings-and-vector-store-solution.ipynb) | [Markdown](profrod-sovereign-agent-ch06-a-embeddings-and-vector-store-solution.md) | Construct, connect and explain |
+| B · 90 minutes | [B: evaluate and repair retrieval](profrod-sovereign-agent-ch06-b-retrieval-evaluation-solution.ipynb) | [Markdown](profrod-sovereign-agent-ch06-b-retrieval-evaluation-solution.md) | Diagnose, repair and transfer |
 
-The solutions volume will explain each design decision, show the failed approach and repair, and include independently calculated expectations. The educator materials will include local student and worked copies, preparation instructions, misconception prompts, timing observations and an assessment rubric. These are requirements, not claims of delivery.
+Each notebook includes its own setup, first-principles introductions and supplied data, and needs only Python's standard library: no model, download or key. Unit B ships a real embedding model's vectors for its questions. Use Google Colab (Python 3.13) or a local Python 3.12+ Jupyter kernel. No repository checkout, previous notebook kernel or live account is needed. Unit B can use an explicitly selected successful Unit A handoff; an invalid selected file refuses rather than substituting an answer.
 
-## Planned learning contract: embeddings and vector search
+Ninety minutes is the planned work allowance per unit. Actual completion time and understanding require classroom observation.
 
-**Starting knowledge and new concepts:** Chapter 5's BM25 retriever, its labeled questions and ranking metrics, and Chapter 4's SQLite store. Introduce one-hot vectors, the embedding lookup as a matrix product, negative sampling and the contrastive objective, pooling and normalization, cosine and Euclidean distance, nearest-neighbor search, approximate indexes and reciprocal rank fusion.
-
-**Unit A construction:** Build word vectors and one vector per note from scratch, then a store with add, query, filter and delete, and retrieve a note that never uses the query's words.
-
-| Minutes | Work |
-|---|---|
-| 0–10 | Predict similarity from word indexes, then from one-hot vectors |
-| 10–30 | Compute the embedding lookup as a matrix product by hand |
-| 30–50 | Train word vectors with negative sampling on Lucy's notes |
-| 50–70 | Pool and normalize note vectors; compare three distances |
-| 70–90 | Build and query a store with filters and deletes |
-
-**Unit B diagnosis and transfer:** Measure dense, lexical and fused retrieval on labeled questions, reproduce a stale-note and a product-code failure, repair both, and measure an approximate index's recall against its comparisons.
-
-| Minutes | Work |
-|---|---|
-| 0–10 | Predict recall for three retrievers |
-| 10–30 | Measure recall@k and reciprocal rank |
-| 30–45 | Repair a stale note with a revision filter |
-| 45–60 | Repair a product-code miss with reciprocal rank fusion |
-| 60–80 | Measure a small graph index's recall against exact search |
-| 80–90 | State when a vector index is worth it |
-
-**Independent acceptance examples:** A paraphrased question that shares no word with its note retrieves it. A query embedded with a different model is refused. Only the current revision of a changed note is eligible. A product code ranks first after fusion. An approximate index reports its recall with its comparison count.
-
-The worked chapter must show the first failing implementation, the specific observation that invalidates it, the repair and a new independently calculated case. It must explain each new library call before relying on it. No answer implementation is supplied yet.
-
-[Back to this asset](../profrod-sovereign-agent-solutions-start-here.md)
+[Setup](../profrod-sovereign-agent-solutions-setup.md) · [Back to this asset](../profrod-sovereign-agent-solutions-start-here.md)
 
 ## Keep building with Prof Rod
 

@@ -50,8 +50,8 @@
       "lessonId": "embeddings",
       "title": "Embeddings and vector search: when words are not enough",
       "path": "ch06/profrod-sovereign-agent-ch06-embeddings-vector-search-chapter.md",
-      "checkpoint": null,
-      "status": "PLANNED"
+      "checkpoint": "checkpoints/profrod_sovereign_agent_ch06_embeddings_vector_search_checkpoint.py",
+      "status": "DRAFT"
     },
     {
       "number": 7,

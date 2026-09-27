@@ -14,7 +14,7 @@ Start with the [preface](profrod-sovereign-agent-textbook-preface.md) and [setup
 
 ## What is available
 
-There is one twenty-chapter sequence. Eighteen chapters contain substantial **DRAFT** manuscripts and executable checkpoints; Chapter 4's runs the learner's own store, and Chapter 8's the learner's own work queue on it. Chapters **6** and **14** contain **PLANNED construction briefs**: their goals, interfaces, two ninety-minute practical plans and acceptance cases are documented, but their complete lessons, notebooks and new learner implementations are not yet delivered. A planned chapter is not an executable lesson. The [construction roadmap](profrod-sovereign-agent-textbook-expansion.md) records the remaining work and the integration commitments.
+There is one twenty-chapter sequence. Nineteen chapters contain substantial **DRAFT** manuscripts and executable checkpoints; Chapter 4's runs the learner's own store, and Chapter 8's the learner's own work queue on it. Chapter **14** contains a **PLANNED construction brief**: its goals, interfaces, two ninety-minute practical plans and acceptance cases are documented, but its complete lesson, notebooks and new learner implementation are not yet delivered. A planned chapter is not an executable lesson. The [construction roadmap](profrod-sovereign-agent-textbook-expansion.md) records the remaining work and the integration commitments.
 
 You can read the drafted chapters and run their supplied reference checkpoints now. Building the entire twenty-chapter system solely from your own preceding chapter code remains a release requirement. The [code ownership guide](profrod-sovereign-agent-textbook-ownership.md) names the supplied components so a working demonstration cannot be mistaken for a completed from-scratch construction.
 
@@ -27,7 +27,7 @@ You can read the drafted chapters and run their supplied reference checkpoints n
 | 3 | [The agent loop: why reliability compounds, and a loop that stops](ch03/profrod-sovereign-agent-ch03-agent-loop-chapter.md) | DRAFT |
 | 4 | [Build durable state with SQLite](ch04/profrod-sovereign-agent-ch04-sqlite-state-chapter.md) | DRAFT |
 | 5 | [Memory and retrieval: what the model sees, and a memory that forgets](ch05/profrod-sovereign-agent-ch05-durable-memory-chapter.md) | DRAFT |
-| 6 | [Embeddings and vector search: when words are not enough](ch06/profrod-sovereign-agent-ch06-embeddings-vector-search-chapter.md) | PLANNED, manuscript drafted |
+| 6 | [Embeddings and vector search: when words are not enough](ch06/profrod-sovereign-agent-ch06-embeddings-vector-search-chapter.md) | DRAFT |
 | 7 | [In-context learning: why a skill's exact words must be tested](ch07/profrod-sovereign-agent-ch07-versioned-skills-chapter.md) | DRAFT |
 | 8 | [Build a durable work inbox and report outbox](ch08/profrod-sovereign-agent-ch08-durable-inbox-outbox-chapter.md) | DRAFT |
 | 9 | [Where the wait goes: prefill, decode and a phone channel](ch09/profrod-sovereign-agent-ch09-telegram-messaging-chapter.md) | DRAFT |

@@ -22,8 +22,8 @@ optional tool integration; the teaching agent does not require it.
 [Start with the book](book/README.md): one twenty-chapter teaching sequence,
 organized into [textbook](book/textbook/profrod-sovereign-agent-textbook-start-here.md), [exercises](book/exercises/profrod-sovereign-agent-exercises-start-here.md),
 [solutions](book/solutions/profrod-sovereign-agent-solutions-start-here.md) and [educator materials](book/educator/profrod-sovereign-agent-educator-start-here.md).
-Eighteen manuscript drafts and 36 ninety-minute practical units are available.
-Chapters 6 and 14 have documented scopes; their new lessons are still planned.
+Nineteen manuscript drafts and 38 ninety-minute practical units are available.
+Chapter 14 has a documented scope; its new lesson is still planned.
 The edition remains an unreleased construction draft. Use this checkout's locked
 runtime for its checkpoints; the published PyPI release is not an edition substitute.
 

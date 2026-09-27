@@ -6,7 +6,7 @@
 > — bring your questions, compare experiments and share what you build.
 > **Original source and updates:** [profrodai/sovereign-agent](https://github.com/profrodai/sovereign-agent).
 
-**Status: PLANNED, manuscript drafted.** Read the [textbook guide](../profrod-sovereign-agent-textbook-start-here.md) for setup and supplied-code boundaries. The chapter text, learner file, experiment and checkpoint below are written and run; the two ninety-minute Colab notebooks and the educator guide are still being written. Until they exist this chapter stays PLANNED in the book manifest, and its exercises live at the end of this page.
+**Status: DRAFT.** Read the [textbook guide](../profrod-sovereign-agent-textbook-start-here.md) for setup and supplied-code boundaries. Practice in [Exercise Book 6](../../exercises/ch06/profrod-sovereign-agent-ch06-embeddings-vector-search-exercise-guide.md); consult [Solutions 6](../../solutions/ch06/profrod-sovereign-agent-ch06-embeddings-vector-search-solutions-guide.md) after attempting the work.
 
 [Chapter 5](../ch05/profrod-sovereign-agent-ch05-durable-memory-chapter.md) chose which of Lucy's notes the model sees by counting shared words with BM25, and it measured the limit of that choice. The right note came back for almost every question asked in the note's own words, and for few of the paraphrases. "At what hour should the supplier's van turn up?" shares no content word with the note that answers it: "Lucy asked for deliveries in the afternoon, because she opens the shop alone in the morning." No lexical scorer can find that note.
 

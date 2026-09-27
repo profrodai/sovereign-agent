@@ -23,6 +23,10 @@
       "selectedLearnerHandoff": "PASS"
     },
     {
+      "chapter": 6,
+      "selectedLearnerHandoff": "PASS"
+    },
+    {
       "chapter": 7,
       "selectedLearnerHandoff": "PASS"
     },
@@ -218,6 +222,34 @@
       "markdownSha256": "1a3e65c382ac1c54788bf5863ce2c68ec72d8fc41de9eae63989eadd9fb1e372",
       "notebook": "exercises/ch05/profrod-sovereign-agent-ch05-b-retrieval-and-recall-exercise.ipynb",
       "notebookSha256": "9635f5d3336ea7780ae3fb9ff045b00cb98e73854faacd8f20d71195068b09c2",
+      "sameKernelReplay": "PASS",
+      "transfer": "EXPECTED_UNFINISHED"
+    },
+    {
+      "asset": "exercises",
+      "coreHoldout": "NOT_DISTRIBUTED",
+      "embeddedImports": "PASS",
+      "freshKernel": "PASS",
+      "id": "ch06-a",
+      "markdown": "exercises/ch06/profrod-sovereign-agent-ch06-a-embeddings-and-vector-store-exercise.md",
+      "markdownParity": "PASS",
+      "markdownSha256": "dfee01f7b298cd2a9e10ddbf53a4b62b72903c6d348f6030e9dc870b40a939e8",
+      "notebook": "exercises/ch06/profrod-sovereign-agent-ch06-a-embeddings-and-vector-store-exercise.ipynb",
+      "notebookSha256": "9c9e3db1c0183123460b8355099675fcfdcd0b2bb30fb6420e7c465d0f36669f",
+      "sameKernelReplay": "PASS",
+      "transfer": "EXPECTED_UNFINISHED"
+    },
+    {
+      "asset": "exercises",
+      "coreHoldout": "NOT_DISTRIBUTED",
+      "embeddedImports": "PASS",
+      "freshKernel": "PASS",
+      "id": "ch06-b",
+      "markdown": "exercises/ch06/profrod-sovereign-agent-ch06-b-retrieval-evaluation-exercise.md",
+      "markdownParity": "PASS",
+      "markdownSha256": "54ed825e2a8a99c3b95d06ba67c9096bdad3095971266bc33fe6e3b2604e4b86",
+      "notebook": "exercises/ch06/profrod-sovereign-agent-ch06-b-retrieval-evaluation-exercise.ipynb",
+      "notebookSha256": "69b49ee2fada6e047f9363ac0f7b95ecad4bfc8067bf5c729e543793a8043dc6",
       "sameKernelReplay": "PASS",
       "transfer": "EXPECTED_UNFINISHED"
     },
@@ -722,6 +754,34 @@
       "markdownSha256": "544ace0c37dc974755806bb21bc61860ba7d1828184afac28703cc1926d50cf1",
       "notebook": "solutions/ch05/profrod-sovereign-agent-ch05-b-retrieval-and-recall-solution.ipynb",
       "notebookSha256": "6619ec84aeb778dc5f4584f499ac0c1b69417488ca89c22cb1bf38116098a605",
+      "sameKernelReplay": "PASS",
+      "transfer": "PASS"
+    },
+    {
+      "asset": "solutions",
+      "coreHoldout": "PASS",
+      "embeddedImports": "PASS",
+      "freshKernel": "PASS",
+      "id": "ch06-a",
+      "markdown": "solutions/ch06/profrod-sovereign-agent-ch06-a-embeddings-and-vector-store-solution.md",
+      "markdownParity": "PASS",
+      "markdownSha256": "518beb64ca097823d16fcd126c7699eb39c244e273957a36386b5ca799af749b",
+      "notebook": "solutions/ch06/profrod-sovereign-agent-ch06-a-embeddings-and-vector-store-solution.ipynb",
+      "notebookSha256": "19e0568350b092d89874d3616275adbafa48b2db7f7a9bb5e4dc34ee0bf6a602",
+      "sameKernelReplay": "PASS",
+      "transfer": "PASS"
+    },
+    {
+      "asset": "solutions",
+      "coreHoldout": "PASS",
+      "embeddedImports": "PASS",
+      "freshKernel": "PASS",
+      "id": "ch06-b",
+      "markdown": "solutions/ch06/profrod-sovereign-agent-ch06-b-retrieval-evaluation-solution.md",
+      "markdownParity": "PASS",
+      "markdownSha256": "036dbddda019d837706ea2f2c7ef905e0a16afc03d3230efc26cc3ff05fd3426",
+      "notebook": "solutions/ch06/profrod-sovereign-agent-ch06-b-retrieval-evaluation-solution.ipynb",
+      "notebookSha256": "db46cb7952b7f4187587dfa5ebe934b4b208915f0558dca375b1db9d0705294b",
       "sameKernelReplay": "PASS",
       "transfer": "PASS"
     },
