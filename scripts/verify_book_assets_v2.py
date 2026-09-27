@@ -29,11 +29,11 @@ else:
 ROOT = Path(__file__).resolve().parents[1]
 BOOK = ROOT / "book"
 ASSETS = ("textbook", "exercises", "solutions", "educator")
-PLANNED = {7, 13}
+PLANNED = {13}
 # PLANNED chapters whose manuscript is drafted before their notebooks: their listings and
 # checkpoint are checked now, so the text cannot rot while the notebooks are written. A chapter
 # leaves this map when BOOK.json marks it DRAFT (which requires its notebooks).
-IN_PROGRESS = {7: "checkpoints/profrod_sovereign_agent_ch07_durable_work_checkpoint.py"}
+IN_PROGRESS: dict[int, str] = {}
 AVAILABLE = set(range(1, 20)) - PLANNED
 EXPECTED = {f"ch{chapter:02d}-{letter}" for chapter in AVAILABLE for letter in "ab"}
 RECEIPT = ROOT / "docs/evidence/book-four-assets/verification-v2.json"
@@ -153,7 +153,7 @@ def verify_layout(book: Path = BOOK) -> dict:
             assert "Join the Prof Rod learner community" in source, path
             for url in (distribution.BOOK_URL, distribution.COMMUNITY_URL, distribution.SOURCE_URL):
                 assert url in source, path
-    assert len(notebook_paths(book)) == 68
+    assert len(notebook_paths(book)) == 72
     return manifest
 
 
@@ -190,8 +190,8 @@ def verify_textbook() -> None:
             f"IN PROGRESS: ch{chapter:02d} manuscript: {count} examples and "
             f"{matched} output pairs; checkpoint ran."
         )
-    print(f"ACTIVE TEXTBOOK: 17 draft checkpoints; {examples} examples and {pairs} output pairs.")
-    print("Chapters 7 and 13 remain PLANNED. No publication or classroom-quality acceptance.")
+    print(f"ACTIVE TEXTBOOK: 18 draft checkpoints; {examples} examples and {pairs} output pairs.")
+    print("Chapter 13 remains PLANNED. No publication or classroom-quality acceptance.")
 
 
 def execute_one(path: Path) -> dict:
@@ -284,13 +284,13 @@ def verify_receipt(path: Path = RECEIPT, book: Path = BOOK) -> None:
     receipt = json.loads(path.read_text())
     assert receipt["schemaVersion"] == 1 and receipt["edition"] == "four-assets-19-chapters"
     rows = receipt["notebooks"]
-    assert len(rows) == 68 and {(row["id"], row["asset"]) for row in rows} == {
+    assert len(rows) == 72 and {(row["id"], row["asset"]) for row in rows} == {
         (identity, asset) for identity in EXPECTED for asset in ("exercises", "solutions")
     }, "active notebook coverage drift"
     assert {str(p.relative_to(book)) for p in notebook_paths(book)} == {
         row["notebook"] for row in rows
     }
-    assert len(receipt["handoffs"]) == 17
+    assert len(receipt["handoffs"]) == 18
     assert {row["chapter"] for row in receipt["handoffs"]} == AVAILABLE
     assert all(row["selectedLearnerHandoff"] == "PASS" for row in receipt["handoffs"])
     for row in rows:
@@ -309,7 +309,7 @@ def verify_receipt(path: Path = RECEIPT, book: Path = BOOK) -> None:
                 "active verified bytes changed"
             )
     print(
-        "ACTIVE COURSE: 34 exercise units, 34 solutions, 17 selected handoffs; "
+        "ACTIVE COURSE: 36 exercise units, 36 solutions, 18 selected handoffs; "
         "exact executed bytes intact."
     )
 
@@ -327,7 +327,7 @@ def execute(workers: int, *, record: bool = True) -> None:
         "notebooks": notebooks,
         "handoffs": handoffs,
         "limits": [
-            "Two planned chapters contain no executable notebooks.",
+            "One planned chapter contains no executable notebooks.",
             "Ninety minutes is a teaching plan, not measured classroom duration.",
             "Offline execution does not certify real phone delivery or host operation.",
         ],

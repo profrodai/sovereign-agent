@@ -249,6 +249,17 @@ $$
 
 $A$ is **idempotent**: $A(A(L, e), e) = A(L, e)$. If $A(L, e) = \bot$, the append failed and the caller has nothing to repeat. Otherwise $e \in A(L, e)$ after the first append, so the second append takes the first case and returns its input unchanged. So the agent may retry a write whose outcome it does not know, as many times as it likes, and the log ends the same as if the write had happened once. What made the retry safe is the stable identity the caller chose *before* the first attempt. A timestamp or a random identity generated per attempt would turn each retry into a new event.
 
+```mermaid
+flowchart TD
+    E[Event e with identity x] --> Q{Is x already in the log?}
+    Q -->|No| N[Append e: a new event]
+    Q -->|Yes| S{Same content as the stored event?}
+    S -->|Yes| D[Change nothing: a duplicate]
+    S -->|No| C[Refuse: a conflict]
+```
+
+**Figure:** Appending looks up the identity before it compares content, so a replay changes nothing and a reused identity is refused.
+
 The same definition says what the database must refuse. `INSERT OR REPLACE`, which SQLite offers, would implement $A(L, e) = (L \setminus \{e_x\}) \cup \{e\}$: the old meaning of $x$ silently disappears. That is exactly the third case, and the store must raise instead. We compare events by a canonical text form of their content, with keys sorted and no stray spaces, so two equal events are equal byte for byte. And we let the database itself refuse `UPDATE` and `DELETE` on the event table, with triggers, so no later chapter can change history by accident.
 
 ## Versions form a line
@@ -256,6 +267,16 @@ The same definition says what the database must refuse. `INSERT OR REPLACE`, whi
 The schema will grow. This chapter adds a `reason` to each event. Chapter 5 adds memory tables, and Chapter 7 adds durable work. A database file written today will be opened by the program of next month, and occasionally a file written by next month's program will be opened by today's.
 
 Number the schema versions $0 < 1 < 2 < \dots$; version 0 is an empty file. A **migration** $m_k$ turns a database at version $k-1$ into one at version $k$. Upgrading from version $a$ to version $b$ applies the migrations in order, $m_b \circ \dots \circ m_{a+1}$. There is exactly one path, because the versions form a line and each step has one migration. We store the current version in the database, in a `meta` table.
+
+```mermaid
+flowchart LR
+    V0[Version 0: an empty file] -->|m1| V1[Version 1: stock and events]
+    V1 -->|m2| V2[Version 2: events gain a reason]
+    V2 -.->|a newer program's m3| V3[Version 3]
+    V3 -.->|opened by this chapter's program| R[Refused before anything changes]
+```
+
+**Figure:** Each migration moves a file one step along the line, and a program refuses a file that is further along than it knows.
 
 One more design choice matters before the rules. The schema has several owners. This chapter owns the stock tables; Chapter 5 will own memory's tables, and Chapter 7 durable work's. If they all shared one line of versions, the order in which chapters happen to be written would decide each other's numbers, and two chapters would eventually claim the same version for different tables. So each owner keeps its own line under its own name: this chapter's version lives at `stock.version`, and a later chapter calls the same `migrate` method with its own name and its own migrations.
 
@@ -520,6 +541,27 @@ SQLite allows many readers but only one writer at a time. `BEGIN IMMEDIATE` take
 
 In Lucy's shop this happens when the agent's worker records a delivery at the same moment Lucy's till records a sale. Let us derive what to expect before measuring.
 
+```mermaid
+sequenceDiagram
+    participant A as Writer A, the worker
+    participant L as SQLite write lock
+    participant B as Writer B, the till
+    A->>L: BEGIN IMMEDIATE
+    L-->>A: lock held for h ms
+    B->>L: BEGIN IMMEDIATE
+    alt busy timeout 0
+        L-->>B: database is locked
+    else busy timeout at least h
+        Note over B,L: B sleeps, then checks again
+        A->>L: COMMIT releases the lock
+        L-->>B: lock granted at B's next check
+    end
+```
+
+**Figure:** With a zero timeout the till is refused while the worker holds the lock. With a timeout at least as long as the hold it waits, and notices the free lock only at its next check.
+
+### Derive the refusal rate and the wait
+
 **The model.** Writer A takes the lock for $h$ milliseconds in every period of $T$ milliseconds. Writer B tries to write at a moment $u$ that is uniform over the period, independent of A's schedule.
 
 **How often B is refused with timeout zero.** B is refused exactly when $u$ falls inside one of A's hold intervals. That is a set of length $h$ inside a period of length $T$, so
@@ -538,7 +580,9 @@ $$
 
 The wait grows with the square of the hold time. Halving how long each transaction holds the lock cuts the average wait of everyone else by four. This is why the store keeps its transactions short and never waits on a model, a network call or a person while holding the lock.
 
-**A second model, closer to SQLite.** The derivation assumes B notices the free lock the instant A releases it. SQLite's default busy handler does not work that way: it sleeps and checks again, with delays of 1, 2, 5, 10, 15, 20, 25, 25, 25, 50, 50 and then 100 ms. So B's checks happen at cumulative times $c_0 = 0,\ c_1 = 1,\ c_2 = 3,\ c_3 = 8,\ c_4 = 18,\ \dots$, and when the lock frees at time $r$ after B arrived, B notices at the first check $c_j \ge r$. With $r$ uniform on $[0, h]$,
+### A second model, closer to SQLite
+
+The derivation assumes B notices the free lock the instant A releases it. SQLite's default busy handler does not work that way: it sleeps and checks again, with delays of 1, 2, 5, 10, 15, 20, 25, 25, 25, 50, 50 and then 100 ms. So B's checks happen at cumulative times $c_0 = 0,\ c_1 = 1,\ c_2 = 3,\ c_3 = 8,\ c_4 = 18,\ \dots$, and when the lock frees at time $r$ after B arrived, B notices at the first check $c_j \ge r$. With $r$ uniform on $[0, h]$,
 
 $$
 \mathbb{E}[\text{wait}] \;=\; \frac{h}{T}\cdot\frac{1}{h}\sum_{j \ge 1} c_j \,\bigl(\min(c_j, h) - \min(c_{j-1}, h)\bigr).
@@ -546,7 +590,9 @@ $$
 
 For $h = 30$ and $T = 100$, the checks that matter are at 1, 3, 8, 18 and 33 ms. The wait is $0.3 \times (1\cdot1 + 3\cdot2 + 8\cdot5 + 18\cdot10 + 33\cdot12)/30 = 6.23$ ms, against $4.5$ ms for the instant-wake model.
 
-**The measurement.** The chapter's experiment runs A in a separate process, fires 300 writes from B at uniformly random moments for each setting, and records a receipt:
+### Run the contention experiment
+
+The chapter's experiment runs A in a separate process, fires 300 writes from B at uniformly random moments for each setting, and records a receipt:
 
 ```bash
 uv run python book/textbook/experiments/profrod_sovereign_agent_textbook_ch04_state_v1.py --out ch04-state-receipt.json
@@ -556,9 +602,9 @@ One run, recorded on 2026-09-26 on macOS 26.6.2 (arm64) with Python 3.14.3 and S
 
 | $h$ | Timeout | Refused (95% interval) | Model | Mean wait | Instant-wake model | Stepped model |
 | --- | --- | --- | --- | --- | --- | --- |
-| 10 ms | 0 | 36/300 = 0.120 (0.088–0.162) | 0.100 | — | — | — |
-| 30 ms | 0 | 91/300 = 0.303 (0.254–0.358) | 0.300 | — | — | — |
-| 50 ms | 0 | 148/300 = 0.493 (0.437–0.550) | 0.500 | — | — | — |
+| 10 ms | 0 | 36/300 = 0.120 (0.088–0.162) | 0.100 | n/a | n/a | n/a |
+| 30 ms | 0 | 91/300 = 0.303 (0.254–0.358) | 0.300 | n/a | n/a | n/a |
+| 50 ms | 0 | 148/300 = 0.493 (0.437–0.550) | 0.500 | n/a | n/a | n/a |
 | 10 ms | 1 s | 0/300 (0.000–0.013) | 0 | 1.72 ms | 0.50 ms | 0.83 ms |
 | 30 ms | 1 s | 0/300 (0.000–0.013) | 0 | 8.62 ms | 4.50 ms | 6.23 ms |
 | 50 ms | 1 s | 0/300 (0.000–0.013) | 0 | 19.67 ms | 12.50 ms | 16.23 ms |
@@ -578,6 +624,16 @@ The refusal rate matches $h/T$: every prediction lies inside its interval. A tim
 
 The transaction's protection does not depend on Python cleaning up. The uncommitted group was only ever in the write-ahead log, and a later reader ignores log frames that belong to no committed transaction.
 
+```mermaid
+flowchart LR
+    B[BEGIN IMMEDIATE] --> W[Event and stock pages appended to the write-ahead log]
+    W --> C[COMMIT marks the last frame and flushes the log]
+    C --> V[Every later reader sees both writes]
+    W -.->|the process dies before COMMIT| I[Frames with no commit marker: every reader ignores them]
+```
+
+**Figure:** A change reaches readers only through its commit marker, so a process that dies mid-transaction leaves nothing any reader will use.
+
 Two settings decide how far "durable" reaches. In WAL mode, a commit appends to the write-ahead log; with `synchronous = FULL`, SQLite also flushes the log to storage before `COMMIT` returns, so a committed transaction survives a power failure as long as the storage honours the flush. With `synchronous = NORMAL`, the flush happens only at checkpoints. The file cannot be corrupted either way, but the most recent commits can be lost to a power failure. Our store chooses `FULL` and pays for it on every commit, which the contention measurement has just shown.
 
 Be exact about the evidence. This chapter tested a process dying. It did not cut the power, and it did not test a disk that acknowledges a flush it has not performed. Those claims rest on SQLite's documentation and on the hardware, not on anything run here.
@@ -586,21 +642,55 @@ Be exact about the evidence. This chapter tested a process dying. It did not cut
 
 Chapter 5 receives `StateStore` and its `immediate()` transactions, and nothing else. Memory adds its own tables by calling `store.migrate("memory", ...)` with its own migrations, on its own line of versions. It writes its records inside `immediate()` blocks. It keeps the invariant discipline for its own facts: a change and its record commit together. It does not get the connection to issue its own `BEGIN`, and it does not get a helper that hides transactions. A new rule about what must agree becomes a new invariant, and the store's job is to make it impossible to observe that invariant broken.
 
+## Expected observations
+
+Run the checkpoint from the repository root:
+
+```bash
+uv run python book/textbook/checkpoints/profrod_sovereign_agent_ch04_sqlite_state_checkpoint.py
+```
+
+It prints twelve `ok` lines and ends with `Chapter 4 checkpoint: durable state holds across reopen, failure, replay and version.` Four of them carry the chapter's argument:
+
+- A failure between the two writes leaves vanilla at 2 and only `e1` in the log.
+- An identical replay of `e1` is a duplicate, and `e1` with other content is a conflict that leaves `e1` unchanged.
+- A sale from nine tubs leaves six, with both events kept.
+- A file at a future schema version is refused, with its rows untouched.
+
+The last line is a negative control. The observer is shown a half-applied change and must catch it. If that line fails, the fault is in your observer, not your store.
+
+The experiment's receipt should show every refusal rate inside its 95% interval around $h/T$, and no refusals once the timeout is at least the hold. Your mean waits will differ from ours, because they depend on your storage. Read them against both wait models rather than against our numbers.
+
+## Learner verification
+
+Do not verify the store with `store.stock()`. It reads through the connection under test, so it can agree with a mistake the store makes about itself. After your program has closed the file, open it with a separate connection and run the invariant as a query:
+
+```sql
+SELECT sku, tubs,
+       (SELECT SUM(delta) FROM events WHERE events.sku = stock.sku) AS explained
+FROM stock
+WHERE explained IS NULL OR tubs != explained;
+```
+
+An empty result is the invariant holding: every count is explained by its events. A row names the product whose count and events disagree, or a count with no events behind it at all. Then break it on purpose. Stop your program between the two writes of a change made *without* `immediate()`, and run the query again. It must now return the product whose count and events disagree. A check that cannot fail on a broken file proves nothing about a good one.
+
+Finally, read the version with `SELECT value FROM meta WHERE key = 'stock.version'`, and confirm that running `initialize` a second time leaves it, and every row, unchanged.
+
 ## Exercises that change the decision
 
-### Exercise 1 — Find the state that should not exist
+### Exercise 1: Find the state that should not exist
 
 Remove the `with self.immediate()` from `apply` in your learner file, so the two writes commit separately. Run the checkpoint. Which check fails, and which observation does it print? Then restore the transaction and explain in two sentences why the independent observer caught what `store.stock()` alone could not.
 
-### Exercise 2 — Retry an unknown outcome
+### Exercise 2: Retry an unknown outcome
 
 Write `deliver_with_retry(store, event, attempts)` for a caller that saw its connection drop and does not know whether the delivery committed. Show with the observer that three retries of the same `StockEvent` leave exactly one event and the right stock. Then generate a fresh `event_id` per attempt instead, and describe what the observer shows.
 
-### Exercise 3 — Test the missing cost
+### Exercise 3: Test the missing cost
 
 The measured waits exceed the stepped model by 1 to 3.5 ms. Change the experiment's holder to use `PRAGMA synchronous = NORMAL` and run it again. If the gap shrinks, you have measured part of the commit's cost; if it does not, what else could hold the lock? Record both receipts and state your conclusion with the numbers.
 
-### Exercise 4 — A migration you did not plan
+### Exercise 4: A migration you did not plan
 
 Add migration 3, which records a `unit` column on `stock` with default `'tub'`. Show that a version-2 file upgrades, that a second `initialize` changes nothing, and that the chapter's version-2 program now refuses the upgraded file. Explain why that refusal protects Lucy's data.
 

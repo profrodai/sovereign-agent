@@ -27,6 +27,10 @@
       "selectedLearnerHandoff": "PASS"
     },
     {
+      "chapter": 7,
+      "selectedLearnerHandoff": "PASS"
+    },
+    {
       "chapter": 8,
       "selectedLearnerHandoff": "PASS"
     },
@@ -72,7 +76,7 @@
     }
   ],
   "limits": [
-    "Two planned chapters contain no executable notebooks.",
+    "One planned chapter contains no executable notebooks.",
     "Ninety minutes is a teaching plan, not measured classroom duration.",
     "Offline execution does not certify real phone delivery or host operation."
   ],
@@ -242,6 +246,34 @@
       "markdownSha256": "8203fe5f2a44867f74434cc9052c815c3c6909dd05f874c042833e0b05a9b081",
       "notebook": "exercises/ch06/profrod-sovereign-agent-ch06-b-skill-repair-transfer-exercise.ipynb",
       "notebookSha256": "6171312724ecfd3a344e7dc23f3f673aa131092386d0df32866e094802c0f0cd",
+      "sameKernelReplay": "PASS",
+      "transfer": "EXPECTED_UNFINISHED"
+    },
+    {
+      "asset": "exercises",
+      "coreHoldout": "NOT_DISTRIBUTED",
+      "embeddedImports": "PASS",
+      "freshKernel": "PASS",
+      "id": "ch07-a",
+      "markdown": "exercises/ch07/profrod-sovereign-agent-ch07-a-durable-work-inbox-exercise.md",
+      "markdownParity": "PASS",
+      "markdownSha256": "1aa7ea305d991070af71e0e6ae692da6f8ce609cc423e76f76f33181554ee9f3",
+      "notebook": "exercises/ch07/profrod-sovereign-agent-ch07-a-durable-work-inbox-exercise.ipynb",
+      "notebookSha256": "5a95fca2e123fc46acb6543999a7a28e7aa784a8537d11a9e2ebb73cdfd0219f",
+      "sameKernelReplay": "PASS",
+      "transfer": "EXPECTED_UNFINISHED"
+    },
+    {
+      "asset": "exercises",
+      "coreHoldout": "NOT_DISTRIBUTED",
+      "embeddedImports": "PASS",
+      "freshKernel": "PASS",
+      "id": "ch07-b",
+      "markdown": "exercises/ch07/profrod-sovereign-agent-ch07-b-report-outbox-lost-reply-exercise.md",
+      "markdownParity": "PASS",
+      "markdownSha256": "9fa1499638219aa1974cd5c9ad269fa59e087f6ad4a21234cb5d6c04c4501fbd",
+      "notebook": "exercises/ch07/profrod-sovereign-agent-ch07-b-report-outbox-lost-reply-exercise.ipynb",
+      "notebookSha256": "6d0232924408e9a81b541a3860256f6cc626ce3096d2675b83cee8a1e6d2698e",
       "sameKernelReplay": "PASS",
       "transfer": "EXPECTED_UNFINISHED"
     },
@@ -718,6 +750,34 @@
       "markdownSha256": "4732669281154e11cfa227b449d4209f66ff097789e51f1b5dfcfb35d94259a5",
       "notebook": "solutions/ch06/profrod-sovereign-agent-ch06-b-skill-repair-transfer-solution.ipynb",
       "notebookSha256": "edaffe2507dc5c0b5e5484ea8c244e2ff2efea21d7db837d3eacb13f5b963d4b",
+      "sameKernelReplay": "PASS",
+      "transfer": "PASS"
+    },
+    {
+      "asset": "solutions",
+      "coreHoldout": "PASS",
+      "embeddedImports": "PASS",
+      "freshKernel": "PASS",
+      "id": "ch07-a",
+      "markdown": "solutions/ch07/profrod-sovereign-agent-ch07-a-durable-work-inbox-solution.md",
+      "markdownParity": "PASS",
+      "markdownSha256": "e1ab3742f86fd716fb3e555c2fa5052dda354b6a044559ebd1a3837df3565253",
+      "notebook": "solutions/ch07/profrod-sovereign-agent-ch07-a-durable-work-inbox-solution.ipynb",
+      "notebookSha256": "97cf53c2aaa886ebbaa83cde2bdf01c0b9b21ecf26ec22b2729a96e958209054",
+      "sameKernelReplay": "PASS",
+      "transfer": "PASS"
+    },
+    {
+      "asset": "solutions",
+      "coreHoldout": "PASS",
+      "embeddedImports": "PASS",
+      "freshKernel": "PASS",
+      "id": "ch07-b",
+      "markdown": "solutions/ch07/profrod-sovereign-agent-ch07-b-report-outbox-lost-reply-solution.md",
+      "markdownParity": "PASS",
+      "markdownSha256": "7b94afae4cb09d8db6b4641d4c91749e51daa37c0d6de5f84daa925f0a8ce303",
+      "notebook": "solutions/ch07/profrod-sovereign-agent-ch07-b-report-outbox-lost-reply-solution.ipynb",
+      "notebookSha256": "c91ae400027013870982b0c55303267ab899148aa3e876f45e9cf371dfcd8081",
       "sameKernelReplay": "PASS",
       "transfer": "PASS"
     },

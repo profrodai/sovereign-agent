@@ -6,43 +6,18 @@
 > — bring your questions, compare experiments and share what you build.
 > **Original source and updates:** [profrodai/sovereign-agent](https://github.com/profrodai/sovereign-agent).
 
-**PLANNED — construction brief; no completed notebook or solution is published for this chapter.**
+**Available draft · two ninety-minute sessions · all class files included locally**
 
-This slot belongs to the single nineteen-chapter edition. Read the detailed chapter scope in the textbook's Chapter 7. The existing course material for later chapters remains available using its supplied reference runtime; completing it does not demonstrate construction of this missing foundation.
+[Preparation, timing, hints and rubric](profrod-sovereign-agent-ch07-durable-inbox-outbox-teaching-guide.md)
 
-The planned exercises are two independent ninety-minute units. Unit A builds and connects the component from its first principles. Unit B introduces a failure, requires a repair, and tests a changed case. Both will introduce every new library and concept where used, include predictions and progressive hints, and retain the learner's implementation and evidence.
+| Session | Distribute to learners | Worked demonstration | Text versions |
+|---|---|---|---|
+| A · 90 minutes | [Student notebook](student/profrod-sovereign-agent-ch07-a-durable-work-inbox-educator-exercise.ipynb) | [Worked notebook](solutions/profrod-sovereign-agent-ch07-a-durable-work-inbox-educator-solution.ipynb) | [Student](student/profrod-sovereign-agent-ch07-a-durable-work-inbox-educator-exercise.md) · [Worked](solutions/profrod-sovereign-agent-ch07-a-durable-work-inbox-educator-solution.md) |
+| B · 90 minutes | [Student notebook](student/profrod-sovereign-agent-ch07-b-report-outbox-lost-reply-educator-exercise.ipynb) | [Worked notebook](solutions/profrod-sovereign-agent-ch07-b-report-outbox-lost-reply-educator-solution.ipynb) | [Student](student/profrod-sovereign-agent-ch07-b-report-outbox-lost-reply-educator-exercise.md) · [Worked](solutions/profrod-sovereign-agent-ch07-b-report-outbox-lost-reply-educator-solution.md) |
 
-The solutions volume will explain each design decision, show the failed approach and repair, and include independently calculated expectations. The educator materials will include local student and worked copies, preparation instructions, misconception prompts, timing observations and an assessment rubric. These are requirements, not claims of delivery.
+Rehearse using the worked notebook in a fresh Python 3.12+ kernel, or on Google Colab, before class. Distribute only the student files until learners have retained a first attempt. Both versions need only the standard library; no sibling book directory or live account is required. Preserve predictions, the highest hint used, changed-case results and actual time spent. Record understanding from explanations, not Run All success.
 
-## Planned learning contract: Durable work inbox and report outbox
-
-**Starting knowledge and new concepts:** The SQLite construction and memory chapters. Introduce work identity, state transitions, idempotency, claims, leases, cursors and an outbox before combining them.
-
-**Unit A construction:** Admit a request and advance its input cursor in one transaction; have a worker claim and finish the request and create one report atomically.
-
-| Minutes | Work |
-|---|---|
-| 0–10 | Predict duplicate-request behavior |
-| 10–30 | Draw rows, identities and allowed transitions |
-| 30–60 | Construct admission and claim operations |
-| 60–80 | Connect finish to report creation and test duplicate input |
-| 80–90 | Retain the work and report ledger |
-
-**Unit B diagnosis and transfer:** Inject a failure after admission and before cursor advancement, then a lost acknowledgement after report delivery. Separate known failure from unknown delivery.
-
-| Minutes | Work |
-|---|---|
-| 0–15 | Retrieve transaction and identity invariants |
-| 15–35 | Inject a crash between admission and cursor write |
-| 35–60 | Repair the transaction and demonstrate restart |
-| 60–80 | Handle a lost delivery acknowledgement without guessing |
-| 80–90 | Explain pending, sent and unknown reports |
-
-**Independent acceptance examples:** Two deliveries of request ID 42 create one work row. An admission exception advances no cursor. One terminal result creates one report. A lost send acknowledgement becomes UNKNOWN and does not authorize an automatic duplicate send.
-
-Before teaching this chapter, require the completed student and worked notebooks to pass fresh-kernel execution. Rehearse the failures above and ask learners to predict the retained state before showing results. Collect a first attempt, highest hint used, an unseen-case explanation and actual minutes. Do not schedule this brief as if it were a finished ninety-minute lesson.
-
-[Back to this asset](../profrod-sovereign-agent-educator-start-here.md)
+[Setup](../profrod-sovereign-agent-educator-setup.md) · [Observation sheet](../profrod-sovereign-agent-educator-classroom-observations.md) · [Back to educator materials](../profrod-sovereign-agent-educator-start-here.md)
 
 ## Keep building with Prof Rod
 

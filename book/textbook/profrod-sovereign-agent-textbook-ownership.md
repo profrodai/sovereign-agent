@@ -24,7 +24,7 @@ Later chapters print substantial implementation logic, while their executable re
 | 4 | durable-state | None: the learner builds the store; the checkpoint imports only the standard library and the learner file |
 | 5 | memory | `reference_organizations.store.agent`, `sovereign_agent.agent_loop`, `sovereign_agent.assistant_context`, `sovereign_agent.assistant_work`, `sovereign_agent.database`, `sovereign_agent.model_turn` |
 | 6 | skills | `reference_organizations.store.agent`, `reference_organizations.store.evaluation`, `sovereign_agent.agent_loop`, `sovereign_agent.assistant_context`, `sovereign_agent.database`, `sovereign_agent.model_turn` |
-| 7 | durable-work | PLANNED: learner construction and handoff not yet implemented |
+| 7 | durable-work | None: the learner builds the queue on their Chapter 4 store; the checkpoint runs the learner files for Chapters 2, 3, 4 and 7 |
 | 8 | messaging | `reference_organizations.store.agent`, `reference_organizations.store.evaluation`, `sovereign_agent.agent_loop`, `sovereign_agent.assistant_context`, `sovereign_agent.assistant_work`, `sovereign_agent.database`, `sovereign_agent.model_turn`, `sovereign_agent.telegram_channel` |
 | 9 | scheduling | `reference_organizations.store.agent`, `reference_organizations.store.assistant`, `reference_organizations.store.stock_conditions`, `sovereign_agent.assistant_work`, `sovereign_agent.database`, `sovereign_agent.model_turn` |
 | 10 | approval | `reference_organizations.store.agent`, `reference_organizations.store.supplier`, `sovereign_agent.assistant_orders`, `sovereign_agent.assistant_work`, `sovereign_agent.database` |

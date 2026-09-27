@@ -58,8 +58,8 @@
       "lessonId": "durable-work",
       "title": "Build a durable work inbox and report outbox",
       "path": "ch07/profrod-sovereign-agent-ch07-durable-inbox-outbox-chapter.md",
-      "checkpoint": null,
-      "status": "PLANNED"
+      "checkpoint": "checkpoints/profrod_sovereign_agent_ch07_durable_inbox_outbox_checkpoint.py",
+      "status": "DRAFT"
     },
     {
       "number": 8,

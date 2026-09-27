@@ -14,7 +14,7 @@ Start with the [preface](profrod-sovereign-agent-textbook-preface.md) and [setup
 
 ## What is available
 
-There is one nineteen-chapter sequence. Seventeen chapters contain substantial **DRAFT** manuscripts and executable checkpoints; Chapter 4's runs the learner's own store. Chapters **7 and 13** contain **PLANNED construction briefs**: their goals, interfaces, two ninety-minute practical plans and acceptance cases are documented, but their complete lessons, notebooks and new learner implementation are not yet delivered. A planned chapter is not an executable lesson. The [construction roadmap](profrod-sovereign-agent-textbook-expansion.md) records the remaining work and the integration commitments.
+There is one nineteen-chapter sequence. Eighteen chapters contain substantial **DRAFT** manuscripts and executable checkpoints; Chapter 4's runs the learner's own store, and Chapter 7's the learner's own work queue on it. Chapter **13** contains a **PLANNED construction brief**: its goals, interfaces, two ninety-minute practical plans and acceptance cases are documented, but its complete lesson, notebooks and new learner implementation are not yet delivered. A planned chapter is not an executable lesson. The [construction roadmap](profrod-sovereign-agent-textbook-expansion.md) records the remaining work and the integration commitments.
 
 You can read the drafted chapters and run their supplied reference checkpoints now. Building the entire nineteen-chapter system solely from your own preceding chapter code remains a release requirement. The [code ownership guide](profrod-sovereign-agent-textbook-ownership.md) names the supplied components so a working demonstration cannot be mistaken for a completed from-scratch construction.
 
@@ -28,7 +28,7 @@ You can read the drafted chapters and run their supplied reference checkpoints n
 | 4 | [Build durable state with SQLite](ch04/profrod-sovereign-agent-ch04-sqlite-state-chapter.md) | DRAFT |
 | 5 | [Remember across conversations](ch05/profrod-sovereign-agent-ch05-durable-memory-chapter.md) | DRAFT |
 | 6 | [Reuse a tested opening procedure](ch06/profrod-sovereign-agent-ch06-versioned-skills-chapter.md) | DRAFT |
-| 7 | [Build a durable work inbox and report outbox](ch07/profrod-sovereign-agent-ch07-durable-inbox-outbox-chapter.md) | PLANNED |
+| 7 | [Build a durable work inbox and report outbox](ch07/profrod-sovereign-agent-ch07-durable-inbox-outbox-chapter.md) | DRAFT |
 | 8 | [Talk to the agent from your phone](ch08/profrod-sovereign-agent-ch08-telegram-messaging-chapter.md) | DRAFT |
 | 9 | [Wake up for schedules and stock events](ch09/profrod-sovereign-agent-ch09-schedules-stock-events-chapter.md) | DRAFT |
 | 10 | [Ask permission before spending](ch10/profrod-sovereign-agent-ch10-spending-permissions-chapter.md) | DRAFT |

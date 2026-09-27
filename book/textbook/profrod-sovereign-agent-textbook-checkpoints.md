@@ -8,7 +8,7 @@
 
 **Updated:** 2026-09-09 · **Status:** DRAFT
 
-Run from the complete repository root using the [frozen environment](profrod-sovereign-agent-textbook-conventions.md). These demonstrations accompany the manuscript. The [ownership guide](profrod-sovereign-agent-textbook-ownership.md) distinguishes learner-built definitions from supplied runtime behavior. Chapter 4's checkpoint runs the learner's own store. New Chapters 7 and 13 have construction briefs, not completed checkpoints.
+Run from the complete repository root using the [frozen environment](profrod-sovereign-agent-textbook-conventions.md). These demonstrations accompany the manuscript. The [ownership guide](profrod-sovereign-agent-textbook-ownership.md) distinguishes learner-built definitions from supplied runtime behavior. Chapter 4's checkpoint runs the learner's own store, and Chapter 7's runs the learner's work queue on it. New Chapter 13 has a construction brief, not a completed checkpoint.
 
 | Chapter | Manuscript | Checkpoint |
 | --- | --- | --- |
@@ -18,7 +18,7 @@ Run from the complete repository root using the [frozen environment](profrod-sov
 | 4 | [Build durable state with SQLite](ch04/profrod-sovereign-agent-ch04-sqlite-state-chapter.md) | [ch04.py](checkpoints/profrod_sovereign_agent_ch04_sqlite_state_checkpoint.py) |
 | 5 | [Remember across conversations](ch05/profrod-sovereign-agent-ch05-durable-memory-chapter.md) | [ch05.py](checkpoints/profrod_sovereign_agent_ch05_durable_memory_checkpoint.py) |
 | 6 | [Reuse a tested opening procedure](ch06/profrod-sovereign-agent-ch06-versioned-skills-chapter.md) | [ch06.py](checkpoints/profrod_sovereign_agent_ch06_versioned_skills_checkpoint.py) |
-| 7 | [Build a durable work inbox and report outbox](ch07/profrod-sovereign-agent-ch07-durable-inbox-outbox-chapter.md) | PLANNED — no executable checkpoint |
+| 7 | [Build a durable work inbox and report outbox](ch07/profrod-sovereign-agent-ch07-durable-inbox-outbox-chapter.md) | [ch07.py](checkpoints/profrod_sovereign_agent_ch07_durable_inbox_outbox_checkpoint.py) |
 | 8 | [Talk to the agent from your phone](ch08/profrod-sovereign-agent-ch08-telegram-messaging-chapter.md) | [ch08.py](checkpoints/profrod_sovereign_agent_ch08_telegram_messaging_checkpoint.py) |
 | 9 | [Wake up for schedules and stock events](ch09/profrod-sovereign-agent-ch09-schedules-stock-events-chapter.md) | [ch09.py](checkpoints/profrod_sovereign_agent_ch09_schedules_stock_events_checkpoint.py) |
 | 10 | [Ask permission before spending](ch10/profrod-sovereign-agent-ch10-spending-permissions-chapter.md) | [ch10.py](checkpoints/profrod_sovereign_agent_ch10_spending_permissions_checkpoint.py) |
