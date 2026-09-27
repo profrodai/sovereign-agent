@@ -1,0 +1,1189 @@
+{
+  "schema": 1,
+  "experiment": "ch18-inference-v1",
+  "recorded": "2026-09-26",
+  "python": "3.14.3",
+  "platform": "Darwin 25.6.0 (arm64)",
+  "chip": "Apple M4 Pro",
+  "server": "ollama 0.32.5",
+  "context_tokens": 8192,
+  "models": {
+    "qwen2.5:0.5b": {
+      "architecture": "qwen2",
+      "parameters": 494032768,
+      "file_bytes": 397821319,
+      "bytes_per_parameter": 0.805,
+      "layers": 24,
+      "attention_heads": 14,
+      "kv_heads": 2,
+      "head_dim": 64,
+      "context_length": 32768,
+      "kv_bytes_per_token_f16": 12288,
+      "kv_bytes_full_context_f16": 402653184,
+      "kv_bytes_per_token_without_gqa": 86016,
+      "warmup_load_seconds": 0.128,
+      "prefill": [
+        {
+          "prompt_tokens": 156,
+          "tokens_per_second": 4854.2
+        },
+        {
+          "prompt_tokens": 546,
+          "tokens_per_second": 5590.4
+        },
+        {
+          "prompt_tokens": 2007,
+          "tokens_per_second": 4845.9
+        }
+      ],
+      "decode_tokens_per_second": {
+        "short_prompt": 211.1,
+        "long_prompt": 200.5
+      },
+      "implied_weight_read_gb_per_second": 84.0,
+      "flops_per_output_token": 988065536
+    },
+    "qwen3:0.6b": {
+      "architecture": "qwen3",
+      "parameters": 751632384,
+      "file_bytes": 522653767,
+      "bytes_per_parameter": 0.695,
+      "layers": 28,
+      "attention_heads": 16,
+      "kv_heads": 8,
+      "head_dim": 128,
+      "context_length": 40960,
+      "kv_bytes_per_token_f16": 114688,
+      "kv_bytes_full_context_f16": 4697620480,
+      "kv_bytes_per_token_without_gqa": 229376,
+      "warmup_load_seconds": 0.103,
+      "prefill": [
+        {
+          "prompt_tokens": 142,
+          "tokens_per_second": 3865.6
+        },
+        {
+          "prompt_tokens": 533,
+          "tokens_per_second": 4200.8
+        },
+        {
+          "prompt_tokens": 1990,
+          "tokens_per_second": 3286.2
+        }
+      ],
+      "decode_tokens_per_second": {
+        "short_prompt": 217.7,
+        "long_prompt": 178.1
+      },
+      "implied_weight_read_gb_per_second": 113.8,
+      "flops_per_output_token": 1503264768
+    },
+    "qwen2.5:1.5b": {
+      "architecture": "qwen2",
+      "parameters": 1543714304,
+      "file_bytes": 986061892,
+      "bytes_per_parameter": 0.639,
+      "layers": 28,
+      "attention_heads": 12,
+      "kv_heads": 2,
+      "head_dim": 128,
+      "context_length": 32768,
+      "kv_bytes_per_token_f16": 28672,
+      "kv_bytes_full_context_f16": 939524096,
+      "kv_bytes_per_token_without_gqa": 172032,
+      "warmup_load_seconds": 0.104,
+      "prefill": [
+        {
+          "prompt_tokens": 151,
+          "tokens_per_second": 1665.8
+        },
+        {
+          "prompt_tokens": 549,
+          "tokens_per_second": 1752.5
+        },
+        {
+          "prompt_tokens": 1998,
+          "tokens_per_second": 1576.2
+        }
+      ],
+      "decode_tokens_per_second": {
+        "short_prompt": 129.6,
+        "long_prompt": 118.8
+      },
+      "implied_weight_read_gb_per_second": 127.8,
+      "flops_per_output_token": 3087428608
+    }
+  },
+  "request_task_qwen2.5:1.5b": {
+    "requests": 30,
+    "mean_prompt_tokens": 274.4,
+    "mean_output_tokens": 17.9,
+    "wall_seconds": {
+      "p50": 0.38,
+      "p90": 0.402,
+      "max": 0.41,
+      "mean": 0.386
+    },
+    "share_of_time": {
+      "prefill": 0.423,
+      "decode": 0.342,
+      "other": 0.235
+    }
+  },
+  "concurrency_qwen2.5:1.5b": [
+    {
+      "concurrent_requests": 1,
+      "output_tokens": 64,
+      "wall_seconds": 0.659,
+      "aggregate_tokens_per_second": 97.1,
+      "per_request_decode_tokens_per_second": 131.4
+    },
+    {
+      "concurrent_requests": 2,
+      "output_tokens": 128,
+      "wall_seconds": 1.233,
+      "aggregate_tokens_per_second": 103.8,
+      "per_request_decode_tokens_per_second": 127.8
+    },
+    {
+      "concurrent_requests": 4,
+      "output_tokens": 256,
+      "wall_seconds": 2.392,
+      "aggregate_tokens_per_second": 107.0,
+      "per_request_decode_tokens_per_second": 128.1
+    }
+  ],
+  "seconds": 67.0,
+  "runs": [
+    {
+      "model": "qwen2.5:0.5b",
+      "kind": "warmup",
+      "total_duration": 208934541,
+      "load_duration": 128117416,
+      "prompt_eval_count": 87,
+      "prompt_eval_duration": 42350000,
+      "eval_count": 8,
+      "eval_duration": 35501000
+    },
+    {
+      "model": "qwen2.5:0.5b",
+      "kind": "prefill-80",
+      "total_duration": 130863375,
+      "load_duration": 97099459,
+      "prompt_eval_count": 157,
+      "prompt_eval_duration": 32343000,
+      "eval_count": 1,
+      "eval_duration": 1000
+    },
+    {
+      "model": "qwen2.5:0.5b",
+      "kind": "prefill-80",
+      "total_duration": 130662292,
+      "load_duration": 96799709,
+      "prompt_eval_count": 155,
+      "prompt_eval_duration": 32092000,
+      "eval_count": 1,
+      "eval_duration": 1000
+    },
+    {
+      "model": "qwen2.5:0.5b",
+      "kind": "prefill-80",
+      "total_duration": 130856334,
+      "load_duration": 97176792,
+      "prompt_eval_count": 156,
+      "prompt_eval_duration": 32037000,
+      "eval_count": 1,
+      "eval_duration": 1000
+    },
+    {
+      "model": "qwen2.5:0.5b",
+      "kind": "prefill-400",
+      "total_duration": 204765750,
+      "load_duration": 103169625,
+      "prompt_eval_count": 544,
+      "prompt_eval_duration": 99104000,
+      "eval_count": 1,
+      "eval_duration": 1000
+    },
+    {
+      "model": "qwen2.5:0.5b",
+      "kind": "prefill-400",
+      "total_duration": 199196042,
+      "load_duration": 98369250,
+      "prompt_eval_count": 547,
+      "prompt_eval_duration": 97846000,
+      "eval_count": 1,
+      "eval_duration": 1000
+    },
+    {
+      "model": "qwen2.5:0.5b",
+      "kind": "prefill-400",
+      "total_duration": 200952167,
+      "load_duration": 101079917,
+      "prompt_eval_count": 546,
+      "prompt_eval_duration": 97218000,
+      "eval_count": 1,
+      "eval_duration": 1000
+    },
+    {
+      "model": "qwen2.5:0.5b",
+      "kind": "prefill-1600",
+      "total_duration": 519593208,
+      "load_duration": 99023458,
+      "prompt_eval_count": 2002,
+      "prompt_eval_duration": 412724000,
+      "eval_count": 1,
+      "eval_duration": 1000
+    },
+    {
+      "model": "qwen2.5:0.5b",
+      "kind": "prefill-1600",
+      "total_duration": 526515750,
+      "load_duration": 103538834,
+      "prompt_eval_count": 2002,
+      "prompt_eval_duration": 413964000,
+      "eval_count": 1,
+      "eval_duration": 1000
+    },
+    {
+      "model": "qwen2.5:0.5b",
+      "kind": "prefill-1600",
+      "total_duration": 521286208,
+      "load_duration": 99195541,
+      "prompt_eval_count": 2007,
+      "prompt_eval_duration": 414164000,
+      "eval_count": 1,
+      "eval_duration": 1000
+    },
+    {
+      "model": "qwen2.5:0.5b",
+      "kind": "decode-short_prompt",
+      "total_duration": 727664250,
+      "load_duration": 99573041,
+      "prompt_eval_count": 88,
+      "prompt_eval_duration": 18962000,
+      "eval_count": 128,
+      "eval_duration": 606265000
+    },
+    {
+      "model": "qwen2.5:0.5b",
+      "kind": "decode-short_prompt",
+      "total_duration": 728467042,
+      "load_duration": 101289167,
+      "prompt_eval_count": 93,
+      "prompt_eval_duration": 23224000,
+      "eval_count": 128,
+      "eval_duration": 602239000
+    },
+    {
+      "model": "qwen2.5:0.5b",
+      "kind": "decode-short_prompt",
+      "total_duration": 728312041,
+      "load_duration": 96355791,
+      "prompt_eval_count": 96,
+      "prompt_eval_duration": 23460000,
+      "eval_count": 128,
+      "eval_duration": 606789000
+    },
+    {
+      "model": "qwen2.5:0.5b",
+      "kind": "decode-short_prompt",
+      "total_duration": 727559750,
+      "load_duration": 99125708,
+      "prompt_eval_count": 94,
+      "prompt_eval_duration": 23723000,
+      "eval_count": 128,
+      "eval_duration": 603251000
+    },
+    {
+      "model": "qwen2.5:0.5b",
+      "kind": "decode-short_prompt",
+      "total_duration": 734295416,
+      "load_duration": 98718875,
+      "prompt_eval_count": 93,
+      "prompt_eval_duration": 24288000,
+      "eval_count": 128,
+      "eval_duration": 609770000
+    },
+    {
+      "model": "qwen2.5:0.5b",
+      "kind": "decode-long_prompt",
+      "total_duration": 1161467625,
+      "load_duration": 101469125,
+      "prompt_eval_count": 2007,
+      "prompt_eval_duration": 415332000,
+      "eval_count": 128,
+      "eval_duration": 637261000
+    },
+    {
+      "model": "qwen2.5:0.5b",
+      "kind": "decode-long_prompt",
+      "total_duration": 1166403542,
+      "load_duration": 99040875,
+      "prompt_eval_count": 2010,
+      "prompt_eval_duration": 419524000,
+      "eval_count": 128,
+      "eval_duration": 638551000
+    },
+    {
+      "model": "qwen2.5:0.5b",
+      "kind": "decode-long_prompt",
+      "total_duration": 1167847833,
+      "load_duration": 99307958,
+      "prompt_eval_count": 2011,
+      "prompt_eval_duration": 419164000,
+      "eval_count": 128,
+      "eval_duration": 640875000
+    },
+    {
+      "model": "qwen2.5:0.5b",
+      "kind": "decode-long_prompt",
+      "total_duration": 1164758417,
+      "load_duration": 95845708,
+      "prompt_eval_count": 2011,
+      "prompt_eval_duration": 420442000,
+      "eval_count": 128,
+      "eval_duration": 639980000
+    },
+    {
+      "model": "qwen2.5:0.5b",
+      "kind": "decode-long_prompt",
+      "total_duration": 1164726958,
+      "load_duration": 100694458,
+      "prompt_eval_count": 2011,
+      "prompt_eval_duration": 419464000,
+      "eval_count": 128,
+      "eval_duration": 635858000
+    },
+    {
+      "model": "qwen3:0.6b",
+      "kind": "warmup",
+      "total_duration": 182172916,
+      "load_duration": 103211291,
+      "prompt_eval_count": 71,
+      "prompt_eval_duration": 30900000,
+      "eval_count": 8,
+      "eval_duration": 35866000
+    },
+    {
+      "model": "qwen3:0.6b",
+      "kind": "prefill-80",
+      "total_duration": 139562417,
+      "load_duration": 99754750,
+      "prompt_eval_count": 148,
+      "prompt_eval_duration": 37713000,
+      "eval_count": 1,
+      "eval_duration": 1000
+    },
+    {
+      "model": "qwen3:0.6b",
+      "kind": "prefill-80",
+      "total_duration": 139642042,
+      "load_duration": 99201542,
+      "prompt_eval_count": 145,
+      "prompt_eval_duration": 37510000,
+      "eval_count": 1,
+      "eval_duration": 1000
+    },
+    {
+      "model": "qwen3:0.6b",
+      "kind": "prefill-80",
+      "total_duration": 139261875,
+      "load_duration": 99057625,
+      "prompt_eval_count": 142,
+      "prompt_eval_duration": 37759000,
+      "eval_count": 1,
+      "eval_duration": 1000
+    },
+    {
+      "model": "qwen3:0.6b",
+      "kind": "prefill-400",
+      "total_duration": 229557292,
+      "load_duration": 99785417,
+      "prompt_eval_count": 532,
+      "prompt_eval_duration": 126642000,
+      "eval_count": 1,
+      "eval_duration": 1000
+    },
+    {
+      "model": "qwen3:0.6b",
+      "kind": "prefill-400",
+      "total_duration": 234205833,
+      "load_duration": 101748750,
+      "prompt_eval_count": 532,
+      "prompt_eval_duration": 125738000,
+      "eval_count": 1,
+      "eval_duration": 1000
+    },
+    {
+      "model": "qwen3:0.6b",
+      "kind": "prefill-400",
+      "total_duration": 235483791,
+      "load_duration": 100648666,
+      "prompt_eval_count": 533,
+      "prompt_eval_duration": 128161000,
+      "eval_count": 1,
+      "eval_duration": 1000
+    },
+    {
+      "model": "qwen3:0.6b",
+      "kind": "prefill-1600",
+      "total_duration": 726120416,
+      "load_duration": 99114375,
+      "prompt_eval_count": 1990,
+      "prompt_eval_duration": 603945000,
+      "eval_count": 1,
+      "eval_duration": 1000
+    },
+    {
+      "model": "qwen3:0.6b",
+      "kind": "prefill-1600",
+      "total_duration": 742492458,
+      "load_duration": 100664125,
+      "prompt_eval_count": 1992,
+      "prompt_eval_duration": 606167000,
+      "eval_count": 1,
+      "eval_duration": 1000
+    },
+    {
+      "model": "qwen3:0.6b",
+      "kind": "prefill-1600",
+      "total_duration": 735237042,
+      "load_duration": 101037625,
+      "prompt_eval_count": 1990,
+      "prompt_eval_duration": 610475000,
+      "eval_count": 1,
+      "eval_duration": 1000
+    },
+    {
+      "model": "qwen3:0.6b",
+      "kind": "decode-short_prompt",
+      "total_duration": 744054791,
+      "load_duration": 100673041,
+      "prompt_eval_count": 79,
+      "prompt_eval_duration": 25989000,
+      "eval_count": 128,
+      "eval_duration": 589350000
+    },
+    {
+      "model": "qwen3:0.6b",
+      "kind": "decode-short_prompt",
+      "total_duration": 714322333,
+      "load_duration": 99627042,
+      "prompt_eval_count": 75,
+      "prompt_eval_duration": 25036000,
+      "eval_count": 128,
+      "eval_duration": 587185000
+    },
+    {
+      "model": "qwen3:0.6b",
+      "kind": "decode-short_prompt",
+      "total_duration": 726255625,
+      "load_duration": 103297625,
+      "prompt_eval_count": 79,
+      "prompt_eval_duration": 25747000,
+      "eval_count": 128,
+      "eval_duration": 594890000
+    },
+    {
+      "model": "qwen3:0.6b",
+      "kind": "decode-short_prompt",
+      "total_duration": 720754917,
+      "load_duration": 103772459,
+      "prompt_eval_count": 78,
+      "prompt_eval_duration": 26511000,
+      "eval_count": 128,
+      "eval_duration": 587880000
+    },
+    {
+      "model": "qwen3:0.6b",
+      "kind": "decode-short_prompt",
+      "total_duration": 716766833,
+      "load_duration": 102895500,
+      "prompt_eval_count": 79,
+      "prompt_eval_duration": 26738000,
+      "eval_count": 128,
+      "eval_duration": 584564000
+    },
+    {
+      "model": "qwen3:0.6b",
+      "kind": "decode-long_prompt",
+      "total_duration": 1439612292,
+      "load_duration": 101469834,
+      "prompt_eval_count": 1998,
+      "prompt_eval_duration": 607452000,
+      "eval_count": 128,
+      "eval_duration": 722006000
+    },
+    {
+      "model": "qwen3:0.6b",
+      "kind": "decode-long_prompt",
+      "total_duration": 1470190792,
+      "load_duration": 102439375,
+      "prompt_eval_count": 1998,
+      "prompt_eval_duration": 607397000,
+      "eval_count": 128,
+      "eval_duration": 714986000
+    },
+    {
+      "model": "qwen3:0.6b",
+      "kind": "decode-long_prompt",
+      "total_duration": 1470590125,
+      "load_duration": 98813541,
+      "prompt_eval_count": 1999,
+      "prompt_eval_duration": 608811000,
+      "eval_count": 128,
+      "eval_duration": 715976000
+    },
+    {
+      "model": "qwen3:0.6b",
+      "kind": "decode-long_prompt",
+      "total_duration": 1465465083,
+      "load_duration": 100182500,
+      "prompt_eval_count": 1998,
+      "prompt_eval_duration": 610506000,
+      "eval_count": 128,
+      "eval_duration": 718769000
+    },
+    {
+      "model": "qwen3:0.6b",
+      "kind": "decode-long_prompt",
+      "total_duration": 1462979875,
+      "load_duration": 96288917,
+      "prompt_eval_count": 1996,
+      "prompt_eval_duration": 612775000,
+      "eval_count": 128,
+      "eval_duration": 720435000
+    },
+    {
+      "model": "qwen2.5:1.5b",
+      "kind": "warmup",
+      "total_duration": 209717667,
+      "load_duration": 104391958,
+      "prompt_eval_count": 85,
+      "prompt_eval_duration": 46457000,
+      "eval_count": 8,
+      "eval_duration": 57146000
+    },
+    {
+      "model": "qwen2.5:1.5b",
+      "kind": "prefill-80",
+      "total_duration": 198765250,
+      "load_duration": 101512709,
+      "prompt_eval_count": 159,
+      "prompt_eval_duration": 95449000,
+      "eval_count": 1,
+      "eval_duration": 1000
+    },
+    {
+      "model": "qwen2.5:1.5b",
+      "kind": "prefill-80",
+      "total_duration": 199516250,
+      "load_duration": 102046167,
+      "prompt_eval_count": 156,
+      "prompt_eval_duration": 95321000,
+      "eval_count": 1,
+      "eval_duration": 1000
+    },
+    {
+      "model": "qwen2.5:1.5b",
+      "kind": "prefill-80",
+      "total_duration": 177666333,
+      "load_duration": 98303875,
+      "prompt_eval_count": 151,
+      "prompt_eval_duration": 77257000,
+      "eval_count": 1,
+      "eval_duration": 1000
+    },
+    {
+      "model": "qwen2.5:1.5b",
+      "kind": "prefill-400",
+      "total_duration": 412980959,
+      "load_duration": 98720125,
+      "prompt_eval_count": 550,
+      "prompt_eval_duration": 311637000,
+      "eval_count": 1,
+      "eval_duration": 1000
+    },
+    {
+      "model": "qwen2.5:1.5b",
+      "kind": "prefill-400",
+      "total_duration": 417083459,
+      "load_duration": 101952417,
+      "prompt_eval_count": 547,
+      "prompt_eval_duration": 312123000,
+      "eval_count": 1,
+      "eval_duration": 1000
+    },
+    {
+      "model": "qwen2.5:1.5b",
+      "kind": "prefill-400",
+      "total_duration": 420806584,
+      "load_duration": 103375709,
+      "prompt_eval_count": 549,
+      "prompt_eval_duration": 314275000,
+      "eval_count": 1,
+      "eval_duration": 1000
+    },
+    {
+      "model": "qwen2.5:1.5b",
+      "kind": "prefill-1600",
+      "total_duration": 1370458417,
+      "load_duration": 100768459,
+      "prompt_eval_count": 2004,
+      "prompt_eval_duration": 1261691000,
+      "eval_count": 1,
+      "eval_duration": 1000
+    },
+    {
+      "model": "qwen2.5:1.5b",
+      "kind": "prefill-1600",
+      "total_duration": 1380446959,
+      "load_duration": 99144959,
+      "prompt_eval_count": 2004,
+      "prompt_eval_duration": 1271396000,
+      "eval_count": 1,
+      "eval_duration": 1000
+    },
+    {
+      "model": "qwen2.5:1.5b",
+      "kind": "prefill-1600",
+      "total_duration": 1390319833,
+      "load_duration": 102666250,
+      "prompt_eval_count": 1998,
+      "prompt_eval_duration": 1277329000,
+      "eval_count": 1,
+      "eval_duration": 1000
+    },
+    {
+      "model": "qwen2.5:1.5b",
+      "kind": "decode-short_prompt",
+      "total_duration": 1170486292,
+      "load_duration": 104634833,
+      "prompt_eval_count": 92,
+      "prompt_eval_duration": 61331000,
+      "eval_count": 128,
+      "eval_duration": 1000364000
+    },
+    {
+      "model": "qwen2.5:1.5b",
+      "kind": "decode-short_prompt",
+      "total_duration": 1166534750,
+      "load_duration": 106238583,
+      "prompt_eval_count": 92,
+      "prompt_eval_duration": 61365000,
+      "eval_count": 128,
+      "eval_duration": 997001000
+    },
+    {
+      "model": "qwen2.5:1.5b",
+      "kind": "decode-short_prompt",
+      "total_duration": 1145100625,
+      "load_duration": 98720458,
+      "prompt_eval_count": 90,
+      "prompt_eval_duration": 61137000,
+      "eval_count": 128,
+      "eval_duration": 983641000
+    },
+    {
+      "model": "qwen2.5:1.5b",
+      "kind": "decode-short_prompt",
+      "total_duration": 1152636458,
+      "load_duration": 102018708,
+      "prompt_eval_count": 92,
+      "prompt_eval_duration": 60932000,
+      "eval_count": 128,
+      "eval_duration": 987999000
+    },
+    {
+      "model": "qwen2.5:1.5b",
+      "kind": "decode-short_prompt",
+      "total_duration": 1152275584,
+      "load_duration": 103331417,
+      "prompt_eval_count": 91,
+      "prompt_eval_duration": 61503000,
+      "eval_count": 128,
+      "eval_duration": 985655000
+    },
+    {
+      "model": "qwen2.5:1.5b",
+      "kind": "decode-long_prompt",
+      "total_duration": 2457691125,
+      "load_duration": 99360208,
+      "prompt_eval_count": 2011,
+      "prompt_eval_duration": 1273683000,
+      "eval_count": 128,
+      "eval_duration": 1077120000
+    },
+    {
+      "model": "qwen2.5:1.5b",
+      "kind": "decode-long_prompt",
+      "total_duration": 2468145250,
+      "load_duration": 101673750,
+      "prompt_eval_count": 2007,
+      "prompt_eval_duration": 1263074000,
+      "eval_count": 128,
+      "eval_duration": 1093735000
+    },
+    {
+      "model": "qwen2.5:1.5b",
+      "kind": "decode-long_prompt",
+      "total_duration": 2476036042,
+      "load_duration": 101690792,
+      "prompt_eval_count": 2010,
+      "prompt_eval_duration": 1283044000,
+      "eval_count": 128,
+      "eval_duration": 1081209000
+    },
+    {
+      "model": "qwen2.5:1.5b",
+      "kind": "decode-long_prompt",
+      "total_duration": 2469679541,
+      "load_duration": 101777708,
+      "prompt_eval_count": 2010,
+      "prompt_eval_duration": 1280881000,
+      "eval_count": 128,
+      "eval_duration": 1077825000
+    },
+    {
+      "model": "qwen2.5:1.5b",
+      "kind": "decode-long_prompt",
+      "total_duration": 2448180083,
+      "load_duration": 104155791,
+      "prompt_eval_count": 2009,
+      "prompt_eval_duration": 1256619000,
+      "eval_count": 128,
+      "eval_duration": 1077731000
+    },
+    {
+      "model": "qwen2.5:1.5b",
+      "kind": "request-task",
+      "case": "stock",
+      "total_duration": 406419958,
+      "load_duration": 85452333,
+      "prompt_eval_count": 274,
+      "prompt_eval_duration": 164723000,
+      "eval_count": 20,
+      "eval_duration": 151532000,
+      "wall_seconds": 0.406917667016387
+    },
+    {
+      "model": "qwen2.5:1.5b",
+      "kind": "request-task",
+      "case": "draft",
+      "total_duration": 386759583,
+      "load_duration": 90697708,
+      "prompt_eval_count": 276,
+      "prompt_eval_duration": 165127000,
+      "eval_count": 17,
+      "eval_duration": 125192000,
+      "wall_seconds": 0.3872885841410607
+    },
+    {
+      "model": "qwen2.5:1.5b",
+      "kind": "request-task",
+      "case": "purchase",
+      "total_duration": 381668917,
+      "load_duration": 93152584,
+      "prompt_eval_count": 269,
+      "prompt_eval_duration": 165587000,
+      "eval_count": 16,
+      "eval_duration": 120189000,
+      "wall_seconds": 0.382156791863963
+    },
+    {
+      "model": "qwen2.5:1.5b",
+      "kind": "request-task",
+      "case": "ambiguous",
+      "total_duration": 397540208,
+      "load_duration": 102873458,
+      "prompt_eval_count": 276,
+      "prompt_eval_duration": 163798000,
+      "eval_count": 17,
+      "eval_duration": 128398000,
+      "wall_seconds": 0.3980800418648869
+    },
+    {
+      "model": "qwen2.5:1.5b",
+      "kind": "request-task",
+      "case": "negative",
+      "total_duration": 409308208,
+      "load_duration": 91537458,
+      "prompt_eval_count": 278,
+      "prompt_eval_duration": 164857000,
+      "eval_count": 20,
+      "eval_duration": 150230000,
+      "wall_seconds": 0.40984479198232293
+    },
+    {
+      "model": "qwen2.5:1.5b",
+      "kind": "request-task",
+      "case": "unknown",
+      "total_duration": 378480500,
+      "load_duration": 85343875,
+      "prompt_eval_count": 273,
+      "prompt_eval_duration": 164773000,
+      "eval_count": 17,
+      "eval_duration": 125439000,
+      "wall_seconds": 0.3790138328913599
+    },
+    {
+      "model": "qwen2.5:1.5b",
+      "kind": "request-task",
+      "case": "paraphrase",
+      "total_duration": 374820042,
+      "load_duration": 84403459,
+      "prompt_eval_count": 275,
+      "prompt_eval_duration": 165048000,
+      "eval_count": 17,
+      "eval_duration": 123108000,
+      "wall_seconds": 0.3752556249964982
+    },
+    {
+      "model": "qwen2.5:1.5b",
+      "kind": "request-task",
+      "case": "indirect",
+      "total_duration": 378394916,
+      "load_duration": 86623458,
+      "prompt_eval_count": 291,
+      "prompt_eval_duration": 165638000,
+      "eval_count": 17,
+      "eval_duration": 123755000,
+      "wall_seconds": 0.3788244160823524
+    },
+    {
+      "model": "qwen2.5:1.5b",
+      "kind": "request-task",
+      "case": "quoted",
+      "total_duration": 401517625,
+      "load_duration": 84948083,
+      "prompt_eval_count": 286,
+      "prompt_eval_duration": 165405000,
+      "eval_count": 20,
+      "eval_duration": 148838000,
+      "wall_seconds": 0.4019471250940114
+    },
+    {
+      "model": "qwen2.5:1.5b",
+      "kind": "request-task",
+      "case": "negated_purchase",
+      "total_duration": 377113000,
+      "load_duration": 90749875,
+      "prompt_eval_count": 280,
+      "prompt_eval_duration": 165168000,
+      "eval_count": 16,
+      "eval_duration": 118870000,
+      "wall_seconds": 0.377586540998891
+    },
+    {
+      "model": "qwen2.5:1.5b",
+      "kind": "request-task",
+      "case": "new_product",
+      "total_duration": 383457667,
+      "load_duration": 89084625,
+      "prompt_eval_count": 278,
+      "prompt_eval_duration": 165182000,
+      "eval_count": 17,
+      "eval_duration": 126572000,
+      "wall_seconds": 0.38398604094982147
+    },
+    {
+      "model": "qwen2.5:1.5b",
+      "kind": "request-task",
+      "case": "new_stock",
+      "total_duration": 398843167,
+      "load_duration": 83384917,
+      "prompt_eval_count": 270,
+      "prompt_eval_duration": 164766000,
+      "eval_count": 20,
+      "eval_duration": 147991000,
+      "wall_seconds": 0.3993982500396669
+    },
+    {
+      "model": "qwen2.5:1.5b",
+      "kind": "request-task",
+      "case": "no_product",
+      "total_duration": 372958084,
+      "load_duration": 88069584,
+      "prompt_eval_count": 233,
+      "prompt_eval_duration": 143745000,
+      "eval_count": 19,
+      "eval_duration": 138877000,
+      "wall_seconds": 0.37353374995291233
+    },
+    {
+      "model": "qwen2.5:1.5b",
+      "kind": "request-task",
+      "case": "override",
+      "total_duration": 376601250,
+      "load_duration": 87041250,
+      "prompt_eval_count": 275,
+      "prompt_eval_duration": 164255000,
+      "eval_count": 17,
+      "eval_duration": 122912000,
+      "wall_seconds": 0.3771076670382172
+    },
+    {
+      "model": "qwen2.5:1.5b",
+      "kind": "request-task",
+      "case": "stock",
+      "total_duration": 398828209,
+      "load_duration": 85909959,
+      "prompt_eval_count": 274,
+      "prompt_eval_duration": 164408000,
+      "eval_count": 20,
+      "eval_duration": 146126000,
+      "wall_seconds": 0.3992791250348091
+    },
+    {
+      "model": "qwen2.5:1.5b",
+      "kind": "request-task",
+      "case": "draft",
+      "total_duration": 376599333,
+      "load_duration": 87629250,
+      "prompt_eval_count": 277,
+      "prompt_eval_duration": 163847000,
+      "eval_count": 17,
+      "eval_duration": 123059000,
+      "wall_seconds": 0.37703254190273583
+    },
+    {
+      "model": "qwen2.5:1.5b",
+      "kind": "request-task",
+      "case": "purchase",
+      "total_duration": 382215000,
+      "load_duration": 89299834,
+      "prompt_eval_count": 275,
+      "prompt_eval_duration": 164795000,
+      "eval_count": 17,
+      "eval_duration": 125894000,
+      "wall_seconds": 0.38266004202887416
+    },
+    {
+      "model": "qwen2.5:1.5b",
+      "kind": "request-task",
+      "case": "ambiguous",
+      "total_duration": 376132625,
+      "load_duration": 84068125,
+      "prompt_eval_count": 275,
+      "prompt_eval_duration": 164397000,
+      "eval_count": 17,
+      "eval_duration": 125429000,
+      "wall_seconds": 0.3766098329797387
+    },
+    {
+      "model": "qwen2.5:1.5b",
+      "kind": "request-task",
+      "case": "negative",
+      "total_duration": 399248375,
+      "load_duration": 87060959,
+      "prompt_eval_count": 277,
+      "prompt_eval_duration": 163947000,
+      "eval_count": 20,
+      "eval_duration": 145925000,
+      "wall_seconds": 0.39968637516722083
+    },
+    {
+      "model": "qwen2.5:1.5b",
+      "kind": "request-task",
+      "case": "unknown",
+      "total_duration": 368992916,
+      "load_duration": 87559750,
+      "prompt_eval_count": 272,
+      "prompt_eval_duration": 164045000,
+      "eval_count": 16,
+      "eval_duration": 115210000,
+      "wall_seconds": 0.36941770813427866
+    },
+    {
+      "model": "qwen2.5:1.5b",
+      "kind": "request-task",
+      "case": "paraphrase",
+      "total_duration": 376973709,
+      "load_duration": 84165167,
+      "prompt_eval_count": 278,
+      "prompt_eval_duration": 164552000,
+      "eval_count": 17,
+      "eval_duration": 125870000,
+      "wall_seconds": 0.3774116251152009
+    },
+    {
+      "model": "qwen2.5:1.5b",
+      "kind": "request-task",
+      "case": "indirect",
+      "total_duration": 379924250,
+      "load_duration": 86104375,
+      "prompt_eval_count": 291,
+      "prompt_eval_duration": 165536000,
+      "eval_count": 17,
+      "eval_duration": 125782000,
+      "wall_seconds": 0.38043945794925094
+    },
+    {
+      "model": "qwen2.5:1.5b",
+      "kind": "request-task",
+      "case": "quoted",
+      "total_duration": 399825334,
+      "load_duration": 84535917,
+      "prompt_eval_count": 286,
+      "prompt_eval_duration": 164926000,
+      "eval_count": 20,
+      "eval_duration": 147924000,
+      "wall_seconds": 0.40037083299830556
+    },
+    {
+      "model": "qwen2.5:1.5b",
+      "kind": "request-task",
+      "case": "negated_purchase",
+      "total_duration": 372853042,
+      "load_duration": 85885459,
+      "prompt_eval_count": 278,
+      "prompt_eval_duration": 164805000,
+      "eval_count": 16,
+      "eval_duration": 119515000,
+      "wall_seconds": 0.3733742090407759
+    },
+    {
+      "model": "qwen2.5:1.5b",
+      "kind": "request-task",
+      "case": "new_product",
+      "total_duration": 378409917,
+      "load_duration": 87192667,
+      "prompt_eval_count": 277,
+      "prompt_eval_duration": 164930000,
+      "eval_count": 17,
+      "eval_duration": 123959000,
+      "wall_seconds": 0.3790025000926107
+    },
+    {
+      "model": "qwen2.5:1.5b",
+      "kind": "request-task",
+      "case": "new_stock",
+      "total_duration": 397118750,
+      "load_duration": 84666625,
+      "prompt_eval_count": 273,
+      "prompt_eval_duration": 164220000,
+      "eval_count": 20,
+      "eval_duration": 146075000,
+      "wall_seconds": 0.3975491249002516
+    },
+    {
+      "model": "qwen2.5:1.5b",
+      "kind": "request-task",
+      "case": "no_product",
+      "total_duration": 374292250,
+      "load_duration": 89375084,
+      "prompt_eval_count": 234,
+      "prompt_eval_duration": 143901000,
+      "eval_count": 19,
+      "eval_duration": 138884000,
+      "wall_seconds": 0.3747210830915719
+    },
+    {
+      "model": "qwen2.5:1.5b",
+      "kind": "request-task",
+      "case": "override",
+      "total_duration": 373435125,
+      "load_duration": 84134250,
+      "prompt_eval_count": 278,
+      "prompt_eval_duration": 164453000,
+      "eval_count": 17,
+      "eval_duration": 122651000,
+      "wall_seconds": 0.37385554192587733
+    },
+    {
+      "model": "qwen2.5:1.5b",
+      "kind": "request-task",
+      "case": "stock",
+      "total_duration": 403165458,
+      "load_duration": 89604416,
+      "prompt_eval_count": 276,
+      "prompt_eval_duration": 164176000,
+      "eval_count": 20,
+      "eval_duration": 147167000,
+      "wall_seconds": 0.4036213329527527
+    },
+    {
+      "model": "qwen2.5:1.5b",
+      "kind": "request-task",
+      "case": "draft",
+      "total_duration": 380847750,
+      "load_duration": 85192583,
+      "prompt_eval_count": 278,
+      "prompt_eval_duration": 164603000,
+      "eval_count": 17,
+      "eval_duration": 128786000,
+      "wall_seconds": 0.3814158330205828
+    },
+    {
+      "model": "qwen2.5:1.5b",
+      "kind": "concurrent-1",
+      "total_duration": 655589292,
+      "load_duration": 104374334,
+      "prompt_eval_count": 87,
+      "prompt_eval_duration": 62080000,
+      "eval_count": 64,
+      "eval_duration": 487151000
+    },
+    {
+      "model": "qwen2.5:1.5b",
+      "kind": "concurrent-2",
+      "total_duration": 663641708,
+      "load_duration": 104524875,
+      "prompt_eval_count": 91,
+      "prompt_eval_duration": 60991000,
+      "eval_count": 64,
+      "eval_duration": 496423000
+    },
+    {
+      "model": "qwen2.5:1.5b",
+      "kind": "concurrent-2",
+      "total_duration": 1231090208,
+      "load_duration": 104825208,
+      "prompt_eval_count": 90,
+      "prompt_eval_duration": 60421000,
+      "eval_count": 64,
+      "eval_duration": 504990000
+    },
+    {
+      "model": "qwen2.5:1.5b",
+      "kind": "concurrent-4",
+      "total_duration": 698629625,
+      "load_duration": 138038458,
+      "prompt_eval_count": 93,
+      "prompt_eval_duration": 62030000,
+      "eval_count": 64,
+      "eval_duration": 496522000
+    },
+    {
+      "model": "qwen2.5:1.5b",
+      "kind": "concurrent-4",
+      "total_duration": 1824228375,
+      "load_duration": 139946750,
+      "prompt_eval_count": 94,
+      "prompt_eval_duration": 61487000,
+      "eval_count": 64,
+      "eval_duration": 500310000
+    },
+    {
+      "model": "qwen2.5:1.5b",
+      "kind": "concurrent-4",
+      "total_duration": 1260226583,
+      "load_duration": 138771333,
+      "prompt_eval_count": 92,
+      "prompt_eval_duration": 61232000,
+      "eval_count": 64,
+      "eval_duration": 498702000
+    },
+    {
+      "model": "qwen2.5:1.5b",
+      "kind": "concurrent-4",
+      "total_duration": 2390390834,
+      "load_duration": 140068375,
+      "prompt_eval_count": 91,
+      "prompt_eval_duration": 61106000,
+      "eval_count": 64,
+      "eval_duration": 502987000
+    }
+  ]
+}

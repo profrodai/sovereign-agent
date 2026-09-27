@@ -43,9 +43,9 @@ def wilson_interval(successes: int, trials: int, z: float = Z95) -> tuple[float,
     """
     phat = successes / trials
     denominator = 1 + z * z / trials
-    centre = (phat + z * z / (2 * trials)) / denominator
+    center = (phat + z * z / (2 * trials)) / denominator
     half = z * math.sqrt(phat * (1 - phat) / trials + z * z / (4 * trials * trials)) / denominator
-    return (max(0.0, centre - half), min(1.0, centre + half))
+    return (max(0.0, center - half), min(1.0, center + half))
 
 
 def coverage(interval, p: float, trials: int, z: float = Z95) -> float:

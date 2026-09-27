@@ -1,4 +1,4 @@
-# Chapter 18 — Deploy and maintain the agent
+# Chapter 18 — What a model call costs, and a deployment that survives
 
 > **Learn with Prof Rod** — *Build Your Always-On AI Agent From Scratch*.
 > **Read the full book and get the latest learning materials:** [https://profrod.ai/book](https://profrod.ai/book).
@@ -10,15 +10,299 @@
 
 Lucy's agent can now receive work, ask for approval and recover an uncertain order. Those abilities are useful only while a host runs the program and preserves its records. Closing a terminal must not silently end the morning routine. Updating the code must not discard yesterday's purchases. Restoring a backup must not persuade the supplier that an old approval is new authority.
 
-This chapter turns our existing bounded worker into an installed Linux service. We keep one writable state directory outside immutable release directories, use the operating system's service manager and distinguish process health from business progress. Then we construct the backup and restore boundary and recover an older local snapshot against a separate supplier account.
+Part A first measures what the agent spends. It covers prefill and decode, the memory bandwidth that bounds decode, the key-value cache, batching, latency and cost per task, all derived and measured on local models. Part B then turns our existing bounded worker into an installed Linux service. We keep one writable state directory outside immutable release directories, use the operating system's service manager and distinguish process health from business progress. Then we construct the backup and restore boundary and recover an older local snapshot against a separate supplier account.
 
 The deployment is deliberately modest: one Linux host, one user service for shop work, an optional second service for bounded research, SQLite and operator-owned environment files. A maintained service manager supplies restart behavior. We still own the decisions about work, permissions, receipts and reconciliation. The machine's availability remains a condition of the promise, not something an agent loop can manufacture.
 
 ## Learning objectives
 
-Construct a systemd unit for the bounded worker; distinguish liveness from progress; inspect work age and uncertain outcomes; create a consistent, protected backup; restore without preserving obsolete authority; preflight an upgrade before stopping services; and verify that a compatible rollback preserves business history.
+Part A treats a model call as a cost. After it you should be able to:
+
+- explain why decode is limited by memory bandwidth and prefill by arithmetic, and estimate a decode-rate ceiling;
+- derive the key-value cache's memory from a model's architecture, and explain grouped-query attention;
+- explain how batching raises throughput, and apply Little's law to a server that does not batch;
+- decompose a request's latency into overhead, prefill and decode, and report percentiles;
+- estimate the cost of an agent loop, whose input grows with the square of its length.
+
+Part B deploys and maintains the agent. After it you should be able to construct a systemd unit for the bounded worker; distinguish liveness from progress; inspect work age and uncertain outcomes; create a consistent, protected backup; restore without preserving obsolete authority; preflight an upgrade before stopping services; and verify that a compatible rollback preserves business history.
 
 The portable deliverable is a maintenance checkpoint that creates real SQLite state and a separate loopback supplier process. It restores an older snapshot, rejects stale authority, reconciles later receipts and completes fresh work. The Linux deliverable is an installed service whose release, state, reboot behavior and completed work are recorded separately. Neither a generated unit nor a green portable checkpoint proves that the host started it.
+
+## Part A: what a model call costs
+
+Before deploying the agent, understand what it spends. Every call to a model costs time and money, and the costs follow from a few facts about how a transformer produces text. Those facts decide what an agent can afford to do. They explain why a long transcript is expensive, why output tokens cost more than input tokens, and why serving systems batch requests. This part derives them and measures them on the local models used throughout the book.
+
+The functions live in [the chapter's learner file](../learner/profrod_sovereign_agent_ch18_inference_economics_learner.py), and the measurements in the chapter's receipt.
+
+```python
+import json
+import runpy
+import statistics
+
+econ = runpy.run_path(
+    "book/textbook/learner/profrod_sovereign_agent_ch18_inference_economics_learner.py"
+)
+measured = json.loads(open("docs/evidence/book-ch18/ch18-inference-receipt-v1.json").read())
+```
+
+### Two phases: prefill and decode
+
+Generating an answer happens in two phases.
+
+- **Prefill** runs the model over the whole prompt at once. All $P$ prompt tokens pass through each layer together, as one large matrix multiplication per weight matrix, and the pass fills the key-value cache described below.
+- **Decode** produces the answer one token at a time. Each new token needs a full forward pass, and that pass cannot start until the previous token is known.
+
+The arithmetic per token is the same in both phases. A weight matrix of $m \times n$ parameters costs $mn$ multiplications and $mn$ additions per token, so a model with $N$ parameters costs about $2N$ floating-point operations per token. What differs is how often the weights are read. In prefill, one read of each weight serves all $P$ tokens. In decode, every step reads every weight to produce a single token.
+
+The experiment reads each phase's duration from the server's own timing fields, with a fresh prefix on every prompt so no cached work is reused:
+
+```bash
+uv run python book/textbook/experiments/profrod_sovereign_agent_textbook_ch18_inference_v1.py \
+    --out ch18-inference-receipt.json
+```
+
+One run, recorded on 2026-09-26 with Ollama 0.32.5 on an Apple M4 Pro, took 67 seconds.
+
+**Listing:** Prefill and decode rates for three local models.
+
+```python
+for name, model in measured["models"].items():
+    prefill = model["prefill"][1]["tokens_per_second"]
+    decode = model["decode_tokens_per_second"]["short_prompt"]
+    print(
+        f"{name:13} {model['parameters'] / 1e9:.2f}B parameters,"
+        f" {model['file_bytes'] / 1e9:.2f} GB: prefill {prefill:6.0f} tok/s,"
+        f" decode {decode:5.1f} tok/s, ratio {prefill / decode:4.1f}"
+    )
+```
+
+```text
+qwen2.5:0.5b  0.49B parameters, 0.40 GB: prefill   5590 tok/s, decode 211.1 tok/s, ratio 26.5
+qwen3:0.6b    0.75B parameters, 0.52 GB: prefill   4201 tok/s, decode 217.7 tok/s, ratio 19.3
+qwen2.5:1.5b  1.54B parameters, 0.99 GB: prefill   1752 tok/s, decode 129.6 tok/s, ratio 13.5
+```
+
+Prefill is an order of magnitude faster per token than decode on the same hardware. **Reading a prompt is cheap; writing an answer is expensive.** This is why API providers price output tokens several times higher than input tokens.
+
+### Decode is limited by memory, not arithmetic
+
+A decode step must bring every weight from memory to the processor. If memory delivers $B$ bytes per second and the weights occupy $W$ bytes, no implementation can take more than
+
+$
+\text{decode rate} \le \frac{B}{W}
+$
+
+steps per second at batch size one. Compare the work with the traffic. A decode step performs $2N$ operations and reads $W = bN$ bytes, where $b$ is the bytes per parameter. The **arithmetic intensity** is therefore $2/b$ operations per byte: about three for these 4-bit models, and one for 16-bit weights. Modern processors can do tens to hundreds of operations in the time it takes to read one byte, so at batch size one the arithmetic units mostly wait for memory.
+
+The measurement gives one more check. If each step reads the weights once, the decode rate times the file size is the bandwidth actually achieved. Apple lists 273 GB/s for the M4 Pro.
+
+**Listing:** Implied bandwidth, and a fit of step time to model size.
+
+```python
+for name, model in measured["models"].items():
+    print(f"{name:13} implied weight reads {model['implied_weight_read_gb_per_second']} GB/s")
+small, large = measured["models"]["qwen2.5:0.5b"], measured["models"]["qwen2.5:1.5b"]
+step = {m["file_bytes"]: 1 / m["decode_tokens_per_second"]["short_prompt"] for m in (small, large)}
+(w1, t1), (w2, t2) = sorted(step.items())
+seconds_per_byte = (t2 - t1) / (w2 - w1)
+overhead = t1 - w1 * seconds_per_byte
+print(f"step time = {overhead * 1000:.2f} ms + weights / {1 / seconds_per_byte / 1e9:.0f} GB/s")
+```
+
+```text
+qwen2.5:0.5b  implied weight reads 84.0 GB/s
+qwen3:0.6b    implied weight reads 113.8 GB/s
+qwen2.5:1.5b  implied weight reads 127.8 GB/s
+step time = 2.72 ms + weights / 197 GB/s
+```
+
+No model reaches the ceiling, and the smallest is furthest from it. The fit through the two qwen2.5 models explains why. Each step pays a fixed cost of a few milliseconds, for launching work, sampling a token and bookkeeping, plus the weight reads. For a small model the fixed cost is most of the step. The reads alone proceed at close to three-quarters of the published bandwidth. As models grow, the weight term dominates and decode approaches $B/W$. This is why, for large models, doubling the size roughly halves the decode rate.
+
+### The key-value cache
+
+Attention lets each new token look at every earlier token. Recomputing the earlier tokens' keys and values at every step would repeat all of prefill, so the server stores them: the **key-value (KV) cache**. For every layer, every KV head and every token, it keeps one key vector and one value vector of the head dimension $d$:
+
+$
+\text{KV bytes} = 2 \times L \times H_{\text{kv}} \times d \times b \times T,
+$
+
+for $L$ layers, $H_{\text{kv}}$ KV heads, $b$ bytes per value and $T$ tokens. **Grouped-query attention** (GQA) lets several query heads share one KV head, which divides the cache by the ratio of query heads to KV heads. The experiment reads $L$, the head counts and $d$ from each model file.
+
+**Listing:** The cache, from the architecture, at 16-bit precision.
+
+```python
+for name, model in measured["models"].items():
+    print(
+        f"{name:13} {model['layers']} layers, {model['kv_heads']} of {model['attention_heads']}"
+        f" heads for KV, d = {model['head_dim']}: {model['kv_bytes_per_token_f16']:,} B/token;"
+        f" full {model['context_length']:,}-token context"
+        f" {model['kv_bytes_full_context_f16'] / 1e9:.2f} GB (weights {model['file_bytes'] / 1e9:.2f} GB)"
+    )
+```
+
+```text
+qwen2.5:0.5b  24 layers, 2 of 14 heads for KV, d = 64: 12,288 B/token; full 32,768-token context 0.40 GB (weights 0.40 GB)
+qwen3:0.6b    28 layers, 8 of 16 heads for KV, d = 128: 114,688 B/token; full 40,960-token context 4.70 GB (weights 0.52 GB)
+qwen2.5:1.5b  28 layers, 2 of 12 heads for KV, d = 128: 28,672 B/token; full 32,768-token context 0.94 GB (weights 0.99 GB)
+```
+
+```mermaid
+xychart-beta
+    title "Weights against a full-context KV cache (GB)"
+    x-axis ["qwen2.5:0.5b", "qwen3:0.6b", "qwen2.5:1.5b"]
+    y-axis "Gigabytes" 0 --> 5
+    bar [0.40, 0.52, 0.99]
+    line [0.40, 4.70, 0.94]
+```
+
+**Figure:** Bars are the weights; the line is one sequence's KV cache at the model's full context. With eight KV heads, `qwen3:0.6b`'s cache dwarfs its weights.
+
+At its full context, `qwen3:0.6b`'s cache would be about nine times the size of its weights. Long contexts are paid for in memory, per sequence. Grouped-query attention is why `qwen2.5:1.5b`'s cache is small: two KV heads instead of twelve divide it by six.
+
+The cache is also read on every decode step, so a long context slows decode. Add the cache to the weights in the step-time fit, and predict the decode rate after a 2,000-token prompt.
+
+**Listing:** Predict the slowdown from reading the cache.
+
+```python
+bandwidth = 1 / seconds_per_byte
+for name in ("qwen2.5:1.5b", "qwen3:0.6b"):
+    model = measured["models"][name]
+    tokens = statistics.median(
+        run["prompt_eval_count"]
+        for run in measured["runs"]
+        if run["model"] == name and run["kind"] == "decode-long_prompt"
+    )
+    short = 1 / model["decode_tokens_per_second"]["short_prompt"]
+    predicted = 1 / (short + tokens * model["kv_bytes_per_token_f16"] / bandwidth)
+    observed = model["decode_tokens_per_second"]["long_prompt"]
+    print(f"{name:13} after {tokens} tokens: predicted {predicted:.1f} tok/s, measured {observed}")
+```
+
+```text
+qwen2.5:1.5b  after 2010 tokens: predicted 124.9 tok/s, measured 118.8
+qwen3:0.6b    after 1998 tokens: predicted 173.8 tok/s, measured 178.1
+```
+
+The prediction uses nothing but the architecture, the context length and the bandwidth fitted on other runs, and it lands within 5% of both measurements. The model with four times as many KV heads per layer slows much more.
+
+### Batching, and a server that did not batch
+
+Decode's weakness suggests the remedy. One read of the weights can serve many sequences at once: a batch of $k$ sequences performs $2Nk$ operations for the same $W$ bytes, raising the arithmetic intensity to $2k/b$. Until the arithmetic units are busy, a batch of $k$ produces about $k$ times the tokens in the same step time. This is how serving systems reach their throughput, and why a provider can sell tokens more cheaply than a single user can generate them.
+
+The experiment sent one, two and four simultaneous requests to the local server.
+
+**Listing:** Aggregate throughput under concurrent requests.
+
+```python
+for row in measured["concurrency_qwen2.5:1.5b"]:
+    print(
+        f"{row['concurrent_requests']} at once: {row['wall_seconds']:.2f} s wall,"
+        f" {row['aggregate_tokens_per_second']} tok/s total,"
+        f" {row['per_request_decode_tokens_per_second']} tok/s per request while decoding"
+    )
+```
+
+```text
+1 at once: 0.66 s wall, 97.1 tok/s total, 131.4 tok/s per request while decoding
+2 at once: 1.23 s wall, 103.8 tok/s total, 127.8 tok/s per request while decoding
+4 at once: 2.39 s wall, 107.0 tok/s total, 128.1 tok/s per request while decoding
+```
+
+```mermaid
+xychart-beta
+    title "Total decode throughput against concurrent requests, qwen2.5:1.5b"
+    x-axis "Requests at once" [1, 2, 4]
+    y-axis "Tokens per second" 0 --> 400
+    line [97.1, 194.2, 388.4]
+    line [97.1, 103.8, 107.0]
+```
+
+**Figure:** Ideal batching (upper line) would multiply throughput by the batch size while the weights are read once per step. This server, as configured, served requests one at a time (lower line).
+
+This server, as configured, did not batch. It served the requests one after another. Total throughput stayed near one request's decode rate, and wall time grew in proportion to the number of requests. Batching is a property of the serving software and its configuration, not of the model. The consequence for an agent is queueing. **Little's law**, from [Chapter 7](../ch07/profrod-sovereign-agent-ch07-durable-inbox-outbox-chapter.md), says the average number of requests in progress equals the arrival rate times the time each spends in the system. A server that handles one request at a time, each taking $W$ seconds, can sustain at most $1/W$ requests per second. Above that rate, the queue grows without bound.
+
+### Latency: where the time goes, and the tail
+
+A request's time is a sum of three terms:
+
+$
+T \approx T_0 + \frac{P}{\text{prefill rate}} + \frac{O}{\text{decode rate}},
+$
+
+with $P$ prompt tokens, $O$ output tokens and a fixed overhead $T_0$. Averages hide slow requests, so latency is reported by percentiles. The $q$th percentile is the smallest observed value that at least $q\%$ of observations do not exceed.
+
+The experiment ran thirty requests of Chapter 15's request-interpretation task on `qwen2.5:1.5b`.
+
+**Listing:** Percentiles and the split of time.
+
+```python
+task = measured["request_task_qwen2.5:1.5b"]
+print("mean tokens: prompt", task["mean_prompt_tokens"], "output", task["mean_output_tokens"])
+print("seconds:", task["wall_seconds"])
+print("share of time:", task["share_of_time"])
+walls = [r["wall_seconds"] for r in measured["runs"] if r["kind"] == "request-task"]
+print("p50 recomputed:", round(econ["percentile"](walls, 50), 3))
+```
+
+```text
+mean tokens: prompt 274.4 output 17.9
+seconds: {'p50': 0.38, 'p90': 0.402, 'max': 0.41, 'mean': 0.386}
+share of time: {'prefill': 0.423, 'decode': 0.342, 'other': 0.235}
+p50 recomputed: 0.38
+```
+
+For this task the prompt is fifteen times longer than the answer, so reading the prompt takes more time than writing the answer, despite prefill's speed. This is the common shape of agent calls: a long transcript in, a short decision out. It is why providers offer **prompt caching**, which reuses the prefill of a repeated prefix. The spread is narrow on an idle local machine, where p90 is only 6% above the median. A shared service's tail is set by queueing, and must be measured under load.
+
+### Cost per task
+
+A hosted model charges per token, with separate prices for input and output. An agent loop adds a multiplier: each call resends the whole transcript so far. Call $k$ of a loop sends the first prompt $P_0$ plus $k$ additions of about $\Delta$ tokens each, so over $n$ calls the input tokens total
+
+$
+\sum_{k=0}^{n-1} (P_0 + k\Delta) = nP_0 + \Delta\,\frac{n(n-1)}{2}.
+$
+
+**Input grows with the square of the loop's length.**
+
+**Listing:** An agent loop, priced at illustrative rates.
+
+```python
+first, added = 300, 60  # tokens in the first prompt, and added by each tool round trip
+input_price, output_price = 0.15, 0.60  # illustrative dollars per million tokens, not a quote
+for calls in (2, 5, 10, 20):
+    tokens = econ["loop_input_tokens"](calls, first, added)
+    cents = econ["cost_cents"](tokens, 20 * calls, input_price, output_price)
+    print(f"calls {calls:2}: {tokens:6,} input tokens, {cents:.4f} cents per task")
+```
+
+```text
+calls  2:    660 input tokens, 0.0123 cents per task
+calls  5:  2,100 input tokens, 0.0375 cents per task
+calls 10:  5,700 input tokens, 0.0975 cents per task
+calls 20: 17,400 input tokens, 0.2850 cents per task
+```
+
+```mermaid
+xychart-beta
+    title "Input tokens over an agent loop"
+    x-axis "Model calls in the loop" [2, 5, 10, 20]
+    y-axis "Input tokens" 0 --> 18000
+    line [660, 2100, 5700, 17400]
+    line [660, 1650, 3300, 6600]
+```
+
+**Figure:** Resending the transcript (upper line) grows with the square of the loop's length. The lower line is what the two-call loop would cost if cost grew only in proportion to the number of calls.
+
+Ten times the calls, from two to twenty, costs about twenty-six times the input. Three design rules follow, each already in this book:
+
+- Keep loops short, and put computation in tools, as in [Chapter 3](../ch03/profrod-sovereign-agent-ch03-agent-loop-chapter.md).
+- Bound every loop with a budget of calls and cost.
+- Keep a stable prefix at the start of the transcript, so that prompt caching can reuse it.
+
+A local model has no per-token price, but not zero cost: the measured task occupies the machine for about 0.4 seconds per call. At one request at a time, the machine caps the whole shop at about two and a half calls per second.
+
+## Part B: deploy and maintain the agent
+
+Part A measured what each call costs. This part keeps the calls running: a host service, backups, restores that do not revive old authority, and upgrades that keep the day's records.
 
 ## Put code, state and credentials in deliberate places
 
@@ -503,7 +787,17 @@ For an adversarial exercise, attempt to restore the active database onto itself,
 
 For an operating exercise, define a useful alert threshold for work age in Lucy's shop. A morning brief waiting five minutes may warrant attention; a large order awaiting an explicit approval may be correctly blocked for hours. State the business reason for the threshold and the record you would inspect before restarting anything. Restarting a healthy process cannot supply missing approval.
 
+### Exercise 4: predict a model you have not measured
+
+Pick a model you have not run, and read its layer count, KV heads and head dimension from its model card or file. Predict its KV cache per token and its decode rate on your machine, from this chapter's fitted step time. Then measure it with the chapter's experiment, and explain the difference.
+
+### Exercise 5: price a loop with caching
+
+A provider charges a tenth of the input price for a cached prefix. Extend `loop_input_tokens` to split each call's input into a cached prefix, the transcript before this call, and new tokens. Compare the cost of the 20-call loop with and without caching.
+
 ## Summary
+
+A model call has two phases. Prefill reads the prompt quickly; decode writes the answer one token at a time, limited by how fast the weights can be read. The key-value cache costs memory in proportion to the context, and grouped-query attention reduces it. Batching amortizes each weight read across many sequences, if the server does it. An agent loop that resends its transcript pays for input quadratically. Measure all of these, because the model file and the server's own timings are enough to predict them.
 
 We constructed the host unit and maintenance boundary around the same bounded runtime. Immutable releases make the selected code visible, while persistent state survives process replacement. Health observations distinguish liveness from unfinished work and uncertain effects. SQLite backup produces a consistent local snapshot, and restore invalidates old authority rather than treating old records as permission to repeat the day.
 
@@ -511,9 +805,13 @@ Account recovery requires more than file integrity. The controlled supplier's fe
 
 ### Active recall
 
+Why does a decode step read every weight, and a prefill step read each weight once for the whole prompt? Derive the KV cache's size from the architecture. Why does a loop of ten calls cost far more than ten times one call?
+
 Why can copying only the live SQLite file miss committed work? Why preserve the active database inode during restore? What can an accepted supplier receipt establish about physical stock? Why does a matching schema not fully justify a code rollback? Which observation proves the service handled a new request after reboot? Why must replaying a recovery plan avoid granting another model allowance?
 
 ### Vocabulary
+
+**Prefill** processes the prompt; **decode** generates one token per step. **Arithmetic intensity** is operations per byte read. The **KV cache** stores each earlier token's keys and values; **grouped-query attention** shares KV heads across query heads. **Batching** serves several sequences with one weight read. A **percentile** is the value below which a given share of observations fall.
 
 A release identifies immutable code and its environment. A user service is managed by the host's user-level service manager. A consistent snapshot reflects SQLite's committed state at a valid point. An authority epoch invalidates prior holders across restore. Account reconciliation combines external receipts with present observations. A code rollback changes the executable while retaining compatible business history.
 

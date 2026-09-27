@@ -83,7 +83,7 @@ User-service availability after reboot also depends on the host's user-manager c
 
 ## Roll back code without rolling back business history
 
-For a reviewed, schema-compatible prior release, repeat the preflight and stop/install sequence with the release roles exchanged. Keep the same state. Verify a new work result and retained business records again. The recorded experiment switched from `cec0452` to `313ac06`, back to `cec0452`, and returned to `313ac06`, all at schema 24. The two accepted orders and $26 spending remained unchanged, and service work completed after each switch.
+For a reviewed, schema-compatible prior release, repeat the preflight and stop/install sequence with the release roles exchanged. Keep the same state. Verify a new work result and retained business records again. The recorded experiment switched from `cec0452` to `313ac06`, back to `cec0452`, and returned to `313ac06`, all at schema 24. The two accepted orders and 2600 cents of spending remained unchanged, and service work completed after each switch.
 
 The same experiment refused the older schema-22 release because migrations 23 and 24 were unknown to it. A pre-upgrade schema-22 backup still exists as evidence; it was not installed over the current account to force a downgrade. This distinction matters whenever external events have occurred since the backup.
 

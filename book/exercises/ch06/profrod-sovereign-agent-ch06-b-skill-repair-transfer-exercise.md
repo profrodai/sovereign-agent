@@ -3950,9 +3950,9 @@ RECORDED_TURNS = [
         ]
     ),
     scripted_turn(
-        "- Vanilla is 6 tubs below its reorder point; the supplier price is 250p, so a draft "
+        "- Vanilla is 6 tubs below its reorder point; the supplier price is 250 cents, so a draft "
         "would total $15.00 USD.\n"
-        "- Strawberry is 4 tubs short at 275p, $11.00 USD.\n"
+        "- Strawberry is 4 tubs short at 275 cents, $11.00 USD.\n"
         "- No draft was created: drafting is not available to this worker, so this is a "
         "recommendation, not a draft."
     ),

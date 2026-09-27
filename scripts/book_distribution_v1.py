@@ -49,7 +49,7 @@ UNIT_TOPICS = {
     15: ("agent-evaluation", "evaluation-statistics"),
     16: ("controlled-improvement", "improvement-repair-transfer"),
     17: ("bounded-delegation", "delegation-repair-transfer"),
-    18: ("deployment-restoration", "operations-repair-transfer"),
+    18: ("deployment-restoration", "inference-planning"),
     19: ("integrated-day-acceptance", "acceptance-repair-transfer"),
 }
 

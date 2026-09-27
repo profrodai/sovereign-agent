@@ -3808,7 +3808,7 @@ down in the notebook so the section runs identically for everyone; `OpenAIModel`
 messages to a hosted model when a key is present. The record always says which one ran.
 
 **Prediction:** the next cell seeds Lucy's shop and prints four tool schemas. From the stock
-you know (vanilla 2 of 8 at 250p, strawberry 1 of 5 at 275p), write down both draft amounts
+you know (vanilla 2 of 8 at 250 cents, strawberry 1 of 5 at 275 cents), write down both draft amounts
 and whether each fits the automatic allowance, then whether both fit the total together.
 
 
@@ -4009,10 +4009,10 @@ the whole point of exact approval: anyone holding the proposal can name it.
 
 The turns below are what a model replied, written down. Turn one reads stock. Turn two
 proposes six vanilla and four strawberry. Turn three approves both by digest: the vanilla
-approval reserves 1500p, and the strawberry one asks the ledger to hold 1100p more. Turn four
+approval reserves 1500 cents, and the strawberry one asks the ledger to hold 1100 cents more. Turn four
 reads the spending ledger, and turn five answers.
 
-**Prediction:** 1100p is under the 1500p automatic allowance. Is the strawberry approval
+**Prediction:** 1100 cents is under the 1500 cents automatic allowance. Is the strawberry approval
 accepted? Recall the order of checks in `approve`: operator, eligible proposal, uncertain
 retry, automatic allowance, then spent plus reserved plus addition against the ceiling. Write
 down what `assistant_spending` holds afterwards and which status each order has.
@@ -4041,8 +4041,9 @@ RECORDED_TURNS = [
     ),
     scripted_turn(calls=[{"name": "spending", "arguments": {}}]),
     scripted_turn(
-        "Approved 6 vanilla at 250p, 1500p now reserved. The 4 strawberry proposal at 1100p is "
-        "recorded as a draft: together they would exceed the 2000p ceiling, so it waits for "
+        "Approved 6 vanilla at 250 cents, 1500 cents now reserved. The 4 strawberry proposal at "
+        "1100 cents is "
+        "recorded as a draft: together they would exceed the 2000 cents ceiling, so it waits for "
         "Lucy's own approval. Nothing has been sent to a supplier."
     ),
 ]
@@ -4141,12 +4142,12 @@ The ceiling is data. Rerun the recorded transcript on a fresh ledger with
 whether the second approval is accepted: the rule is "at most", not "below". Then rerun with
 `total_cents=2599` and predict which refusal returns.
 
-The next cell also calls `approve` twice more, by hand, on the 2600p ledger. Repeating the
-vanilla approval under the same policy must not reserve a second 1500p: `addition` is zero for
-an order that is already `APPROVED`. Repeating it under a stricter supplied policy of 2000p is
+The next cell also calls `approve` twice more, by hand, on the 2600 cents ledger. Repeating the
+vanilla approval under the same policy must not reserve a second 1500 cents: `addition` is zero for
+an order that is already `APPROVED`. Repeating it under a stricter supplied policy of 2000 cents is
 refused even though nothing new is being reserved, because `approve` compares against the
 smaller of the installed and supplied ceilings. With a live key, rerun the live cell under the
-2599p policy and explain what the model did after its second approval was refused.
+2599 cents policy and explain what the model did after its second approval was refused.
 
 In your notes, separate what the scripted run proves (the cumulative rule, the exact-limit
 boundary, no double reservation, the installed-versus-supplied minimum, transcript accounting)

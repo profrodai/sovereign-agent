@@ -192,6 +192,8 @@ $$
 
 At $T = 1$ the model's own distribution is used. As $T \to 0$, the largest logit dominates, and all probability moves to the single most likely token: this is **greedy decoding**, and the implementation treats $T = 0$ as exactly that. As $T \to \infty$, every $z_i/T \to 0$ and the distribution becomes uniform: any token, equally likely.
 
+### Entropy, and why temperature raises it
+
 How spread out is a distribution? Its **entropy** measures the average surprise of one draw, in bits:
 
 $$
@@ -267,7 +269,11 @@ The three lines show three regimes:
 - **Moderate temperature** produces a plausible recombination of the notes that no note contains.
 - **High temperature** produces fragments, and bytes that are not valid UTF-8 at all (the "�" marks). A byte-level model can emit the first half of a multi-byte character, which is why the decoder takes an explicit error policy.
 
+### Top-p sampling
+
 **Top-p** ("nucleus") sampling is the usual guard against the long tail. It keeps the smallest set of most-likely tokens whose probabilities reach $p$, renormalizes, and samples from that. With $p = 0.9$, the dozens of garbage continuations that together hold 10% of the mass at high temperature are never drawn.
+
+### Testing a sampler
 
 How do you know a sampler is correct? Not by looking at a few outputs. Draw $n$ times and compare each token's observed frequency $\hat{p}_i$ with $p_i$. Each count is binomial, so $\hat{p}_i$ has standard error $\sqrt{p_i(1 - p_i)/n}$. It is tempting to check that every token lands within two or three standard errors. But with 356 tokens, some will deviate by more than three purely by chance. The experiment's largest deviation after 20,000 draws is 4.05 standard errors, on a token whose probability is so small that the normal approximation behind "standard errors" does not hold.
 
@@ -289,11 +295,15 @@ $$
 
 It is the average number of bits the model needs to encode each token of the text. **Perplexity** $2^{\mathcal{H}}$ turns it back into a count: a perplexity of 5 means the model is, on average, as uncertain as a fair choice among five tokens.
 
+### Training minimizes cross-entropy
+
 **This is the quantity every language model is trained to minimize.** Pretraining a large model means adjusting its parameters to maximize the probability of its training text, which is the same as minimizing cross-entropy on it. "Next-token prediction" is not a slogan; it is this formula.
 
 For the bigram model you can solve the training problem exactly. Suppose token $a$ is followed by token $j$ exactly $c_j$ times in the corpus. The log-probability of the corpus, restricted to what follows $a$, is $\sum_j c_j \log q_j$, and we maximize it subject to $\sum_j q_j = 1$. With a Lagrange multiplier $\lambda$, setting the derivative to zero gives $c_j / q_j = \lambda$. So $q_j \propto c_j$, and after normalizing, $q_j = c_j / \sum_i c_i$.
 
 **Counting is maximum-likelihood training.** It is also the reason we add $\alpha$. A pair that never occurred gets $q_j = 0$, and the first time it occurs in new text the model pays $-\log 0 = \infty$ bits. Adding $\alpha$ to every count keeps every probability positive. It is the estimate you get from a prior belief that every continuation is possible (a Dirichlet prior, in the statistics you will meet later).
+
+### Held-out text, and a fair unit
 
 **Measure on text the model did not train on.** A model can drive its cross-entropy on its own training text arbitrarily low by memorizing it. The number that matters is on held-out text. The experiment sweeps $\alpha$ with 100 merges:
 
@@ -413,7 +423,7 @@ The SKU is the identity used in tool arguments and records. The name is what Luc
 
 `on_hand` means physical stock in the shop. It will remain different from reserved stock and incoming orders. An accepted order is not a delivery. When we add those concepts, the distinction will determine whether another replenishment request is necessary. We introduce only the physical count here, but choose a field name that does not pretend to represent every kind of availability.
 
-Currency is explicit even though this first brief contains no prices. An earlier live construction run correctly calculated quantities and totals, then labeled the money as euros because its tool results supplied an ambiguous unit. That is a data-contract problem worth removing before we teach spending. Later tools use integer cents and the currency code USD together. A familiar-looking money symbol in generated prose is not authoritative accounting evidence.
+Currency is explicit even though this first brief contains no prices. An earlier live construction run correctly calculated quantities and totals, then labeled the money in a foreign currency because its tool results supplied an ambiguous unit. That is a data-contract problem worth removing before we teach spending. Later tools use integer cents and the currency code USD together. A familiar-looking money symbol in generated prose is not authoritative accounting evidence.
 
 The model will receive this fixture as context. The fixture does not become more authoritative because the model repeats it. If the stock count changes after the request, the response still describes the old snapshot. This is why Chapter 2 moves stock lookup into a tool that reads current records when called.
 
@@ -810,10 +820,10 @@ Run the live greedy request ten times in a row, then ten times across two restar
 
 Run the experiment offline. Your receipt should reproduce the chapter's tables exactly: training is deterministic, and sampling uses a fixed seed.
 
-- **Tokenization.** Characters per token rise from 1.00 at no merges to 3.20 when no pair repeats. Held-out bits per character are lowest at 100 merges.
-- **Smoothing.** Held-out bits per character are lowest near $\alpha = 0.001$, while training bits keep falling as $\alpha$ shrinks.
-- **Temperature.** The derived and finite-difference derivatives agree to four decimals in every row.
-- **Sampling.** $\chi^2$ is within about two standard deviations of its degrees of freedom ($|z| < 2$). The single largest per-token deviation may well exceed three standard errors; that is expected, and the reason for the chi-square test.
+- **Tokenization:** Characters per token rise from 1.00 at no merges to 3.20 when no pair repeats. Held-out bits per character are lowest at 100 merges.
+- **Smoothing:** Held-out bits per character are lowest near $\alpha = 0.001$, while training bits keep falling as $\alpha$ shrinks.
+- **Temperature:** The derived and finite-difference derivatives agree to four decimals in every row.
+- **Sampling:** $\chi^2$ is within about two standard deviations of its degrees of freedom ($|z| < 2$). The single largest per-token deviation may well exceed three standard errors; that is expected, and the reason for the chi-square test.
 
 With `--live`, your model, version and hardware will differ from ours, so the numbers will too. What should hold is the shape of the result:
 
@@ -830,10 +840,10 @@ Run the checkpoint offline. Its output must match the fixture shown in Part B ex
 
 Verify the fundamentals independently of the code under test:
 
-1. **Softmax by hand.** Pick three logits, compute softmax with a calculator, and compare. Then add 100 to each logit and confirm that nothing changes.
-2. **Entropy by hand.** Compute the entropy of a fair coin (1 bit) and of a fair four-sided die (2 bits) with `entropy_bits`. These are the only two numbers in the chapter you should know without computing.
-3. **The sampler against the test that would catch a bug.** Introduce an off-by-one in `sample` (return `i + 1`), rerun the experiment, and confirm that the chi-square $z$ explodes. A check that cannot fail on a broken sampler proves nothing about a good one.
-4. **The tokenizer round trip.** Confirm that `decode(encode(text, merges))` returns the original text for any text: every byte of every language, and emoji. Byte-level BPE guarantees this; say why.
+1. **Softmax by hand:** Pick three logits, compute softmax with a calculator, and compare. Then add 100 to each logit and confirm that nothing changes.
+2. **Entropy by hand:** Compute the entropy of a fair coin (1 bit) and of a fair four-sided die (2 bits) with `entropy_bits`. These are the only two numbers in the chapter you should know without computing.
+3. **The sampler against the test that would catch a bug:** Introduce an off-by-one in `sample` (return `i + 1`), rerun the experiment, and confirm that the chi-square $z$ explodes. A check that cannot fail on a broken sampler proves nothing about a good one.
+4. **The tokenizer round trip:** Confirm that `decode(encode(text, merges))` returns the original text for any text: every byte of every language, and emoji. Byte-level BPE guarantees this; say why.
 
 Then verify the brief, as Part B describes: each stock claim against the table, and no claim of an action the program cannot take.
 
@@ -848,6 +858,8 @@ Then verify the brief, as Part B describes: each stock claim against the table, 
 - **Cross-entropy:** the average number of bits a model needs per token of a given text. It is the loss language models are trained to minimize. **Perplexity:** $2^{\text{cross-entropy}}$.
 - **Held-out data:** text the model did not train on, the only honest place to measure it. **Overfitting:** improving on training data while getting worse on held-out data.
 - **Snapshot:** the facts serialized into one request. **Response fixture:** an authored example response used to test code. **Completion envelope:** the response's protocol fields around the generated text.
+
+### Check your understanding
 
 Answer without looking back:
 

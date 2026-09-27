@@ -3960,8 +3960,8 @@ the call limit always wins; the challenge below changes that.
 ### Run the loop against a recorded transcript
 
 The turns below are what a model replied, written down. Turn one reads stock. Turn two asks
-for both supplier prices. Turn three proposes the vanilla draft (6 at 250p) and the strawberry
-draft (4 at 275p): 1500 plus 1100 is 2600, and the budget is 2500. Turn four reads the budget
+for both supplier prices. Turn three proposes the vanilla draft (6 at 250 cents) and the strawberry
+draft (4 at 275 cents): 1500 plus 1100 is 2600, and the budget is 2500. Turn four reads the budget
 to find out why. Turn five answers, which ends the loop.
 
 **Prediction:** write down the status, the model-call count, the tool-call count and the
@@ -3991,8 +3991,10 @@ RECORDED_TURNS = [
     ),
     scripted_turn(calls=[{"name": "draft_budget", "arguments": {}}]),
     scripted_turn(
-        "Drafted 6 vanilla at 250p, 1500p in total. Strawberry needs 4 at 275p, 1100p, which "
-        "would take drafts to 2600p against a 2500p budget, so it was refused and needs Lucy's "
+        "Drafted 6 vanilla at 250 cents, 1500 cents in total. Strawberry needs 4 at 275 cents, "
+        "1100 cents, which "
+        "would take drafts to 2600 cents against a 2500 cents budget, so it was refused and needs "
+        "Lucy's "
         "decision. Chocolate is above its reorder point. Nothing was purchased."
     ),
 ]

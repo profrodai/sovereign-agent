@@ -336,6 +336,8 @@ The change operation records `REJECTED`, `ACTIVATED`, `ROLLED_BACK` or `STALE`. 
 
 We want to prove that the proposed instructions, rather than an unrelated test flag, reach the evaluator. The fixture below reads the actual assembled context. When it sees the deliberately bad currency instruction, it follows it and changes the final currency labels. Its stock and draft calls remain the same, so the currency check is the reason the candidate fails.
 
+**Wrong-currency test input:** every price in Lucy's shop is in USD cents. The euro instruction below is a deliberate regression that the scenario checks must reject.
+
 **Listing:** Activate the original, then reject an instruction that reports euros.
 
 ```python
