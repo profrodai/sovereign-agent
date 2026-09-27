@@ -57,7 +57,7 @@ A reply is generated in two phases:
 - **Prefill** reads the whole prompt: the system instructions, the conversation so far and Lucy's new message. All of its tokens are known in advance, so the model processes them together in large matrix multiplications. Its time grows with the number of prompt tokens $n$.
 - **Decode** then writes the reply one token at a time, because each token depends on the one before. [Chapter 18](../ch18/profrod-sovereign-agent-ch18-deployment-restoration-chapter.md) showed that each step is limited by reading the model's weights from memory, so its time per token is roughly fixed.
 
-Prefill has two parts. Every prompt token passes through the model's layers, about $2P$ floating-point operations for a model with $P$ parameters, which costs a fixed $b$ seconds per token. And in **attention**, every token is compared with every token before it, which adds a cost that grows with the square of the prompt length. With a decode cost of $d$ seconds per generated token, the time to the first token and the time to a whole reply of $m$ tokens are
+Prefill has two parts. Every prompt token passes through the model's layers, about two floating-point operations per parameter, which costs a fixed $b$ seconds per token. And in **attention**, every token is compared with every token before it, which adds a cost that grows with the square of the prompt length. With a decode cost of $d$ seconds per generated token, the time to the first token and the time to a whole reply of $m$ tokens are
 
 $
 T_{\text{first}} = b\,n + c\,n^2 + d,
