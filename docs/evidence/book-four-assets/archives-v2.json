@@ -4,8 +4,8 @@
     {
       "asset": "exercises",
       "path": "exercises/profrod-sovereign-agent-exercises-2026-09-10.zip",
-      "sha256": "44afc9fd3f2a724f9841cdf88ff4ea897acd8f0e3bfd3bd3496a944ffa67e41d",
-      "sourceStartSha256": "ea3d0291c19b7bc20e161f40d5a5554a031d0df2fd99665db586d83d023a3dea",
+      "sha256": "10f97413d29beb2503edf895460148e39eb0533d5cd065e286d02f5976c07f0a",
+      "sourceStartSha256": "da8320ae031a11209f73824b0a893a5361ca3532381b0a8518336f7bfd072800",
       "startTransform": "replace-named-download-link-with-extracted-notice-v2",
       "members": {
         "ch01/profrod-sovereign-agent-ch01-a-grounded-morning-brief-exercise.ipynb": "a820d56bbfd2a23a485781c12e6132fd7ac78eebb9735e65340131ad28b5fed6",
@@ -23,7 +23,11 @@
         "ch03/profrod-sovereign-agent-ch03-agent-loop-exercise-guide.md": "75152d0a4605d39b875df6ecaea592671610dbfafa4e16b3c44fa3fb1ced0a49",
         "ch03/profrod-sovereign-agent-ch03-b-failed-call-accounting-exercise.ipynb": "d07551bf2e11add1a529f5a320028010c59512f1c74f8af3694844b837be4717",
         "ch03/profrod-sovereign-agent-ch03-b-failed-call-accounting-exercise.md": "badf348d34e585e367326f986ea9ef06b1492817ddd7608b5e73d44bd3cd84c9",
-        "ch04/profrod-sovereign-agent-ch04-sqlite-state-exercise-guide.md": "d45be306984ba3758f75e1e9f7cc1c0e67c5deb6c5c3cbc27128414018597d53",
+        "ch04/profrod-sovereign-agent-ch04-a-durable-state-store-exercise.ipynb": "8521a7e004e0e5c94e42f70e676256303abce5fd2c54767920c4bc70c19502f9",
+        "ch04/profrod-sovereign-agent-ch04-a-durable-state-store-exercise.md": "22084b7d1c8e5478fc50a38d585fdfe48003ed55ec76f039743434fff8e45e9e",
+        "ch04/profrod-sovereign-agent-ch04-b-interrupted-migration-exercise.ipynb": "834be4dbd441d44e31f5a1b9ba73a5e6a97fc486d89128ef05ec91584f5ed130",
+        "ch04/profrod-sovereign-agent-ch04-b-interrupted-migration-exercise.md": "27d7a37a0564065b1d03a507f98f8296497506c92f3f319d47be0cc3cfbae20e",
+        "ch04/profrod-sovereign-agent-ch04-sqlite-state-exercise-guide.md": "050f2edb3de15dc82e4c5ed9177a3448a16905693c3e659d1544c736d1eff4ed",
         "ch05/profrod-sovereign-agent-ch05-a-durable-memory-exercise.ipynb": "9af3e235d974d2a4f6cad8a1827c8d096b53477b3482bc383990f70bf58e4d7f",
         "ch05/profrod-sovereign-agent-ch05-a-durable-memory-exercise.md": "8ceb7cc919cd75227470c9ff020f2554bae6910d401eecbdb1924b0a53484ed5",
         "ch05/profrod-sovereign-agent-ch05-b-memory-repair-transfer-exercise.ipynb": "e7870447ea54cdb7c92f7178959bb945ff468114a7c115e7dcdf261c2cf86f76",
@@ -92,14 +96,14 @@
         "ch19/profrod-sovereign-agent-ch19-b-acceptance-repair-transfer-exercise.md": "d1c19bf605febe61b20ebe3db0299e376eacab9dd888333715b67721d1eaf519",
         "ch19/profrod-sovereign-agent-ch19-integrated-shop-day-exercise-guide.md": "e8a1546b96455bbb30e1b35ad1d640e558efb45ad05c8501da239c073896e4e5",
         "profrod-sovereign-agent-exercises-setup.md": "48ae599a407535eb30f9be80556d7ded48d32b2a278ef54153d0f9aaa493f3dd",
-        "profrod-sovereign-agent-exercises-start-here.md": "53ef17da6c63a0da9b141218aeab9c59391b9416366827375a5ff098f213e4a9"
+        "profrod-sovereign-agent-exercises-start-here.md": "55a3633c44960513dff8b4e5735ab7e7d2daee167064b96bf085bc7dbeb750b8"
       }
     },
     {
       "asset": "solutions",
       "path": "solutions/profrod-sovereign-agent-solutions-2026-09-10.zip",
-      "sha256": "63b2ca4881d8b770b1931b54a0e60602c2b55c7d1d47e36b2d157e8f57a6ed3c",
-      "sourceStartSha256": "29f3a19d1b5c88ad427cbd6dd7039b30df1f93ed78b8bc107cbc596a06052c31",
+      "sha256": "0268810f859caea370ea515959e43af50188fa1c575b70d6ee66a2c91c972656",
+      "sourceStartSha256": "59b14283ad3a906c4dbe2a78649859d64c84bc82c7f45b4bb6a873bff961e9a9",
       "startTransform": "replace-named-download-link-with-extracted-notice-v2",
       "members": {
         "ch01/profrod-sovereign-agent-ch01-a-grounded-morning-brief-solution.ipynb": "7b08881305ba04bf1f16fe7d401f681e696641d9f5b5f3cc87a8c5c3fbf59fd1",
@@ -117,7 +121,11 @@
         "ch03/profrod-sovereign-agent-ch03-agent-loop-solutions-guide.md": "d864d14f9fcb967eebb2f21eff10377b9d684a97d0138ba3a7bed92c5fcd2401",
         "ch03/profrod-sovereign-agent-ch03-b-failed-call-accounting-solution.ipynb": "ef5a22b3c132c01609c194720d8f6ffd18980569f2aabd54a8c84d8db5316043",
         "ch03/profrod-sovereign-agent-ch03-b-failed-call-accounting-solution.md": "7356f7c13d0a2260c68e698af9616ad5b7587a5e2ce28d72a8d63d85ce2b0339",
-        "ch04/profrod-sovereign-agent-ch04-sqlite-state-solutions-guide.md": "3a57961a189ea0ca733edb28355489b844932ef397c581224e19a51f0e238617",
+        "ch04/profrod-sovereign-agent-ch04-a-durable-state-store-solution.ipynb": "83d4c7ac0bb0716fa7e58e3ff603b8e522298811394db5895c15d53e08cbafbb",
+        "ch04/profrod-sovereign-agent-ch04-a-durable-state-store-solution.md": "5e5c3587d4d0edda9ca9924f0ef3d06249de8e3c58763315bd20e6ef0bc67eed",
+        "ch04/profrod-sovereign-agent-ch04-b-interrupted-migration-solution.ipynb": "71c8a01ec7244c14183d61315a2f399b8950c5e625138d78a3ea69489aad8589",
+        "ch04/profrod-sovereign-agent-ch04-b-interrupted-migration-solution.md": "d5580bbbf0ae8246db243a36f8415c6c78e0bf8c56212b707280138bb5548478",
+        "ch04/profrod-sovereign-agent-ch04-sqlite-state-solutions-guide.md": "d4a053bd23edcf8bcf98789651adea921cd058557a1516ce126af3930e72de26",
         "ch05/profrod-sovereign-agent-ch05-a-durable-memory-solution.ipynb": "6e8efc0866a0c07809e074b9e3b97afc524d75bf57595fa8c41d0620f7484432",
         "ch05/profrod-sovereign-agent-ch05-a-durable-memory-solution.md": "ad073304b9fff8d959caf8b79eb6cf0ae8b258f56f269d0d3e23bb830f418a73",
         "ch05/profrod-sovereign-agent-ch05-b-memory-repair-transfer-solution.ipynb": "b000a76309dff0cfdb2d0e519cd02bffed69d7dabaf9cabbf702551753280e13",
@@ -186,14 +194,14 @@
         "ch19/profrod-sovereign-agent-ch19-b-acceptance-repair-transfer-solution.md": "27f28fd6d503d20db79515f90649c50740908f90247cf809fce20c08c579ad2a",
         "ch19/profrod-sovereign-agent-ch19-integrated-shop-day-solutions-guide.md": "63c39cc0b19af662281740e84c276e04d532442218636a09b7ea275c633ad6c3",
         "profrod-sovereign-agent-solutions-setup.md": "ce71aa3f3ae7719f03d41e484ed42d2814ae26e27063b2b9fb773ee483679ed4",
-        "profrod-sovereign-agent-solutions-start-here.md": "16bb5cd41919e8372f1196806e3a0e824733d8c2bd80a4f1bf43c964efb82e73"
+        "profrod-sovereign-agent-solutions-start-here.md": "22bdd71dad373fca507e5a699a12e271e1cb3f44267cb20349bac5b44c02e1d0"
       }
     },
     {
       "asset": "educator",
       "path": "educator/profrod-sovereign-agent-educator-2026-09-10.zip",
-      "sha256": "564df64104124ef6a6c4cc72092491c7d31ef89b563bc62cf4bca34da9f9a907",
-      "sourceStartSha256": "29b954f771cd05d9d6259f81a817d1c63c59ea028780bb6084f586aa3fee13fc",
+      "sha256": "cf996f76a88b3d51c50b4d617d6cb7766ec232309affac01e2da8f60bfff40bf",
+      "sourceStartSha256": "5696aa2be8c5b56622705b942f6dd77a9a8b4ce0567941bcb2fd86a1704270f5",
       "startTransform": "replace-named-download-link-with-extracted-notice-v2",
       "members": {
         "ch01/profrod-sovereign-agent-ch01-first-model-call-educator-guide.md": "690577ac1f87f05fec8c1733a83e236d4c864c336bf9c402a74b7adf6faf303d",
@@ -226,7 +234,16 @@
         "ch03/student/profrod-sovereign-agent-ch03-a-bounded-agent-loop-educator-exercise.md": "e4a72087618a55712024616086578f68cbd17b16c5aadcd982da2e8e0216cde0",
         "ch03/student/profrod-sovereign-agent-ch03-b-failed-call-accounting-educator-exercise.ipynb": "d07551bf2e11add1a529f5a320028010c59512f1c74f8af3694844b837be4717",
         "ch03/student/profrod-sovereign-agent-ch03-b-failed-call-accounting-educator-exercise.md": "badf348d34e585e367326f986ea9ef06b1492817ddd7608b5e73d44bd3cd84c9",
-        "ch04/profrod-sovereign-agent-ch04-sqlite-state-educator-guide.md": "1acff8248f389f767da7cd930529c8d39276c5fd636f31993f59ef583e4bbf2d",
+        "ch04/profrod-sovereign-agent-ch04-sqlite-state-educator-guide.md": "56ab1be006178d1d63878a7a8b02444ba55e54b992a0a2b03d8386961683e296",
+        "ch04/profrod-sovereign-agent-ch04-sqlite-state-teaching-guide.md": "cee594b5aa26bff070f8ba1b5bbba268b382c13105a043d0e882eacee18151d7",
+        "ch04/solutions/profrod-sovereign-agent-ch04-a-durable-state-store-educator-solution.ipynb": "83d4c7ac0bb0716fa7e58e3ff603b8e522298811394db5895c15d53e08cbafbb",
+        "ch04/solutions/profrod-sovereign-agent-ch04-a-durable-state-store-educator-solution.md": "5e5c3587d4d0edda9ca9924f0ef3d06249de8e3c58763315bd20e6ef0bc67eed",
+        "ch04/solutions/profrod-sovereign-agent-ch04-b-interrupted-migration-educator-solution.ipynb": "71c8a01ec7244c14183d61315a2f399b8950c5e625138d78a3ea69489aad8589",
+        "ch04/solutions/profrod-sovereign-agent-ch04-b-interrupted-migration-educator-solution.md": "d5580bbbf0ae8246db243a36f8415c6c78e0bf8c56212b707280138bb5548478",
+        "ch04/student/profrod-sovereign-agent-ch04-a-durable-state-store-educator-exercise.ipynb": "8521a7e004e0e5c94e42f70e676256303abce5fd2c54767920c4bc70c19502f9",
+        "ch04/student/profrod-sovereign-agent-ch04-a-durable-state-store-educator-exercise.md": "22084b7d1c8e5478fc50a38d585fdfe48003ed55ec76f039743434fff8e45e9e",
+        "ch04/student/profrod-sovereign-agent-ch04-b-interrupted-migration-educator-exercise.ipynb": "834be4dbd441d44e31f5a1b9ba73a5e6a97fc486d89128ef05ec91584f5ed130",
+        "ch04/student/profrod-sovereign-agent-ch04-b-interrupted-migration-educator-exercise.md": "27d7a37a0564065b1d03a507f98f8296497506c92f3f319d47be0cc3cfbae20e",
         "ch05/profrod-sovereign-agent-ch05-durable-memory-educator-guide.md": "987b13e17d87374776fed65424d8461547bbcdb4afbd02c3644f183732556d54",
         "ch05/profrod-sovereign-agent-ch05-durable-memory-teaching-guide.md": "bd3fcd94710eca0aacd86044a8fffdedae62a008f5dcac567630e35559d74b6c",
         "ch05/solutions/profrod-sovereign-agent-ch05-a-durable-memory-educator-solution.ipynb": "6e8efc0866a0c07809e074b9e3b97afc524d75bf57595fa8c41d0620f7484432",
@@ -361,7 +378,7 @@
         "ch19/student/profrod-sovereign-agent-ch19-b-acceptance-repair-transfer-educator-exercise.md": "d1c19bf605febe61b20ebe3db0299e376eacab9dd888333715b67721d1eaf519",
         "profrod-sovereign-agent-educator-classroom-observations.md": "2b5c6d2423a6bb6707765df52686d8aab08095f96d12a8286592c581a3712229",
         "profrod-sovereign-agent-educator-setup.md": "41681487d04726e5611356a214c00c2655c09e4b19ed02e52854a6d01400d990",
-        "profrod-sovereign-agent-educator-start-here.md": "d19920b513821ff2f138967a0eb0d0d6858063d17d5ee50d4589cda3b06d2c8a"
+        "profrod-sovereign-agent-educator-start-here.md": "8e04ad75eda68da038307757f6b850d3448970d068facc64ee8492458a3e91d8"
       }
     }
   ]

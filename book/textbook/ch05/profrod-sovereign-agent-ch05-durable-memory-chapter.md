@@ -8,7 +8,7 @@
 
 **Status: DRAFT.** Read the [textbook guide](../profrod-sovereign-agent-textbook-start-here.md) for setup and supplied-code boundaries. Practice in [Exercise Book 5](../../exercises/ch05/profrod-sovereign-agent-ch05-durable-memory-exercise-guide.md); consult [Solutions 5](../../solutions/ch05/profrod-sovereign-agent-ch05-durable-memory-solutions-guide.md) after attempting the work.
 
-The planned Chapter 4 introduces the learner-owned SQLite store. This draft retains its supplied reference database and schema so the existing demonstration remains runnable. Building that earlier store and wiring memory to it is still required for the complete from-scratch path; see [code ownership](../profrod-sovereign-agent-textbook-ownership.md).
+Chapter 4 now builds the learner-owned SQLite store. This chapter still uses its supplied reference database and schema so the existing demonstration remains runnable until memory is rebuilt on your store with its own line of versions. Building that earlier store and wiring memory to it is still required for the complete from-scratch path; see [code ownership](../profrod-sovereign-agent-textbook-ownership.md).
 
 Lucy returns to the shop the next morning. Yesterday she asked for morning delivery, then corrected herself: afternoon delivery works better when she is the only person opening the shop. A new Python process has none of yesterday's message list. Asking the model to “remember” does not create a durable record. The program must decide what to retain, where to put it, and which retained information to include in the next request.
 

@@ -15,6 +15,10 @@
       "selectedLearnerHandoff": "PASS"
     },
     {
+      "chapter": 4,
+      "selectedLearnerHandoff": "PASS"
+    },
+    {
       "chapter": 5,
       "selectedLearnerHandoff": "PASS"
     },
@@ -68,7 +72,7 @@
     }
   ],
   "limits": [
-    "Three planned chapters contain no executable notebooks.",
+    "Two planned chapters contain no executable notebooks.",
     "Ninety minutes is a teaching plan, not measured classroom duration.",
     "Offline execution does not certify real phone delivery or host operation."
   ],
@@ -154,6 +158,34 @@
       "markdownSha256": "badf348d34e585e367326f986ea9ef06b1492817ddd7608b5e73d44bd3cd84c9",
       "notebook": "exercises/ch03/profrod-sovereign-agent-ch03-b-failed-call-accounting-exercise.ipynb",
       "notebookSha256": "d07551bf2e11add1a529f5a320028010c59512f1c74f8af3694844b837be4717",
+      "sameKernelReplay": "PASS",
+      "transfer": "EXPECTED_UNFINISHED"
+    },
+    {
+      "asset": "exercises",
+      "coreHoldout": "NOT_DISTRIBUTED",
+      "embeddedImports": "PASS",
+      "freshKernel": "PASS",
+      "id": "ch04-a",
+      "markdown": "exercises/ch04/profrod-sovereign-agent-ch04-a-durable-state-store-exercise.md",
+      "markdownParity": "PASS",
+      "markdownSha256": "22084b7d1c8e5478fc50a38d585fdfe48003ed55ec76f039743434fff8e45e9e",
+      "notebook": "exercises/ch04/profrod-sovereign-agent-ch04-a-durable-state-store-exercise.ipynb",
+      "notebookSha256": "8521a7e004e0e5c94e42f70e676256303abce5fd2c54767920c4bc70c19502f9",
+      "sameKernelReplay": "PASS",
+      "transfer": "EXPECTED_UNFINISHED"
+    },
+    {
+      "asset": "exercises",
+      "coreHoldout": "NOT_DISTRIBUTED",
+      "embeddedImports": "PASS",
+      "freshKernel": "PASS",
+      "id": "ch04-b",
+      "markdown": "exercises/ch04/profrod-sovereign-agent-ch04-b-interrupted-migration-exercise.md",
+      "markdownParity": "PASS",
+      "markdownSha256": "27d7a37a0564065b1d03a507f98f8296497506c92f3f319d47be0cc3cfbae20e",
+      "notebook": "exercises/ch04/profrod-sovereign-agent-ch04-b-interrupted-migration-exercise.ipynb",
+      "notebookSha256": "834be4dbd441d44e31f5a1b9ba73a5e6a97fc486d89128ef05ec91584f5ed130",
       "sameKernelReplay": "PASS",
       "transfer": "EXPECTED_UNFINISHED"
     },
@@ -602,6 +634,34 @@
       "markdownSha256": "7356f7c13d0a2260c68e698af9616ad5b7587a5e2ce28d72a8d63d85ce2b0339",
       "notebook": "solutions/ch03/profrod-sovereign-agent-ch03-b-failed-call-accounting-solution.ipynb",
       "notebookSha256": "ef5a22b3c132c01609c194720d8f6ffd18980569f2aabd54a8c84d8db5316043",
+      "sameKernelReplay": "PASS",
+      "transfer": "PASS"
+    },
+    {
+      "asset": "solutions",
+      "coreHoldout": "PASS",
+      "embeddedImports": "PASS",
+      "freshKernel": "PASS",
+      "id": "ch04-a",
+      "markdown": "solutions/ch04/profrod-sovereign-agent-ch04-a-durable-state-store-solution.md",
+      "markdownParity": "PASS",
+      "markdownSha256": "5e5c3587d4d0edda9ca9924f0ef3d06249de8e3c58763315bd20e6ef0bc67eed",
+      "notebook": "solutions/ch04/profrod-sovereign-agent-ch04-a-durable-state-store-solution.ipynb",
+      "notebookSha256": "83d4c7ac0bb0716fa7e58e3ff603b8e522298811394db5895c15d53e08cbafbb",
+      "sameKernelReplay": "PASS",
+      "transfer": "PASS"
+    },
+    {
+      "asset": "solutions",
+      "coreHoldout": "PASS",
+      "embeddedImports": "PASS",
+      "freshKernel": "PASS",
+      "id": "ch04-b",
+      "markdown": "solutions/ch04/profrod-sovereign-agent-ch04-b-interrupted-migration-solution.md",
+      "markdownParity": "PASS",
+      "markdownSha256": "d5580bbbf0ae8246db243a36f8415c6c78e0bf8c56212b707280138bb5548478",
+      "notebook": "solutions/ch04/profrod-sovereign-agent-ch04-b-interrupted-migration-solution.ipynb",
+      "notebookSha256": "71c8a01ec7244c14183d61315a2f399b8950c5e625138d78a3ea69489aad8589",
       "sameKernelReplay": "PASS",
       "transfer": "PASS"
     },
