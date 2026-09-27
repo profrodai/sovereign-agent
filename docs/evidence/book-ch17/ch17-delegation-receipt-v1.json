@@ -1,0 +1,877 @@
+{
+  "schema": 1,
+  "experiment": "ch17-delegation-v1",
+  "recorded": "2026-09-26",
+  "python": "3.14.3",
+  "platform": "Darwin 25.6.0 (arm64)",
+  "model": "qwen2.5:0.5b",
+  "parallelism": {
+    "subagents": 4,
+    "rows": [
+      {
+        "sequential_seconds": 0.879,
+        "parallel_seconds": 0.652
+      },
+      {
+        "sequential_seconds": 0.758,
+        "parallel_seconds": 0.509
+      },
+      {
+        "sequential_seconds": 0.858,
+        "parallel_seconds": 0.547
+      }
+    ],
+    "median_speedup": 1.489,
+    "implied_parallel_fraction": 0.438,
+    "amdahl_if_fully_parallel": 4.0
+  },
+  "sampling": {
+    "accuracy": [
+      0.4,
+      0.9,
+      0.9,
+      1.0,
+      0.8,
+      1.0,
+      1.0,
+      1.0,
+      0.1,
+      1.0,
+      0.3,
+      0.6
+    ],
+    "composed": [
+      {
+        "questions": [
+          0,
+          1,
+          2,
+          3
+        ],
+        "predicted_product": 0.324,
+        "measured": 0.3
+      },
+      {
+        "questions": [
+          4,
+          5,
+          6,
+          7
+        ],
+        "predicted_product": 0.8,
+        "measured": 0.8
+      },
+      {
+        "questions": [
+          8,
+          9,
+          10,
+          11
+        ],
+        "predicted_product": 0.018,
+        "measured": 0.0
+      }
+    ],
+    "votes": [
+      {
+        "question": 0,
+        "single_accuracy": 0.4,
+        "predicted_majority_of_3": 0.352,
+        "measured_majority_of_3": 0.0
+      },
+      {
+        "question": 1,
+        "single_accuracy": 0.9,
+        "predicted_majority_of_3": 0.972,
+        "measured_majority_of_3": 1.0
+      },
+      {
+        "question": 2,
+        "single_accuracy": 0.9,
+        "predicted_majority_of_3": 0.972,
+        "measured_majority_of_3": 1.0
+      },
+      {
+        "question": 3,
+        "single_accuracy": 1.0,
+        "predicted_majority_of_3": 1.0,
+        "measured_majority_of_3": 1.0
+      },
+      {
+        "question": 4,
+        "single_accuracy": 0.8,
+        "predicted_majority_of_3": 0.896,
+        "measured_majority_of_3": 1.0
+      },
+      {
+        "question": 5,
+        "single_accuracy": 1.0,
+        "predicted_majority_of_3": 1.0,
+        "measured_majority_of_3": 1.0
+      },
+      {
+        "question": 6,
+        "single_accuracy": 1.0,
+        "predicted_majority_of_3": 1.0,
+        "measured_majority_of_3": 1.0
+      },
+      {
+        "question": 7,
+        "single_accuracy": 1.0,
+        "predicted_majority_of_3": 1.0,
+        "measured_majority_of_3": 1.0
+      },
+      {
+        "question": 8,
+        "single_accuracy": 0.1,
+        "predicted_majority_of_3": 0.028,
+        "measured_majority_of_3": 0.0
+      },
+      {
+        "question": 9,
+        "single_accuracy": 1.0,
+        "predicted_majority_of_3": 1.0,
+        "measured_majority_of_3": 1.0
+      },
+      {
+        "question": 10,
+        "single_accuracy": 0.3,
+        "predicted_majority_of_3": 0.216,
+        "measured_majority_of_3": 0.0
+      },
+      {
+        "question": 11,
+        "single_accuracy": 0.6,
+        "predicted_majority_of_3": 0.648,
+        "measured_majority_of_3": 0.333
+      }
+    ]
+  },
+  "tokens_example": {
+    "delegated": 2720,
+    "single": 720
+  },
+  "seconds": 28.7,
+  "runs": [
+    {
+      "question": 0,
+      "sample": 0,
+      "answer": "Delivery will arrive sometime between 12 pm and 4 pm on a Monday.",
+      "correct": false
+    },
+    {
+      "question": 0,
+      "sample": 1,
+      "answer": "Deliveries arrive in the afternoon, as specified by Lucy for her orders.",
+      "correct": true
+    },
+    {
+      "question": 0,
+      "sample": 2,
+      "answer": "Deliveries should arrive by 6 PM on Saturday.",
+      "correct": false
+    },
+    {
+      "question": 0,
+      "sample": 3,
+      "answer": "Deliveries will arrive in the afternoon, following Lucy's request for them to be delivered by noon.",
+      "correct": true
+    },
+    {
+      "question": 0,
+      "sample": 4,
+      "answer": "Deliveries should be delivered by 6 on Sundays.",
+      "correct": false
+    },
+    {
+      "question": 0,
+      "sample": 5,
+      "answer": "The delivery should arrive around 6 PM.",
+      "correct": false
+    },
+    {
+      "question": 0,
+      "sample": 6,
+      "answer": "Deliveries typically arrive by noon on Saturdays.",
+      "correct": false
+    },
+    {
+      "question": 0,
+      "sample": 7,
+      "answer": "Deliveries should arrive by six on weekdays, after closing time.",
+      "correct": false
+    },
+    {
+      "question": 0,
+      "sample": 8,
+      "answer": "Deliveries should arrive by the afternoon.",
+      "correct": true
+    },
+    {
+      "question": 0,
+      "sample": 9,
+      "answer": "Deliveries should arrive in the afternoon.",
+      "correct": true
+    },
+    {
+      "question": 1,
+      "sample": 0,
+      "answer": "Priya",
+      "correct": true
+    },
+    {
+      "question": 1,
+      "sample": 1,
+      "answer": "The sales contact for Hartwell Dairy is Priya.",
+      "correct": true
+    },
+    {
+      "question": 1,
+      "sample": 2,
+      "answer": "The vanilla supplier, Hartwell Dairy, charges 250 cents for a tub of vanilla. Its sales contact is Priya.",
+      "correct": true
+    },
+    {
+      "question": 1,
+      "sample": 3,
+      "answer": "Priya is the sales contact for Hartwell Dairy.",
+      "correct": true
+    },
+    {
+      "question": 1,
+      "sample": 4,
+      "answer": "The vanilla supplier, Hartwell Dairy's sales contact is Priya.",
+      "correct": true
+    },
+    {
+      "question": 1,
+      "sample": 5,
+      "answer": "Priya is the sales contact at Hartwell Dairy.",
+      "correct": true
+    },
+    {
+      "question": 1,
+      "sample": 6,
+      "answer": "The vanilla supplier Hartwell Dairy's sales contact is Priya.",
+      "correct": true
+    },
+    {
+      "question": 1,
+      "sample": 7,
+      "answer": "The vanilla supplier, Hartwell Dairy, charges 250 cents for a tub of vanilla. Its sales contact is Priya.",
+      "correct": true
+    },
+    {
+      "question": 1,
+      "sample": 8,
+      "answer": "The vanilla supplier, Hartwell Dairy, charges 250 cents for a tub of vanilla.",
+      "correct": false
+    },
+    {
+      "question": 1,
+      "sample": 9,
+      "answer": "The vanilla supplier, Hartwell Dairy, charges 250 cents for a tub of vanilla. Its sales contact is Priya.",
+      "correct": true
+    },
+    {
+      "question": 2,
+      "sample": 0,
+      "answer": "A 5-cent vanilla tub costs $28.",
+      "correct": false
+    },
+    {
+      "question": 2,
+      "sample": 1,
+      "answer": "A tub of strawberry costs 275 cents.",
+      "correct": true
+    },
+    {
+      "question": 2,
+      "sample": 2,
+      "answer": "A tub of strawberry costs 275 cents.",
+      "correct": true
+    },
+    {
+      "question": 2,
+      "sample": 3,
+      "answer": "A tub of strawberry costs 275 cents.",
+      "correct": true
+    },
+    {
+      "question": 2,
+      "sample": 4,
+      "answer": "A tub of strawberry costs 275 cents.",
+      "correct": true
+    },
+    {
+      "question": 2,
+      "sample": 5,
+      "answer": "A tub of strawberry costs 275 cents.",
+      "correct": true
+    },
+    {
+      "question": 2,
+      "sample": 6,
+      "answer": "A tub of strawberry costs 275 cents.",
+      "correct": true
+    },
+    {
+      "question": 2,
+      "sample": 7,
+      "answer": "A tub of strawberry costs 275 cents.",
+      "correct": true
+    },
+    {
+      "question": 2,
+      "sample": 8,
+      "answer": "A tub of strawberry costs 275 cents.",
+      "correct": true
+    },
+    {
+      "question": 2,
+      "sample": 9,
+      "answer": "A tub of strawberry costs 275 cents.",
+      "correct": true
+    },
+    {
+      "question": 3,
+      "sample": 0,
+      "answer": "The shop's delivery door is at the back, on Mill Lane. It holds at most forty tubs in total.",
+      "correct": true
+    },
+    {
+      "question": 3,
+      "sample": 1,
+      "answer": "The freezer holds a maximum of 40 tubs.",
+      "correct": true
+    },
+    {
+      "question": 3,
+      "sample": 2,
+      "answer": "The freezer holds 40 tubs.",
+      "correct": true
+    },
+    {
+      "question": 3,
+      "sample": 3,
+      "answer": "The shop's freezer holds at most forty tubs in total.",
+      "correct": true
+    },
+    {
+      "question": 3,
+      "sample": 4,
+      "answer": "The freezer holds 40 tubs.",
+      "correct": true
+    },
+    {
+      "question": 3,
+      "sample": 5,
+      "answer": "The shop's freezer holds at most forty tubs.",
+      "correct": true
+    },
+    {
+      "question": 3,
+      "sample": 6,
+      "answer": "The freezer holds at most forty tubs.",
+      "correct": true
+    },
+    {
+      "question": 3,
+      "sample": 7,
+      "answer": "The freezer holds at most forty tubs in total.",
+      "correct": true
+    },
+    {
+      "question": 3,
+      "sample": 8,
+      "answer": "The freezer holds at most forty tubs in total.",
+      "correct": true
+    },
+    {
+      "question": 3,
+      "sample": 9,
+      "answer": "The freezer holds at most forty tubs in total.",
+      "correct": true
+    },
+    {
+      "question": 4,
+      "sample": 0,
+      "answer": "The shop is closed on Sundays.",
+      "correct": false
+    },
+    {
+      "question": 4,
+      "sample": 1,
+      "answer": "The shop opens on Saturdays at ten, but it is closed at four.",
+      "correct": true
+    },
+    {
+      "question": 4,
+      "sample": 2,
+      "answer": "The shop opens at ten and closes at four on Saturdays.",
+      "correct": true
+    },
+    {
+      "question": 4,
+      "sample": 3,
+      "answer": "The shop is closed on Saturdays, with it opening at ten and closing at four.",
+      "correct": true
+    },
+    {
+      "question": 4,
+      "sample": 4,
+      "answer": "The shop opens at ten, but it is closed on Saturdays.",
+      "correct": true
+    },
+    {
+      "question": 4,
+      "sample": 5,
+      "answer": "The shop is closed on Saturdays.",
+      "correct": false
+    },
+    {
+      "question": 4,
+      "sample": 6,
+      "answer": "The shop opens at 10 AM on Saturdays.",
+      "correct": true
+    },
+    {
+      "question": 4,
+      "sample": 7,
+      "answer": "The shop opens at ten on Saturdays.",
+      "correct": true
+    },
+    {
+      "question": 4,
+      "sample": 8,
+      "answer": "The shop opens at ten and closes at four on Saturdays.",
+      "correct": true
+    },
+    {
+      "question": 4,
+      "sample": 9,
+      "answer": "The shop opens at ten on Saturdays.",
+      "correct": true
+    },
+    {
+      "question": 5,
+      "sample": 0,
+      "answer": "The reorder point for chocolate is 6 tubs.",
+      "correct": true
+    },
+    {
+      "question": 5,
+      "sample": 1,
+      "answer": "The reorder point for chocolate is six tubs.",
+      "correct": true
+    },
+    {
+      "question": 5,
+      "sample": 2,
+      "answer": "The reorder point for chocolate is six tubs.",
+      "correct": true
+    },
+    {
+      "question": 5,
+      "sample": 3,
+      "answer": "The reorder point for chocolate is 6 tubs.",
+      "correct": true
+    },
+    {
+      "question": 5,
+      "sample": 4,
+      "answer": "The reorder point for chocolate is six tubs.",
+      "correct": true
+    },
+    {
+      "question": 5,
+      "sample": 5,
+      "answer": "The reorder point for chocolate is 6 tubs.",
+      "correct": true
+    },
+    {
+      "question": 5,
+      "sample": 6,
+      "answer": "The reorder point for chocolate is six tubs.",
+      "correct": true
+    },
+    {
+      "question": 5,
+      "sample": 7,
+      "answer": "The reorder point for chocolate is six tubs.",
+      "correct": true
+    },
+    {
+      "question": 5,
+      "sample": 8,
+      "answer": "The reorder point for chocolate is six tubs.",
+      "correct": true
+    },
+    {
+      "question": 5,
+      "sample": 9,
+      "answer": "The reorder point for chocolate is six tubs.",
+      "correct": true
+    },
+    {
+      "question": 6,
+      "sample": 0,
+      "answer": "Order over 2000 cents require approval.",
+      "correct": true
+    },
+    {
+      "question": 6,
+      "sample": 1,
+      "answer": "Orders over $2000 must be approved by Lucy herself.",
+      "correct": true
+    },
+    {
+      "question": 6,
+      "sample": 2,
+      "answer": "Orders above 2000 cents must be approved by Lucy herself.",
+      "correct": true
+    },
+    {
+      "question": 6,
+      "sample": 3,
+      "answer": "Lucy approves every order above 2000 cents herself.",
+      "correct": true
+    },
+    {
+      "question": 6,
+      "sample": 4,
+      "answer": "Orders above 2000 cents must be approved individually.",
+      "correct": true
+    },
+    {
+      "question": 6,
+      "sample": 5,
+      "answer": "Over 2000 cents.",
+      "correct": true
+    },
+    {
+      "question": 6,
+      "sample": 6,
+      "answer": "Orders under 2000 cents may be drafted automatically but never sent without approval.",
+      "correct": true
+    },
+    {
+      "question": 6,
+      "sample": 7,
+      "answer": "Orders under 2000 cents may be drafted automatically but never sent without approval.",
+      "correct": true
+    },
+    {
+      "question": 6,
+      "sample": 8,
+      "answer": "Orders under 2000 cents may be drafted automatically but never sent without approval.",
+      "correct": true
+    },
+    {
+      "question": 6,
+      "sample": 9,
+      "answer": "Orders under 2000 cents may be drafted automatically but never sent without approval.",
+      "correct": true
+    },
+    {
+      "question": 7,
+      "sample": 0,
+      "answer": "The recipe for strawberries is served on Tuesday, followed by Friday.",
+      "correct": true
+    },
+    {
+      "question": 7,
+      "sample": 1,
+      "answer": "Meadow Farm delivers on Tuesdays and Fridays.",
+      "correct": true
+    },
+    {
+      "question": 7,
+      "sample": 2,
+      "answer": "Meadow Farm delivers only on Tuesdays and Fridays.",
+      "correct": true
+    },
+    {
+      "question": 7,
+      "sample": 3,
+      "answer": "On Tuesdays and Fridays.",
+      "correct": true
+    },
+    {
+      "question": 7,
+      "sample": 4,
+      "answer": "Meadow Farm delivers only on Tuesdays and Fridays.",
+      "correct": true
+    },
+    {
+      "question": 7,
+      "sample": 5,
+      "answer": "On Tuesdays and Fridays, Meadow Farm delivers.",
+      "correct": true
+    },
+    {
+      "question": 7,
+      "sample": 6,
+      "answer": "Meadow Farm delivers only on Tuesdays and Fridays.",
+      "correct": true
+    },
+    {
+      "question": 7,
+      "sample": 7,
+      "answer": "Meadow Farm delivers only on Tuesdays and Fridays.",
+      "correct": true
+    },
+    {
+      "question": 7,
+      "sample": 8,
+      "answer": "Meadow Farm delivers only on Tuesdays and Fridays.",
+      "correct": true
+    },
+    {
+      "question": 7,
+      "sample": 9,
+      "answer": "Meadow Farm delivers only on Tuesdays and Fridays.",
+      "correct": true
+    },
+    {
+      "question": 8,
+      "sample": 0,
+      "answer": "Cocoa Works requires orders for ten tubs.",
+      "correct": true
+    },
+    {
+      "question": 8,
+      "sample": 1,
+      "answer": "The reorder point for chocolate at Cocoa Works is six tubs.",
+      "correct": false
+    },
+    {
+      "question": 8,
+      "sample": 2,
+      "answer": "The reorder point for chocolate is six tubs.",
+      "correct": false
+    },
+    {
+      "question": 8,
+      "sample": 3,
+      "answer": "The minimum order for chocolate at Cocoa Works is 6 tubs.",
+      "correct": false
+    },
+    {
+      "question": 8,
+      "sample": 4,
+      "answer": "The reorder point for chocolate is 6 tubs.",
+      "correct": false
+    },
+    {
+      "question": 8,
+      "sample": 5,
+      "answer": "The minimum order for chocolate by Cocoa Works is 6 tubs.",
+      "correct": false
+    },
+    {
+      "question": 8,
+      "sample": 6,
+      "answer": "The minimum order at Cocoa Works for strawberry is five tubs.",
+      "correct": false
+    },
+    {
+      "question": 8,
+      "sample": 7,
+      "answer": "The minimum order for chocolate at Cocoa Works is six tubs.",
+      "correct": false
+    },
+    {
+      "question": 8,
+      "sample": 8,
+      "answer": "The minimum order for chocolate at Cocoa Works is 6 tubs.",
+      "correct": false
+    },
+    {
+      "question": 8,
+      "sample": 9,
+      "answer": "The minimum order for chocolate at Cocoa Works is six tubs.",
+      "correct": false
+    },
+    {
+      "question": 9,
+      "sample": 0,
+      "answer": "The morning brief is sent to Lucy's phone around eight.",
+      "correct": true
+    },
+    {
+      "question": 9,
+      "sample": 1,
+      "answer": "The morning brief arrives to Lucy's phone at 8.",
+      "correct": true
+    },
+    {
+      "question": 9,
+      "sample": 2,
+      "answer": "The morning brief arrives on Lucy's phone at eight.",
+      "correct": true
+    },
+    {
+      "question": 9,
+      "sample": 3,
+      "answer": "The morning brief goes to Lucy's phone at eight.",
+      "correct": true
+    },
+    {
+      "question": 9,
+      "sample": 4,
+      "answer": "The morning brief arrives on Lucy's phone at eight.",
+      "correct": true
+    },
+    {
+      "question": 9,
+      "sample": 5,
+      "answer": "The morning brief goes to Lucy's phone at eight.",
+      "correct": true
+    },
+    {
+      "question": 9,
+      "sample": 6,
+      "answer": "The morning brief arrives at Lucy's phone at eight.",
+      "correct": true
+    },
+    {
+      "question": 9,
+      "sample": 7,
+      "answer": "The morning brief arrives at 8 AM.",
+      "correct": true
+    },
+    {
+      "question": 9,
+      "sample": 8,
+      "answer": "The morning brief arrives at 8:00 AM.",
+      "correct": true
+    },
+    {
+      "question": 9,
+      "sample": 9,
+      "answer": "The morning brief arrives at 8 AM.",
+      "correct": true
+    },
+    {
+      "question": 10,
+      "sample": 0,
+      "answer": "Because the shop prefers orders above 2000 cents to be drafted automatically.",
+      "correct": false
+    },
+    {
+      "question": 10,
+      "sample": 1,
+      "answer": "Pistachio is not stocked at Cocoa Works because it has a minimum order of ten tubs.",
+      "correct": false
+    },
+    {
+      "question": 10,
+      "sample": 2,
+      "answer": "Pistachio is not stocked because Tom, who is allergic to nuts, is not authorized to stock it.",
+      "correct": true
+    },
+    {
+      "question": 10,
+      "sample": 3,
+      "answer": "Pistachio is not stocked as it was tried once in 2024, and Tom joined after that.",
+      "correct": false
+    },
+    {
+      "question": 10,
+      "sample": 4,
+      "answer": "Pistachio is not stocked because the minimum order for ten tubs was only allowed.",
+      "correct": false
+    },
+    {
+      "question": 10,
+      "sample": 5,
+      "answer": "Because it's not stocking ten tubs.",
+      "correct": false
+    },
+    {
+      "question": 10,
+      "sample": 6,
+      "answer": "Pistachio is not stocked at Cocoa Works because it has a minimum order of ten tubs.",
+      "correct": false
+    },
+    {
+      "question": 10,
+      "sample": 7,
+      "answer": "Pistachio is not stocked because Tom, who is allergic to nuts, is not able to buy it.",
+      "correct": true
+    },
+    {
+      "question": 10,
+      "sample": 8,
+      "answer": "Pistachio is not stocked because it has a minimum order of ten tubs.",
+      "correct": false
+    },
+    {
+      "question": 10,
+      "sample": 9,
+      "answer": "Pistachio is not stocked because Tom, who is allergic to nuts, is not allowed to purchase it.",
+      "correct": true
+    },
+    {
+      "question": 11,
+      "sample": 0,
+      "answer": "Lucy receives the monthly spending report on the first.",
+      "correct": false
+    },
+    {
+      "question": 11,
+      "sample": 1,
+      "answer": "The accountant receives the monthly spending report on the first day of each month.",
+      "correct": false
+    },
+    {
+      "question": 11,
+      "sample": 2,
+      "answer": "The accountant, Marcus, receives the monthly spending report on the first.",
+      "correct": true
+    },
+    {
+      "question": 11,
+      "sample": 3,
+      "answer": "Lucy's accountant receives the monthly spending report on the first.",
+      "correct": false
+    },
+    {
+      "question": 11,
+      "sample": 4,
+      "answer": "The accountant, Marcus, receives the monthly spending report on the first day of each month.",
+      "correct": true
+    },
+    {
+      "question": 11,
+      "sample": 5,
+      "answer": "Lucy's accountant receives the monthly spending report.",
+      "correct": false
+    },
+    {
+      "question": 11,
+      "sample": 6,
+      "answer": "The accountant, Marcus.",
+      "correct": true
+    },
+    {
+      "question": 11,
+      "sample": 7,
+      "answer": "The accountant, Marcus, receives the monthly spending report on the first.",
+      "correct": true
+    },
+    {
+      "question": 11,
+      "sample": 8,
+      "answer": "The accountant, Marcus, receives the monthly spending report on the first.",
+      "correct": true
+    },
+    {
+      "question": 11,
+      "sample": 9,
+      "answer": "The accountant, Marcus, receives the monthly spending report on the first.",
+      "correct": true
+    }
+  ]
+}

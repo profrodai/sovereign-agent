@@ -1,4 +1,4 @@
-# Chapter 17 — Delegate one bounded task
+# Chapter 17 — When a second agent pays: parallelism, errors and bounded delegation
 
 > **Learn with Prof Rod** — *Build Your Always-On AI Agent From Scratch*.
 > **Read the full book and get the latest learning materials:** [https://profrod.ai/book](https://profrod.ai/book).
@@ -10,15 +10,203 @@
 
 A catering inquiry arrives while Lucy's morning stock work is pending. The customer expects 41 guests and wants vanilla ice cream. We could add another instruction to the existing agent, call a plain function or give a separate worker a bounded assignment. The existence of several tasks does not settle which design is useful.
 
-This chapter implements one delegation path and tests the obligations it creates. The research worker receives an immutable inquiry, a deadline and a model allowance. It can calculate a draft quote but cannot reserve stock, purchase supplies or create another child. Its model usage is charged to Lucy's existing account, and cancellation remains enforceable after its parent finishes the stock task.
+Part A first measures when a second agent pays: Amdahl's law for speed, compounding and voting for accuracy, and the context it costs. Part B then implements one delegation path and tests the obligations it creates. The research worker receives an immutable inquiry, a deadline and a model allowance. It can calculate a draft quote but cannot reserve stock, purchase supplies or create another child. Its model usage is charged to Lucy's existing account, and cancellation remains enforceable after its parent finishes the stock task.
 
 We will also compare the result with a direct function. For this fixed calculation, the function remains the recommended design. Building the bounded delegation path lets us understand what a second agent costs and what evidence would justify using one for a less mechanical task. It does not require us to promote every asynchronous job into another reasoning agent.
 
 ## Learning objectives
 
-Compare a function, skill and second agent; define an immutable delegated assignment; route research separately from stock work; preserve shared allowances across replacement; reject changed inquiries and expired authority; and compare the resulting quote with independently authored expectations.
+Part A measures delegation. After it you should be able to:
+
+- derive Amdahl's law, and explain why parallel agents speed up only when the backend runs them in parallel;
+- predict the success of a task that needs several subagents to be right, as a product;
+- derive majority-vote accuracy, and explain why voting amplifies errors when a voter is usually wrong;
+- count the context a delegation sends compared with one agent.
+
+Part B builds one bounded delegation. After it you should be able to:
+
+- compare a function, skill and second agent;
+- define an immutable delegated assignment;
+- route research separately from stock work;
+- preserve shared allowances across replacement;
+- reject changed inquiries and expired authority;
+- compare the resulting quote with independently authored expectations.
 
 The deliverable is one evaluated delegation pattern with a defensible simpler alternative. The checkpoint launches an actual research process, pauses it during a model call and completes stock work in the parent process. It then tests cancellation, real deadline expiry, replacement-budget refusal and unchanged stock and purchasing records.
+
+## Part A: when a second agent pays
+
+Multi-agent designs promise two things: speed, from subagents working in parallel, and quality, from subagents checking or outvoting each other. Both promises have conditions that can be written down and measured. This part derives them and tests them on a local model. The chapter can then decide, with evidence, whether Lucy's catering research deserves a worker of its own.
+
+The functions live in [the chapter's learner file](../learner/profrod_sovereign_agent_ch17_delegation_learner.py).
+
+```python
+import json
+import runpy
+
+delegate = runpy.run_path(
+    "book/textbook/learner/profrod_sovereign_agent_ch17_delegation_learner.py"
+)
+measured = json.loads(open("docs/evidence/book-ch17/ch17-delegation-receipt-v1.json").read())
+```
+
+### Amdahl's law
+
+Suppose a fraction $f$ of a job can be split across $n$ workers, and the rest must run in order. The parallel part takes $f/n$ of the original time, and the serial part still takes $1 - f$, so the speedup is
+
+$
+S(n) = \frac{1}{(1 - f) + f/n} \;\le\; \frac{1}{1 - f}.
+$
+
+However many workers you add, the serial fraction caps the gain. A job that is 90% parallel can never run more than ten times faster.
+
+**Listing:** Speedup for three parallel fractions.
+
+```python
+for f in (0.5, 0.9, 1.0):
+    print(f, [round(delegate["amdahl_speedup"](f, n), 2) for n in (2, 4, 8)])
+```
+
+```text
+0.5 [1.33, 1.6, 1.78]
+0.9 [1.82, 3.08, 4.71]
+1.0 [2.0, 4.0, 8.0]
+```
+
+For agents, the "workers" are model calls, and whether they run in parallel is decided by the serving system, not by the orchestrator. [Chapter 18](../ch18/profrod-sovereign-agent-ch18-deployment-restoration-chapter.md) measured that this book's local server, as configured, serves requests one at a time. Amdahl predicts little speedup here.
+
+### Measured: four subagents at once
+
+The experiment gave four independent questions about Lucy's notes to four subagent calls. It ran them one after another and then all at once, three times each, on `qwen2.5:0.5b`.
+
+```bash
+uv run python book/textbook/experiments/profrod_sovereign_agent_textbook_ch17_delegation_v1.py \
+    --out ch17-delegation-receipt.json
+```
+
+**Listing:** Sequential against parallel wall time.
+
+```python
+par = measured["parallelism"]
+for row in par["rows"]:
+    print(row)
+print("median speedup", par["median_speedup"], "of an ideal", par["amdahl_if_fully_parallel"])
+print("parallel fraction that explains it:", par["implied_parallel_fraction"])
+```
+
+```text
+{'sequential_seconds': 0.879, 'parallel_seconds': 0.652}
+{'sequential_seconds': 0.758, 'parallel_seconds': 0.509}
+{'sequential_seconds': 0.858, 'parallel_seconds': 0.547}
+median speedup 1.489 of an ideal 4.0
+parallel fraction that explains it: 0.438
+```
+
+Four subagents ran about one and a half times faster, not four. Solving Amdahl's law for $f$ gives a parallel fraction of about 0.44. The part that overlapped is the per-request overhead around the model: networking, templating, and scheduling. The model's own work did not overlap. **Parallel agents pay only when the backend runs them in parallel.** On a hosted API that batches requests they can; on a single local server they mostly queue.
+
+### Errors compound across subagents
+
+A coordinator that combines several subagents' answers is right only if every subagent it depends on is right. If subagent $i$ is right with probability $p_i$, independently, then
+
+$
+P(\text{all right}) = \prod_i p_i,
+$
+
+which is [Chapter 3](../ch03/profrod-sovereign-agent-ch03-agent-loop-chapter.md)'s compounding again, across agents instead of steps. The experiment measured each of twelve questions ten times at temperature 0.7. It then grouped them into three composed tasks of four questions each.
+
+**Listing:** Predicted and measured success of composed tasks.
+
+```python
+print("per-question accuracy:", measured["sampling"]["accuracy"])
+for task in measured["sampling"]["composed"]:
+    print(
+        f"questions {task['questions']}: product {task['predicted_product']}, measured {task['measured']}"
+    )
+```
+
+```text
+per-question accuracy: [0.4, 0.9, 0.9, 1.0, 0.8, 1.0, 1.0, 1.0, 0.1, 1.0, 0.3, 0.6]
+questions [0, 1, 2, 3]: product 0.324, measured 0.3
+questions [4, 5, 6, 7]: product 0.8, measured 0.8
+questions [8, 9, 10, 11]: product 0.018, measured 0.0
+```
+
+The product predicts the composed success well, because the subtasks are genuinely independent: different questions, different samples. A composed task is as weak as the product of its parts. One subagent at 10% sinks any task that needs it.
+
+### Voting amplifies, in both directions
+
+If one answer is unreliable, ask several subagents and take the majority. With $k$ independent voters each right with probability $p$, the majority is right with probability
+
+$
+\sum_{j > k/2} \binom{k}{j} p^{j} (1 - p)^{k - j}.
+$
+
+This is **Condorcet's jury theorem**. Above $p = \tfrac12$, voting pushes accuracy toward 1; below it, voting pushes accuracy toward 0.
+
+**Listing:** Majority of three, predicted and measured, for the questions the model sometimes got wrong.
+
+```python
+for vote in measured["sampling"]["votes"]:
+    if vote["single_accuracy"] < 1:
+        print(
+            f"question {vote['question']:2}: single {vote['single_accuracy']:.2f}, "
+            f"majority of 3 predicted {vote['predicted_majority_of_3']:.3f}, "
+            f"measured {vote['measured_majority_of_3']:.3f}"
+        )
+```
+
+```text
+question  0: single 0.40, majority of 3 predicted 0.352, measured 0.000
+question  1: single 0.90, majority of 3 predicted 0.972, measured 1.000
+question  2: single 0.90, majority of 3 predicted 0.972, measured 1.000
+question  4: single 0.80, majority of 3 predicted 0.896, measured 1.000
+question  8: single 0.10, majority of 3 predicted 0.028, measured 0.000
+question 10: single 0.30, majority of 3 predicted 0.216, measured 0.000
+question 11: single 0.60, majority of 3 predicted 0.648, measured 0.333
+```
+
+```mermaid
+xychart-beta
+    title "Majority of three independent voters"
+    x-axis "Accuracy of one voter" [0.1, 0.3, 0.5, 0.7, 0.9]
+    y-axis "Accuracy of the majority" 0 --> 1
+    line [0.028, 0.216, 0.5, 0.784, 0.972]
+    line [0.1, 0.3, 0.5, 0.7, 0.9]
+```
+
+**Figure:** The curve is the majority of three; the straight line is one voter. Above one half, voting helps; below it, voting hurts.
+
+With three votes per question, each measured value is one of 0, ⅓, ⅔ and 1, so read the direction, not the digits. Where the model was usually right, voting made it always right. Where it was usually wrong, voting made it always wrong. The errors were also not all independent. On the delivery question the model kept inventing a schedule, and question 11, right 60% of the time, fell to one in three because its wrong answers repeated the same slip: "the accountant" instead of "Marcus". **Voting helps a subagent that is already more right than wrong, and amplifies the mistakes of one that is not.** The grader is Chapter 5's whole-word rule, so a few borderline answers, such as "the accountant" for "Marcus", count as wrong.
+
+### Delegation multiplies context
+
+Each subagent needs the shared context: instructions, facts and the part of the task it owns. A coordinator then reads their results.
+
+**Listing:** Input tokens for four subagents sharing a 600-token context.
+
+```python
+print(delegate["delegation_tokens"](600, [30, 30, 30, 30], 200))
+```
+
+```text
+{'delegated': 2720, 'single': 720}
+```
+
+Four subagents cost almost four times the input of one agent doing the same work, before any parallel speedup is counted. [Chapter 18](../ch18/profrod-sovereign-agent-ch18-deployment-restoration-chapter.md) prices those tokens.
+
+### The decision
+
+A second agent earns its place when three things all hold:
+
+- the work splits into genuinely independent parts;
+- the backend actually runs them in parallel, or the parts need different permissions;
+- each part is reliable enough that composition, and any voting, helps rather than hurts.
+
+Lucy's catering research qualifies for the permission reason. The quote must not be able to reserve stock or spend money. That is the reason for the bounded worker the rest of this chapter builds. It is not there for speed.
+
+## Part B: delegate one bounded task
+
+Part A measured when a second agent pays. This part builds the one delegation that does, bounded so that it cannot exceed its assignment.
 
 ## Start with the job, then choose the mechanism
 
@@ -658,6 +846,14 @@ Run the two-process checkpoint and inspect the second scenario. Verify that the 
 
 Propose a task for Lucy that a fixed function does not already solve. Define its inputs, authority, deadline, context and cost allowance, then write a comparison plan against a single-agent or scripted alternative. State the observable result that would make you keep the simpler design. Do not add a second child merely to demonstrate a larger team.
 
+### Exercise 5: find the parallel fraction of your backend
+
+Run the chapter's parallelism measurement against a hosted model API that batches requests, or with a local server configured to serve several requests at once. Solve Amdahl's law for the parallel fraction, and compare it with the local measurement. At what number of subagents does the speedup stop being worth the extra context?
+
+### Exercise 6: vote only when it helps
+
+Using the measured accuracies, decide for each question whether a majority of three would help or hurt. Then design a rule that votes only when a pilot estimate of accuracy is above one half, and estimate the accuracy and token cost of the resulting system.
+
 ## Expected observations
 
 The cumulative checkpoint verifies five authored arithmetic boundaries. In its first process case, stock work completes while research waits, then the child returns five tubs at 2,500 cents and a repeat research run is idle. In its second case, cancellation preserves the completed stock result and prevents the child's observation and completion.
@@ -672,11 +868,17 @@ Run the catering-delegation regressions and the applicable project gate after ch
 
 ## Summary
 
+A second agent pays only under conditions. Four parallel subagents ran one and a half times faster, not four, because the local server does not run requests together. A task that needs several subagents succeeds with the product of their accuracies. Majority voting helps an answer that is usually right, and makes one that is usually wrong worse. Each subagent resends the shared context. Lucy's catering worker earns its place by needing different permissions, not by speed.
+
 A second agent creates durable obligations: an exact assignment, separate execution identity, constrained authority, shared accounting, cancellation and a result whose source can be verified. This chapter implements those obligations for one read-only catering task and proves independent progress with actual processes.
 
 The fixed quote still belongs in a function. The delegation pattern earns its teaching role by making that decision measurable and by showing what a more demanding task would have to justify. The remaining work is operational: install the agent predictably, maintain its state and demonstrate a complete unattended business day.
 
 ## Active recall and vocabulary
+
+Without rereading, derive Amdahl's law and its limit. Why did four subagents not run four times faster here? When does a majority vote make accuracy worse? Then:
+
+**Amdahl's law** bounds the speedup of work with a serial fraction. **Condorcet's jury theorem** states when majority voting improves accuracy.
 
 Explain why concurrency does not by itself require another model. Distinguish the research session from its billing account. Describe why a changed inquiry is refused even when it passes the tool's JSON schema, and why a replacement worker cannot reset its call counter. Explain why a completed quote is neither a stock reservation nor a supplier purchase.
 

@@ -136,7 +136,7 @@
     {
       "number": 17,
       "lessonId": "delegation",
-      "title": "Delegate one bounded task",
+      "title": "When a second agent pays: parallelism, errors and bounded delegation",
       "path": "ch17/profrod-sovereign-agent-ch17-bounded-delegation-chapter.md",
       "checkpoint": "checkpoints/profrod_sovereign_agent_ch17_bounded_delegation_checkpoint.py",
       "status": "DRAFT"
