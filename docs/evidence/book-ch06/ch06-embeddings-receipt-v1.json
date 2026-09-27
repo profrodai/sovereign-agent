@@ -1,0 +1,1865 @@
+{
+  "schema": 1,
+  "experiment": "ch06-embeddings-v1",
+  "recorded": "2026-09-27",
+  "python": "3.14.3",
+  "platform": "Darwin 25.6.0 (arm64)",
+  "model": "all-minilm",
+  "retrieval": {
+    "questions": [
+      {
+        "question": "When should deliveries arrive?",
+        "relevant": [
+          0
+        ],
+        "kind": "direct",
+        "source": "chapter 5",
+        "shared_terms": [
+          "deliveries"
+        ],
+        "scratch_knows_no_word": false
+      },
+      {
+        "question": "Who is the sales contact at Hartwell Dairy?",
+        "relevant": [
+          1
+        ],
+        "kind": "direct",
+        "source": "chapter 5",
+        "shared_terms": [
+          "contact",
+          "dairy",
+          "hartwell",
+          "is",
+          "sales",
+          "the"
+        ],
+        "scratch_knows_no_word": false
+      },
+      {
+        "question": "How much does a tub of strawberry cost?",
+        "relevant": [
+          3
+        ],
+        "kind": "direct",
+        "source": "chapter 5",
+        "shared_terms": [
+          "a",
+          "strawberry",
+          "tub"
+        ],
+        "scratch_knows_no_word": false
+      },
+      {
+        "question": "How many tubs can the freezer hold?",
+        "relevant": [
+          6
+        ],
+        "kind": "direct",
+        "source": "chapter 5",
+        "shared_terms": [
+          "freezer",
+          "the",
+          "tubs"
+        ],
+        "scratch_knows_no_word": false
+      },
+      {
+        "question": "What time does the shop open on Saturdays?",
+        "relevant": [
+          8
+        ],
+        "kind": "direct",
+        "source": "chapter 5",
+        "shared_terms": [
+          "on",
+          "saturdays",
+          "shop",
+          "the"
+        ],
+        "scratch_knows_no_word": false
+      },
+      {
+        "question": "What is the reorder point for chocolate?",
+        "relevant": [
+          12
+        ],
+        "kind": "direct",
+        "source": "chapter 5",
+        "shared_terms": [
+          "chocolate",
+          "for",
+          "is",
+          "point",
+          "reorder",
+          "the"
+        ],
+        "scratch_knows_no_word": false
+      },
+      {
+        "question": "Above what amount must Lucy approve an order herself?",
+        "relevant": [
+          13
+        ],
+        "kind": "direct",
+        "source": "chapter 5",
+        "shared_terms": [
+          "above",
+          "herself",
+          "lucy",
+          "order"
+        ],
+        "scratch_knows_no_word": false
+      },
+      {
+        "question": "On which days does Meadow Farm deliver?",
+        "relevant": [
+          15
+        ],
+        "kind": "direct",
+        "source": "chapter 5",
+        "shared_terms": [
+          "farm",
+          "meadow",
+          "on"
+        ],
+        "scratch_knows_no_word": false
+      },
+      {
+        "question": "What is the minimum order at Cocoa Works?",
+        "relevant": [
+          17
+        ],
+        "kind": "direct",
+        "source": "chapter 5",
+        "shared_terms": [
+          "cocoa",
+          "minimum",
+          "order",
+          "works"
+        ],
+        "scratch_knows_no_word": false
+      },
+      {
+        "question": "When does the morning brief arrive?",
+        "relevant": [
+          18
+        ],
+        "kind": "direct",
+        "source": "chapter 5",
+        "shared_terms": [
+          "brief",
+          "morning",
+          "the"
+        ],
+        "scratch_knows_no_word": false
+      },
+      {
+        "question": "Why is pistachio not stocked?",
+        "relevant": [
+          21
+        ],
+        "kind": "direct",
+        "source": "chapter 5",
+        "shared_terms": [
+          "is",
+          "not",
+          "pistachio",
+          "stocked"
+        ],
+        "scratch_knows_no_word": false
+      },
+      {
+        "question": "Who receives the monthly spending report?",
+        "relevant": [
+          29
+        ],
+        "kind": "direct",
+        "source": "chapter 5",
+        "shared_terms": [
+          "monthly",
+          "receives",
+          "report",
+          "spending",
+          "the"
+        ],
+        "scratch_knows_no_word": false
+      },
+      {
+        "question": "At what hour should the supplier's van turn up?",
+        "relevant": [
+          0
+        ],
+        "kind": "paraphrase",
+        "source": "chapter 5",
+        "shared_terms": [
+          "the"
+        ],
+        "scratch_knows_no_word": false
+      },
+      {
+        "question": "How cold is the freezer kept?",
+        "relevant": [
+          31
+        ],
+        "kind": "paraphrase",
+        "source": "chapter 5",
+        "shared_terms": [
+          "freezer",
+          "the"
+        ],
+        "scratch_knows_no_word": false
+      },
+      {
+        "question": "Which company makes our cones?",
+        "relevant": [
+          37
+        ],
+        "kind": "paraphrase",
+        "source": "chapter 5",
+        "shared_terms": [
+          "cones"
+        ],
+        "scratch_knows_no_word": false
+      },
+      {
+        "question": "Is there a vegan option for the cocoa flavor, and what does it cost?",
+        "relevant": [
+          35
+        ],
+        "kind": "paraphrase",
+        "source": "chapter 5",
+        "shared_terms": [
+          "a",
+          "cocoa",
+          "for"
+        ],
+        "scratch_knows_no_word": false
+      },
+      {
+        "question": "Which person handles our purchases at the cream company?",
+        "relevant": [
+          1
+        ],
+        "kind": "paraphrase",
+        "source": "chapter 6",
+        "shared_terms": [
+          "the"
+        ],
+        "scratch_knows_no_word": false
+      },
+      {
+        "question": "What do we pay per container of the red berry flavor?",
+        "relevant": [
+          3
+        ],
+        "kind": "paraphrase",
+        "source": "chapter 6",
+        "shared_terms": [],
+        "scratch_knows_no_word": false
+      },
+      {
+        "question": "What is the largest number of containers our cold storage can fit?",
+        "relevant": [
+          6
+        ],
+        "kind": "paraphrase",
+        "source": "chapter 6",
+        "shared_terms": [
+          "the"
+        ],
+        "scratch_knows_no_word": false
+      },
+      {
+        "question": "How early can customers come in at the weekend?",
+        "relevant": [
+          8
+        ],
+        "kind": "paraphrase",
+        "source": "chapter 6",
+        "shared_terms": [
+          "at",
+          "the"
+        ],
+        "scratch_knows_no_word": false
+      },
+      {
+        "question": "How low may the cocoa ice cream run before we buy more?",
+        "relevant": [
+          12
+        ],
+        "kind": "paraphrase",
+        "source": "chapter 6",
+        "shared_terms": [
+          "the"
+        ],
+        "scratch_knows_no_word": false
+      },
+      {
+        "question": "Past what spend does the owner need to sign off personally?",
+        "relevant": [
+          13
+        ],
+        "kind": "paraphrase",
+        "source": "chapter 6",
+        "shared_terms": [],
+        "scratch_knows_no_word": false
+      },
+      {
+        "question": "Which weekdays does the berry grower bring stock?",
+        "relevant": [
+          15
+        ],
+        "kind": "paraphrase",
+        "source": "chapter 6",
+        "shared_terms": [],
+        "scratch_knows_no_word": false
+      },
+      {
+        "question": "What is the smallest purchase the chocolate maker accepts?",
+        "relevant": [
+          17
+        ],
+        "kind": "paraphrase",
+        "source": "chapter 6",
+        "shared_terms": [],
+        "scratch_knows_no_word": false
+      },
+      {
+        "question": "At what time does the daily summary reach the owner's mobile?",
+        "relevant": [
+          18
+        ],
+        "kind": "paraphrase",
+        "source": "chapter 6",
+        "shared_terms": [
+          "at",
+          "s",
+          "the"
+        ],
+        "scratch_knows_no_word": false
+      },
+      {
+        "question": "Why don't we sell the green nut flavor?",
+        "relevant": [
+          21
+        ],
+        "kind": "paraphrase",
+        "source": "chapter 6",
+        "shared_terms": [],
+        "scratch_knows_no_word": false
+      },
+      {
+        "question": "Who gets the summary of what we spent each month?",
+        "relevant": [
+          29
+        ],
+        "kind": "paraphrase",
+        "source": "chapter 6",
+        "shared_terms": [
+          "the"
+        ],
+        "scratch_knows_no_word": true
+      }
+    ],
+    "rankings": {
+      "bm25": [
+        [
+          25,
+          39,
+          0,
+          28,
+          1,
+          2,
+          3,
+          4,
+          5,
+          6
+        ],
+        [
+          1,
+          2,
+          16,
+          23,
+          35,
+          7,
+          8,
+          9,
+          10,
+          11
+        ],
+        [
+          2,
+          3,
+          17,
+          4,
+          35,
+          38,
+          11,
+          25,
+          37,
+          24
+        ],
+        [
+          6,
+          32,
+          31,
+          10,
+          11,
+          12,
+          17,
+          24,
+          29,
+          0
+        ],
+        [
+          20,
+          8,
+          9,
+          23,
+          7,
+          38,
+          29,
+          0,
+          36,
+          15
+        ],
+        [
+          12,
+          10,
+          11,
+          28,
+          35,
+          33,
+          4,
+          1,
+          9,
+          25
+        ],
+        [
+          13,
+          32,
+          17,
+          19,
+          18,
+          38,
+          28,
+          0,
+          33,
+          1
+        ],
+        [
+          15,
+          3,
+          38,
+          9,
+          20,
+          7,
+          8,
+          29,
+          23,
+          0
+        ],
+        [
+          17,
+          4,
+          35,
+          23,
+          20,
+          13,
+          7,
+          8,
+          1,
+          9
+        ],
+        [
+          18,
+          38,
+          25,
+          0,
+          28,
+          29,
+          23,
+          39,
+          9,
+          20
+        ],
+        [
+          21,
+          33,
+          34,
+          38,
+          1,
+          5,
+          9,
+          10,
+          11,
+          12
+        ],
+        [
+          29,
+          30,
+          0,
+          23,
+          39,
+          9,
+          20,
+          10,
+          11,
+          12
+        ],
+        [
+          39,
+          18,
+          23,
+          1,
+          36,
+          7,
+          8,
+          33,
+          6,
+          31
+        ],
+        [
+          33,
+          6,
+          32,
+          31,
+          1,
+          9,
+          10,
+          11,
+          12,
+          25
+        ],
+        [
+          37,
+          0,
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7,
+          8
+        ],
+        [
+          35,
+          28,
+          17,
+          4,
+          10,
+          11,
+          12,
+          38,
+          1,
+          22
+        ],
+        [
+          36,
+          7,
+          8,
+          6,
+          23,
+          39,
+          18,
+          31,
+          3,
+          4
+        ],
+        [
+          28,
+          17,
+          2,
+          37,
+          29,
+          0,
+          23,
+          39,
+          9,
+          20
+        ],
+        [
+          33,
+          17,
+          2,
+          37,
+          1,
+          9,
+          10,
+          11,
+          12,
+          25
+        ],
+        [
+          37,
+          35,
+          6,
+          31,
+          0,
+          20,
+          7,
+          8,
+          33,
+          23
+        ],
+        [
+          14,
+          17,
+          4,
+          35,
+          29,
+          0,
+          23,
+          39,
+          9,
+          20
+        ],
+        [
+          38,
+          18,
+          21,
+          5,
+          29,
+          0,
+          23,
+          39,
+          9,
+          20
+        ],
+        [
+          7,
+          38,
+          29,
+          0,
+          23,
+          39,
+          9,
+          20,
+          10,
+          11
+        ],
+        [
+          12,
+          4,
+          1,
+          9,
+          10,
+          11,
+          25,
+          23,
+          35,
+          21
+        ],
+        [
+          18,
+          23,
+          38,
+          36,
+          7,
+          8,
+          33,
+          6,
+          39,
+          31
+        ],
+        [
+          28,
+          29,
+          0,
+          23,
+          39,
+          9,
+          20,
+          10,
+          11,
+          12
+        ],
+        [
+          17,
+          2,
+          37,
+          29,
+          0,
+          23,
+          39,
+          9,
+          20,
+          10
+        ]
+      ],
+      "scratch": [
+        [
+          0,
+          39,
+          23,
+          25,
+          33,
+          18,
+          28,
+          38,
+          32,
+          7
+        ],
+        [
+          1,
+          2,
+          16,
+          10,
+          32,
+          30,
+          28,
+          11,
+          36,
+          12
+        ],
+        [
+          3,
+          4,
+          35,
+          15,
+          11,
+          25,
+          12,
+          38,
+          10,
+          17
+        ],
+        [
+          6,
+          11,
+          12,
+          10,
+          24,
+          17,
+          28,
+          32,
+          31,
+          16
+        ],
+        [
+          9,
+          20,
+          8,
+          0,
+          7,
+          38,
+          23,
+          17,
+          36,
+          35
+        ],
+        [
+          12,
+          11,
+          10,
+          35,
+          4,
+          28,
+          1,
+          24,
+          17,
+          7
+        ],
+        [
+          13,
+          19,
+          32,
+          17,
+          14,
+          38,
+          16,
+          26,
+          39,
+          18
+        ],
+        [
+          15,
+          3,
+          35,
+          4,
+          38,
+          5,
+          13,
+          25,
+          20,
+          17
+        ],
+        [
+          17,
+          4,
+          35,
+          20,
+          3,
+          13,
+          8,
+          2,
+          9,
+          12
+        ],
+        [
+          18,
+          25,
+          38,
+          28,
+          0,
+          33,
+          19,
+          32,
+          36,
+          23
+        ],
+        [
+          21,
+          38,
+          33,
+          34,
+          32,
+          28,
+          30,
+          25,
+          37,
+          16
+        ],
+        [
+          29,
+          30,
+          13,
+          2,
+          16,
+          14,
+          3,
+          1,
+          37,
+          15
+        ],
+        [
+          23,
+          18,
+          39,
+          16,
+          36,
+          33,
+          1,
+          0,
+          10,
+          31
+        ],
+        [
+          33,
+          31,
+          32,
+          21,
+          6,
+          28,
+          26,
+          16,
+          27,
+          22
+        ],
+        [
+          37,
+          5,
+          17,
+          31,
+          20,
+          34,
+          35,
+          26,
+          4,
+          8
+        ],
+        [
+          28,
+          38,
+          35,
+          21,
+          20,
+          17,
+          25,
+          4,
+          3,
+          7
+        ],
+        [
+          22,
+          36,
+          7,
+          34,
+          0,
+          1,
+          8,
+          12,
+          31,
+          20
+        ],
+        [
+          28,
+          25,
+          7,
+          37,
+          8,
+          11,
+          12,
+          36,
+          20,
+          9
+        ],
+        [
+          33,
+          18,
+          23,
+          39,
+          0,
+          36,
+          28,
+          7,
+          1,
+          31
+        ],
+        [
+          37,
+          35,
+          4,
+          17,
+          0,
+          26,
+          14,
+          5,
+          7,
+          12
+        ],
+        [
+          35,
+          4,
+          17,
+          3,
+          2,
+          14,
+          16,
+          13,
+          38,
+          32
+        ],
+        [
+          38,
+          32,
+          33,
+          21,
+          18,
+          19,
+          15,
+          0,
+          23,
+          13
+        ],
+        [
+          38,
+          0,
+          19,
+          25,
+          7,
+          21,
+          8,
+          18,
+          32,
+          13
+        ],
+        [
+          35,
+          12,
+          4,
+          11,
+          10,
+          3,
+          17,
+          7,
+          20,
+          24
+        ],
+        [
+          18,
+          33,
+          23,
+          38,
+          19,
+          0,
+          32,
+          39,
+          27,
+          36
+        ],
+        [
+          28,
+          25,
+          7,
+          37,
+          8,
+          11,
+          12,
+          36,
+          20,
+          9
+        ],
+        [
+          0,
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7,
+          8,
+          9
+        ]
+      ],
+      "all-minilm": [
+        [
+          16,
+          39,
+          0,
+          23,
+          15,
+          8,
+          7,
+          14,
+          5,
+          26
+        ],
+        [
+          16,
+          1,
+          2,
+          23,
+          3,
+          35,
+          37,
+          36,
+          0,
+          38
+        ],
+        [
+          3,
+          11,
+          2,
+          24,
+          35,
+          25,
+          4,
+          10,
+          12,
+          17
+        ],
+        [
+          6,
+          12,
+          11,
+          17,
+          10,
+          24,
+          31,
+          4,
+          35,
+          3
+        ],
+        [
+          8,
+          7,
+          9,
+          20,
+          0,
+          23,
+          15,
+          16,
+          26,
+          36
+        ],
+        [
+          12,
+          4,
+          10,
+          28,
+          11,
+          35,
+          17,
+          27,
+          24,
+          36
+        ],
+        [
+          13,
+          0,
+          28,
+          38,
+          19,
+          32,
+          14,
+          18,
+          33,
+          30
+        ],
+        [
+          15,
+          3,
+          16,
+          7,
+          0,
+          8,
+          25,
+          23,
+          5,
+          20
+        ],
+        [
+          17,
+          4,
+          35,
+          12,
+          16,
+          14,
+          10,
+          8,
+          28,
+          7
+        ],
+        [
+          18,
+          0,
+          7,
+          8,
+          16,
+          32,
+          20,
+          26,
+          39,
+          15
+        ],
+        [
+          21,
+          34,
+          25,
+          3,
+          11,
+          5,
+          24,
+          28,
+          27,
+          37
+        ],
+        [
+          29,
+          30,
+          26,
+          22,
+          13,
+          14,
+          36,
+          16,
+          37,
+          27
+        ],
+        [
+          39,
+          0,
+          8,
+          7,
+          23,
+          16,
+          32,
+          20,
+          31,
+          13
+        ],
+        [
+          31,
+          6,
+          32,
+          25,
+          28,
+          5,
+          12,
+          4,
+          27,
+          7
+        ],
+        [
+          37,
+          1,
+          4,
+          35,
+          25,
+          17,
+          36,
+          2,
+          21,
+          3
+        ],
+        [
+          35,
+          4,
+          1,
+          17,
+          2,
+          5,
+          3,
+          12,
+          25,
+          16
+        ],
+        [
+          1,
+          36,
+          2,
+          35,
+          16,
+          4,
+          13,
+          24,
+          0,
+          27
+        ],
+        [
+          3,
+          2,
+          27,
+          36,
+          11,
+          4,
+          35,
+          24,
+          25,
+          1
+        ],
+        [
+          6,
+          17,
+          11,
+          12,
+          10,
+          27,
+          31,
+          37,
+          24,
+          3
+        ],
+        [
+          8,
+          7,
+          9,
+          20,
+          15,
+          26,
+          16,
+          0,
+          39,
+          36
+        ],
+        [
+          35,
+          4,
+          17,
+          24,
+          2,
+          31,
+          12,
+          5,
+          36,
+          28
+        ],
+        [
+          30,
+          29,
+          14,
+          22,
+          36,
+          13,
+          8,
+          7,
+          31,
+          38
+        ],
+        [
+          25,
+          5,
+          7,
+          15,
+          3,
+          8,
+          16,
+          11,
+          21,
+          24
+        ],
+        [
+          4,
+          35,
+          12,
+          17,
+          36,
+          24,
+          27,
+          2,
+          10,
+          13
+        ],
+        [
+          18,
+          26,
+          7,
+          8,
+          29,
+          20,
+          0,
+          15,
+          31,
+          36
+        ],
+        [
+          21,
+          25,
+          3,
+          28,
+          1,
+          5,
+          11,
+          2,
+          27,
+          24
+        ],
+        [
+          29,
+          30,
+          26,
+          36,
+          18,
+          24,
+          13,
+          27,
+          4,
+          19
+        ]
+      ],
+      "fused": [
+        [
+          39,
+          0,
+          25,
+          8,
+          7,
+          5,
+          16,
+          28,
+          15,
+          9
+        ],
+        [
+          1,
+          16,
+          2,
+          23,
+          35,
+          7,
+          8,
+          3,
+          25,
+          39
+        ],
+        [
+          3,
+          2,
+          11,
+          35,
+          4,
+          17,
+          24,
+          25,
+          37,
+          36
+        ],
+        [
+          6,
+          12,
+          11,
+          10,
+          31,
+          17,
+          24,
+          32,
+          27,
+          4
+        ],
+        [
+          8,
+          20,
+          9,
+          7,
+          23,
+          0,
+          15,
+          36,
+          39,
+          18
+        ],
+        [
+          12,
+          10,
+          11,
+          28,
+          4,
+          35,
+          1,
+          25,
+          2,
+          27
+        ],
+        [
+          13,
+          32,
+          19,
+          0,
+          28,
+          38,
+          18,
+          33,
+          17,
+          2
+        ],
+        [
+          15,
+          3,
+          7,
+          8,
+          0,
+          20,
+          9,
+          23,
+          16,
+          5
+        ],
+        [
+          17,
+          4,
+          35,
+          8,
+          12,
+          7,
+          10,
+          13,
+          23,
+          11
+        ],
+        [
+          18,
+          0,
+          20,
+          39,
+          7,
+          23,
+          28,
+          25,
+          8,
+          32
+        ],
+        [
+          21,
+          34,
+          5,
+          25,
+          11,
+          1,
+          3,
+          38,
+          2,
+          12
+        ],
+        [
+          29,
+          30,
+          20,
+          27,
+          0,
+          23,
+          22,
+          36,
+          19,
+          13
+        ],
+        [
+          39,
+          23,
+          8,
+          7,
+          18,
+          0,
+          31,
+          36,
+          20,
+          1
+        ],
+        [
+          6,
+          31,
+          32,
+          25,
+          12,
+          5,
+          33,
+          21,
+          11,
+          27
+        ],
+        [
+          37,
+          1,
+          4,
+          2,
+          3,
+          17,
+          12,
+          11,
+          10,
+          25
+        ],
+        [
+          35,
+          4,
+          17,
+          1,
+          12,
+          28,
+          2,
+          5,
+          10,
+          11
+        ],
+        [
+          36,
+          35,
+          23,
+          4,
+          39,
+          1,
+          0,
+          3,
+          8,
+          2
+        ],
+        [
+          2,
+          28,
+          11,
+          37,
+          27,
+          17,
+          10,
+          25,
+          3,
+          12
+        ],
+        [
+          17,
+          11,
+          37,
+          10,
+          12,
+          2,
+          6,
+          25,
+          27,
+          1
+        ],
+        [
+          8,
+          7,
+          20,
+          0,
+          31,
+          9,
+          37,
+          39,
+          23,
+          18
+        ],
+        [
+          35,
+          4,
+          17,
+          12,
+          14,
+          25,
+          10,
+          31,
+          27,
+          2
+        ],
+        [
+          29,
+          38,
+          18,
+          23,
+          0,
+          9,
+          39,
+          22,
+          20,
+          36
+        ],
+        [
+          7,
+          25,
+          11,
+          9,
+          20,
+          0,
+          8,
+          39,
+          5,
+          23
+        ],
+        [
+          4,
+          12,
+          35,
+          10,
+          1,
+          11,
+          27,
+          25,
+          36,
+          9
+        ],
+        [
+          18,
+          7,
+          8,
+          36,
+          23,
+          33,
+          29,
+          31,
+          38,
+          0
+        ],
+        [
+          28,
+          25,
+          11,
+          27,
+          1,
+          23,
+          10,
+          3,
+          9,
+          12
+        ],
+        [
+          29,
+          0,
+          20,
+          18,
+          2,
+          27,
+          19,
+          37,
+          17,
+          36
+        ]
+      ]
+    },
+    "table": [
+      {
+        "ranker": "bm25",
+        "questions": "direct",
+        "count": 12,
+        "recall_at_1": 0.75,
+        "recall_at_3": 1.0,
+        "mean_reciprocal_rank": 0.861
+      },
+      {
+        "ranker": "bm25",
+        "questions": "paraphrase",
+        "count": 15,
+        "recall_at_1": 0.2,
+        "recall_at_3": 0.2,
+        "mean_reciprocal_rank": 0.268
+      },
+      {
+        "ranker": "scratch",
+        "questions": "direct",
+        "count": 12,
+        "recall_at_1": 0.917,
+        "recall_at_3": 1.0,
+        "mean_reciprocal_rank": 0.944
+      },
+      {
+        "ranker": "scratch",
+        "questions": "paraphrase",
+        "count": 15,
+        "recall_at_1": 0.133,
+        "recall_at_3": 0.267,
+        "mean_reciprocal_rank": 0.249
+      },
+      {
+        "ranker": "all-minilm",
+        "questions": "direct",
+        "count": 12,
+        "recall_at_1": 0.833,
+        "recall_at_3": 1.0,
+        "mean_reciprocal_rank": 0.903
+      },
+      {
+        "ranker": "all-minilm",
+        "questions": "paraphrase",
+        "count": 15,
+        "recall_at_1": 0.667,
+        "recall_at_3": 0.733,
+        "mean_reciprocal_rank": 0.754
+      },
+      {
+        "ranker": "fused",
+        "questions": "direct",
+        "count": 12,
+        "recall_at_1": 0.917,
+        "recall_at_3": 1.0,
+        "mean_reciprocal_rank": 0.958
+      },
+      {
+        "ranker": "fused",
+        "questions": "paraphrase",
+        "count": 15,
+        "recall_at_1": 0.333,
+        "recall_at_3": 0.4,
+        "mean_reciprocal_rank": 0.443
+      }
+    ]
+  },
+  "probes": {
+    "codes": {
+      "notes": [
+        "Order code PX-4471 is the vanilla case.",
+        "Order code PX-4417 is the strawberry case.",
+        "Order code PX-7144 is the chocolate case."
+      ],
+      "rows": [
+        {
+          "query": "PX-4471",
+          "bm25_rank": 1,
+          "dense_rank": 1,
+          "fused_rank": 1,
+          "dense_score": 0.608,
+          "best_rival_dense_score": 0.454
+        },
+        {
+          "query": "PX-4417",
+          "bm25_rank": 1,
+          "dense_rank": 1,
+          "fused_rank": 1,
+          "dense_score": 0.523,
+          "best_rival_dense_score": 0.473
+        },
+        {
+          "query": "PX-7144",
+          "bm25_rank": 1,
+          "dense_rank": 1,
+          "fused_rank": 1,
+          "dense_score": 0.549,
+          "best_rival_dense_score": 0.534
+        }
+      ],
+      "cosine_between_notes": [
+        0.724,
+        0.737,
+        0.765
+      ]
+    },
+    "negation": [
+      {
+        "sentence": "Mango sorbet contains dairy.",
+        "negated": "Mango sorbet contains no dairy.",
+        "paraphrase": "Mango sorbet is made with milk.",
+        "cosine_negated": 0.861,
+        "cosine_paraphrase": 0.933
+      },
+      {
+        "sentence": "The freezer alarm is on.",
+        "negated": "The freezer alarm is not on.",
+        "paraphrase": "The freezer alarm is sounding.",
+        "cosine_negated": 0.893,
+        "cosine_paraphrase": 0.904
+      },
+      {
+        "sentence": "Tom works on Saturdays.",
+        "negated": "Tom never works on Saturdays.",
+        "paraphrase": "Tom is in the shop on Saturdays.",
+        "cosine_negated": 0.836,
+        "cosine_paraphrase": 0.858
+      },
+      {
+        "sentence": "Lucy approved the order.",
+        "negated": "Lucy did not approve the order.",
+        "paraphrase": "Lucy signed off on the order.",
+        "cosine_negated": 0.764,
+        "cosine_paraphrase": 0.802
+      },
+      {
+        "sentence": "The supplier delivers on Tuesdays.",
+        "negated": "The supplier does not deliver on Tuesdays.",
+        "paraphrase": "Tuesday is the supplier's delivery day.",
+        "cosine_negated": 0.728,
+        "cosine_paraphrase": 0.889
+      }
+    ],
+    "stale": {
+      "old": "Meadow Farm delivers only on Tuesdays and Fridays.",
+      "new": "From October, Meadow Farm delivers only on Wednesdays.",
+      "query": "When does Meadow Farm deliver?",
+      "cosine_old": 0.707,
+      "cosine_new": 0.734
+    }
+  },
+  "approximate": {
+    "corpus": 2000,
+    "queries": 100,
+    "dimensions": 384,
+    "sentences_sha256": "5d92051c40831f7eb6878359c60656618183ecd5c834f78c99b6cc04a8c4025f",
+    "embedding_seconds": 8.28,
+    "texts_per_second": 241.7,
+    "links": 8,
+    "rows": [
+      {
+        "ef": 10,
+        "mean_recall_at_10": 0.803,
+        "mean_compared": 243.2,
+        "share_of_exact_comparisons": 0.122
+      },
+      {
+        "ef": 20,
+        "mean_recall_at_10": 0.899,
+        "mean_compared": 336.6,
+        "share_of_exact_comparisons": 0.168
+      },
+      {
+        "ef": 40,
+        "mean_recall_at_10": 0.955,
+        "mean_compared": 492.5,
+        "share_of_exact_comparisons": 0.246
+      },
+      {
+        "ef": 80,
+        "mean_recall_at_10": 0.987,
+        "mean_compared": 746.0,
+        "share_of_exact_comparisons": 0.373
+      },
+      {
+        "ef": 160,
+        "mean_recall_at_10": 0.997,
+        "mean_compared": 1096.7,
+        "share_of_exact_comparisons": 0.548
+      }
+    ],
+    "index_megabytes": 3.07
+  },
+  "seconds": 32.0
+}

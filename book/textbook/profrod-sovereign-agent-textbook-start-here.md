@@ -27,7 +27,7 @@ You can read the drafted chapters and run their supplied reference checkpoints n
 | 3 | [The agent loop: why reliability compounds, and a loop that stops](ch03/profrod-sovereign-agent-ch03-agent-loop-chapter.md) | DRAFT |
 | 4 | [Build durable state with SQLite](ch04/profrod-sovereign-agent-ch04-sqlite-state-chapter.md) | DRAFT |
 | 5 | [Memory and retrieval: what the model sees, and a memory that forgets](ch05/profrod-sovereign-agent-ch05-durable-memory-chapter.md) | DRAFT |
-| 6 | [Embeddings and vector search: when words are not enough](ch06/profrod-sovereign-agent-ch06-embeddings-vector-search-chapter.md) | PLANNED |
+| 6 | [Embeddings and vector search: when words are not enough](ch06/profrod-sovereign-agent-ch06-embeddings-vector-search-chapter.md) | PLANNED, manuscript drafted |
 | 7 | [In-context learning: why a skill's exact words must be tested](ch07/profrod-sovereign-agent-ch07-versioned-skills-chapter.md) | DRAFT |
 | 8 | [Build a durable work inbox and report outbox](ch08/profrod-sovereign-agent-ch08-durable-inbox-outbox-chapter.md) | DRAFT |
 | 9 | [Where the wait goes: prefill, decode and a phone channel](ch09/profrod-sovereign-agent-ch09-telegram-messaging-chapter.md) | DRAFT |
