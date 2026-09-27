@@ -13,9 +13,9 @@ Retain your own attempt before reading these worked solutions. Explain the reaso
 | Session | Notebook | Matching text | Purpose |
 |---|---|---|---|
 | A · 90 minutes | [A: bounded agent loop](profrod-sovereign-agent-ch03-a-bounded-agent-loop-solution.ipynb) | [Markdown](profrod-sovereign-agent-ch03-a-bounded-agent-loop-solution.md) | Construct, connect and explain |
-| B · 90 minutes | [B: failed call accounting](profrod-sovereign-agent-ch03-b-failed-call-accounting-solution.ipynb) | [Markdown](profrod-sovereign-agent-ch03-b-failed-call-accounting-solution.md) | Diagnose, repair and transfer |
+| B · 90 minutes | [B: reliability and retries](profrod-sovereign-agent-ch03-b-reliability-and-retries-solution.ipynb) | [Markdown](profrod-sovereign-agent-ch03-b-reliability-and-retries-solution.md) | Derive, test against simulation and transfer |
 
-Each notebook includes its own setup, first-principles introductions and supplied teaching runtime. Use a Python 3.14 Jupyter kernel and Pydantic 2. No repository checkout, previous notebook kernel or live account is needed. Unit B can use an explicitly selected successful Unit A handoff; an invalid selected file refuses rather than substituting an answer.
+Each notebook includes its own setup, first-principles introductions and supplied teaching runtime. Use a Python 3.14 Jupyter kernel; Unit A also needs Pydantic 2, and Unit B only the standard library. No repository checkout, previous notebook kernel or live account is needed. Unit B can use an explicitly selected successful Unit A handoff; an invalid selected file refuses rather than substituting an answer.
 
 Ninety minutes is the planned work allowance per unit, excluding installation. Actual completion time and understanding require classroom observation.
 
