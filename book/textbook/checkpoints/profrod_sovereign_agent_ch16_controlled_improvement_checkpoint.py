@@ -7,6 +7,9 @@
 
 import hashlib
 import json
+import math
+import random
+import runpy
 import tempfile
 import tomllib
 from pathlib import Path
@@ -31,7 +34,46 @@ class FollowsCandidate(OfflineShopModel):
         return turn
 
 
+BOOK = Path(__file__).resolve().parents[1]
+OPTIMIZATION = runpy.run_path(
+    str(BOOK / "learner/profrod_sovereign_agent_ch16_optimization_learner.py")
+)
+
+
+def optimization():
+    """Part A's functions, each checked against an independent computation."""
+    expected_max = OPTIMIZATION["expected_max_normal"]
+    assert math.isclose(expected_max(2), 1 / math.sqrt(math.pi), abs_tol=1e-6)
+    rng = random.Random(16)
+    draws = [max(rng.gauss(0, 1) for _ in range(8)) for _ in range(40_000)]
+    assert abs(sum(draws) / len(draws) - expected_max(8)) < 0.02
+    print("ok   E[max of 2 normals] = 1/sqrt(pi); E[max of 8] agrees with simulation")
+
+    single = OPTIMIZATION["winners_curse"]([0.5], 6, 20_000, seed=1)
+    assert abs(single["optimism"]) < 0.01
+    print("ok   with one candidate there is no selection, and no optimism")
+
+    bt, loglik = OPTIMIZATION["bradley_terry"], OPTIMIZATION["log_likelihood"]
+    assert bt(0.3, 0.3) == 0.5 and math.isclose(bt(1.0, -0.5) + bt(-0.5, 1.0), 1.0)
+    lab = runpy.run_path(
+        str(BOOK / "experiments/profrod_sovereign_agent_textbook_ch16_optimization_v1.py")
+    )
+    receipt = json.loads(
+        (BOOK.parents[1] / "docs/evidence/book-ch16/ch16-optimization-receipt-v1.json").read_text()
+    )
+    assert json.loads(json.dumps(lab["offline"]())) == receipt["offline"]
+    rng = random.Random(3)
+    comparisons = [(0, 1)] * 30 + [(1, 0)] * 10 + [(1, 2)] * 25 + [(2, 1)] * 15
+    fitted = OPTIMIZATION["fit_bradley_terry"](comparisons, 3)
+    for i in range(3):
+        bumped = list(fitted)
+        bumped[i] += 1e-5
+        assert abs(loglik(comparisons, bumped) - loglik(comparisons, fitted)) < 1e-6
+    print("ok   the receipt's offline section recomputes exactly; the BT fit is a stationary point")
+
+
 def main():
+    optimization()
     original = tomllib.loads(
         (
             Path(__file__).parents[1]

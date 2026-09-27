@@ -47,7 +47,7 @@ UNIT_TOPICS = {
     12: ("worker-crash-recovery", "recovery-repair-transfer"),
     14: ("tool-isolation", "isolation-repair-transfer"),
     15: ("agent-evaluation", "evaluation-statistics"),
-    16: ("controlled-improvement", "improvement-repair-transfer"),
+    16: ("controlled-improvement", "winners-curse-and-preferences"),
     17: ("bounded-delegation", "delegation-repair-transfer"),
     18: ("deployment-restoration", "inference-planning"),
     19: ("integrated-day-acceptance", "acceptance-repair-transfer"),

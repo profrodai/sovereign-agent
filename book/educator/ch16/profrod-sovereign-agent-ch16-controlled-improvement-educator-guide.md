@@ -1,4 +1,4 @@
-# Teach Chapter 16: Improve behavior with evaluated changes
+# Teach Chapter 16: Optimizing against an evaluation: the winner's curse and preferences
 
 > **Learn with Prof Rod** — *Build Your Always-On AI Agent From Scratch*.
 > **Read the full book and get the latest learning materials:** [https://profrod.ai/book](https://profrod.ai/book).
@@ -13,7 +13,7 @@
 | Session | Distribute to learners | Worked demonstration | Text versions |
 |---|---|---|---|
 | A · 90 minutes | [Student notebook](student/profrod-sovereign-agent-ch16-a-controlled-improvement-educator-exercise.ipynb) | [Worked notebook](solutions/profrod-sovereign-agent-ch16-a-controlled-improvement-educator-solution.ipynb) | [Student](student/profrod-sovereign-agent-ch16-a-controlled-improvement-educator-exercise.md) · [Worked](solutions/profrod-sovereign-agent-ch16-a-controlled-improvement-educator-solution.md) |
-| B · 90 minutes | [Student notebook](student/profrod-sovereign-agent-ch16-b-improvement-repair-transfer-educator-exercise.ipynb) | [Worked notebook](solutions/profrod-sovereign-agent-ch16-b-improvement-repair-transfer-educator-solution.ipynb) | [Student](student/profrod-sovereign-agent-ch16-b-improvement-repair-transfer-educator-exercise.md) · [Worked](solutions/profrod-sovereign-agent-ch16-b-improvement-repair-transfer-educator-solution.md) |
+| B · 90 minutes | [Student notebook](student/profrod-sovereign-agent-ch16-b-winners-curse-and-preferences-educator-exercise.ipynb) | [Worked notebook](solutions/profrod-sovereign-agent-ch16-b-winners-curse-and-preferences-educator-solution.ipynb) | [Student](student/profrod-sovereign-agent-ch16-b-winners-curse-and-preferences-educator-exercise.md) · [Worked](solutions/profrod-sovereign-agent-ch16-b-winners-curse-and-preferences-educator-solution.md) |
 
 Rehearse using the worked notebook in a fresh Python 3.14 kernel before class. Distribute only the student files until learners have retained a first attempt. Both versions embed their runtime; no sibling book directory or live account is required. Preserve predictions, the highest hint used, changed-case results and actual time spent. Record understanding from explanations, not Run All success.
 

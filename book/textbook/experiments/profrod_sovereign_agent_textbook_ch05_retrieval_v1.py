@@ -270,7 +270,15 @@ def regrade(receipt):
     for run in runs:
         run["correct"] = graded(run["answer"], QUESTIONS[run["question"]][2])
     receipt["retrieval_against_everything"]["summary"] = summarize(runs)
-    receipt["regraded"] = "retained answers scored again by graded(); the model was not called"
+    receipt["rankers"] = [
+        evaluate_ranker("bm25", LEARN["bm25_scores"]),
+        evaluate_ranker("word_overlap", overlap_scores),
+        evaluate_ranker("most_recent", recent_scores),
+    ]
+    receipt["regraded"] = (
+        "retained answers scored again by graded(), and the offline rankers recomputed; "
+        "the model was not called"
+    )
     return receipt
 
 
