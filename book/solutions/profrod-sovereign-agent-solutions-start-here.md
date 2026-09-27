@@ -6,13 +6,13 @@
 > — bring your questions, compare experiments and share what you build.
 > **Original source and updates:** [profrodai/sovereign-agent](https://github.com/profrodai/sovereign-agent).
 
-Build Your Always-On AI Agent From Scratch · nineteen-chapter edition · 9 September 2026
+Build Your Always-On AI Agent From Scratch · twenty-chapter edition · 9 September 2026
 
 Study worked implementations and their reasoning after attempting the exercises. Each notebook repeats the required setup and concepts, includes the full exercise context and tests additional cases.
 
 [Set up your environment](profrod-sovereign-agent-solutions-setup.md) · [Download this complete asset](profrod-sovereign-agent-solutions-2026-09-10.zip)
 
-The edition has nineteen chapter slots. **Eighteen chapters currently have two ninety-minute units each: 36 units and 54 hours of available practice. Chapter 13 is a planned construction brief.** The finished plan calls for 38 units and 57 hours; those two additional units are not yet published. Existing units use a supplied runtime and can be studied while the new foundations are authored. No completed notebook is represented by an empty placeholder.
+The edition has twenty chapter slots. **Eighteen chapters currently have two ninety-minute units each: 36 units and 54 hours of available practice. Chapters 6 and 14 are planned construction briefs.** The finished plan calls for 40 units and 60 hours; those four additional units are not yet published. Existing units use a supplied runtime and can be studied while the new foundations are authored. No completed notebook is represented by an empty placeholder.
 
 | Chapter | Topic | Availability |
 |---|---|---|
@@ -21,20 +21,21 @@ The edition has nineteen chapter slots. **Eighteen chapters currently have two n
 | 3 | [The agent loop: why reliability compounds, and a loop that stops](ch03/profrod-sovereign-agent-ch03-agent-loop-solutions-guide.md) | Available draft — A and B, 90 minutes each |
 | 4 | [Build durable SQLite state](ch04/profrod-sovereign-agent-ch04-sqlite-state-solutions-guide.md) | Available draft — A and B, 90 minutes each |
 | 5 | [Memory and retrieval: what the model sees, and a memory that forgets](ch05/profrod-sovereign-agent-ch05-durable-memory-solutions-guide.md) | Available draft — A and B, 90 minutes each |
-| 6 | [In-context learning: why a skill's exact words must be tested](ch06/profrod-sovereign-agent-ch06-versioned-skills-solutions-guide.md) | Available draft — A and B, 90 minutes each |
-| 7 | [Build a durable work inbox and report outbox](ch07/profrod-sovereign-agent-ch07-durable-inbox-outbox-solutions-guide.md) | Available draft — A and B, 90 minutes each |
-| 8 | [Where the wait goes: prefill, decode and a phone channel](ch08/profrod-sovereign-agent-ch08-telegram-messaging-solutions-guide.md) | Available draft — A and B, 90 minutes each |
-| 9 | [Events at random: queues, utilization and scheduled work](ch09/profrod-sovereign-agent-ch09-schedules-stock-events-solutions-guide.md) | Available draft — A and B, 90 minutes each |
-| 10 | [When to ask: calibration, oversight and spending permission](ch10/profrod-sovereign-agent-ch10-spending-permissions-solutions-guide.md) | Available draft — A and B, 90 minutes each |
-| 11 | [Exactly one order: lost replies, retries and idempotency](ch11/profrod-sovereign-agent-ch11-ambiguous-supplier-order-solutions-guide.md) | Available draft — A and B, 90 minutes each |
-| 12 | [Slow or dead: leases, fencing and crash recovery](ch12/profrod-sovereign-agent-ch12-worker-recovery-solutions-guide.md) | Available draft — A and B, 90 minutes each |
-| 13 | [Build an MCP client and tool server](ch13/profrod-sovereign-agent-ch13-mcp-tools-solutions-guide.md) | PLANNED — brief only |
-| 14 | [Prompt injection and isolation: words steer the model, boundaries hold](ch14/profrod-sovereign-agent-ch14-tool-isolation-solutions-guide.md) | Available draft — A and B, 90 minutes each |
-| 15 | [Evaluation as measurement: error bars and paired comparisons](ch15/profrod-sovereign-agent-ch15-agent-evaluation-solutions-guide.md) | Available draft — A and B, 90 minutes each |
-| 16 | [Optimizing against an evaluation: the winner's curse and preferences](ch16/profrod-sovereign-agent-ch16-controlled-improvement-solutions-guide.md) | Available draft — A and B, 90 minutes each |
-| 17 | [When a second agent pays: parallelism, errors and bounded delegation](ch17/profrod-sovereign-agent-ch17-bounded-delegation-solutions-guide.md) | Available draft — A and B, 90 minutes each |
-| 18 | [What a model call costs, and a deployment that survives](ch18/profrod-sovereign-agent-ch18-deployment-restoration-solutions-guide.md) | Available draft — A and B, 90 minutes each |
-| 19 | [A whole day: reliability, honest reports and readiness](ch19/profrod-sovereign-agent-ch19-integrated-shop-day-solutions-guide.md) | Available draft — A and B, 90 minutes each |
+| 6 | [Embeddings and vector search: when words are not enough](ch06/profrod-sovereign-agent-ch06-embeddings-vector-search-solutions-guide.md) | PLANNED — brief only |
+| 7 | [In-context learning: why a skill's exact words must be tested](ch07/profrod-sovereign-agent-ch07-versioned-skills-solutions-guide.md) | Available draft — A and B, 90 minutes each |
+| 8 | [Build a durable work inbox and report outbox](ch08/profrod-sovereign-agent-ch08-durable-inbox-outbox-solutions-guide.md) | Available draft — A and B, 90 minutes each |
+| 9 | [Where the wait goes: prefill, decode and a phone channel](ch09/profrod-sovereign-agent-ch09-telegram-messaging-solutions-guide.md) | Available draft — A and B, 90 minutes each |
+| 10 | [Events at random: queues, utilization and scheduled work](ch10/profrod-sovereign-agent-ch10-schedules-stock-events-solutions-guide.md) | Available draft — A and B, 90 minutes each |
+| 11 | [When to ask: calibration, oversight and spending permission](ch11/profrod-sovereign-agent-ch11-spending-permissions-solutions-guide.md) | Available draft — A and B, 90 minutes each |
+| 12 | [Exactly one order: lost replies, retries and idempotency](ch12/profrod-sovereign-agent-ch12-ambiguous-supplier-order-solutions-guide.md) | Available draft — A and B, 90 minutes each |
+| 13 | [Slow or dead: leases, fencing and crash recovery](ch13/profrod-sovereign-agent-ch13-worker-recovery-solutions-guide.md) | Available draft — A and B, 90 minutes each |
+| 14 | [Build an MCP client and tool server](ch14/profrod-sovereign-agent-ch14-mcp-tools-solutions-guide.md) | PLANNED — brief only |
+| 15 | [Prompt injection and isolation: words steer the model, boundaries hold](ch15/profrod-sovereign-agent-ch15-tool-isolation-solutions-guide.md) | Available draft — A and B, 90 minutes each |
+| 16 | [Evaluation as measurement: error bars and paired comparisons](ch16/profrod-sovereign-agent-ch16-agent-evaluation-solutions-guide.md) | Available draft — A and B, 90 minutes each |
+| 17 | [Optimizing against an evaluation: the winner's curse and preferences](ch17/profrod-sovereign-agent-ch17-controlled-improvement-solutions-guide.md) | Available draft — A and B, 90 minutes each |
+| 18 | [When a second agent pays: parallelism, errors and bounded delegation](ch18/profrod-sovereign-agent-ch18-bounded-delegation-solutions-guide.md) | Available draft — A and B, 90 minutes each |
+| 19 | [What a model call costs, and a deployment that survives](ch19/profrod-sovereign-agent-ch19-deployment-restoration-solutions-guide.md) | Available draft — A and B, 90 minutes each |
+| 20 | [A whole day: reliability, honest reports and readiness](ch20/profrod-sovereign-agent-ch20-integrated-shop-day-solutions-guide.md) | Available draft — A and B, 90 minutes each |
 
 ## How to use this asset
 

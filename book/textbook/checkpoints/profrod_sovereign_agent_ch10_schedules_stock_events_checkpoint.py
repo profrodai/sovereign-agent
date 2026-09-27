@@ -1,0 +1,238 @@
+# Prof Rod | Build Your Always-On AI Agent From Scratch
+# Full book and learning materials: https://profrod.ai/book
+# Join the Prof Rod learner community: https://profrod.ai/community
+# Original source and updates: https://github.com/profrodai/sovereign-agent
+
+"""Chapter 10: durable clock jobs and stock episodes create draft work while unattended."""
+
+import argparse
+import json
+import math
+import os
+import runpy
+import subprocess
+import sys
+import tempfile
+import time
+from pathlib import Path
+
+from reference_organizations.store.agent import OfflineShopModel
+from reference_organizations.store.assistant import run_once
+from reference_organizations.store.stock_conditions import scan, watch
+from sovereign_agent.assistant_work import schedule, tick, unschedule
+from sovereign_agent.database import Database
+from sovereign_agent.model_turn import HTTPModel
+
+
+def observed_drafts(messages):
+    names = {
+        call["id"]: call["function"]["name"]
+        for message in messages
+        for call in message.get("tool_calls", [])
+    }
+    drafts = []
+    for message in messages:
+        if message["role"] == "tool" and names.get(message["tool_call_id"]) == "draft_order":
+            value = json.loads(message["content"])
+            if value.get("ok") is True:
+                draft = value["value"]
+                drafts.append((draft["sku"], draft["quantity"], draft["total_cents"]))
+    return sorted(drafts)
+
+
+BOOK = Path(__file__).resolve().parents[1]
+QUEUE = runpy.run_path(str(BOOK / "learner/profrod_sovereign_agent_ch10_queueing_learner.py"))
+
+
+def queueing_arithmetic():
+    """Part A's formulas by independent checks, and the receipt recomputed from its records."""
+    pk, exponential = QUEUE["pk_wait"], QUEUE["exponential_wait"]
+    assert math.isclose(exponential(0.5, 1.0), pk(0.5, 1.0, 2.0)) and exponential(0.5, 1.0) == 1.0
+    assert pk(0.5, 1.0, 1.0) == 0.5  # constant service waits half as long as exponential
+    rate = QUEUE["highest_rate"](2.0, 0.5, 0.4)
+    assert math.isclose(pk(rate, 0.5, 0.4), 2.0)
+    gaps = QUEUE["arrivals"](4.0, 20_000, seed=1)
+    assert abs(gaps[-1] / len(gaps) - 0.25) < 0.01  # the mean gap is 1 / rate
+    print("ok   Pollaczek-Khinchine, its exponential case and the rate for a target wait")
+    receipt = json.loads(
+        (BOOK.parents[1] / "docs/evidence/book-ch10/ch10-queueing-receipt-v1.json").read_text()
+    )
+    for pilot in receipt["pilots"].values():
+        mean, second = QUEUE["moments"](pilot["service_seconds"])
+        assert (round(mean, 4), round(second, 4)) == (pilot["mean_service"], pilot["second_moment"])
+    for row, run in zip(receipt["rows"], receipt["runs"], strict=True):
+        records = run["records"]
+        waits = [r["started"] - r["arrived"] for r in records]
+        assert round(sum(waits) / len(waits), 3) == row["measured_mean_wait"]
+        assert all(
+            later["started"] >= earlier["finished"]
+            for earlier, later in zip(records, records[1:], strict=False)
+        )
+    print("ok   pilot moments and mean waits recompute; one job served at a time, in order")
+
+
+def main():
+    queueing_arithmetic()
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument(
+        "--live",
+        action="store_true",
+        help="use the actual local HTTP model, including the unattended child",
+    )
+    parser.add_argument("--model", default="qwen3")
+    parser.add_argument("--transcript", action="store_true")
+    args = parser.parse_args()
+    with tempfile.TemporaryDirectory(prefix="lucy-wake-") as temporary:
+        root = Path(temporary)
+        previous = runpy.run_path(
+            str(
+                Path(__file__).with_name(
+                    "profrod_sovereign_agent_ch09_telegram_messaging_checkpoint.py"
+                )
+            )
+        )
+        db = previous["initialize"](root / "agent.sqlite")
+        model = (
+            HTTPModel(model=args.model, reasoning_effort="none")
+            if args.live
+            else OfflineShopModel()
+        )
+        first_due = time.time() - 39
+        observed = first_due + 39
+        schedule(
+            db, "morning", "lucy", previous["PROMPT"], first_due=first_due, interval_seconds=10
+        )
+        with db.immediate() as connection:
+            connection.execute("UPDATE assistant_control SET paused=1")
+        assert tick(db, now=observed) == []
+        assert (
+            db.connection.execute("SELECT next_due FROM assistant_jobs").fetchone()[0] == first_due
+        )
+        print("Pause preserved due job:", True)
+        with db.immediate() as connection:
+            connection.execute("UPDATE assistant_control SET paused=0")
+        created = tick(db, now=observed)
+        assert len(created) == 1 and tick(db, now=observed) == []
+        event = json.loads(
+            db.connection.execute(
+                "SELECT payload FROM events WHERE kind='assistant.job.enqueued'"
+            ).fetchone()[0]
+        )
+        print("Coalesced missed runs:", event["coalesced"])
+        assert event["coalesced"] == 3
+        whole_shop = run_once(db, model)
+        assert whole_shop["status"] == "DONE"
+        assert observed_drafts(whole_shop["loop"]["messages"]) == [
+            ("SKU-STRAWBERRY", 4, 1100),
+            ("SKU-VANILLA", 6, 1500),
+        ]
+        print("Morning draft evidence:", "PASS")
+        unschedule(db, "morning")
+        assert tick(db, now=observed + 100) == []
+        watch(db, "vanilla-low", "lucy", "SKU-VANILLA")
+        first = scan(db)
+        assert len(first) == 1 and scan(db) == []
+        scoped = run_once(db, model)
+        assert scoped["status"] == "DONE"
+        assert observed_drafts(scoped["loop"]["messages"]) == [("SKU-VANILLA", 6, 1500)]
+        print("First stock episode:", "PASS")
+        with db.immediate() as connection:
+            connection.execute("UPDATE inventory SET on_hand=8 WHERE sku='SKU-VANILLA'")
+        assert scan(db) == []
+        with db.immediate() as connection:
+            connection.execute("UPDATE inventory SET on_hand=1 WHERE sku='SKU-VANILLA'")
+        assert (
+            db.connection.execute("SELECT armed FROM assistant_stock_conditions").fetchone()[0] == 1
+        )
+        db.close()
+        environment = {
+            key: value
+            for key, value in os.environ.items()
+            if key in {"PATH", "SYSTEMROOT", "TMPDIR", "LANG", "LC_ALL"}
+        }
+        if args.live:
+            environment.update(
+                SOVEREIGN_AGENT_MODEL_MODE="live", SOVEREIGN_AGENT_LLM_MODEL=args.model
+            )
+        # No prompt argument, no credentials, and no supplier endpoint: the child
+        # must discover the persisted condition and can only produce drafts.
+        process = subprocess.Popen(
+            [sys.executable, "-m", "sovereign_agent", "agent", "serve", "--root", str(root)],
+            env=environment,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE,
+            text=True,
+            start_new_session=True,
+        )
+        db = Database(root / "agent.sqlite")
+        try:
+            deadline = time.monotonic() + (90 if args.live else 8)
+            row = None
+            while time.monotonic() < deadline and process.poll() is None:
+                row = db.connection.execute(
+                    "SELECT id,status,result FROM assistant_work "
+                    "WHERE origin='stock-condition:vanilla-low:2'"
+                ).fetchone()
+                if row and row["status"] in {"DONE", "BLOCKED"}:
+                    break
+                time.sleep(0.02)
+            assert row is not None and row["status"] == "DONE", (
+                dict(row) if row else "no condition work"
+            )
+            messages = [
+                json.loads(item[0])
+                for item in db.connection.execute(
+                    "SELECT message FROM assistant_transcript WHERE work_id=? ORDER BY rowid",
+                    (row["id"],),
+                )
+            ]
+            assert observed_drafts(messages) == [("SKU-VANILLA", 7, 1750)]
+            assert row["result"] == (
+                'Draft estimates:\n- "SKU-VANILLA": 7 tubs, $17.50 USD.\nTotal: $17.50 USD.'
+            )
+            print("Unattended second episode:", "PASS")
+            print("Persisted draft amount:", "$17.50 USD")
+            assert (
+                db.connection.execute(
+                    "SELECT generation FROM assistant_stock_conditions"
+                ).fetchone()[0]
+                == 2
+            )
+            assert scan(db) == []
+            print("Duplicate episode work:", 0)
+            orders = db.connection.execute("SELECT count(*) FROM assistant_orders").fetchone()[0]
+            print("Purchases:", orders)
+            assert orders == 0
+            if args.transcript:
+                print(
+                    json.dumps(
+                        {
+                            "morning": whole_shop["loop"]["messages"],
+                            "first_episode": scoped["loop"]["messages"],
+                            "unattended_episode": messages,
+                            "displayed_reports": {
+                                "morning": whole_shop["answer"],
+                                "first_episode": scoped["answer"],
+                                "unattended_episode": row["result"],
+                            },
+                        },
+                        indent=2,
+                    )
+                )
+        finally:
+            if process.poll() is None:
+                process.terminate()
+            try:
+                stdout, stderr = process.communicate(timeout=5)
+            except subprocess.TimeoutExpired:
+                process.kill()
+                stdout, stderr = process.communicate(timeout=5)
+            db.close()
+        assert process.returncode == 0, (process.returncode, stderr)
+        assert "STOPPED" in stdout
+        print("Worker stopped cleanly:", True)
+    return 0
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())

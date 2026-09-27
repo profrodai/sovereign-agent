@@ -26,17 +26,17 @@ def book(tmp_path: Path) -> Path:
                 f"({distribution.download_name(asset)})\n"
             )
         )
-        for number in range(1, 20):
+        for number in range(1, 21):
             chapter = folder / f"ch{number:02d}"
             chapter.mkdir()
             (chapter / distribution.chapter_name(number, asset)).write_text(
                 distribution.brand_markdown(
-                    f"# Chapter {number}\n\n" + ("PLANNED\n" if number in {13} else "DRAFT\n")
+                    f"# Chapter {number}\n\n" + ("PLANNED\n" if number in {6, 14} else "DRAFT\n")
                 )
             )
     (root / "textbook/checkpoints").mkdir()
-    for number in range(1, 20):
-        planned = number in {13}
+    for number in range(1, 21):
+        planned = number in {6, 14}
         prefix = f"ch{number:02d}"
         chapters.append(
             {
@@ -132,7 +132,7 @@ def test_reader_can_identify_chapter_topic_and_role_without_a_folder():
     )
 
 
-def test_all_nineteen_chapters_keep_navigation_and_visible_origin(book):
+def test_all_twenty_chapters_keep_navigation_and_visible_origin(book):
     verify_layout(book)
 
 
@@ -161,7 +161,7 @@ def test_distribution_refuses_ambiguous_or_unattributed_material(book, damage):
     elif damage == "missing_chapter":
         (book / "exercises/ch04" / distribution.chapter_name(4, "exercises")).unlink()
     elif damage == "hidden_plan":
-        p = book / "educator/ch13" / distribution.chapter_name(13, "educator")
+        p = book / "educator/ch14" / distribution.chapter_name(14, "educator")
         p.write_text(p.read_text().replace("PLANNED", "Complete"))
     elif damage == "fake_lesson":
         (book / "exercises/ch07/profrod-sovereign-agent-fake.ipynb").write_text("{}")

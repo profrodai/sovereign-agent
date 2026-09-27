@@ -438,7 +438,7 @@ Elapsed time uses a monotonic clock. Wall-clock time can change when a host sync
 
 ## Implement the bounded loop
 
-The result includes a status, an answer, the transcript, and resource counters. `COMPLETED` will mean that the model returned a nonempty final response without further tool calls. It will not mean that every factual statement is correct or that a supplier accepted a purchase. Chapter 15 will evaluate business outcomes independently of this control-flow status.
+The result includes a status, an answer, the transcript, and resource counters. `COMPLETED` will mean that the model returned a nonempty final response without further tool calls. It will not mean that every factual statement is correct or that a supplier accepted a purchase. Chapter 16 will evaluate business outcomes independently of this control-flow status.
 
 The construction below is the Chapter 3 loop. The cumulative runtime later adds callbacks for durable observation, work ownership, and shared model-budget reservations at the same boundaries. They are omitted here until their state exists; tool selection and stopping remain the code you write now.
 
@@ -533,7 +533,7 @@ The counters advance before transmission or invocation. A failed model request i
 
 The loop checks all call identifiers and the batch's total size before invoking any member. If the model emits the same identifier twice, it is impossible to associate an observation unambiguously with one intended request. Refusing the whole batch avoids partially executing a malformed set and then discovering the duplicate.
 
-We also reject identifiers reused from earlier turns in the same run. This does not prevent the model from repeating the same logical action under a fresh identifier. The tool budget bounds that behavior, and Chapter 11 will introduce a separate stable identity for consequential operations. Conversation identifiers are not a substitute for idempotency at a supplier boundary.
+We also reject identifiers reused from earlier turns in the same run. This does not prevent the model from repeating the same logical action under a fresh identifier. The tool budget bounds that behavior, and Chapter 12 will introduce a separate stable identity for consequential operations. Conversation identifiers are not a substitute for idempotency at a supplier boundary.
 
 The loop returns immediately when a model turn contains no calls. Explanatory text accompanying tool requests is retained but does not count as a final answer. A sentence such as “I will prepare the drafts” alongside requests describes an intention; it does not establish that the requested tools ran successfully.
 
@@ -623,7 +623,7 @@ print(sum(draft["total_cents"] for draft in drafts))
 2600
 ```
 
-This check uses authored identifiers to select the two known fixture observations. A general evaluator must follow the request-to-observation association and classify operations by their registered names, rather than assume every provider uses our identifier prefixes. Chapter 15 makes that evaluation systematic across different catalogs and model responses.
+This check uses authored identifiers to select the two known fixture observations. A general evaluator must follow the request-to-observation association and classify operations by their registered names, rather than assume every provider uses our identifier prefixes. Chapter 16 makes that evaluation systematic across different catalogs and model responses.
 
 ## Break repetition, batches, and budgets
 
@@ -947,7 +947,7 @@ description only COMPLETED False
 
 The expected quantities and prices are written into this fixture check rather than computed with the tool's own formula. This is a test of the named three-product scenario, not a general catalog validator. It also does not prove that every sentence in the explanation agrees with the observations. The distinction keeps the check useful without making it responsible for claims it cannot establish.
 
-The chapter's prompt makes an opening procedure explicit. In Chapter 6 we will put such a procedure in a versioned local skill, so it can be reviewed and tested as a named artifact. Moving text into a skill does not grant new operations or remove the dispatcher checks.
+The chapter's prompt makes an opening procedure explicit. In Chapter 7 we will put such a procedure in a versioned local skill, so it can be reviewed and tested as a named artifact. Moving text into a skill does not grant new operations or remove the dispatcher checks.
 
 ## Exercises that change the decision
 

@@ -277,7 +277,7 @@ The three lines show three regimes:
 
 How do you know a sampler is correct? Not by looking at a few outputs. Draw $n$ times and compare each token's observed frequency $\hat{p}_i$ with $p_i$. Each count is binomial, so $\hat{p}_i$ has standard error $\sqrt{p_i(1 - p_i)/n}$. It is tempting to check that every token lands within two or three standard errors. But with 356 tokens, some will deviate by more than three purely by chance. The experiment's largest deviation after 20,000 draws is 4.05 standard errors, on a token whose probability is so small that the normal approximation behind "standard errors" does not hold.
 
-The right tool considers every category at once. **Pearson's chi-square** statistic sums $(\text{observed} - \text{expected})^2 / \text{expected}$ over all tokens. For a correct sampler it has mean $k - 1$ and variance $2(k - 1)$ with $k$ categories. The experiment measures $\chi^2 = 346.7$ with 355 degrees of freedom, $z = -0.31$: exactly what a correct sampler produces. The same reasoning, "many comparisons will throw up a large deviation by chance; test them together", returns in Chapter 15, where you compare agents on many evaluation cases.
+The right tool considers every category at once. **Pearson's chi-square** statistic sums $(\text{observed} - \text{expected})^2 / \text{expected}$ over all tokens. For a correct sampler it has mean $k - 1$ and variance $2(k - 1)$ with $k$ categories. The experiment measures $\chi^2 = 346.7$ with 355 degrees of freedom, $z = -0.31$: exactly what a correct sampler produces. The same reasoning, "many comparisons will throw up a large deviation by chance; test them together", returns in Chapter 16, where you compare agents on many evaluation cases.
 
 ## How good is a model: likelihood, cross-entropy, perplexity
 
@@ -390,7 +390,7 @@ print(round(ch01["cost_cents"](75 * 1000, 49 * 1000, 10, 40), 2), "cents for a t
 2.71 cents for a thousand calls
 ```
 
-Output tokens usually cost several times more than input tokens. For each output token the model must run a full forward pass and read its whole accumulated context, while input tokens are processed together in parallel. Chapter 18 derives this from the architecture.
+Output tokens usually cost several times more than input tokens. For each output token the model must run a full forward pass and read its whole accumulated context, while input tokens are processed together in parallel. Chapter 19 derives this from the architecture.
 
 ## Part B: Lucy's first brief
 

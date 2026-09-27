@@ -12,13 +12,13 @@ The decisions in the chapters are intended to remain useful when the reference p
 
 | Project and pin | Primary evidence | Use in this book |
 | --- | --- | --- |
-| OpenClaw `354538083db0a8728e16238cbd0b7a304416ff24` | [Gateway architecture](https://github.com/openclaw/openclaw/blob/354538083db0a8728e16238cbd0b7a304416ff24/docs/concepts/architecture.md) | Chapters 1 and 8 compare a gateway's channel/session boundary with one thin adapter. |
-| OpenClaw, same pin | [Session writer delivery authority](https://github.com/openclaw/openclaw/blob/354538083db0a8728e16238cbd0b7a304416ff24/src/auto-reply/reply/session-writer-delivery-authority.ts) | Chapter 12 compares concrete fencing scopes. OpenClaw has fencing; we make no claim that ours is unique. |
+| OpenClaw `354538083db0a8728e16238cbd0b7a304416ff24` | [Gateway architecture](https://github.com/openclaw/openclaw/blob/354538083db0a8728e16238cbd0b7a304416ff24/docs/concepts/architecture.md) | Chapters 1 and 9 compare a gateway's channel/session boundary with one thin adapter. |
+| OpenClaw, same pin | [Session writer delivery authority](https://github.com/openclaw/openclaw/blob/354538083db0a8728e16238cbd0b7a304416ff24/src/auto-reply/reply/session-writer-delivery-authority.ts) | Chapter 13 compares concrete fencing scopes. OpenClaw has fencing; we make no claim that ours is unique. |
 | NanoClaw `acc69a70962af6707aa8a6abba699bdaa7da95f8` | [README](https://github.com/nanocoai/nanoclaw/blob/acc69a70962af6707aa8a6abba699bdaa7da95f8/README.md) | Chapter 3 examines the documented choice to delegate reasoning to the Claude Agent SDK, against our owned loop. |
-| NanoClaw, same pin | [Host sweep](https://github.com/nanocoai/nanoclaw/blob/acc69a70962af6707aa8a6abba699bdaa7da95f8/src/host-sweep.ts) | Chapter 9 examines events as hints and a durable rescan after missed events. |
-| NanoClaw, same pin | [Container runner](https://github.com/nanocoai/nanoclaw/blob/acc69a70962af6707aa8a6abba699bdaa7da95f8/src/container-runner.ts) | Chapter 14 compares retaining a session with terminating a bounded report. It does not claim NanoClaw lacks recovery. |
+| NanoClaw, same pin | [Host sweep](https://github.com/nanocoai/nanoclaw/blob/acc69a70962af6707aa8a6abba699bdaa7da95f8/src/host-sweep.ts) | Chapter 10 examines events as hints and a durable rescan after missed events. |
+| NanoClaw, same pin | [Container runner](https://github.com/nanocoai/nanoclaw/blob/acc69a70962af6707aa8a6abba699bdaa7da95f8/src/container-runner.ts) | Chapter 15 compares retaining a session with terminating a bounded report. It does not claim NanoClaw lacks recovery. |
 | Hermes `d538f4e9297d7fa46193f638215d002d7a22edd7` | [Memory tool](https://github.com/NousResearch/hermes-agent/blob/d538f4e9297d7fa46193f638215d002d7a22edd7/tools/memory_tool.py) | Chapter 5 compares prompt memory and the documented cache-prefix rationale with explicit preference records. |
-| Hermes, same pin | [Skills tool](https://github.com/NousResearch/hermes-agent/blob/d538f4e9297d7fa46193f638215d002d7a22edd7/tools/skills_tool.py) | Chapters 6 and 16 inspect progressive skill disclosure and shared-skill provenance; that helper does not establish the project's complete activation policy. |
+| Hermes, same pin | [Skills tool](https://github.com/NousResearch/hermes-agent/blob/d538f4e9297d7fa46193f638215d002d7a22edd7/tools/skills_tool.py) | Chapters 7 and 17 inspect progressive skill disclosure and shared-skill provenance; that helper does not establish the project's complete activation policy. |
 
 ## Recheck a comparison before extending it
 

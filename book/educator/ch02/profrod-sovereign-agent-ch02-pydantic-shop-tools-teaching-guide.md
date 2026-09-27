@@ -52,7 +52,7 @@ The prerequisites are dictionaries, functions and loops, plus Chapter 1's softma
 
 **"Retrying is as good as constraining."** Only if failures are independent. The chapter's real failures were a habit, a code fence around every answer, which retries repeat.
 
-**"Valid means right."** The chapter measured valid, schema-conforming answers with the wrong product or quantity. Unit A's checks and Chapter 15's evaluation catch those; the schema cannot.
+**"Valid means right."** The chapter measured valid, schema-conforming answers with the wrong product or quantity. Unit A's checks and Chapter 16's evaluation catch those; the schema cannot.
 
 Ask the learner to name the exact quantity responsible for an observation. Then keep every other condition fixed and change only that one. Require one useful case, a successful draft or a correct masked distribution, so that an implementation that refuses everything cannot pass.
 

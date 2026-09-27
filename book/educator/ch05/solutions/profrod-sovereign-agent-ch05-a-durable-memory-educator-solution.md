@@ -72,7 +72,7 @@ re-reading it. Run All checks that the artifact executes. Unfinished student fun
 produce NEEDS_WORK. Keep your first attempt before opening answers.
 
 
-This notebook belongs to the nineteen-chapter edition. Its supplied teaching runtime is embedded, so it can run without the textbook or another notebook. Where code uses `REFERENCE_LESSON`, that is the frozen runtime exercise identifier; the reader-facing chapter and saved unit identifiers use the current edition. Building against a supplied runtime is not proof that you have constructed all of its dependencies.
+This notebook belongs to the twenty-chapter edition. Its supplied teaching runtime is embedded, so it can run without the textbook or another notebook. Where code uses `REFERENCE_LESSON`, that is the frozen runtime exercise identifier; the reader-facing chapter and saved unit identifiers use the current edition. Building against a supplied runtime is not proof that you have constructed all of its dependencies.
 
 <!-- #endregion -->
 

@@ -19,11 +19,11 @@ scheduling, permissions, recovery and operating report. Python 3.14, SQLite and
 one direct runtime dependency keep the implementation inspectable. Zeocore is an
 optional tool integration; the teaching agent does not require it.
 
-[Start with the book](book/README.md): one nineteen-chapter teaching sequence,
+[Start with the book](book/README.md): one twenty-chapter teaching sequence,
 organized into [textbook](book/textbook/profrod-sovereign-agent-textbook-start-here.md), [exercises](book/exercises/profrod-sovereign-agent-exercises-start-here.md),
 [solutions](book/solutions/profrod-sovereign-agent-solutions-start-here.md) and [educator materials](book/educator/profrod-sovereign-agent-educator-start-here.md).
 Eighteen manuscript drafts and 36 ninety-minute practical units are available.
-Chapter 13 has a documented scope; its new lesson is still planned.
+Chapters 6 and 14 have documented scopes; their new lessons are still planned.
 The edition remains an unreleased construction draft. Use this checkout's locked
 runtime for its checkpoints; the published PyPI release is not an edition substitute.
 
@@ -32,7 +32,7 @@ runtime for its checkpoints; the published PyPI release is not an edition substi
 After the development install below, run the final accelerated day:
 
 ```bash
-uv run --python 3.14 python book/textbook/checkpoints/profrod_sovereign_agent_ch19_integrated_shop_day_checkpoint.py
+uv run --python 3.14 python book/textbook/checkpoints/profrod_sovereign_agent_ch20_integrated_shop_day_checkpoint.py
 ```
 
 It runs a separate simulated supplier, loses replies, kills a worker and verifies
@@ -45,10 +45,10 @@ For an initialized shop directory, `sovereign-agent agent report --root PATH`
 prints the current ledger-derived report. Amounts come from structured records,
 with uncertain outcomes and accounting disagreements made explicit. Current
 retained totals are distinct from current-UTC-day model estimates and from a
-provider invoice. See [Chapter 19](book/textbook/ch19/profrod-sovereign-agent-ch19-integrated-shop-day-chapter.md).
+provider invoice. See [Chapter 20](book/textbook/ch20/profrod-sovereign-agent-ch20-integrated-shop-day-chapter.md).
 
 Always-on means unattended work and explicit restart/recovery behavior while the
-host and dependencies are available. The [Linux deployment chapter](book/textbook/ch18/profrod-sovereign-agent-ch18-deployment-restoration-chapter.md)
+host and dependencies are available. The [Linux deployment chapter](book/textbook/ch19/profrod-sovereign-agent-ch19-deployment-restoration-chapter.md)
 provides the one-host recipe. Maintained production organizations can graduate to
 [Zeocore](https://github.com/profrodai/zeocore).
 

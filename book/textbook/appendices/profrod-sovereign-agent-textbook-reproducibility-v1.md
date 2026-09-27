@@ -26,7 +26,7 @@ First confirm the working directory, source commit and interpreter. Compare the 
 
 For a model-dependent difference, retain the model identity and sampling settings, then inspect the actual tool requests. Repeated runs measure variation within those conditions. A second model acting as a judge is additional evidence, not an authority that can overwrite a supplier receipt or numeric business rule.
 
-For a state-dependent difference, preserve the existing directory. Use a fresh directory to reproduce the fixture and compare them. Deleting a confusing database may make the next run green while destroying the only evidence of a duplicate effect. Backup and account recovery are separate operations described in [Chapter 18](../ch18/profrod-sovereign-agent-ch18-deployment-restoration-chapter.md).
+For a state-dependent difference, preserve the existing directory. Use a fresh directory to reproduce the fixture and compare them. Deleting a confusing database may make the next run green while destroying the only evidence of a duplicate effect. Backup and account recovery are separate operations described in [Chapter 19](../ch19/profrod-sovereign-agent-ch19-deployment-restoration-chapter.md).
 
 ## What to send with a defect report
 

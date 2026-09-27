@@ -527,7 +527,7 @@ Three misconceptions come up.
 
 **"Retrying is as good as constraining."** Only if failures are independent. The measured failures were a habit, a code fence around every answer, so retries repeat them. The formula is an upper bound on what retrying buys.
 
-**"Valid means right."** Masking guarantees the form. Unit A's tools, and Chapter 15's evaluation, check the meaning.
+**"Valid means right."** Masking guarantees the form. Unit A's tools, and Chapter 16's evaluation, check the meaning.
 
 The cases below add long answers and many attempts.
 

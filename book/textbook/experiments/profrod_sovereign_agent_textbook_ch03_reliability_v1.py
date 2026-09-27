@@ -173,7 +173,7 @@ def run_task(model, n, instance, temperature=0.0, attempt=0, arithmetic=False):
 
 
 def wilson(successes, trials, z=1.96):
-    """95% Wilson score interval for a binomial proportion (Chapter 15 derives it)."""
+    """95% Wilson score interval for a binomial proportion (Chapter 16 derives it)."""
     if trials == 0:
         return (0.0, 1.0)
     phat = successes / trials

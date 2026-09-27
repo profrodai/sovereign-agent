@@ -264,7 +264,7 @@ The same definition says what the database must refuse. `INSERT OR REPLACE`, whi
 
 ## Versions form a line
 
-The schema will grow. This chapter adds a `reason` to each event. Chapter 5 adds memory tables, and Chapter 7 adds durable work. A database file written today will be opened by the program of next month, and occasionally a file written by next month's program will be opened by today's.
+The schema will grow. This chapter adds a `reason` to each event. Chapter 5 adds memory tables, and Chapter 8 adds durable work. A database file written today will be opened by the program of next month, and occasionally a file written by next month's program will be opened by today's.
 
 Number the schema versions $0 < 1 < 2 < \dots$; version 0 is an empty file. A **migration** $m_k$ turns a database at version $k-1$ into one at version $k$. Upgrading from version $a$ to version $b$ applies the migrations in order, $m_b \circ \dots \circ m_{a+1}$. There is exactly one path, because the versions form a line and each step has one migration. We store the current version in the database, in a `meta` table.
 
@@ -278,7 +278,7 @@ flowchart LR
 
 **Figure:** Each migration moves a file one step along the line, and a program refuses a file that is further along than it knows.
 
-One more design choice matters before the rules. The schema has several owners. This chapter owns the stock tables; Chapter 5 will own memory's tables, and Chapter 7 durable work's. If they all shared one line of versions, the order in which chapters happen to be written would decide each other's numbers, and two chapters would eventually claim the same version for different tables. So each owner keeps its own line under its own name: this chapter's version lives at `stock.version`, and a later chapter calls the same `migrate` method with its own name and its own migrations.
+One more design choice matters before the rules. The schema has several owners. This chapter owns the stock tables; Chapter 5 will own memory's tables, and Chapter 8 durable work's. If they all shared one line of versions, the order in which chapters happen to be written would decide each other's numbers, and two chapters would eventually claim the same version for different tables. So each owner keeps its own line under its own name: this chapter's version lives at `stock.version`, and a later chapter calls the same `migrate` method with its own name and its own migrations.
 
 Two rules make migration safe.
 
