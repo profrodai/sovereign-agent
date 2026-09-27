@@ -1,4 +1,4 @@
-# Chapter 1: Make the first model call for Lucy
+# Chapter 1: What a model call is: tokens, probabilities and Lucy's first brief
 
 > **Learn with Prof Rod** — *Build Your Always-On AI Agent From Scratch*.
 > **Read the full book and get the latest learning materials:** [https://profrod.ai/book](https://profrod.ai/book).
@@ -12,12 +12,12 @@ Attempt the student work before consulting the solutions. Untouched exercises in
 
 | Session | Notebook | Matching text | Purpose |
 |---|---|---|---|
-| A · 90 minutes | [A: grounded morning brief](profrod-sovereign-agent-ch01-a-grounded-morning-brief-exercise.ipynb) | [Markdown](profrod-sovereign-agent-ch01-a-grounded-morning-brief-exercise.md) | Construct, connect and explain |
-| B · 90 minutes | [B: prompt harness repair](profrod-sovereign-agent-ch01-b-prompt-harness-repair-exercise.ipynb) | [Markdown](profrod-sovereign-agent-ch01-b-prompt-harness-repair-exercise.md) | Diagnose, repair and transfer |
+| A · 90 minutes | [A: softmax and a sampler](profrod-sovereign-agent-ch01-a-softmax-and-sampling-exercise.ipynb) | [Markdown](profrod-sovereign-agent-ch01-a-softmax-and-sampling-exercise.md) | Construct, connect and explain |
+| B · 90 minutes | [B: a misleading model comparison](profrod-sovereign-agent-ch01-b-misleading-model-comparison-exercise.ipynb) | [Markdown](profrod-sovereign-agent-ch01-b-misleading-model-comparison-exercise.md) | Diagnose, repair and transfer |
 
-Each notebook includes its own setup, first-principles introductions and supplied teaching runtime. Open either notebook in Google Colab with its badge, or use a local Python 3.12+ Jupyter kernel with Pydantic 2. No repository checkout, previous notebook kernel or live account is needed. Each unit closes with an extension that puts a language model behind the chapter's own tools: a recorded transcript runs everywhere, and an OpenAI key in Colab's Secrets pane switches the same loop to a live `gpt-5.1` run. Unit B can use an explicitly selected successful Unit A handoff; an invalid selected file refuses rather than substituting an answer.
+Each notebook includes its own setup, first-principles introductions and a supplied corpus, tokenizer and model, and needs only Python's standard library. Open either notebook in Google Colab with its badge (Colab runs Python 3.13), or use a local Python 3.12+ Jupyter kernel. No repository checkout, previous notebook kernel or live account is needed. Unit B can use an explicitly selected successful Unit A handoff; an invalid selected file refuses rather than substituting an answer.
 
-Ninety minutes is the planned work allowance per unit, excluding installation. Actual completion time and understanding require classroom observation.
+Ninety minutes is the planned work allowance per unit. Actual completion time and understanding require classroom observation.
 
 [Setup](../profrod-sovereign-agent-exercises-setup.md) · [Back to this asset](../profrod-sovereign-agent-exercises-start-here.md)
 

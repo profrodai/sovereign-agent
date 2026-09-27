@@ -33,7 +33,7 @@ TOPICS = {
     19: "integrated-shop-day",
 }
 UNIT_TOPICS = {
-    1: ("grounded-morning-brief", "prompt-harness-repair"),
+    1: ("softmax-and-sampling", "misleading-model-comparison"),
     2: ("pydantic-shop-tools", "pydantic-validation-repair"),
     3: ("bounded-agent-loop", "failed-call-accounting"),
     4: ("durable-state-store", "interrupted-migration"),
