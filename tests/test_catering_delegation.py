@@ -47,7 +47,7 @@ def test_quote_has_authored_boundary_expectations(tmp_path):
     db, _, _, _ = setup(tmp_path)
     for guests, tubs, total in [(1, 1, 500), (10, 1, 500), (11, 2, 1000), (200, 20, 10000)]:
         result = quote(db, Inquiry(sku="SKU-VANILLA", guests=guests))
-        assert (result["tubs"], result["total_pence"], result["currency"]) == (tubs, total, "GBP")
+        assert (result["tubs"], result["total_cents"], result["currency"]) == (tubs, total, "USD")
     for guests in [0, 201, True]:
         with pytest.raises(ValueError):
             Inquiry(sku="SKU-VANILLA", guests=guests)
@@ -66,7 +66,7 @@ def test_duplicate_handoff_is_identical_and_contract_cannot_change(tmp_path):
         delegate(other, child, Inquiry(sku="SKU-VANILLA", guests=40), deadline=deadline)
     with pytest.raises(sqlite3.IntegrityError):
         with db.immediate() as connection:
-            connection.execute("UPDATE assistant_delegations SET budget_pence=999")
+            connection.execute("UPDATE assistant_delegations SET budget_cents=999")
     assert db.connection.execute("SELECT count(*) FROM assistant_delegations").fetchone()[0] == 1
     other.close()
     db.close()
@@ -101,7 +101,7 @@ def test_research_and_stock_have_separate_claims_and_one_delivery_result(tmp_pat
 
     result = run_once(db, ConcurrentModel(), identifier=child)
     assert result["status"] == "DONE"
-    assert result["report"]["quote"]["total_pence"] == 2000
+    assert result["report"]["quote"]["total_cents"] == 2000
     assert result["report"]["loop"]["model_calls"] == 2
     assert result["report"]["baseline"]["model_calls"] == 0
     assert run_once(other, OfflineCateringModel(), identifier=child) == {"status": "IDLE"}
@@ -152,7 +152,7 @@ def test_model_cannot_expand_tools_or_purchase_at_core_boundary(tmp_path):
 
 
 def test_shared_daily_allowance_rolls_back_child_counter_when_exhausted(tmp_path):
-    db, _, child, _ = setup(tmp_path, estimated_call_pence=7)
+    db, _, child, _ = setup(tmp_path, estimated_call_cents=7)
     work = claim(db, "research", role="research", identifier=child)
     with db.immediate() as connection:
         connection.execute("UPDATE assistant_daily SET model_calls=99 WHERE session='lucy'")
@@ -162,7 +162,7 @@ def test_shared_daily_allowance_rolls_back_child_counter_when_exhausted(tmp_path
     assert db.connection.execute("SELECT model_calls FROM assistant_delegations").fetchone()[0] == 1
     assert (
         db.connection.execute(
-            "SELECT estimated_cost_pence FROM assistant_work WHERE id=?", (child,)
+            "SELECT estimated_cost_cents FROM assistant_work WHERE id=?", (child,)
         ).fetchone()[0]
         == 7
     )
@@ -170,7 +170,7 @@ def test_shared_daily_allowance_rolls_back_child_counter_when_exhausted(tmp_path
 
 
 def test_assignment_allowance_survives_replacement_and_estimate_cannot_change(tmp_path):
-    db, _, child, _ = setup(tmp_path, model_calls=1, estimated_call_pence=5)
+    db, _, child, _ = setup(tmp_path, model_calls=1, estimated_call_cents=5)
     first = claim(db, "old", role="research", identifier=child)
     with pytest.raises(PermissionError):
         reserve_model_call(db, first, 0)
@@ -200,7 +200,7 @@ def test_parent_cancel_during_model_call_prevents_tool_and_result(tmp_path):
         db.connection.execute("SELECT status FROM assistant_work WHERE id=?", (child,)).fetchone()[
             0
         ]
-        == "CANCELLED"
+        == "CANCELED"
     )
     assert db.connection.execute("SELECT count(*) FROM assistant_transcript").fetchone()[0] == 0
     other.close()
@@ -215,7 +215,7 @@ def test_deadline_cancels_without_model_call(tmp_path, monkeypatch):
         db.connection.execute("SELECT status FROM assistant_work WHERE id=?", (child,)).fetchone()[
             0
         ]
-        == "CANCELLED"
+        == "CANCELED"
     )
     db.close()
 
@@ -253,7 +253,7 @@ def test_cli_assignment_routes_to_separate_real_unattended_worker(tmp_path, caps
             if row[0] == "DONE":
                 break
             time.sleep(0.02)
-        assert row[0] == "DONE" and "GBP 25.00" in row[1]
+        assert row[0] == "DONE" and "USD 25.00" in row[1]
         assert (
             db.connection.execute(
                 "SELECT status FROM assistant_work WHERE id=?", (parent,)
@@ -297,7 +297,7 @@ def test_graceful_stop_requeues_without_resetting_assignment_usage(tmp_path):
 
 
 def test_assignment_cost_limit_and_forged_billing_session_are_refused(tmp_path):
-    db, _, child, _ = setup(tmp_path, estimated_call_pence=60, budget_pence=100)
+    db, _, child, _ = setup(tmp_path, estimated_call_cents=60, budget_cents=100)
     work = claim(db, "research", role="research", identifier=child)
     with pytest.raises(PermissionError):
         reserve_model_call(db, replace(work, session="different-account"), 60)
@@ -306,7 +306,7 @@ def test_assignment_cost_limit_and_forged_billing_session_are_refused(tmp_path):
         reserve_model_call(db, work, 60)
     assert (
         db.connection.execute(
-            "SELECT estimated_cost_pence FROM assistant_daily WHERE session='lucy'"
+            "SELECT estimated_cost_cents FROM assistant_daily WHERE session='lucy'"
         ).fetchone()[0]
         == 60
     )
@@ -336,7 +336,7 @@ def test_model_cannot_change_the_catering_inquiry(tmp_path):
     db.close()
 
 
-def test_cancelling_completed_parent_stops_child_without_undoing_stock_result(tmp_path):
+def test_canceling_completed_parent_stops_child_without_undoing_stock_result(tmp_path):
     db, parent, child, _ = setup(tmp_path)
     assert shop_once(db, OfflineShopModel())["status"] == "DONE"
     cancel(db, parent)
@@ -351,6 +351,6 @@ def test_cancelling_completed_parent_stops_child_without_undoing_stock_result(tm
         db.connection.execute("SELECT status FROM assistant_work WHERE id=?", (child,)).fetchone()[
             0
         ]
-        == "CANCELLED"
+        == "CANCELED"
     )
     db.close()

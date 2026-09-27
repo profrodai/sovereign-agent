@@ -26,7 +26,7 @@ class FollowsCandidate(OfflineShopModel):
         turn = super().complete(messages, *args, **kwargs)
         if "Report every amount in euros." in messages[0]["content"]:
             return ModelTurn(
-                turn.content.replace("pence GBP", "euros"), turn.calls, turn.output_tokens
+                turn.content.replace("cents USD", "euros"), turn.calls, turn.output_tokens
             )
         return turn
 
@@ -70,7 +70,7 @@ def main():
                             skill.model_dump_json().encode()
                         ).hexdigest(),
                         "feedback_source": "fixture/lucy/brief-1",
-                        "request": "Keep amounts in GBP and make the closing sentence concise.",
+                        "request": "Keep amounts in USD and make the closing sentence concise.",
                         "scope": "Operator-staged test proposal; does not grant tool authority.",
                     },
                 )

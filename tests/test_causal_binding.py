@@ -437,7 +437,7 @@ def test_corroboration_detects_inconsistency_but_does_not_authenticate(
     credit idle work" and asserted only the half that passes. Both reviewers
     showed the other half: two coordinated fresh appends are mutually consistent
     and equally forged, and acceptance takes them. Asserting only the convenient
-    half is how a limitation gets mistaken for a defence.
+    half is how a limitation gets mistaken for a defense.
     """
     import json
 

@@ -42,7 +42,7 @@ class DeliveryObservation(NoArguments):
 
 class ModelGrant(NoArguments):
     calls: int = Field(ge=0, le=100)
-    estimated_pence: int = Field(ge=0, le=1000)
+    estimated_cents: int = Field(ge=0, le=1000)
 
 
 class RecoveryPlan(NoArguments):
@@ -220,7 +220,7 @@ def recover(
     if set(plan.deliveries) != accepted:
         raise ValueError("explicit delivery observations for every accepted order are required")
     spent = sum(
-        r["proposal"]["quantity"] * r["proposal"]["unit_cost_pence"]
+        r["proposal"]["quantity"] * r["proposal"]["unit_cost_cents"]
         for r in receipts.values()
         if r["status"] == "ACCEPTED"
     )
@@ -293,7 +293,7 @@ def recover(
                         imported_work,
                         encoded,
                         hashlib.sha256((supplier.identity + "\n" + encoded).encode()).hexdigest(),
-                        proposal["quantity"] * proposal["unit_cost_pence"],
+                        proposal["quantity"] * proposal["unit_cost_cents"],
                         time.time(),
                         supplier.identity,
                     ),
@@ -328,12 +328,12 @@ def recover(
             )
         connection.execute(
             "INSERT INTO assistant_spending VALUES (1,?,0,?) ON CONFLICT(id) DO UPDATE SET "
-            "reserved_pence=0,spent_pence=excluded.spent_pence,"
-            "limit_pence=min(assistant_spending.limit_pence,excluded.limit_pence)",
-            (policy.total_pence, spent),
+            "reserved_cents=0,spent_cents=excluded.spent_cents,"
+            "limit_cents=min(assistant_spending.limit_cents,excluded.limit_cents)",
+            (policy.total_cents, spent),
         )
         connection.execute(
-            "UPDATE assistant_work SET status='CANCELLED',cancelled=1,generation=generation+1,"
+            "UPDATE assistant_work SET status='CANCELED',canceled=1,generation=generation+1,"
             "owner=NULL,expires=NULL WHERE status IN ('READY','RUNNING','BLOCKED')"
         )
         connection.execute(
@@ -356,14 +356,14 @@ def recover(
             raise ValueError("model grants must name known billing sessions")
         day = int(time.time() // 86400)
         for session in sessions:
-            grant = plan.model_grants.get(session, ModelGrant(calls=0, estimated_pence=0))
+            grant = plan.model_grants.get(session, ModelGrant(calls=0, estimated_cents=0))
             connection.execute(
                 "INSERT OR IGNORE INTO assistant_daily(session,day) VALUES (?,?)", (session, day)
             )
             connection.execute(
                 "UPDATE assistant_daily SET call_limit=model_calls+?,"
-                "cost_limit=estimated_cost_pence+?,history_complete=0 WHERE session=? AND day=?",
-                (grant.calls, grant.estimated_pence, session, day),
+                "cost_limit=estimated_cost_cents+?,history_complete=0 WHERE session=? AND day=?",
+                (grant.calls, grant.estimated_cents, session, day),
             )
         connection.execute("UPDATE assistant_jobs SET next_due=max(next_due,?)", (time.time(),))
         connection.execute(
@@ -384,9 +384,9 @@ def recover(
                 "account": plan.account,
                 "provider_epoch": snapshot["provider_epoch"],
                 "orders": len(receipts),
-                "spent_pence": spent,
+                "spent_cents": spent,
                 "observations": plan.model_dump(),
             },
         )
         connection.execute("UPDATE assistant_control SET paused=0 WHERE id=1")
-    return {"status": "ACTIVE", "duplicate": False, "orders": len(receipts), "spent_pence": spent}
+    return {"status": "ACTIVE", "duplicate": False, "orders": len(receipts), "spent_cents": spent}

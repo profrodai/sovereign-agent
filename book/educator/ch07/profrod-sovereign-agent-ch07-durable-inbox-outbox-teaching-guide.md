@@ -25,7 +25,7 @@ They connect `admit` to a morning of requests and a supplied worker. They then w
 
 Allocate ninety minutes to each unit; together they make the complete three-hour chapter practice. Each notebook runs on its own and includes all the introductions it needs.
 
-A learner who starts with Unit B uses a labelled reference artifact unless they explicitly select their own Unit A work. Record that provenance. A reference start is useful study, not evidence of earlier construction.
+A learner who starts with Unit B uses a labeled reference artifact unless they explicitly select their own Unit A work. Record that provenance. A reference start is useful study, not evidence of earlier construction.
 
 ## Prepare and rehearse
 

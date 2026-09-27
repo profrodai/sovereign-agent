@@ -312,7 +312,7 @@ a truthful ledger — nobody was harmed by the bug — but a proven-false
 completeness claim, in a codebase whose whole subject is that a claim
 must not outrun the check behind it, is exactly the pattern review rounds
 two and four already put on record as the shape that precedes a paid
-failure, even when (as here) the underlying behaviour is safe.
+failure, even when (as here) the underlying behavior is safe.
 
 Fixed by refusing the shape explicitly rather than only correcting the
 comment (the reviewer's own preferred resolution, called the better
@@ -357,7 +357,7 @@ close that gap:
    the loader did not already know about.
 2. `run_assignment` reads `worker.workspace_policy` and passes it to
    `reclaim_workspace`, which branches on exactly two recognized values:
-   `"temporary_directory"` (property 1's behaviour) and `"persistent"`
+   `"temporary_directory"` (property 1's behavior) and `"persistent"`
    (reclaim is skipped entirely — the whole run stays inspectable). A value
    outside that set is refused, fail-closed, rather than silently treated as
    either "reclaim" or "keep" — both are real, consequential choices, and an
@@ -440,7 +440,7 @@ non-resolving case. `_require_deliverables`'s only real caller passes
 workspace-relative deliverable names, so an absolute input is never a
 legitimate case here regardless of where it resolves. Fixed to reject any
 absolute `relative` argument outright, matching the apparent contract rather
-than loosening the docstring to fit the looser behaviour.
+than loosening the docstring to fit the looser behavior.
 
 ### Property 5 — parity across all four providers, no live credential
 

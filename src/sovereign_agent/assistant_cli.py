@@ -35,7 +35,7 @@ def handle(args: argparse.Namespace) -> int:
         item for item in os.environ.get("SOVEREIGN_AGENT_OPERATORS", "lucy").split(",") if item
     )
     policy = assistant_orders.SpendingPolicy(
-        operators, total_pence=args.total_pence, automatic_order_pence=args.automatic_pence
+        operators, total_cents=args.total_cents, automatic_order_cents=args.automatic_cents
     )
     model: Model = OfflineShopModel()
     if args.live or os.environ.get("SOVEREIGN_AGENT_MODEL_MODE") == "live":
@@ -65,7 +65,7 @@ def handle(args: argparse.Namespace) -> int:
         else None
     )
     limits = Limits(
-        estimated_call_pence=args.estimated_call_pence, model_budget_pence=args.model_budget_pence
+        estimated_call_cents=args.estimated_call_cents, model_budget_cents=args.model_budget_cents
     )
     sandbox = None
     if args.sandbox_report:
@@ -104,8 +104,8 @@ def handle(args: argparse.Namespace) -> int:
                 args.value,
                 Inquiry(sku=args.sku, guests=args.guests),
                 deadline=args.deadline if args.deadline is not None else time.time() + 300,
-                estimated_call_pence=args.estimated_call_pence,
-                budget_pence=args.model_budget_pence,
+                estimated_call_cents=args.estimated_call_cents,
+                budget_cents=args.model_budget_cents,
             ),
         }
     elif action == "research-work":
@@ -236,7 +236,7 @@ def handle(args: argparse.Namespace) -> int:
         result = {"status": "READY" if changed else "UNCHANGED"}
     elif action == "cancel":
         assistant_work.cancel(db, args.value)
-        result = {"status": "CANCELLED"}
+        result = {"status": "CANCELED"}
     elif action == "remember":
         result = {
             "revision": assistant_context.remember(
@@ -441,8 +441,8 @@ def register(subparsers: Any, shared: argparse.ArgumentParser) -> None:
     parser.add_argument("--receipt", default="")
     parser.add_argument("--evidence", default="")
     parser.add_argument("--approval-seconds", type=int, default=3600)
-    parser.add_argument("--total-pence", type=int, default=20_000)
-    parser.add_argument("--automatic-pence", type=int, default=0)
+    parser.add_argument("--total-cents", type=int, default=20_000)
+    parser.add_argument("--automatic-cents", type=int, default=0)
     parser.add_argument("--interval", type=int, default=86400)
     parser.add_argument("--first-due", type=float)
     parser.add_argument("--supplier", default="")
@@ -450,8 +450,8 @@ def register(subparsers: Any, shared: argparse.ArgumentParser) -> None:
     parser.add_argument("--live", action="store_true")
     parser.add_argument("--mcp-catalog", action="store_true")
     parser.add_argument("--sandbox-report", action="store_true")
-    parser.add_argument("--estimated-call-pence", type=int, default=0)
-    parser.add_argument("--model-budget-pence", type=int, default=100)
+    parser.add_argument("--estimated-call-cents", type=int, default=0)
+    parser.add_argument("--model-budget-cents", type=int, default=100)
     parser.add_argument(
         "--reasoning-effort",
         default="none",

@@ -111,7 +111,7 @@ measured completion guarantee; the teaching guide records how to observe actual 
 Unit A: **{titles[0]}**. Unit B: **{titles[1]}**. Allocate ninety minutes to each,
 excluding installation. Use both for the complete three-hour chapter practice. Each notebook
 is independently runnable and includes all required introductions. A learner who starts with
-Unit B uses a labelled reference artifact unless they explicitly select their Unit A work.
+Unit B uses a labeled reference artifact unless they explicitly select their Unit A work.
 Record that provenance; a reference start is useful study, not evidence of earlier construction.
 
 ## Prepare and rehearse
@@ -245,7 +245,7 @@ New specialized concepts and libraries are introduced with small runnable exampl
 goal and predict before execution. Unfinished student functions print NEEDS_WORK; fill the exercise
 cells and rerun their feedback. Preserve your first attempt before consulting instructor answers.
 
-Unit B defaults to a labelled supplied reference start. To use your own Unit A work, set
+Unit B defaults to a labeled supplied reference start. To use your own Unit A work, set
 `LEARNER_HANDOFF` to the successful saved artifact. Invalid selected work refuses rather than
 silently falling back. Retained notebooks, source, predictions and observations are learning
 evidence; the reference starting point does not certify prior learner construction.
@@ -271,7 +271,7 @@ learner handoff paths, checks canonical Markdown/notebook parity, and challenges
 incorrect implementations. Instructor holdouts verify additional cases. These are mechanical
 checks; dedicated-work duration, explanation quality and classroom learning are observed by the
 teacher, not inferred from a cell count. Live providers, phone delivery, OS containment and host
-operation remain separately labelled extensions.
+operation remain separately labeled extensions.
 """
     )
     print("Wrote sixteen chapter indexes and teaching guides plus the complete course index.")

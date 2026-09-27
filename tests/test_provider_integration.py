@@ -125,7 +125,7 @@ def _assignment(
     # `observed-argv.json`) the fake CLI leaves directly in the workspace
     # root, after `run_assignment` returns. Unit 7's default policy,
     # `temporary_directory`, reclaims exactly that scratch space once the
-    # assignment is terminal -- correct new behaviour that would otherwise
+    # assignment is terminal -- correct new behavior that would otherwise
     # delete the fixtures these tests are built to read. `persistent` is the
     # actor's own declared opt-out, and using it here doubles as a live
     # demonstration that the policy is load-bearing: flip it back to the

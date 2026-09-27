@@ -51,8 +51,8 @@ def supplier(args):
     return {
         "sku": args.sku,
         "supplier": "lucy-local",
-        "currency": "GBP",
-        "unit_cost_pence": PRICES[args.sku],
+        "currency": "USD",
+        "unit_cost_cents": PRICES[args.sku],
     }
 
 
@@ -65,7 +65,7 @@ def draft_order(args):
     return {
         **quote,
         "quantity": args.quantity,
-        "total_pence": args.quantity * quote["unit_cost_pence"],
+        "total_cents": args.quantity * quote["unit_cost_cents"],
         "status": "DRAFT",
     }
 
@@ -93,7 +93,7 @@ tools = [
     ExecutableTool(
         "list_stock", "Read stock and calculated replenishment need.", NoArguments, list_stock
     ),
-    ExecutableTool("supplier", "Read a supplier quote in GBP pence.", ProductArguments, supplier),
+    ExecutableTool("supplier", "Read a supplier quote in USD cents.", ProductArguments, supplier),
     ExecutableTool(
         "draft_order", "Calculate a draft; never purchases.", DraftArguments, draft_order
     ),
@@ -159,8 +159,8 @@ def build_tools(shop):
         return {
             "sku": args.sku,
             "supplier": "lucy-local",
-            "currency": "GBP",
-            "unit_cost_pence": PRICES[args.sku],
+            "currency": "USD",
+            "unit_cost_cents": PRICES[args.sku],
         }
 
     def draft(args):
@@ -172,13 +172,13 @@ def build_tools(shop):
         return {
             **price,
             "quantity": args.quantity,
-            "total_pence": args.quantity * price["unit_cost_pence"],
+            "total_cents": args.quantity * price["unit_cost_cents"],
             "status": "DRAFT",
         }
 
     registered = [
         ExecutableTool("list_stock", "Read stock and calculated need.", NoArguments, stock),
-        ExecutableTool("supplier", "Read supplier price in GBP pence.", ProductArguments, quote),
+        ExecutableTool("supplier", "Read supplier price in USD cents.", ProductArguments, quote),
         ExecutableTool("draft_order", "Calculate a draft; never purchases.", DraftArguments, draft),
     ]
     return Dispatcher(registered, allowed=frozenset(tool.name for tool in registered))

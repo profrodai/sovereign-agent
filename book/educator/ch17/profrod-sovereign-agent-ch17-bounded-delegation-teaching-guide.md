@@ -15,7 +15,7 @@ Build a deterministic catering quote from the catalog and a validated Inquiry. R
 Unit A: **Construct bounded delegation**. Unit B: **Break, repair and transfer bounded delegation**. Allocate ninety minutes to each,
 excluding installation. Use both for the complete three-hour chapter practice. Each notebook
 is independently runnable and includes all required introductions. A learner who starts with
-Unit B uses a labelled reference artifact unless they explicitly select their Unit A work.
+Unit B uses a labeled reference artifact unless they explicitly select their Unit A work.
 Record that provenance; a reference start is useful study, not evidence of earlier construction.
 
 ## Prepare and rehearse
@@ -68,7 +68,7 @@ Read the requested product record, validate positive integer price and use integ
 
 The additional task is **Change the supplier's portions per tub**:
 
-A change in portions is a real contract change. Derive ceiling division with the supplied denominator, validate before dividing, and multiply in integer pence. The result is still a draft.
+A change in portions is a real contract change. Derive ceiling division with the supplied denominator, validate before dividing, and multiply in integer cents. The result is still a draft.
 
 The worked notebook replaces the original learner-owned definitions before the main path
 runs, then executes additional core and transfer cases. Those cases include independently authored

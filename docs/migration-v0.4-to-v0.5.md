@@ -44,7 +44,7 @@ commands into the single tools list the model sees.
 remain public and deprecated; removal needs a separately approved breaking
 release.
 
-## Behaviour changes
+## Behavior changes
 
 `parallelism_policy="always"` is no longer a product option and raises at
 construction. Use the default `"respect_tool_flags"` or `"never"`.

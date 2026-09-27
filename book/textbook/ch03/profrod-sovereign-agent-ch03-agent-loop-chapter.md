@@ -20,7 +20,7 @@ We will first use authored model responses so that each failure can be reproduce
 
 Build the model–tool–observation cycle in Python, retain an inspectable transcript, and stop it with explicit limits on calls, output, context, estimated cost, and elapsed time.
 
-Your first successful run will execute three model calls and three tool calls, producing vanilla and strawberry drafts totalling 2,600 pence. You will then provoke repeated identifiers, exhausted budgets, and a model failure. Each experiment must end with a specific status instead of hanging or silently pretending to finish Lucy's task.
+Your first successful run will execute three model calls and three tool calls, producing vanilla and strawberry drafts totalling 2,600 cents. You will then provoke repeated identifiers, exhausted budgets, and a model failure. Each experiment must end with a specific status instead of hanging or silently pretending to finish Lucy's task.
 
 ## Keep your implementation in a file
 
@@ -121,7 +121,7 @@ sequenceDiagram
 
 Keep the assistant's request in the transcript before adding its observations. A list containing only tool results loses the evidence of what was requested. It also fails the provider's expected conversation structure. Keeping both sides lets you diagnose whether a bad answer originated in a bad request, a refused tool, an incorrect result, or an explanation that ignored good evidence.
 
-The initial context is short. It tells the model to use stock tools, select positive needs, request exact draft quantities, and describe amounts in GBP pence. These instructions improve the chance of a useful sequence. The dispatcher remains responsible for enforcing allowed names and argument validity when the model disregards them.
+The initial context is short. It tells the model to use stock tools, select positive needs, request exact draft quantities, and describe amounts in USD cents. These instructions improve the chance of a useful sequence. The dispatcher remains responsible for enforcing allowed names and argument validity when the model disregards them.
 
 ```python
 messages = [
@@ -129,13 +129,13 @@ messages = [
         "role": "system",
         "content": "Help Lucy prepare replenishment drafts. First call list_stock. "
         "For each product with needed > 0, call draft_order with exactly that quantity. "
-        "Do not draft products with needed = 0. Summarize the tool results in GBP pence. "
+        "Do not draft products with needed = 0. Summarize the tool results in USD cents. "
         "A verbal recommendation does not replace creating the draft through the tool. "
         "Drafts are proposals, never purchases.",
     },
     {
         "role": "user",
-        "content": "Prepare replenishment drafts from current stock. State GBP amounts.",
+        "content": "Prepare replenishment drafts from current stock. State USD amounts.",
     },
 ]
 dispatcher = shop_tools["build_tools"](shop_tools["SHOP"])
@@ -174,8 +174,8 @@ class Limits:
     context_bytes: int = 32_768
     output_tokens: int = 1_024
     total_output_tokens: int = 4_096
-    estimated_call_pence: int = 0
-    model_budget_pence: int = 100
+    estimated_call_cents: int = 0
+    model_budget_cents: int = 100
 
     def __post_init__(self):
         integers = (
@@ -184,13 +184,13 @@ class Limits:
             self.context_bytes,
             self.output_tokens,
             self.total_output_tokens,
-            self.model_budget_pence,
+            self.model_budget_cents,
         )
         if any(type(value) is not int or value <= 0 for value in integers):
             raise ValueError("positive integral limits required")
         if not math.isfinite(self.seconds) or self.seconds <= 0:
             raise ValueError("positive finite duration required")
-        if type(self.estimated_call_pence) is not int or self.estimated_call_pence < 0:
+        if type(self.estimated_call_cents) is not int or self.estimated_call_cents < 0:
             raise ValueError("nonnegative integral model estimate required")
 
 
@@ -222,7 +222,7 @@ class LoopResult:
     model_calls: int
     tool_calls: int
     output_tokens: int
-    estimated_cost_pence: int
+    estimated_cost_cents: int
 
 
 def run_loop(
@@ -249,9 +249,9 @@ def run_loop(
         if remaining <= 0:
             return finish("TOKEN_LIMIT")
         try:
-            if exposure + limits.estimated_call_pence > limits.model_budget_pence:
+            if exposure + limits.estimated_call_cents > limits.model_budget_cents:
                 return finish("MODEL_COST_LIMIT")
-            exposure += limits.estimated_call_pence
+            exposure += limits.estimated_call_cents
             model_count += 1
             turn = model.complete(
                 copy.deepcopy(transcript),
@@ -357,7 +357,7 @@ def opening_turns():
                 ),
             )
         ),
-        ModelTurn("Drafts: vanilla 6 tubs, strawberry 4 tubs; total 2600 pence GBP. No purchase."),
+        ModelTurn("Drafts: vanilla 6 tubs, strawberry 4 tubs; total 2600 cents USD. No purchase."),
     ]
 
 
@@ -369,13 +369,13 @@ print("original messages", len(messages), "transcript messages", len(result.mess
 
 ```text
 COMPLETED 3 3
-Drafts: vanilla 6 tubs, strawberry 4 tubs; total 2600 pence GBP. No purchase.
+Drafts: vanilla 6 tubs, strawberry 4 tubs; total 2600 cents USD. No purchase.
 original messages 2 transcript messages 8
 ```
 
 The eight messages are two initial messages, three assistant turns, and three tool observations. The original list remains unchanged. More importantly, the draft observations came from the Chapter 2 handlers. The fixture selected the requests, but it did not supply their calculated totals.
 
-Inspect those observations independently of the final sentence. Vanilla should contribute 1,500 pence and strawberry 1,100. Chocolate should have no draft because its need is zero. We can extract the results without asking a second model to judge the first model's prose.
+Inspect those observations independently of the final sentence. Vanilla should contribute 1,500 cents and strawberry 1,100. Chocolate should have no draft because its need is zero. We can extract the results without asking a second model to judge the first model's prose.
 
 ```python
 drafts = [
@@ -383,8 +383,8 @@ drafts = [
     for message in result.messages
     if message["role"] == "tool" and message["tool_call_id"].startswith("draft-")
 ]
-print([(draft["sku"], draft["quantity"], draft["total_pence"]) for draft in drafts])
-print(sum(draft["total_pence"] for draft in drafts))
+print([(draft["sku"], draft["quantity"], draft["total_cents"]) for draft in drafts])
+print(sum(draft["total_cents"] for draft in drafts))
 ```
 
 ```text
@@ -437,23 +437,23 @@ A model can avoid identifier repetition while still asking the same question rep
 
 ### Failure exposure is still exposure
 
-The next fixture returns one stock request. Configure an estimate of three pence per model call and a five-pence run budget. The first call is admitted. The next would raise estimated exposure to six pence, so it must be refused before the adapter is called again.
+The next fixture returns one stock request. Configure an estimate of three cents per model call and a five-cents run budget. The first call is admitted. The next would raise estimated exposure to six cents, so it must be refused before the adapter is called again.
 
 ```python
 cost_limited = run_loop(
     ReplayModel([first]),
     dispatcher,
     messages,
-    limits=Limits(estimated_call_pence=3, model_budget_pence=5),
+    limits=Limits(estimated_call_cents=3, model_budget_cents=5),
 )
 failed = run_loop(
     ReplayModel([]),
     dispatcher,
     messages,
-    limits=Limits(estimated_call_pence=3, model_budget_pence=5),
+    limits=Limits(estimated_call_cents=3, model_budget_cents=5),
 )
-print(cost_limited.status, cost_limited.model_calls, cost_limited.estimated_cost_pence)
-print(failed.status, failed.model_calls, failed.estimated_cost_pence)
+print(cost_limited.status, cost_limited.model_calls, cost_limited.estimated_cost_cents)
+print(failed.status, failed.model_calls, failed.estimated_cost_cents)
 ```
 
 ```text
@@ -461,7 +461,7 @@ MODEL_COST_LIMIT 1 3
 MODEL_FAILED 1 3
 ```
 
-The failed call also retains three pence of estimated exposure. In this authored fixture, you know no remote request occurred. The general loop cannot assume that about every adapter failure: a connection may disappear after the provider accepts the request. Conservative admission records uncertainty instead of treating an absent answer as a refund.
+The failed call also retains three cents of estimated exposure. In this authored fixture, you know no remote request occurred. The general loop cannot assume that about every adapter failure: a connection may disappear after the provider accepts the request. Conservative admission records uncertainty instead of treating an absent answer as a refund.
 
 Token and context budgets stop at different boundaries. A context refusal occurs before transmission. A provider returning impossible usage is detected after a response arrives, before its tool calls are admitted. You should be able to explain both statuses from the transcript and counters.
 
@@ -661,9 +661,9 @@ The first command is reproducible without a model service. The second requires t
 
 | Run | Expected evidence | Interpretation |
 | --- | --- | --- |
-| Authored successful shift | `COMPLETED 3 3`; two drafts totalling 2,600 pence | The chosen sequence traverses the real tools |
+| Authored successful shift | `COMPLETED 3 3`; two drafts totalling 2,600 cents | The chosen sequence traverses the real tools |
 | Repeated identifier batch | `REPEATED_CALL_ID`, zero tool attempts | Batch validation precedes execution |
-| Five-pence budget with three-pence calls | One admitted call, then `MODEL_COST_LIMIT` | Local estimated admission stops before overspending its estimate |
+| Five-cents budget with three-cents calls | One admitted call, then `MODEL_COST_LIMIT` | Local estimated admission stops before overspending its estimate |
 | Late stock response | `TIME_LIMIT`, zero tool attempts | A valid but late request cannot start a new tool |
 | Live model | Actual transcript, usage, status, and draft observations | A sample of model behavior requiring outcome inspection |
 
@@ -694,11 +694,11 @@ def draft_evidence(result):
         if names.get(message["tool_call_id"]) == "draft_order":
             draft = value["value"]
             observed.append(
-                (draft["sku"], draft["quantity"], draft["total_pence"], draft["currency"])
+                (draft["sku"], draft["quantity"], draft["total_cents"], draft["currency"])
             )
     return sorted(observed) == [
-        ("SKU-STRAWBERRY", 4, 1100, "GBP"),
-        ("SKU-VANILLA", 6, 1500, "GBP"),
+        ("SKU-STRAWBERRY", 4, 1100, "USD"),
+        ("SKU-VANILLA", 6, 1500, "USD"),
     ]
 
 
@@ -722,7 +722,7 @@ The chapter's prompt makes an opening procedure explicit. In Chapter 6 we will p
 
 ### Exercise 1 — Repair a refused request
 
-Author three turns: a vanilla draft with quantity eight, a corrected draft with quantity six, and a final explanation. The first handler should refuse the inconsistent quantity; the second should produce 1,500 pence. Inspect both tool observations and show that the correction used a new call identifier. Then reduce the tool budget to one and explain why the corrected request no longer executes.
+Author three turns: a vanilla draft with quantity eight, a corrected draft with quantity six, and a final explanation. The first handler should refuse the inconsistent quantity; the second should produce 1,500 cents. Inspect both tool observations and show that the correction used a new call identifier. Then reduce the tool budget to one and explain why the corrected request no longer executes.
 
 The exercise distinguishes recovery from an ordinary tool refusal from automatic retry after an uncertain external effect. These draft functions have no external effect, and their result clearly describes validation success or refusal. You must not transfer this retry rule unchanged to a purchasing tool whose response was lost.
 

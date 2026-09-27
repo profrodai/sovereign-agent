@@ -7,7 +7,7 @@ Repository: [`profrodai/sovereign-agent`](https://github.com/profrodai/sovereign
 ## Unreleased
 
 - Add a standalone Chapter 1 classroom notebook and instructor guide with
-  explicit live opt-in, labelled offline fallback, repeatable fixtures,
+  explicit live opt-in, labeled offline fallback, repeatable fixtures,
   adversarial envelope checks and a rubric. Fold warning-check counterexamples
   and snapshot-bound review into the manuscript and checkpoint without claiming
   that a passing heuristic proves model prose true.
@@ -20,7 +20,7 @@ Repository: [`profrodai/sovereign-agent`](https://github.com/profrodai/sovereign
 
 - Add explicit renewal of an uncertain exact order for a matching idempotent
   supplier and operator-attested conclusive receipt resolution. Retain uncertain
-  reservations when proof is absent; reject cancelled or revoked retry authority.
+  reservations when proof is absent; reject canceled or revoked retry authority.
   Chapter 2 and 3 learner files now contain the constructed dispatcher, loop and
   HTTP response adapter, and the live checkpoint loads that reader-owned code.
 
@@ -447,7 +447,7 @@ runs existing, already-ACCEPTED code; nothing was added to
   and scoring key untouched), plus one additive link to the new document.
   `docs/andrea-chapters-0-7-evaluation.md` is new, with its own complete,
   replacement Task 7 assessing whether Andrea can explain and
-  *independently verify* genuine proactive Pulse behaviour --
+  *independently verify* genuine proactive Pulse behavior --
   mechanically validated by the new
   `scripts/evaluate_andrea_chapters_0_7.py`. Does not authorize or perform
   the Unit 12 Andrea soak.
@@ -830,7 +830,7 @@ compatibility contract.
   `docs/architecture.md` with the work-repo/corpus boundary: this repository is
   `work_repo` and holds code; scoping and reporting live in a separate
   `sow_repo`. No corpus path is hard-coded here, by design.
-- Docker is labelled unavailable everywhere it appears. `DockerWorker` docstrings
+- Docker is labeled unavailable everywhere it appears. `DockerWorker` docstrings
   now say "unimplemented stub" rather than "v0.4 stub", and the raised
   `NotImplementedError` states that no container code path exists.
 - Corrected the install instructions: dev tooling is a PEP 735 dependency
@@ -854,7 +854,7 @@ Recorded here so the gap is documented rather than inferred:
 - `DockerWorker` — stub; `run_session()` raises `NotImplementedError`.
 - Evidently and OpenTelemetry observability backends — import-gated stubs.
 - Voice pipeline — protocol only.
-- `MemoryRetrieval` / `MemoryConsolidation` — class shells, no behaviour.
+- `MemoryRetrieval` / `MemoryConsolidation` — class shells, no behavior.
 - `lessons/` — a template and a rationale README; no lesson has been written.
 
 ## [0.2.0] — 2026-04-24
@@ -1008,7 +1008,7 @@ credentials required by default) and wired into the Makefile:
   tempdirs.
 - Offline examples continue to use tempdirs (no change).
 - Production (`sovereign-agent run`, `sovereign-agent serve`) continues to
-  honour `Config.sessions_dir` / `SOVEREIGN_AGENT_SESSIONS_DIR` (no change).
+  honor `Config.sessions_dir` / `SOVEREIGN_AGENT_SESSIONS_DIR` (no change).
 - README adds a "Where things live" section documenting this.
 
 ### Documentation

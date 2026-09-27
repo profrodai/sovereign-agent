@@ -103,7 +103,7 @@ Start with several products. Adding a second product later should not require re
 ```python
 SHOP = {
     "customer": "Lucy",
-    "currency": "GBP",
+    "currency": "USD",
     "products": [
         {"sku": "SKU-VANILLA", "name": "Vanilla", "on_hand": 2, "reorder_point": 8},
         {"sku": "SKU-CHOCOLATE", "name": "Chocolate", "on_hand": 12, "reorder_point": 6},
@@ -121,7 +121,7 @@ The SKU is the identity used in tool arguments and records. The name is what Luc
 
 `on_hand` means physical stock in the shop. It will remain different from reserved stock and incoming orders. An accepted order is not a delivery. When we add those concepts, the distinction will determine whether another replenishment request is necessary. We introduce only the physical count here, but choose a field name that does not pretend to represent every kind of availability.
 
-Currency is explicit even though this first brief contains no prices. An earlier live construction run correctly calculated quantities and totals, then labeled the money as euros because its tool results supplied an ambiguous unit. That is a data-contract problem worth removing before we teach spending. Later tools use integer pence and the currency code GBP together. A familiar-looking money symbol in generated prose is not authoritative accounting evidence.
+Currency is explicit even though this first brief contains no prices. An earlier live construction run correctly calculated quantities and totals, then labeled the money as euros because its tool results supplied an ambiguous unit. That is a data-contract problem worth removing before we teach spending. Later tools use integer cents and the currency code USD together. A familiar-looking money symbol in generated prose is not authoritative accounting evidence.
 
 The model will receive this fixture as context. The fixture does not become more authoritative because the model repeats it. If the stock count changes after the request, the response still describes the old snapshot. This is why Chapter 2 moves stock lookup into a tool that reads current records when called.
 
@@ -152,7 +152,7 @@ print(json.loads(request_messages[1]["content"])["currency"])
 
 ```text
 ['system', 'user']
-GBP
+USD
 ```
 
 The instruction describes a job; it does not enforce a security boundary. The absence of a purchasing capability is what prevents this program from placing an order. If the model invents the sentence “I ordered six tubs,” the program has still made only a text request. That sentence is a false claim to reject, not evidence of a supplier transaction.
@@ -331,7 +331,7 @@ True
 
 The first result is a useful detection. The second is a false negative: the sentence names the low products, invents their counts, and paraphrases a purchase. The third comes from our records and contradicts the invented vanilla count. Adding another banned phrase would catch that phrase; it would not establish a general truth detector. Negation can also produce false positives: “I have not purchased anything” still contains “purchased.”
 
-Keep model prose labelled as a draft. Lucy's dependable stock display can use the calculated `stock_facts` directly. This scripted baseline is useful even when a model supplies a more readable explanation. Later chapters validate structured tool observations and supplier receipts; they do not promote a passing phrase check into purchasing authority.
+Keep model prose labeled as a draft. Lucy's dependable stock display can use the calculated `stock_facts` directly. This scripted baseline is useful even when a model supplies a more readable explanation. Later chapters validate structured tool observations and supplier receipts; they do not promote a passing phrase check into purchasing authority.
 
 ## Make the live call
 

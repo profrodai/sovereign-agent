@@ -52,13 +52,13 @@ messages = [
         "role": "system",
         "content": "Help Lucy prepare replenishment drafts. First call list_stock. "
         "For each product with needed > 0, call draft_order with exactly that quantity. "
-        "Do not draft products with needed = 0. Summarize the tool results in GBP pence. "
+        "Do not draft products with needed = 0. Summarize the tool results in USD cents. "
         "A verbal recommendation does not replace creating the draft through the tool. "
         "Drafts are proposals, never purchases.",
     },
     {
         "role": "user",
-        "content": "Prepare replenishment drafts from current stock. State GBP amounts.",
+        "content": "Prepare replenishment drafts from current stock. State USD amounts.",
     },
 ]
 
@@ -71,8 +71,8 @@ class Limits:
     context_bytes: int = 32_768
     output_tokens: int = 1_024
     total_output_tokens: int = 4_096
-    estimated_call_pence: int = 0
-    model_budget_pence: int = 100
+    estimated_call_cents: int = 0
+    model_budget_cents: int = 100
 
     def __post_init__(self):
         integers = (
@@ -81,13 +81,13 @@ class Limits:
             self.context_bytes,
             self.output_tokens,
             self.total_output_tokens,
-            self.model_budget_pence,
+            self.model_budget_cents,
         )
         if any(type(value) is not int or value <= 0 for value in integers):
             raise ValueError("positive integral limits required")
         if not math.isfinite(self.seconds) or self.seconds <= 0:
             raise ValueError("positive finite duration required")
-        if type(self.estimated_call_pence) is not int or self.estimated_call_pence < 0:
+        if type(self.estimated_call_cents) is not int or self.estimated_call_cents < 0:
             raise ValueError("nonnegative integral model estimate required")
 
 
@@ -99,7 +99,7 @@ class LoopResult:
     model_calls: int
     tool_calls: int
     output_tokens: int
-    estimated_cost_pence: int
+    estimated_cost_cents: int
 
 
 def run_loop(
@@ -126,9 +126,9 @@ def run_loop(
         if remaining <= 0:
             return finish("TOKEN_LIMIT")
         try:
-            if exposure + limits.estimated_call_pence > limits.model_budget_pence:
+            if exposure + limits.estimated_call_cents > limits.model_budget_cents:
                 return finish("MODEL_COST_LIMIT")
-            exposure += limits.estimated_call_pence
+            exposure += limits.estimated_call_cents
             model_count += 1
             turn = model.complete(
                 copy.deepcopy(transcript),
@@ -199,7 +199,7 @@ def opening_turns():
                 ),
             )
         ),
-        ModelTurn("Drafts: vanilla 6 tubs, strawberry 4 tubs; total 2600 pence GBP. No purchase."),
+        ModelTurn("Drafts: vanilla 6 tubs, strawberry 4 tubs; total 2600 cents USD. No purchase."),
     ]
 
 
@@ -282,9 +282,9 @@ def draft_evidence(result):
         if names.get(message["tool_call_id"]) == "draft_order":
             draft = value["value"]
             observed.append(
-                (draft["sku"], draft["quantity"], draft["total_pence"], draft["currency"])
+                (draft["sku"], draft["quantity"], draft["total_cents"], draft["currency"])
             )
     return sorted(observed) == [
-        ("SKU-STRAWBERRY", 4, 1100, "GBP"),
-        ("SKU-VANILLA", 6, 1500, "GBP"),
+        ("SKU-STRAWBERRY", 4, 1100, "USD"),
+        ("SKU-VANILLA", 6, 1500, "USD"),
     ]

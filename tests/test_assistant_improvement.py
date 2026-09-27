@@ -17,7 +17,7 @@ def test_candidate_evaluation_activation_and_rollback_retain_history(tmp_path):
         path = tmp_path / f"opening-{version}.toml"
         path.write_text(
             f'name = "opening"\nversion = "{version}"\n'
-            'instructions = "Read stock and draft shortages in GBP."\n'
+            'instructions = "Read stock and draft shortages in USD."\n'
         )
         stage_skill(db, path)
     reports = tmp_path / "reports"
@@ -29,7 +29,7 @@ def test_candidate_evaluation_activation_and_rollback_retain_history(tmp_path):
         def complete(self, *args, **kwargs):
             reply = super().complete(*args, **kwargs)
             return ModelTurn(
-                reply.content.replace("pence GBP", "euros"), reply.calls, reply.output_tokens
+                reply.content.replace("cents USD", "euros"), reply.calls, reply.output_tokens
             )
 
     result = change_skill(db, "opening", "2", Regressing, reports)

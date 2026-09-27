@@ -33,7 +33,7 @@ def lesson(monkeypatch):
                     exec(compile(source, str(NOTEBOOK), "exec"), scope)
         assert "synthetic-notebook-secret" not in output.getvalue()
         assert len(scope["SHOP"]["products"]) == 3
-        assert scope["answer"]["estimated_total_pence"] == 3400
+        assert scope["answer"]["estimated_total_cents"] == 3400
         assert len(scope["rows"]) == 6
         assert all(row["mode"] == "authored_fixture" for row in scope["rows"])
     return scope
@@ -113,4 +113,4 @@ def test_capability_removed_and_empty_catalog(lesson):
         {},
         **lesson["POLICY"],
     )
-    assert result["estimated_total_pence"] == result["purchases"] == 0
+    assert result["estimated_total_cents"] == result["purchases"] == 0

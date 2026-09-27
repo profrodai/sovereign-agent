@@ -130,7 +130,7 @@ def test_backlog_and_daily_model_limits_survive_restart(tmp_path):
     with pytest.raises(PermissionError):
         reserve_model_call(Database(db.path), work, 1)
     row = db.connection.execute("SELECT * FROM assistant_daily").fetchone()
-    assert row["model_calls"] == 100 and row["estimated_cost_pence"] == 100
+    assert row["model_calls"] == 100 and row["estimated_cost_cents"] == 100
 
 
 def test_unknown_model_call_retains_estimated_exposure():
@@ -142,9 +142,9 @@ def test_unknown_model_call_retains_estimated_exposure():
         LostModel(),
         Dispatcher([], allowed=frozenset()),
         [],
-        limits=Limits(estimated_call_pence=7, model_budget_pence=10),
+        limits=Limits(estimated_call_cents=7, model_budget_cents=10),
     )
-    assert result.status == "MODEL_FAILED" and result.estimated_cost_pence == 7
+    assert result.status == "MODEL_FAILED" and result.estimated_cost_cents == 7
 
 
 def test_bot_account_namespace_and_duplicate_payload_conflict(tmp_path):
@@ -207,12 +207,12 @@ def test_concurrent_reservations_cannot_overspend(tmp_path):
     for i in range(2):
         enqueue(db, f"order:{i}", f"session:{i}", "buy")
         work = claim(db, f"worker:{i}")
-        identifier = propose(db, work, "SKU-VANILLA", 28)  # £70 each against £100 total.
+        identifier = propose(db, work, "SKU-VANILLA", 28)  # $70 each against $100 total.
         digest = db.connection.execute(
             "SELECT digest FROM assistant_orders WHERE id=?", (identifier,)
         ).fetchone()[0]
         orders.append((identifier, digest))
-    policy = SpendingPolicy(frozenset({"lucy"}), total_pence=10000)
+    policy = SpendingPolicy(frozenset({"lucy"}), total_cents=10000)
     barrier = Barrier(2)
 
     def contender(order):
@@ -227,7 +227,7 @@ def test_concurrent_reservations_cannot_overspend(tmp_path):
     with ThreadPoolExecutor(max_workers=2) as pool:
         assert sorted(pool.map(contender, orders)) == [False, True]
     assert (
-        db.connection.execute("SELECT reserved_pence FROM assistant_spending").fetchone()[0] == 7000
+        db.connection.execute("SELECT reserved_cents FROM assistant_spending").fetchone()[0] == 7000
     )
 
 

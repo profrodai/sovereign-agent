@@ -12,7 +12,7 @@ Lucy has learned to ask for a replenishment brief from her phone. Now she wants 
 
 We will build two producers for the durable work queue from [Chapter 8](../ch08/profrod-sovereign-agent-ch08-telegram-messaging-chapter.md). One observes the clock. The other observes stock. Neither calls a model. The existing worker consumes their records, loads the current session context and runs the bounded loop. A standard Linux service manager keeps that worker available after the terminal closes.
 
-There is also a less obvious failure to repair. During this chapter's live experiment, the model requested a correct seven-tub draft worth £17.50, then described it as £15.00. A queue can preserve a wrong report perfectly. We will use the structured tool results to render the quantities and amounts Lucy sees, while retaining the original model response for evaluation.
+There is also a less obvious failure to repair. During this chapter's live experiment, the model requested a correct seven-tub draft worth $17.50, then described it as $15.00. A queue can preserve a wrong report perfectly. We will use the structured tool results to render the quantities and amounts Lucy sees, while retaining the original model response for evaluation.
 
 ## Learning objectives
 
@@ -451,7 +451,7 @@ def scan(db: Database, *, now: float | None = None, maximum: int = 100) -> list[
                     f"stock-condition:{condition['id']}:{generation}",
                     condition["session"],
                     f"Prepare a replenishment draft for {condition['subject']} from current stock. "
-                    "State GBP amounts.",
+                    "State USD amounts.",
                     now,
                     condition["channel"],
                     condition["recipient"],
@@ -523,8 +523,8 @@ print(
 ```text
 First work: DONE
 Draft estimates:
-- "SKU-VANILLA": 6 tubs, £15.00 GBP.
-Total: £15.00 GBP.
+- "SKU-VANILLA": 6 tubs, $15.00 USD.
+Total: $15.00 USD.
 Healthy scan: []
 New episode: 1
 Episode generation: 2
@@ -534,7 +534,7 @@ The stock updates are controlled fixture mutations, not a receiving interface. T
 
 ## Failure experiment — repair a wrong explanation
 
-The first live unattended run reached the correct tool result for the second episode: seven vanilla tubs, 250 pence each, total 1,750 pence. Its final model sentence instead reported £15.00. The old checkpoint checked the tool observation and would have accepted the run. Reading the final response exposed a gap between the numerical evidence and what Lucy would see.
+The first live unattended run reached the correct tool result for the second episode: seven vanilla tubs, 250 cents each, total 1,750 cents. Its final model sentence instead reported $15.00. The old checkpoint checked the tool observation and would have accepted the run. Reading the final response exposed a gap between the numerical evidence and what Lucy would see.
 
 We do not fix this by instructing the model to be more careful with arithmetic. The deterministic tool already did the arithmetic correctly. We need a presentation boundary that uses that result. For completed draft-producing turns, render the latest successful draft for each SKU. Keep the raw model transcript available for evaluation, but do not ask it to restate monetary facts in the delivered draft summary.
 
@@ -556,7 +556,7 @@ def draft_report(messages: list[Message]) -> str | None:
         if observation.get("ok") is not True:
             continue
         value = observation["value"]
-        sku, quantity, amount = value.get("sku"), value.get("quantity"), value.get("total_pence")
+        sku, quantity, amount = value.get("sku"), value.get("quantity"), value.get("total_cents")
         if (
             not isinstance(sku, str)
             or not 1 <= len(sku) <= 100
@@ -564,9 +564,9 @@ def draft_report(messages: list[Message]) -> str | None:
             or quantity <= 0
             or type(amount) is not int
             or amount < 0
-            or value.get("currency") != "GBP"
+            or value.get("currency") != "USD"
         ):
-            raise ValueError("draft observation lacks validated quantity or GBP amount")
+            raise ValueError("draft observation lacks validated quantity or USD amount")
         # Recalculating a draft is not creating another purchase. Display only
         # the latest estimate for each SKU; supplier workflows render their ledger.
         latest[sku] = (quantity, amount)
@@ -575,9 +575,9 @@ def draft_report(messages: list[Message]) -> str | None:
     lines = ["Draft estimates:"]
     for sku, (quantity, amount) in sorted(latest.items()):
         label = json.dumps(sku, ensure_ascii=False)
-        lines.append(f"- {label}: {quantity} tubs, £{amount // 100}.{amount % 100:02d} GBP.")
+        lines.append(f"- {label}: {quantity} tubs, ${amount // 100}.{amount % 100:02d} USD.")
     total = sum(amount for _, amount in latest.values())
-    lines.append(f"Total: £{total // 100}.{total % 100:02d} GBP.")
+    lines.append(f"Total: ${total // 100}.{total % 100:02d} USD.")
     return "\n".join(lines)
 
 
@@ -590,23 +590,23 @@ print(
 
 ```text
 Draft estimates:
-- "SKU-VANILLA": 7 tubs, £17.50 GBP.
-Total: £17.50 GBP.
+- "SKU-VANILLA": 7 tubs, $17.50 USD.
+Total: $17.50 USD.
 Supplier orders: 0
 ```
 
-The function reads tool observations whose call names are `draft_order`; a model sentence claiming to have drafted something is not enough. It rejects malformed amounts, quantities and currency. Repeated calculations for one SKU replace that SKU's earlier estimate instead of being added as extra orders. JSON quoting keeps a product label containing a newline from inserting another report line. Integer pence remain integers until formatting.
+The function reads tool observations whose call names are `draft_order`; a model sentence claiming to have drafted something is not enough. It rejects malformed amounts, quantities and currency. Repeated calculations for one SKU replace that SKU's earlier estimate instead of being added as extra orders. JSON quoting keeps a product label containing a newline from inserting another report line. Integer cents remain integers until formatting.
 
 The integration point is immediately after a completed loop and before `finish` persists the work result. The worker selects `draft_report(result.messages)` when it returns a report; otherwise it retains the ordinary answer path. Supplier workflows later use their own ledger-backed receipt rendering. This repair covers structured draft facts, not every factual claim in free-form responses, and a draft remains an estimate from the observations made during that turn.
 
 **Listing:** Show why a model assertion alone cannot become a draft report.
 
 ```python
-assertion = [{"role": "assistant", "content": "I drafted seven tubs for £15.00."}]
+assertion = [{"role": "assistant", "content": "I drafted seven tubs for $15.00."}]
 print("Report from assertion:", draft_report(assertion))
 print(
     "Persisted amount:",
-    "£17.50"
+    "$17.50"
     in db.connection.execute(
         "SELECT result FROM assistant_work WHERE origin='stock-condition:vanilla-low:2'"
     ).fetchone()[0],
@@ -649,7 +649,7 @@ uv run python book/textbook/checkpoints/profrod_sovereign_agent_ch09_schedules_s
 
 The default uses the deterministic model fixture. The live option requires the local model setup from Chapter 1. Both use a fresh temporary database, install the tested opening skill, test coalescing and pause, complete the first stock episode, observe healthy stock, and then lower vanilla to one tub. Crucially, the parent closes its database without scanning that second shortage.
 
-The checkpoint starts the actual installed worker in a separate process with no prompt argument, no supplier endpoint and no inherited channel credentials. The child must discover the stored condition, create generation two, run the loop and persist a seven-tub draft worth £17.50. The parent observes SQLite for a bounded time, checks the actual transcript and displayed result, then requests a clean shutdown. This proves the producer-to-worker connection across a process boundary.
+The checkpoint starts the actual installed worker in a separate process with no prompt argument, no supplier endpoint and no inherited channel credentials. The child must discover the stored condition, create generation two, run the loop and persist a seven-tub draft worth $17.50. The parent observes SQLite for a bounded time, checks the actual transcript and displayed result, then requests a clean shutdown. This proves the producer-to-worker connection across a process boundary.
 
 ## Keep the worker available after the terminal closes
 
@@ -680,7 +680,7 @@ For the live deployment, confirm the model endpoint is reachable from the Linux 
 | --- | --- | --- |
 | Unit status | The intended executable is active | A useful model result |
 | Work row | The scheduled or conditional origin reached `DONE` | Correctness of arbitrary prose |
-| Transcript and report | Required drafts and matching GBP amounts | A supplier purchase |
+| Transcript and report | Required drafts and matching USD amounts | A supplier purchase |
 | Reconnection | Work completed after the original shell closed | Operation through every host outage |
 
 Clock and stock work share session admission limits but have different origins, so the initial schedule and initial shortage can both create drafts. That is an intentional two-trigger demonstration, not duplicate delivery of one event. Disable the demonstration jobs after inspection with `agent unschedule morning-v1` and `agent unwatch-stock vanilla-low`, using the same root. The already admitted work remains available for inspection.
@@ -693,7 +693,7 @@ That is the authors' documented recovery rationale. Our interpretation is that i
 
 ## Expected observations and learner verification
 
-The offline checkpoint reports one coalesced morning task, one first stock episode, one independently discovered second episode, zero duplicate episode work and zero purchases. It verifies that the second episode's persisted report contains £17.50 for seven tubs. It also observes the actual worker's clean shutdown. A missing child result, a wrong amount or an unexpected purchase fails the checkpoint rather than becoming an explanatory footnote.
+The offline checkpoint reports one coalesced morning task, one first stock episode, one independently discovered second episode, zero duplicate episode work and zero purchases. It verifies that the second episode's persisted report contains $17.50 for seven tubs. It also observes the actual worker's clean shutdown. A missing child result, a wrong amount or an unexpected purchase fails the checkpoint rather than becoming an explanatory footnote.
 
 During authoring, the first live run passed the tool-level checks but failed the explanation check when read. The retained evidence records both that run and the repaired rerun. This is why the chapter asks you to inspect the work result as well as the transcript. A successful tool call is useful evidence, but the builder's job includes delivering the right facts to Lucy.
 
@@ -717,7 +717,7 @@ Use a model fixture that requests the correct draft but ends with the wrong curr
 
 ## Active recall
 
-What remains durable when the worker process is absent? Why do we advance a clock job from its old due time? What observation rearms a stock condition? How does a work subject differ from a SKU mentioned in a prompt? Which check caught the £15.00 explanation, and which narrower check had already passed? Why does a fixed 86,400-second interval not fully specify an 8 a.m. local appointment?
+What remains durable when the worker process is absent? Why do we advance a clock job from its old due time? What observation rearms a stock condition? How does a work subject differ from a SKU mentioned in a prompt? Which check caught the $15.00 explanation, and which narrower check had already passed? Why does a fixed 86,400-second interval not fully specify an 8 a.m. local appointment?
 
 ## Vocabulary
 
@@ -725,7 +725,7 @@ A **scheduler pass** is one bounded observation and admission step. **Coalescing
 
 ## Summary
 
-You built durable clock and stock producers around the existing work queue, made pause and missed-run behavior explicit, and carried product scope into the owned agent loop. You connected those pieces to an unattended process and a standard Linux user service. You also repaired a reporting failure by taking draft quantities and GBP amounts from structured tool observations. Lucy can now receive drafts while away; the next chapter establishes the permission boundary before any draft becomes spending.
+You built durable clock and stock producers around the existing work queue, made pause and missed-run behavior explicit, and carried product scope into the owned agent loop. You connected those pieces to an unattended process and a standard Linux user service. You also repaired a reporting failure by taking draft quantities and USD amounts from structured tool observations. Lucy can now receive drafts while away; the next chapter establishes the permission boundary before any draft becomes spending.
 
 ## Keep building with Prof Rod
 

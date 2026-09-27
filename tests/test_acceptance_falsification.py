@@ -35,7 +35,7 @@ def tamper(org: Organization, statement: str, parameters: tuple = ()) -> None:
     Proof tables carry BEFORE UPDATE/DELETE/REPLACE triggers, so a tampered
     ledger is not reachable through the database. These tests still matter:
     acceptance must be independently sound, not merely shielded. Dropping the
-    guard for one statement is defence-in-depth testing — it asks "if the
+    guard for one statement is defense-in-depth testing — it asks "if the
     database were compromised, does acceptance still refuse?"
     """
     table = statement.split()[1] if statement.upper().startswith("UPDATE") else statement.split()[2]
@@ -249,7 +249,7 @@ def test_acceptance_cannot_be_pointed_at_a_different_subject(tmp_path: Path) -> 
 
     Found by the Master while attacking its own fix. An earlier version took the
     SKU as a parameter to verify/accept. With a second, well-stocked product in
-    the catalogue you could accept the tea outcome by pointing acceptance at the
+    the catalog you could accept the tea outcome by pointing acceptance at the
     decoy while the tea shelf sat at zero — the same defect this unit exists to
     fix, reintroduced one level up.
     """
@@ -594,7 +594,7 @@ def test_the_documented_residual_limit_is_real(tmp_path: Path) -> None:
     ).fetchone()
     assert int(row["on_hand"]) < int(row["reorder_point"]), (
         "the residual limit documented in docs/persistence-boundary.md no longer "
-        "reproduces; re-derive the document against current behaviour"
+        "reproduces; re-derive the document against current behavior"
     )
 
 

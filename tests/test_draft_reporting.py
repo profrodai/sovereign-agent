@@ -25,15 +25,15 @@ def test_wrong_model_total_is_retained_for_evaluation_but_not_delivered(tmp_path
     class WrongTotal(OfflineShopModel):
         def complete(self, *args, **kwargs):
             result = super().complete(*args, **kwargs)
-            return result if result.calls else ModelTurn("Seven tubs cost £15.00 GBP.")
+            return result if result.calls else ModelTurn("Seven tubs cost $15.00 USD.")
 
     result = run_once(db, WrongTotal())
     assert result["status"] == "DONE"
     assert (
         result["answer"]
-        == 'Draft estimates:\n- "SKU-VANILLA": 7 tubs, £17.50 GBP.\nTotal: £17.50 GBP.'
+        == 'Draft estimates:\n- "SKU-VANILLA": 7 tubs, $17.50 USD.\nTotal: $17.50 USD.'
     )
-    assert "£15.00" in result["loop"]["answer"]
+    assert "$15.00" in result["loop"]["answer"]
     assert (
         db.connection.execute("SELECT result FROM assistant_work").fetchone()[0] == result["answer"]
     )
@@ -74,7 +74,7 @@ def observations(*drafts):
 
 
 def draft(sku="V", quantity=6, amount=1500):
-    return {"sku": sku, "quantity": quantity, "total_pence": amount, "currency": "GBP"}
+    return {"sku": sku, "quantity": quantity, "total_cents": amount, "currency": "USD"}
 
 
 def test_repeated_calculations_do_not_become_extra_orders_and_latest_estimate_wins():
@@ -82,19 +82,19 @@ def test_repeated_calculations_do_not_become_extra_orders_and_latest_estimate_wi
         observations(draft(), draft(), draft(quantity=7, amount=1750), draft("S", 4, 1100))
     )
     assert (
-        result == 'Draft estimates:\n- "S": 4 tubs, £11.00 GBP.\n'
-        '- "V": 7 tubs, £17.50 GBP.\nTotal: £28.50 GBP.'
+        result == 'Draft estimates:\n- "S": 4 tubs, $11.00 USD.\n'
+        '- "V": 7 tubs, $17.50 USD.\nTotal: $28.50 USD.'
     )
-    assert draft_report([{"role": "assistant", "content": "I drafted V for £15.00."}]) is None
+    assert draft_report([{"role": "assistant", "content": "I drafted V for $15.00."}]) is None
 
 
 @pytest.mark.parametrize(
-    "field,value", [("quantity", True), ("total_pence", 17.5), ("currency", "USD")]
+    "field,value", [("quantity", True), ("total_cents", 17.5), ("currency", "EUR")]
 )
 def test_invalid_structured_amount_is_refused_instead_of_rendering_it(field, value):
     value_record = draft()
     value_record[field] = value
-    with pytest.raises(ValueError, match="validated quantity or GBP"):
+    with pytest.raises(ValueError, match="validated quantity or USD"):
         draft_report(observations(value_record))
 
 

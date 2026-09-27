@@ -38,7 +38,7 @@ def operating_report(db: Database) -> dict[str, Any]:
             "FROM assistant_orders"
         ).fetchone()
         budget = connection.execute(
-            "SELECT reserved_pence,spent_pence FROM assistant_spending WHERE id=1"
+            "SELECT reserved_cents,spent_cents FROM assistant_spending WHERE id=1"
         ).fetchone()
         reserved, spent = (0, 0) if budget is None else tuple(budget)
         stock = shop_dispatcher(db).invoke(
@@ -47,7 +47,7 @@ def operating_report(db: Database) -> dict[str, Any]:
         if not stock["ok"]:
             raise ValueError("current stock could not be read")
         usage = connection.execute(
-            "SELECT coalesce(sum(model_calls),0),coalesce(sum(estimated_cost_pence),0),"
+            "SELECT coalesce(sum(model_calls),0),coalesce(sum(estimated_cost_cents),0),"
             "min(history_complete) "
             "FROM assistant_daily WHERE day=?",
             (day,),
@@ -108,8 +108,8 @@ def operating_report(db: Database) -> dict[str, Any]:
         "work": work,
         "orders": orders,
         "spending": {
-            "accepted_pence": spent,
-            "reserved_pence": reserved,
+            "accepted_cents": spent,
+            "reserved_cents": reserved,
             "order_totals_match": matching,
         },
         "stock": stock["value"],
@@ -123,7 +123,7 @@ def operating_report(db: Database) -> dict[str, Any]:
         "model_usage": {
             "utc_day": datetime.fromtimestamp(observed, UTC).date().isoformat(),
             "reserved_calls": usage[0],
-            "estimated_pence": usage[1],
+            "estimated_cents": usage[1],
             "history_complete": None if usage[2] is None else bool(usage[2]),
         },
         "exceptions": exceptions,
@@ -133,14 +133,14 @@ def operating_report(db: Database) -> dict[str, Any]:
         f"Observed: {report['observed_at']}",
         report["scope"],
         "",
-        f"Supplier purchases accepted: GBP {spent // 100}.{spent % 100:02d}",
-        f"Allowance reserved for pending orders: GBP {reserved // 100}.{reserved % 100:02d}",
+        f"Supplier purchases accepted: USD {spent // 100}.{spent % 100:02d}",
+        f"Allowance reserved for pending orders: USD {reserved // 100}.{reserved % 100:02d}",
         f"Orders delivered: {orders.get('DELIVERED', 0)}; "
         f"accepted and awaiting delivery: {orders.get('CONFIRMED', 0)}",
         f"Order drafts awaiting approval: {orders.get('DRAFT', 0)}; "
         f"uncertain supplier outcomes: {uncertain}",
         f"Work completed: {work.get('DONE', 0)}; blocked: {work.get('BLOCKED', 0)}; "
-        f"cancelled: {work.get('CANCELLED', 0)}",
+        f"canceled: {work.get('CANCELED', 0)}",
         f"Read-only research quotes completed: {research}",
         "",
         "Current stock:",
@@ -154,7 +154,7 @@ def operating_report(db: Database) -> dict[str, Any]:
     lines.extend(
         [
             "",
-            f"Model calls reserved today: {usage[0]}; configured estimate: {usage[1]} pence. "
+            f"Model calls reserved today: {usage[0]}; configured estimate: {usage[1]} cents. "
             "This is not a provider invoice.",
             "",
             "Exceptions requiring inspection:",

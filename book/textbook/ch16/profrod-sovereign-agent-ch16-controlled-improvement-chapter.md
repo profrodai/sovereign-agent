@@ -8,7 +8,7 @@
 
 **Status: DRAFT.** Read the [textbook guide](../profrod-sovereign-agent-textbook-start-here.md) for setup and supplied-code boundaries. Practice in [Exercise Book 16](../../exercises/ch16/profrod-sovereign-agent-ch16-controlled-improvement-exercise-guide.md); consult [Solutions 16](../../solutions/ch16/profrod-sovereign-agent-ch16-controlled-improvement-solutions-guide.md) after attempting the work.
 
-Lucy corrects the morning brief: keep monetary amounts in GBP and make the closing sentence concise. The agent could simply add that sentence to its current context. Tomorrow, however, the conversation may be different, and a later correction may conflict with it. We need to decide what kind of change the feedback calls for and how to retain it without silently replacing known behavior.
+Lucy corrects the morning brief: keep monetary amounts in USD and make the closing sentence concise. The agent could simply add that sentence to its current context. Tomorrow, however, the conversation may be different, and a later correction may conflict with it. We need to decide what kind of change the feedback calls for and how to retain it without silently replacing known behavior.
 
 This chapter builds the path from an attributed correction to an immutable candidate, an evaluation report and an explicit activation. A regressing candidate must leave the active procedure intact. A passing candidate must still match the configuration it was tested against. Returning to an earlier version is another evaluated change, with history retained.
 
@@ -35,7 +35,7 @@ Trace the failed result backward. Compare the answer with the tool observation, 
 | The model ignores usable guidance | Evaluate prompt or model configuration | Frozen configuration and comparable case reports |
 | The final wording is misleading | Review output and propose a bounded change | Exact answer, supporting observations and review |
 
-Lucy’s request has a preference component and a procedure component. GBP is already a business convention and an evaluated currency requirement. Concise wording is a desired presentation behavior that the current automatic grader does not fully assess. We can stage a candidate that addresses it, but passing the quantity suite alone cannot prove that its prose is concise or helpful.
+Lucy’s request has a preference component and a procedure component. USD is already a business convention and an evaluated currency requirement. Concise wording is a desired presentation behavior that the current automatic grader does not fully assess. We can stage a candidate that addresses it, but passing the quantity suite alone cannot prove that its prose is concise or helpful.
 
 The distinction from [Chapter 11](../ch11/profrod-sovereign-agent-ch11-ambiguous-supplier-order-chapter.md) remains important: neither feedback nor a revised skill changes whether a supplier accepted an existing order. Memory and procedure updates cannot rewrite receipts. Operational facts, authority and language guidance have different responsibilities, even when the same user message prompts us to inspect all three.
 
@@ -112,7 +112,7 @@ def propose_skill(version, instructions, name=original["name"]):
                 "version": skill.version,
                 "candidate_sha256": hashlib.sha256(skill.model_dump_json().encode()).hexdigest(),
                 "feedback_source": "fixture/lucy/brief-1",
-                "request": "Keep amounts in GBP and make the closing sentence concise.",
+                "request": "Keep amounts in USD and make the closing sentence concise.",
             },
         )
     return skill
@@ -350,7 +350,7 @@ class FollowsCandidate(OfflineShopModel):
         turn = super().complete(messages, *args, **kwargs)
         if "Report every amount in euros." in messages[0]["content"]:
             return ModelTurn(
-                turn.content.replace("pence GBP", "euros"), turn.calls, turn.output_tokens
+                turn.content.replace("cents USD", "euros"), turn.calls, turn.output_tokens
             )
         return turn
 
@@ -521,7 +521,7 @@ The operational CLI exposes `agent skill-stage`, `agent skill-activate` and `age
 
 ## A pinned comparison: provenance in the model's context
 
-Hermes at commit `d538f4e9297d7fa46193f638215d002d7a22edd7` has an `_org_provenance_header` helper that loads available organisation provenance and renders organisation, author and time into the content the model receives. Its header describes shared skills as third-party instructions and describes a path for local edits and sharing proposals. See the pinned [skills tool source](https://github.com/NousResearch/hermes-agent/blob/d538f4e9297d7fa46193f638215d002d7a22edd7/tools/skills_tool.py).
+Hermes at commit `d538f4e9297d7fa46193f638215d002d7a22edd7` has an `_org_provenance_header` helper that loads available organization provenance and renders organization, author and time into the content the model receives. Its header describes shared skills as third-party instructions and describes a path for local edits and sharing proposals. See the pinned [skills tool source](https://github.com/NousResearch/hermes-agent/blob/d538f4e9297d7fa46193f638215d002d7a22edd7/tools/skills_tool.py).
 
 That source illustrates making origin visible at consumption time. Our teaching implementation also records an attributed proposal and exact candidate version, then evaluates before switching the active row. This is a comparison of specific mechanisms, not an audit of Hermes's entire update or security policy. We did not verify its sync plane or run its update workflow. A useful experiment would test whether showing source and revision information helps reviewers locate an incorrect procedure more quickly.
 

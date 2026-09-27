@@ -31,7 +31,7 @@ from sovereign_agent.agent_loop import Limits
 from sovereign_agent.database import Database
 from sovereign_agent.telegram_channel import deliver_one, poll
 
-POLICY = orders.SpendingPolicy(frozenset({"123"}), total_pence=3000)
+POLICY = orders.SpendingPolicy(frozenset({"123"}), total_cents=3000)
 CHILD_ENV = {
     key: value
     for key, value in os.environ.items()
@@ -122,8 +122,8 @@ def day(root, checkpoint_dir):
         try:
             seed_lucy(db)
             context.remember(db, "lucy", "currency", "Euros", "lucy/old-request")
-            context.remember(db, "lucy", "currency", "GBP", "lucy/correction")
-            assert context.preferences(db, "lucy", "currency")[0]["value"] == "GBP"
+            context.remember(db, "lucy", "currency", "USD", "lucy/correction")
+            assert context.preferences(db, "lucy", "currency")[0]["value"] == "USD"
             due = time.time() - 1
             work.schedule(
                 db,
@@ -135,10 +135,10 @@ def day(root, checkpoint_dir):
             )
             scheduled = work.tick(db)
             assert len(scheduled) == 1 and work.tick(db) == []
-            failed = run_once(db, FailedModel(), limits=Limits(estimated_call_pence=2))
+            failed = run_once(db, FailedModel(), limits=Limits(estimated_call_cents=2))
             assert failed["status"] == "BLOCKED"
             cli(root, "retry", failed["work"])
-            morning = run_once(db, OfflineShopModel(), limits=Limits(estimated_call_pence=2))
+            morning = run_once(db, OfflineShopModel(), limits=Limits(estimated_call_cents=2))
             assert morning["status"] == "DONE"
             bot = FixtureBot()
             bot.updates = [
@@ -151,7 +151,7 @@ def day(root, checkpoint_dir):
             db = Database(root / "agent.sqlite")
             assert poll(db, bot, frozenset({123})) == []
             assert (
-                run_once(db, OfflineShopModel(), limits=Limits(estimated_call_pence=2))["status"]
+                run_once(db, OfflineShopModel(), limits=Limits(estimated_call_cents=2))["status"]
                 == "DONE"
             )
             assert deliver_one(db, bot, frozenset({123})) == "SENT" and len(bot.sent) == 1
@@ -165,7 +165,7 @@ def day(root, checkpoint_dir):
                         OfflineShopModel(),
                         supplier=supplier,
                         policy=POLICY,
-                        limits=Limits(estimated_call_pence=2),
+                        limits=Limits(estimated_call_cents=2),
                     )["status"]
                     == "BLOCKED"
                 )
@@ -185,8 +185,8 @@ def day(root, checkpoint_dir):
                 morning["work"],
                 Inquiry(sku="SKU-VANILLA", guests=41),
                 deadline=time.time() + 60,
-                estimated_call_pence=2,
-                budget_pence=20,
+                estimated_call_cents=2,
+                budget_cents=20,
             )
             research = subprocess.Popen(
                 [
@@ -256,7 +256,7 @@ def day(root, checkpoint_dir):
             assert research.returncode == 0, stderr
             assert json.loads(stdout)["status"] == "DONE"
             quote = json.loads(stdout)["report"]
-            assert quote["quote"]["tubs"] == 5 and quote["quote"]["total_pence"] == 2500
+            assert quote["quote"]["tubs"] == 5 and quote["quote"]["total_cents"] == 2500
             orders.receive(db, vanilla["id"], "day-delivery-vanilla", actor="123", policy=POLICY)
             orders.receive(db, vanilla["id"], "day-delivery-vanilla", actor="123", policy=POLICY)
             assert scan(db) == []
@@ -271,7 +271,7 @@ def day(root, checkpoint_dir):
             }
             assert (
                 sum(
-                    json.loads(raw)["quantity"] * json.loads(raw)["unit_cost_pence"]
+                    json.loads(raw)["quantity"] * json.loads(raw)["unit_cost_cents"]
                     for _, raw in remote_rows
                 )
                 == 2600
@@ -279,8 +279,8 @@ def day(root, checkpoint_dir):
             report = operating_report(db)
             assert report["orders"] == {"CONFIRMED": 1, "DELIVERED": 1}
             assert report["spending"] == {
-                "accepted_pence": 2600,
-                "reserved_pence": 0,
+                "accepted_cents": 2600,
+                "reserved_cents": 0,
                 "order_totals_match": True,
             }
             assert report["pending_work"] == [] and report["exceptions"] == []
@@ -291,7 +291,7 @@ def day(root, checkpoint_dir):
             ]
             assert report["research_quotes_completed"] == 1
             rendered = cli(root, "report").stdout
-            assert "GBP 26.00" in rendered and "GBP 0.00" in rendered
+            assert "USD 26.00" in rendered and "USD 0.00" in rendered
             assert "4 pending replenishment" in rendered
             evidence = {
                 "scope": (
@@ -307,7 +307,7 @@ def day(root, checkpoint_dir):
                     "worker SIGKILL",
                 ],
                 "independent_supplier_orders": len(remote_rows),
-                "independent_supplier_pence": 2600,
+                "independent_supplier_cents": 2600,
                 "killed_worker_exit": worker.returncode,
                 "report": report,
                 "manuscript_checkpoint_sha256": hashlib.sha256(
@@ -318,7 +318,7 @@ def day(root, checkpoint_dir):
             (root / "evidence.json").write_text(json.dumps(evidence, indent=2) + "\n")
             print(rendered, end="")
             print(
-                "Independent supplier: 2 orders, 2600 pence; killed worker replaced; "
+                "Independent supplier: 2 orders, 2600 cents; killed worker replaced; "
                 "duplicate delivery receipt counted once."
             )
         finally:

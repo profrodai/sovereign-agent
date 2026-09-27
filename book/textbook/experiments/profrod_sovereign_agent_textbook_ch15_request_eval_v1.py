@@ -39,7 +39,7 @@ class Product:
     on_hand: int
     reserved: int
     target: int
-    unit_pence: int
+    unit_cents: int
 
 
 @dataclass(frozen=True)
@@ -210,7 +210,7 @@ def fulfill(decision: Decision, catalog: tuple[Product, ...]) -> tuple:
     if decision.action == "stock":
         return (("stock", product.sku, product.on_hand, None),)
     quantity = max(0, product.target - product.on_hand + product.reserved)
-    return (("draft", product.sku, quantity, quantity * product.unit_pence),)
+    return (("draft", product.sku, quantity, quantity * product.unit_cents),)
 
 
 def run_case(case: RequestCase, candidate: str, infer, repeat: int = 1) -> dict:

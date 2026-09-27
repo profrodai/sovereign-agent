@@ -12,7 +12,7 @@ Lucy's unattended agent can prepare a useful replenishment draft. She now wants 
 
 In this chapter we will build an exact-proposal approval boundary around the draft tools from [Chapter 9](../ch09/profrod-sovereign-agent-ch09-schedules-stock-events-chapter.md). We will retain the proposed product, quantity, price, destination and approval basis in SQLite. The runtime will recheck those records immediately before a supplier request. A small HTTP supplier in a separate process lets us observe whether a refused action nevertheless reached the other side.
 
-Two failures shape the design. An automatically approved £15 order remained executable after its automatic allowance was reduced to zero. Separately, revising a six-tub proposal into seven tubs left the old six-tub approval alive. Both cases passed ordinary “approve, then send” tests. We will make policy changes and proposal revisions part of the executable contract.
+Two failures shape the design. An automatically approved $15 order remained executable after its automatic allowance was reduced to zero. Separately, revising a six-tub proposal into seven tubs left the old six-tub approval alive. Both cases passed ordinary “approve, then send” tests. We will make policy changes and proposal revisions part of the executable contract.
 
 ## Learning objectives
 
@@ -24,7 +24,7 @@ The deliverable is an approval-controlled write path to the simulated supplier. 
 
 Authentication establishes who contacted the agent. The Telegram adapter admits only configured private operator identities. Authorization establishes what the application may do under its current policy. Exact approval establishes that one particular proposal may proceed during a bounded time window. An operator can be authenticated without having approved the order the model just invented.
 
-Our policy has one automatic-order ceiling and one cumulative account ceiling. The latter includes both confirmed spending and money reserved for eligible orders. It is not a daily allowance: this teaching account retains spending until an explicit administrative recovery or a separately designed budget policy changes it. Model-call budgets remain separate from supplier spending, even though both are expressed in pence for the examples.
+Our policy has one automatic-order ceiling and one cumulative account ceiling. The latter includes both confirmed spending and money reserved for eligible orders. It is not a daily allowance: this teaching account retains spending until an explicit administrative recovery or a separately designed budget policy changes it. Model-call budgets remain separate from supplier spending, even though both are expressed in cents for the examples.
 
 | Record or check | Question it answers | What it does not establish |
 | --- | --- | --- |
@@ -51,7 +51,7 @@ flowchart LR
 
 ## Define the spending policy and fixture
 
-Use integers for monetary values. Floating-point pounds invite rounding disagreements between the proposed total, reservation and receipt. The policy refuses non-positive cumulative ceilings and automatic allowances outside that ceiling. Its default automatic allowance is zero, which makes operator approval the initial path for every positive order.
+Use integers for monetary values. Floating-point dollars invite rounding disagreements between the proposed total, reservation and receipt. The policy refuses non-positive cumulative ceilings and automatic allowances outside that ceiling. Its default automatic allowance is zero, which makes operator approval the initial path for every positive order.
 
 The code listings share one namespace and temporary database. We reuse the durable work queue, database and event log already constructed. A claimed work record supplies the current assignment identity; Chapter 12 will develop its replacement-worker behavior. This chapter constructs the proposal and approval logic rather than replacing those previous mechanisms with an in-memory shopping list.
 
@@ -78,15 +78,15 @@ from sovereign_agent.events import append_event
 @dataclass(frozen=True)
 class SpendingPolicy:
     operators: frozenset[str]
-    total_pence: int = 20_000
-    automatic_order_pence: int = 0
+    total_cents: int = 20_000
+    automatic_order_cents: int = 0
 
     def __post_init__(self) -> None:
-        if not self.operators or type(self.total_pence) is not int or self.total_pence <= 0:
+        if not self.operators or type(self.total_cents) is not int or self.total_cents <= 0:
             raise ValueError("operators and positive spending ceiling required")
         if (
-            type(self.automatic_order_pence) is not int
-            or not 0 <= self.automatic_order_pence <= self.total_pence
+            type(self.automatic_order_cents) is not int
+            or not 0 <= self.automatic_order_cents <= self.total_cents
         ):
             raise ValueError("automatic allowance must fit the total ceiling")
 
@@ -97,10 +97,10 @@ db = Database(location)
 seed_lucy(db)
 enqueue(db, "chapter8:inline", "lucy", "Prepare replenishment orders")
 work = claim(db, "chapter8-builder")
-policy = SpendingPolicy(frozenset({"lucy"}), total_pence=2500)
-automatic_policy = SpendingPolicy(frozenset({"lucy"}), total_pence=2500, automatic_order_pence=2000)
-print("Automatic allowance:", policy.automatic_order_pence)
-print("Cumulative ceiling:", policy.total_pence)
+policy = SpendingPolicy(frozenset({"lucy"}), total_cents=2500)
+automatic_policy = SpendingPolicy(frozenset({"lucy"}), total_cents=2500, automatic_order_cents=2000)
+print("Automatic allowance:", policy.automatic_order_cents)
+print("Cumulative ceiling:", policy.total_cents)
 ```
 
 ```text
@@ -141,9 +141,9 @@ def propose(
         proposal = {
             "sku": sku,
             "quantity": quantity,
-            "unit_cost_pence": cost,
+            "unit_cost_cents": cost,
             "supplier": "lucy-local",
-            "currency": "GBP",
+            "currency": "USD",
         }
         encoded = json.dumps(proposal, sort_keys=True, separators=(",", ":"))
         digest = hashlib.sha256((target + "\n" + encoded).encode()).hexdigest()
@@ -170,7 +170,7 @@ def propose(
                 continue
             if row["status"] == "APPROVED":
                 connection.execute(
-                    "UPDATE assistant_spending SET reserved_pence=reserved_pence-? WHERE id=1",
+                    "UPDATE assistant_spending SET reserved_cents=reserved_cents-? WHERE id=1",
                     (row["amount"],),
                 )
             connection.execute(
@@ -245,22 +245,22 @@ def approve(
             or order["revoked"]
         ):
             raise PermissionError("approval does not match an eligible exact proposal")
-        if automatic and order["amount"] > policy.automatic_order_pence:
+        if automatic and order["amount"] > policy.automatic_order_cents:
             raise PermissionError("exact proposal needs operator approval")
         connection.execute(
-            "INSERT OR IGNORE INTO assistant_spending(id,limit_pence) VALUES (1,?)",
-            (policy.total_pence,),
+            "INSERT OR IGNORE INTO assistant_spending(id,limit_cents) VALUES (1,?)",
+            (policy.total_cents,),
         )
         budget = connection.execute("SELECT * FROM assistant_spending WHERE id=1").fetchone()
         assert budget
         addition = order["amount"] if order["status"] == "DRAFT" else 0
         # A supplied policy cannot silently raise the installed account ceiling.
-        if budget["spent_pence"] + budget["reserved_pence"] + addition > min(
-            budget["limit_pence"], policy.total_pence
+        if budget["spent_cents"] + budget["reserved_cents"] + addition > min(
+            budget["limit_cents"], policy.total_cents
         ):
             raise PermissionError("cumulative spending ceiling reached")
         connection.execute(
-            "UPDATE assistant_spending SET reserved_pence=reserved_pence+? WHERE id=1", (addition,)
+            "UPDATE assistant_spending SET reserved_cents=reserved_cents+? WHERE id=1", (addition,)
         )
         connection.execute(
             "UPDATE assistant_orders SET status='APPROVED',approved_by=?,approved_until=?,"
@@ -292,7 +292,7 @@ def grant(operation, *, automatic=False, selected_policy=policy):
 def balances():
     return tuple(
         db.connection.execute(
-            "SELECT reserved_pence,spent_pence FROM assistant_spending"
+            "SELECT reserved_cents,spent_cents FROM assistant_spending"
         ).fetchone()
     )
 
@@ -326,7 +326,7 @@ SQLite's immediate transaction serializes the read of the current reservation an
 
 Lucy originally had two vanilla tubs and needed six. Before execution, a further sale leaves one tub and the new draft needs seven. The old six-tub approval cannot authorize that new amount. More subtly, leaving both versions eligible would allow the runtime to send six and seven as separate orders while claiming it merely revised a draft.
 
-The transaction in `propose` makes the replacement explicit. It revokes the unsent old record, returns its £15 reservation and creates a fresh £17.50 draft. Repeating the old request later finds the revoked record; it does not resurrect it. The operator must review the new digest and amount before the new record can obtain authority.
+The transaction in `propose` makes the replacement explicit. It revokes the unsent old record, returns its $15 reservation and creates a fresh $17.50 draft. Repeating the old request later finds the revoked record; it does not resurrect it. The operator must review the new digest and amount before the new record can obtain authority.
 
 **Listing:** Change the fixture and inspect both versions.
 
@@ -378,7 +378,7 @@ sequenceDiagram
 
 ## Respect both ceilings and explicit revocation
 
-Now let the policy automatically approve the £17.50 revised order under a £20 automatic limit. Strawberry needs another £11. Each order fits that per-order limit, but the two reservations would total £28.50 against the account's £25 ceiling. Splitting a purchase into smaller proposals must not bypass the aggregate check.
+Now let the policy automatically approve the $17.50 revised order under a $20 automatic limit. Strawberry needs another $11. Each order fits that per-order limit, but the two reservations would total $28.50 against the account's $25 ceiling. Splitting a purchase into smaller proposals must not bypass the aggregate check.
 
 **Listing:** Two individually small orders still share one account ceiling.
 
@@ -421,7 +421,7 @@ def revoke(db: Database, identifier: str, *, actor: str, policy: SpendingPolicy)
         # In-flight/unknown reservations remain held until the supplier resolves them.
         if row["status"] == "APPROVED":
             connection.execute(
-                "UPDATE assistant_spending SET reserved_pence=reserved_pence-? WHERE id=1",
+                "UPDATE assistant_spending SET reserved_cents=reserved_cents-? WHERE id=1",
                 (row["amount"],),
             )
             connection.execute(
@@ -500,22 +500,22 @@ def execute(
         ).fetchone()[0]
         if (
             budget is None
-            or budget["reserved_pence"] < held
-            or budget["spent_pence"] + budget["reserved_pence"]
-            > min(budget["limit_pence"], policy.total_pence)
+            or budget["reserved_cents"] < held
+            or budget["spent_cents"] + budget["reserved_cents"]
+            > min(budget["limit_cents"], policy.total_cents)
             or current["approved_by"] not in policy.operators
             or current["approval_basis"] == "UNKNOWN"
             or (
                 current["approval_basis"] == "AUTOMATIC"
-                and current["amount"] > policy.automatic_order_pence
+                and current["amount"] > policy.automatic_order_cents
             )
         ):
             raise PermissionError("current spending authority or reservation is insufficient")
         expires = connection.execute(
-            "SELECT expires FROM assistant_work WHERE id=? AND cancelled=0", (work.id,)
+            "SELECT expires FROM assistant_work WHERE id=? AND canceled=0", (work.id,)
         ).fetchone()
         if expires is None:
-            raise PermissionError("cancelled work cannot authorize a new send")
+            raise PermissionError("canceled work cannot authorize a new send")
         expires = expires[0]
         if (
             not math.isfinite(supplier.timeout)
@@ -582,7 +582,7 @@ Supplier calls: 0
 Reservation retained after restart: 1750 0
 ```
 
-This is the reproduced policy-change failure with its repair. The old code checked the aggregate ceiling and operator identity but forgot how approval had been obtained. A £15 automatic grant survived reducing the automatic allowance to zero. The corrected checkpoint changes policy after approval and reopens the database before execution. The supplier's call count must remain zero; a raised error after sending would be too late.
+This is the reproduced policy-change failure with its repair. The old code checked the aggregate ceiling and operator identity but forgot how approval had been obtained. A $15 automatic grant survived reducing the automatic allowance to zero. The corrected checkpoint changes policy after approval and reopens the database before execution. The supplier's call count must remain zero; a raised error after sending would be too late.
 
 The `SENDING` update is the local authorization point. A revocation committed before that transaction's checks prevents admission. A revocation after the request has been admitted cannot promise to recall it. The code releases SQLite's lock before performing HTTP so that a slow supplier does not hold the entire local ledger hostage. Chapter 11 examines what happens when the remote outcome is uncertain after that point.
 
@@ -668,7 +668,7 @@ Those are documented design choices. Our interpretation is that the common princ
 
 Run `uv run python book/textbook/checkpoints/profrod_sovereign_agent_ch10_spending_permissions_checkpoint.py` from the repository root. It starts the real simulated HTTP supplier in a separate process with its own SQLite database, then exercises digest mismatch, an untrusted actor, a reduced automatic allowance, expiration, proposal revision and cumulative overspend. These failures must leave the supplier's order table empty before the authorized send.
 
-After the revised seven-tub vanilla order receives explicit approval, the checkpoint performs one request, reuses its receipt on repetition and independently queries the supplier database. The required result is one supplier order, quantity seven, zero reserved pence and 1,750 spent pence. The rejected strawberry alternative must not become a hidden second purchase. A local “approved” status alone cannot satisfy this acceptance condition.
+After the revised seven-tub vanilla order receives explicit approval, the checkpoint performs one request, reuses its receipt on repetition and independently queries the supplier database. The required result is one supplier order, quantity seven, zero reserved cents and 1,750 spent cents. The rejected strawberry alternative must not become a hidden second purchase. A local “approved” status alone cannot satisfy this acceptance condition.
 
 Run the focused regressions with `uv run pytest tests/test_approval_lifecycle.py tests/test_assistant_durability.py -q`. The tests include migration from an older schema and discovery after automatic authority has been reduced. The full gate also executes the chapter's inline code and the separate-process checkpoint. These are deterministic authority tests; changing the language model cannot make an unauthorized call acceptable.
 

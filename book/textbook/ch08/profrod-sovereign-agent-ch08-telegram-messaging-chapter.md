@@ -158,7 +158,7 @@ class LocalBot:
 def update(
     identifier,
     actor=123,
-    text="Prepare replenishment drafts from current stock. State GBP amounts.",
+    text="Prepare replenishment drafts from current stock. State USD amounts.",
 ):
     return {
         "update_id": identifier,
@@ -829,7 +829,7 @@ uv run python book/textbook/appendices/profrod_sovereign_agent_textbook_telegram
 
 The helper is a setup instrument, not automatic enrollment. Its challenge demonstrates control of the private account that sent it to this bot, assuming the challenge remains under your control. A display name is insufficient. If multiple identities return the same challenge, setup refuses and requires a new challenge. After reviewing the identifier, place it in the operator environment setting and keep that setting operator-owned.
 
-Now send the stock request from your phone: “Prepare replenishment drafts from current stock. State GBP amounts.” Run one bounded channel pass using a persistent, dedicated test directory:
+Now send the stock request from your phone: “Prepare replenishment drafts from current stock. State USD amounts.” Run one bounded channel pass using a persistent, dedicated test directory:
 
 ```bash
 uv run python book/textbook/checkpoints/profrod_sovereign_agent_ch08_telegram_messaging_checkpoint.py --telegram --root /tmp/lucy-phone-test

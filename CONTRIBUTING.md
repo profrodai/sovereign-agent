@@ -75,7 +75,7 @@ fixtures, or session artifacts.
   separately; this repository builds no site of its own.
 - Verification scripts: `scripts/`
 - Rulings and reference notes: `docs/` — much of it documents the 0.x line and
-  is labelled as historical.
+  is labeled as historical.
 
 Anything in `sovereign_agent.__all__` is part of the public contract, and
 `scripts/verify_source_budget.py` enforces a cap on it. Changing that surface

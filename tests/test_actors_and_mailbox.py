@@ -110,7 +110,7 @@ def test_reviewer_cannot_review_work_it_performed(tmp_path: Path) -> None:
     outcome_id = str(org.db.connection.execute("SELECT id FROM outcomes").fetchone()["id"])
     sow_id = org.sows_for(outcome_id)[0].id
     assert "operator-course" in org.performers_for(outcome_id)
-    # The operator is refused on role authority alone -- defence in depth.
+    # The operator is refused on role authority alone -- defense in depth.
     with pytest.raises(Refusal, match="Role operator attempted review"):
         org.review(sow_id, "operator-course")
 

@@ -41,8 +41,8 @@ def test_empty_history_has_no_fabricated_acceptance_or_invoice(db):
     result = operating_report(db)
     assert result["orders"] == {} and result["work"] == {}
     assert result["spending"] == {
-        "accepted_pence": 0,
-        "reserved_pence": 0,
+        "accepted_cents": 0,
+        "reserved_cents": 0,
         "order_totals_match": True,
     }
     assert result["model_usage"]["history_complete"] is None
@@ -55,8 +55,8 @@ def test_approved_order_is_reserved_exposure_not_delivered_stock(db):
     approval(db)
     result = operating_report(db)
     assert result["spending"] == {
-        "accepted_pence": 0,
-        "reserved_pence": 1500,
+        "accepted_cents": 0,
+        "reserved_cents": 1500,
         "order_totals_match": True,
     }
     vanilla = next(row for row in result["stock"] if row["sku"] == "SKU-VANILLA")
@@ -79,13 +79,13 @@ def test_unknown_effect_and_delivery_cannot_disappear_in_fluent_result(db):
     from sovereign_agent.assistant_service import health
 
     assert health(db)["uncertain_deliveries"] == 1
-    assert "GBP 15.00" in result["text"] and "All complete" not in result["text"]
+    assert "USD 15.00" in result["text"] and "All complete" not in result["text"]
     assert result["spending"]["order_totals_match"] is True
 
 
 def test_accounting_disagreement_is_explicit(db):
     approval(db)
-    db.connection.execute("UPDATE assistant_spending SET reserved_pence=1499")
+    db.connection.execute("UPDATE assistant_spending SET reserved_cents=1499")
     db.connection.commit()
     result = operating_report(db)
     assert result["spending"]["order_totals_match"] is False
@@ -99,7 +99,7 @@ def test_failed_model_reservation_and_incomplete_history_are_retained(db):
     db.connection.commit()
     result = operating_report(db)
     assert result["model_usage"]["reserved_calls"] == 1
-    assert result["model_usage"]["estimated_pence"] == 7
+    assert result["model_usage"]["estimated_cents"] == 7
     assert result["model_usage"]["history_complete"] is False
     assert any("incomplete" in item for item in result["exceptions"])
 
@@ -148,7 +148,7 @@ def test_cli_prints_ledger_report_without_a_model_call(db, capsys):
     approval(db)
     assert main(["agent", "report", "--root", str(db.path.parent)]) == 0
     output = capsys.readouterr().out
-    assert "Lucy's operating report" in output and "GBP 15.00" in output
+    assert "Lucy's operating report" in output and "USD 15.00" in output
     assert db.connection.execute("SELECT sum(model_calls) FROM assistant_daily").fetchone()[0] == 0
 
 

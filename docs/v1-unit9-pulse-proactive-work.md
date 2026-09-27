@@ -377,7 +377,7 @@ pristine state (`diff`) before restoring, and green was re-confirmed.
    (`pulse_origin_for_sow` returned `None` for a freshly created manual
    SOW — the exact "absence of a row means manual" shape the governing
    ruling forbids). Restored.
-4. **Pulse behaviour inserted into `Supervisor.tick()`** — a call to
+4. **Pulse behavior inserted into `Supervisor.tick()`** — a call to
    `run_pulse_once` was added inside `tick()`. Unit 8's own existing test
    (`test_tick_never_creates_a_new_outcome_sow_or_assignment`) stayed
    green, because it runs against a completely empty organization with no

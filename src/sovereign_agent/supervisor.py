@@ -258,7 +258,7 @@ def run(org: Organization, *, once: bool, interval: float = TICK_INTERVAL_SECOND
     ordinary interruption (SIGINT / Ctrl-C, or `KeyboardInterrupt` raised
     directly) asks it to stop -- caught here, not left to crash with a
     traceback, because an operator stopping the supervisor is expected
-    behaviour, not a defect. No hidden daemonization: this function never
+    behavior, not a defect. No hidden daemonization: this function never
     forks, never detaches from its controlling terminal, and never installs
     itself as an OS service -- that remains explicitly out of scope (see the
     governing doc's non-goals).

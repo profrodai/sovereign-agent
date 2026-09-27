@@ -30,7 +30,7 @@ Scope, deliberately narrow:
   connection in one block and reuses it three blocks later). The namespace
   resets at the start of every new chapter. A later block reassigning a name
   an earlier block already used (rebinding `outcome["state"]`, redefining a
-  function) is ordinary `exec()`-into-one-dict behaviour and needs no special
+  function) is ordinary `exec()`-into-one-dict behavior and needs no special
   handling: the dict is simply updated in place.
 - An exception escaping a python block is a hard failure for that block. A
   python block that deliberately raises and catches its OWN exception inline
@@ -273,7 +273,7 @@ def check_chapter(readme: Path) -> tuple[int, int, list[str]]:
             # run that never finished -- skip the pair check for this block
             # and move on to the next python block in the same chapter. The
             # namespace already holds whatever the block managed to define
-            # before raising, matching real REPL behaviour.
+            # before raising, matching real REPL behavior.
             continue
         except BaseException as error:  # noqa: BLE001 - catches GeneratorExit and anything
             # else that is a BaseException but neither KeyboardInterrupt (re-raised above,

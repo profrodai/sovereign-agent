@@ -15,7 +15,7 @@ Construct the operating report from one read snapshot: independently query work,
 Unit A: **Construct acceptance**. Unit B: **Break, repair and transfer acceptance**. Allocate ninety minutes to each,
 excluding installation. Use both for the complete three-hour chapter practice. Each notebook
 is independently runnable and includes all required introductions. A learner who starts with
-Unit B uses a labelled reference artifact unless they explicitly select their Unit A work.
+Unit B uses a labeled reference artifact unless they explicitly select their Unit A work.
 Record that provenance; a reference start is useful study, not evidence of earlier construction.
 
 ## Prepare and rehearse
@@ -79,7 +79,7 @@ an explicitly adapted, still-unique mutation anchor; do not silently mutate a di
 
 ## Changed-case prompt and remediation
 
-Test an empty account, exact matching reservation, one-pence mismatch, paused operation and incomplete usage history. Treat observed_at as a run observation.
+Test an empty account, exact matching reservation, one-cents mismatch, paused operation and incomplete usage history. Treat observed_at as a run observation.
 
 For a shape/type error, return to the smallest validation example. For an incorrect calculation,
 write the quantities before discussing code. For a state error, draw before/event/after rows and

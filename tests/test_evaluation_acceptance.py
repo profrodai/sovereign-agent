@@ -13,13 +13,13 @@ def test_incorrect_prose_amount_remains_an_explicit_review_requirement():
         def complete(self, *args, **kwargs):
             turn = super().complete(*args, **kwargs)
             return ModelTurn(
-                turn.content.replace("1500 pence GBP", "999999 pence GBP"),
+                turn.content.replace("1500 cents USD", "999999 cents USD"),
                 turn.calls,
                 turn.output_tokens,
             )
 
     report = evaluate(WrongAmount, cases=(CASES[0],))
-    assert "999999 pence GBP" in report["cases"][0]["answer"]
+    assert "999999 cents USD" in report["cases"][0]["answer"]
     assert report["passed"] is True  # The grader's declared blind spot is reproducible.
     assert report["acceptance"]["status"] == "REVIEW_REQUIRED"
     assert "explanation amounts" in report["acceptance"]["ungraded"]

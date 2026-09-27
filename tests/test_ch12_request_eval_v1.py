@@ -96,7 +96,7 @@ def test_model_receives_only_request_and_catalog_and_observed_usage_returns():
                 "on_hand": 2,
                 "reserved": 0,
                 "target": 8,
-                "unit_pence": 250,
+                "unit_cents": 250,
             }
         ],
     }

@@ -29,7 +29,7 @@ The status still prints. Outcomes and SOWs are read from SQLite
 reads `governance/outcomes/**/outcome.json` back. It is written and never
 consulted.
 
-**Claim 2 — editing `sovereign.toml` does change behaviour.**
+**Claim 2 — editing `sovereign.toml` does change behavior.**
 
 Change a `provider = ` line and reopen the organization; the actor comes back
 with the new provider. `load_actors` parses that file on every open.
@@ -38,7 +38,7 @@ with the new provider. `load_actors` parses that file on every open.
 
 | Data | Canonical home | Why |
 | --- | --- | --- |
-| Actor definitions, roles, providers | `sovereign.toml` | Read on every open. Editing it changes behaviour. Committed, reviewable, diffable. |
+| Actor definitions, roles, providers | `sovereign.toml` | Read on every open. Editing it changes behavior. Committed, reviewable, diffable. |
 | Repository product rulings | `docs/rulings/*.md` | Human decisions, committed and reviewed. Canonical in files. |
 | Runtime organization rulings | **SQLite** (`rulings`), projected to `governance/rulings/` | `Organization.rule()` records a decision made by an actor inside a running organization. Operational state; the files are a projection. |
 | Outcomes, SOWs, assignments, evidence, acceptance | **SQLite** | Read on every operation. These carry mutable execution state. |
@@ -84,7 +84,7 @@ it. When they disagree, the database wins and the projection is regenerated —
 never the reverse. Drift detection therefore reconciles *toward* the database.
 
 A stronger property (an outbox, replayed on next open) is buildable, and is
-deliberately out of scope for Unit 6.5. The honest half-door is labelled rather
+deliberately out of scope for Unit 6.5. The honest half-door is labeled rather
 than disguised.
 
 

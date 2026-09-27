@@ -26,9 +26,9 @@ class Proposal(BaseModel):
     model_config = ConfigDict(extra="forbid", strict=True)
     sku: str = Field(min_length=1, max_length=100)
     quantity: int = Field(gt=0, le=1000)
-    unit_cost_pence: int = Field(gt=0, le=100_000)
+    unit_cost_cents: int = Field(gt=0, le=100_000)
     supplier: str = Field(pattern="^lucy-local$")
-    currency: str = Field(pattern="^GBP$")
+    currency: str = Field(pattern="^USD$")
 
 
 class SupplierClient:

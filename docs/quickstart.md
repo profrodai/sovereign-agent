@@ -112,7 +112,7 @@ uv run sovereign-agent inspect --root /tmp/andrea-shift
 Inventory now reads `LOW`, and the outcome still reads `ACCEPTED` — because that
 records a decision that was made, while the shelf is empty.
 
-If you want the machine-checked version of that judgement, the repository ships
+If you want the machine-checked version of that judgment, the repository ships
 the release gate that catches exactly this:
 
 ```bash

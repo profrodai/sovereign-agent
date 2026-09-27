@@ -107,7 +107,7 @@ def scan(db: Database, *, now: float | None = None, maximum: int = 100) -> list[
                     f"stock-condition:{condition['id']}:{generation}",
                     condition["session"],
                     f"Prepare a replenishment draft for {condition['subject']} from current stock. "
-                    "State GBP amounts.",
+                    "State USD amounts.",
                     now,
                     condition["channel"],
                     condition["recipient"],

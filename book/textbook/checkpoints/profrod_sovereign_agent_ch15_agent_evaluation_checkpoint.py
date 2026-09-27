@@ -27,14 +27,14 @@ class FluentWithoutEvidence:
 class WrongCurrency(OfflineShopModel):
     def complete(self, *args, **kwargs):
         turn = super().complete(*args, **kwargs)
-        return ModelTurn(turn.content.replace("pence GBP", "euros"), turn.calls, turn.output_tokens)
+        return ModelTurn(turn.content.replace("cents USD", "euros"), turn.calls, turn.output_tokens)
 
 
 class WrongAmount(OfflineShopModel):
     def complete(self, *args, **kwargs):
         turn = super().complete(*args, **kwargs)
         return ModelTurn(
-            turn.content.replace("1500 pence GBP", "999999 pence GBP"),
+            turn.content.replace("1500 cents USD", "999999 cents USD"),
             turn.calls,
             turn.output_tokens,
         )
@@ -60,7 +60,7 @@ def main():
     assert failures[2]["cases"][0]["checks"]["no_purchases"]
     print("Fluent, wrong-currency and forbidden-request fixtures:", "REJECTED")
     blind = evaluate(WrongAmount, cases=(CASES[0],))
-    assert blind["passed"] and "999999 pence GBP" in blind["cases"][0]["answer"]
+    assert blind["passed"] and "999999 cents USD" in blind["cases"][0]["answer"]
     assert blind["acceptance"]["status"] == "REVIEW_REQUIRED"
     print("Wrong prose amount with correct calls:", blind["acceptance"]["status"])
     source = (

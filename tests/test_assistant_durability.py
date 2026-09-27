@@ -70,7 +70,7 @@ def order_context(tmp_path, target="lucy-local"):
 
 def test_exact_approval_and_cumulative_reservation(tmp_path):
     db, work, identifier, digest = order_context(tmp_path)
-    policy = SpendingPolicy(frozenset({"lucy"}), total_pence=2000)
+    policy = SpendingPolicy(frozenset({"lucy"}), total_cents=2000)
     with pytest.raises(PermissionError):
         approve(db, identifier, "changed", actor="lucy", policy=policy, expires=time.time() + 60)
     with pytest.raises(PermissionError):
@@ -84,10 +84,10 @@ def test_exact_approval_and_cumulative_reservation(tmp_path):
     with pytest.raises(PermissionError):
         approve(db, second, second_digest, actor="lucy", policy=policy, expires=time.time() + 60)
     assert (
-        db.connection.execute("SELECT reserved_pence FROM assistant_spending").fetchone()[0] == 1500
+        db.connection.execute("SELECT reserved_cents FROM assistant_spending").fetchone()[0] == 1500
     )
     revoke(db, identifier, actor="lucy", policy=policy)
-    assert db.connection.execute("SELECT reserved_pence FROM assistant_spending").fetchone()[0] == 0
+    assert db.connection.execute("SELECT reserved_cents FROM assistant_spending").fetchone()[0] == 0
 
 
 @pytest.fixture
@@ -143,7 +143,7 @@ def test_lost_supplier_response_then_restart_never_duplicates(tmp_path, supplier
     with sqlite3.connect(supplier_path) as connection:
         assert connection.execute("SELECT count(*) FROM orders").fetchone()[0] == 1
     budget = replacement_db.connection.execute("SELECT * FROM assistant_spending").fetchone()
-    assert (budget["reserved_pence"], budget["spent_pence"]) == (0, 1500)
+    assert (budget["reserved_cents"], budget["spent_cents"]) == (0, 1500)
 
 
 def test_revocation_still_reconciles_already_accepted_order(tmp_path, supplier):
@@ -154,7 +154,7 @@ def test_revocation_still_reconciles_already_accepted_order(tmp_path, supplier):
     assert execute(db, work, identifier, client, policy=policy)["status"] == "UNKNOWN"
     revoke(db, identifier, actor="lucy", policy=policy)
     assert (
-        db.connection.execute("SELECT reserved_pence FROM assistant_spending").fetchone()[0] == 1500
+        db.connection.execute("SELECT reserved_cents FROM assistant_spending").fetchone()[0] == 1500
     )
     assert execute(db, work, identifier, client, policy=policy)["status"] == "ACCEPTED"
 

@@ -6,12 +6,12 @@ from sovereign_agent.errors import Refusal
 from sovereign_agent.models import AssignmentState, OutcomeState, Role, SowState
 
 OUTCOME_TRANSITIONS: dict[OutcomeState, set[OutcomeState]] = {
-    OutcomeState.PROPOSED: {OutcomeState.ACTIVE, OutcomeState.CANCELLED},
+    OutcomeState.PROPOSED: {OutcomeState.ACTIVE, OutcomeState.CANCELED},
     OutcomeState.ACTIVE: {
         OutcomeState.VERIFYING,
         OutcomeState.BLOCKED,
         OutcomeState.FAILED,
-        OutcomeState.CANCELLED,
+        OutcomeState.CANCELED,
     },
     OutcomeState.VERIFYING: {
         OutcomeState.ACCEPTED,
@@ -19,7 +19,7 @@ OUTCOME_TRANSITIONS: dict[OutcomeState, set[OutcomeState]] = {
         OutcomeState.FAILED,
         OutcomeState.BLOCKED,
     },
-    OutcomeState.BLOCKED: {OutcomeState.ACTIVE, OutcomeState.CANCELLED, OutcomeState.FAILED},
+    OutcomeState.BLOCKED: {OutcomeState.ACTIVE, OutcomeState.CANCELED, OutcomeState.FAILED},
 }
 
 SOW_TRANSITIONS: dict[SowState, set[SowState]] = {

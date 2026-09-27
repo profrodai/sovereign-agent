@@ -309,7 +309,7 @@ def adapt_legacy(unit, instructor):
                 ),
                 (
                     "A selected learner handoff must validate; the default refe"
-                    "rence start is labelled separately."
+                    "rence start is labeled separately."
                 ),
             )
             cell.source = cell.source.replace(
@@ -611,7 +611,7 @@ to fix. The task below names which interface it uses.
 
 For direct-function units, the visible driver calls your callback without installing a source
 string. In either case, trace where your code is invoked. Supplied fixtures, database wrappers and
-replay models are labelled infrastructure; your own implementation and changed-case explanation
+replay models are labeled infrastructure; your own implementation and changed-case explanation
 are the evidence of learning.
 """)
     ]
@@ -647,9 +647,9 @@ if TRANSFER_PASSED:
     def reservation_draft(quantity):
         if quantity != transfer_check(reservation_row):
             raise ValueError("quantity differs from current sellable-stock need")
-        return {"quantity": quantity, "total_pence": quantity * 325, "status": "DRAFT"}
+        return {"quantity": quantity, "total_cents": quantity * 325, "status": "DRAFT"}
     assert reservation_stock()["needed"] == 6
-    assert reservation_draft(6)["total_pence"] == 1950
+    assert reservation_draft(6)["total_cents"] == 1950
     try:
         reservation_draft(4)
     except ValueError:

@@ -15,7 +15,7 @@ Inspect response envelopes and exact shop snapshots, connect the learner reader 
 Unit A: **Build a grounded morning brief**. Unit B: **Put prompts inside a harness**. Allocate ninety minutes to each,
 excluding installation. Use both for the complete three-hour chapter practice. Each notebook
 is independently runnable and includes all required introductions. A learner who starts with
-Unit B uses a labelled reference artifact unless they explicitly select their Unit A work.
+Unit B uses a labeled reference artifact unless they explicitly select their Unit A work.
 Record that provenance; a reference start is useful study, not evidence of earlier construction.
 
 ## Prepare and rehearse
@@ -66,7 +66,7 @@ its own contract and visible feedback. Reveal instructor code only after collect
 
 Unit A must inspect the response from the outside in. Accept only one `finish_reason="stop"` choice containing an assistant message, no tool request or refusal, and nonempty string content. The reader returns text; it does not certify the claims inside that text.
 
-Unit B derives the required SKU set from shop records, checks uniqueness before any dictionary conversion, rejects booleans as quantities, validates exact keys, recalculates quantities and cost, and keeps the explanation labelled unverified. The original shop total is 2,600 pence. Adding four Lime tubs at 225 pence produces 3,500 pence, so the transfer must deliberately raise the host estimate limit to 4,000 rather than silently changing arithmetic.
+Unit B derives the required SKU set from shop records, checks uniqueness before any dictionary conversion, rejects booleans as quantities, validates exact keys, recalculates quantities and cost, and keeps the explanation labeled unverified. The original shop total is 2,600 cents. Adding four Lime tubs at 225 cents produces 3,500 cents, so the transfer must deliberately raise the host estimate limit to 4,000 rather than silently changing arithmetic.
 
 The hostile note remains data. A model may follow it, but `validate_draft` refuses `action="purchase"` and the out-of-policy quantity. No purchase capability exists in this chapter.
 

@@ -38,7 +38,7 @@ def _orders(
         if policy is None:
             continue
         if automatic and order["status"] == "DRAFT" and not order["revoked"]:
-            if order["amount"] <= policy.automatic_order_pence:
+            if order["amount"] <= policy.automatic_order_cents:
                 try:
                     assistant_orders.approve(
                         db,
@@ -68,13 +68,13 @@ def _orders(
         "SELECT * FROM assistant_orders WHERE work_id=? ORDER BY created,id", (work.id,)
     ).fetchall()
     pending = any(row["status"] in {"DRAFT", "APPROVED", "SENDING", "UNKNOWN"} for row in rows)
-    cancelled = db.connection.execute(
-        "SELECT cancelled FROM assistant_work WHERE id=?", (work.id,)
+    canceled = db.connection.execute(
+        "SELECT canceled FROM assistant_work WHERE id=?", (work.id,)
     ).fetchone()[0]
-    state = "BLOCKED" if pending else ("CANCELLED" if cancelled else "DONE")
+    state = "BLOCKED" if pending else ("CANCELED" if canceled else "DONE")
     lines = ["Recorded order outcomes:"]
     for row in rows:
-        lines.append(f"Order {row['id']}: {row['status']}, {row['amount']} pence.")
+        lines.append(f"Order {row['id']}: {row['status']}, {row['amount']} cents.")
         if row["status"] == "DRAFT":
             lines.append(f"Approval required: /approve {row['id']} {row['digest']}")
         elif row["status"] in {"SENDING", "UNKNOWN"}:
@@ -82,7 +82,7 @@ def _orders(
                 "Supplier outcome unresolved; spending remains reserved. "
                 "Obtain a conclusive supplier receipt and use agent resolve-order."
             )
-            if supplier.idempotent and not row["revoked"] and not cancelled:
+            if supplier.idempotent and not row["revoked"] and not canceled:
                 lines.append(f"Renew the same operation only: /approve {row['id']} {row['digest']}")
     answer = "\n".join(lines)
     assistant_work.finish(db, work, state, answer)
@@ -184,8 +184,8 @@ def run_once(
                 return {
                     "sku": args.sku,
                     "quantity": args.quantity,
-                    "total_pence": order["amount"],
-                    "currency": "GBP",
+                    "total_cents": order["amount"],
+                    "currency": "USD",
                     "status": order["status"],
                     "order": identifier,
                     "digest": order["digest"],
@@ -231,7 +231,7 @@ def run_once(
             check_current=lambda: assistant_work.assert_current(db.connection, work),
             should_stop=should_stop,
             reserve_call=lambda: assistant_work.reserve_model_call(
-                db, work, limits.estimated_call_pence
+                db, work, limits.estimated_call_cents
             ),
         )
         if work.subject and result.status == "COMPLETED":

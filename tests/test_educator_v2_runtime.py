@@ -105,7 +105,7 @@ def test_assessment_diagnostics_remain_serializable_and_preserve_mutation(chapte
         (10, "('work', 'owner', 'generation', 'epoch')", "('work', 'owner', 'generation')"),
         (10, "current['status'] == 'RUNNING'", "True"),
         (11, "set(case['registered'])", "set(case['requested'])"),
-        (12, "row['total_pence']", "1500"),
+        (12, "row['total_cents']", "1500"),
         (13, "!= case['current_generation']", "< case['current_generation']"),
         (14, "1 <= guests <= 200", "1 < guests < 200"),
         (14, "type(guests) is not int", "not isinstance(guests, (int, float))"),
@@ -189,13 +189,13 @@ def test_chapter3_student_model_changes_actual_loop_observations(monkeypatch):
             if "def integrate_student" in source:
                 break
     try:
-        limits = scope["Limits"](model_calls=2, estimated_call_pence=5)
+        limits = scope["Limits"](model_calls=2, estimated_call_cents=5)
         replay = scope["integrate_student"](scope["ReplayModel"](scope["opening_turns"]()), limits)
         assert (
             replay["stop_reason"],
             replay["model_calls"],
             replay["tool_calls"],
-            replay["estimated_pence"],
+            replay["estimated_cents"],
         ) == ("MODEL_CALL_LIMIT", 2, 3, 10)
         assert len(replay["tool_evidence"]) == 3
 
@@ -208,7 +208,7 @@ def test_chapter3_student_model_changes_actual_loop_observations(monkeypatch):
             failed["stop_reason"],
             failed["model_calls"],
             failed["tool_calls"],
-            failed["estimated_pence"],
+            failed["estimated_cents"],
         ) == ("MODEL_FAILED", 1, 0, 5)
         assert failed["tool_evidence"] == []
     finally:

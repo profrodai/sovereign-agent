@@ -18,15 +18,15 @@ from sovereign_agent.events import append_event
 @dataclass(frozen=True)
 class SpendingPolicy:
     operators: frozenset[str]
-    total_pence: int = 20_000
-    automatic_order_pence: int = 0
+    total_cents: int = 20_000
+    automatic_order_cents: int = 0
 
     def __post_init__(self) -> None:
-        if not self.operators or type(self.total_pence) is not int or self.total_pence <= 0:
+        if not self.operators or type(self.total_cents) is not int or self.total_cents <= 0:
             raise ValueError("operators and positive spending ceiling required")
         if (
-            type(self.automatic_order_pence) is not int
-            or not 0 <= self.automatic_order_pence <= self.total_pence
+            type(self.automatic_order_cents) is not int
+            or not 0 <= self.automatic_order_cents <= self.total_cents
         ):
             raise ValueError("automatic allowance must fit the total ceiling")
 
@@ -64,9 +64,9 @@ def propose(
         proposal = {
             "sku": sku,
             "quantity": quantity,
-            "unit_cost_pence": cost,
+            "unit_cost_cents": cost,
             "supplier": "lucy-local",
-            "currency": "GBP",
+            "currency": "USD",
         }
         encoded = json.dumps(proposal, sort_keys=True, separators=(",", ":"))
         digest = hashlib.sha256((target + "\n" + encoded).encode()).hexdigest()
@@ -93,7 +93,7 @@ def propose(
                 continue
             if row["status"] == "APPROVED":
                 connection.execute(
-                    "UPDATE assistant_spending SET reserved_pence=reserved_pence-? WHERE id=1",
+                    "UPDATE assistant_spending SET reserved_cents=reserved_cents-? WHERE id=1",
                     (row["amount"],),
                 )
             connection.execute(
@@ -143,10 +143,10 @@ def approve(
             raise PermissionError("approval does not match an eligible exact proposal")
         _operator_state(db)
         work = connection.execute(
-            "SELECT cancelled FROM assistant_work WHERE id=?", (order["work_id"],)
+            "SELECT canceled FROM assistant_work WHERE id=?", (order["work_id"],)
         ).fetchone()
-        if work["cancelled"]:
-            raise PermissionError("cancelled work cannot gain new approval")
+        if work["canceled"]:
+            raise PermissionError("canceled work cannot gain new approval")
         if order["status"] in {"SENDING", "UNKNOWN"} and (
             automatic
             or supplier is None
@@ -156,22 +156,22 @@ def approve(
             raise PermissionError(
                 "uncertain retry needs explicit approval and matching idempotent supplier"
             )
-        if automatic and order["amount"] > policy.automatic_order_pence:
+        if automatic and order["amount"] > policy.automatic_order_cents:
             raise PermissionError("exact proposal needs operator approval")
         connection.execute(
-            "INSERT OR IGNORE INTO assistant_spending(id,limit_pence) VALUES (1,?)",
-            (policy.total_pence,),
+            "INSERT OR IGNORE INTO assistant_spending(id,limit_cents) VALUES (1,?)",
+            (policy.total_cents,),
         )
         budget = connection.execute("SELECT * FROM assistant_spending WHERE id=1").fetchone()
         assert budget
         addition = order["amount"] if order["status"] == "DRAFT" else 0
         # A supplied policy cannot silently raise the installed account ceiling.
-        if budget["spent_pence"] + budget["reserved_pence"] + addition > min(
-            budget["limit_pence"], policy.total_pence
+        if budget["spent_cents"] + budget["reserved_cents"] + addition > min(
+            budget["limit_cents"], policy.total_cents
         ):
             raise PermissionError("cumulative spending ceiling reached")
         connection.execute(
-            "UPDATE assistant_spending SET reserved_pence=reserved_pence+? WHERE id=1", (addition,)
+            "UPDATE assistant_spending SET reserved_cents=reserved_cents+? WHERE id=1", (addition,)
         )
         connection.execute(
             "UPDATE assistant_orders SET status=CASE WHEN status IN ('SENDING','UNKNOWN') "
@@ -199,7 +199,7 @@ def revoke(db: Database, identifier: str, *, actor: str, policy: SpendingPolicy)
         # In-flight/unknown reservations remain held until the supplier resolves them.
         if row["status"] == "APPROVED":
             connection.execute(
-                "UPDATE assistant_spending SET reserved_pence=reserved_pence-? WHERE id=1",
+                "UPDATE assistant_spending SET reserved_cents=reserved_cents-? WHERE id=1",
                 (row["amount"],),
             )
             connection.execute(
@@ -244,8 +244,8 @@ def _settle(db: Database, row: Any, receipt: dict[str, Any]) -> dict[str, Any]:
         ("CONFIRMED" if accepted else "REJECTED", json.dumps(receipt), identifier),
     )
     connection.execute(
-        "UPDATE assistant_spending SET reserved_pence=reserved_pence-?,"
-        "spent_pence=spent_pence+? WHERE id=1",
+        "UPDATE assistant_spending SET reserved_cents=reserved_cents-?,"
+        "spent_cents=spent_cents+? WHERE id=1",
         (row["amount"], row["amount"] if accepted else 0),
     )
     append_event(
@@ -307,7 +307,7 @@ def resolve(
             )
             connection.execute(
                 "UPDATE assistant_work SET status='READY',available_after=0 "
-                "WHERE id=? AND status IN ('BLOCKED','CANCELLED')",
+                "WHERE id=? AND status IN ('BLOCKED','CANCELED')",
                 (row["work_id"],),
             )
         return result
@@ -353,22 +353,22 @@ def execute(
         ).fetchone()[0]
         if (
             budget is None
-            or budget["reserved_pence"] < held
-            or budget["spent_pence"] + budget["reserved_pence"]
-            > min(budget["limit_pence"], policy.total_pence)
+            or budget["reserved_cents"] < held
+            or budget["spent_cents"] + budget["reserved_cents"]
+            > min(budget["limit_cents"], policy.total_cents)
             or current["approved_by"] not in policy.operators
             or current["approval_basis"] == "UNKNOWN"
             or (
                 current["approval_basis"] == "AUTOMATIC"
-                and current["amount"] > policy.automatic_order_pence
+                and current["amount"] > policy.automatic_order_cents
             )
         ):
             raise PermissionError("current spending authority or reservation is insufficient")
         expires = connection.execute(
-            "SELECT expires FROM assistant_work WHERE id=? AND cancelled=0", (work.id,)
+            "SELECT expires FROM assistant_work WHERE id=? AND canceled=0", (work.id,)
         ).fetchone()
         if expires is None:
-            raise PermissionError("cancelled work cannot authorize a new send")
+            raise PermissionError("canceled work cannot authorize a new send")
         expires = expires[0]
         if (
             not math.isfinite(supplier.timeout)

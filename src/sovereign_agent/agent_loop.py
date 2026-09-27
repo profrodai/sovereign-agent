@@ -22,13 +22,13 @@ class Limits:
     context_bytes: int = 32_768
     output_tokens: int = 1_024
     total_output_tokens: int = 4_096
-    estimated_call_pence: int = 0
-    model_budget_pence: int = 100
+    estimated_call_cents: int = 0
+    model_budget_cents: int = 100
 
     def __post_init__(self) -> None:
-        if type(self.estimated_call_pence) is not int or self.estimated_call_pence < 0:
+        if type(self.estimated_call_cents) is not int or self.estimated_call_cents < 0:
             raise ValueError("nonnegative integral model estimate required")
-        if type(self.model_budget_pence) is not int or self.model_budget_pence < 1:
+        if type(self.model_budget_cents) is not int or self.model_budget_cents < 1:
             raise ValueError("positive integral model budget required")
         if not math.isfinite(self.seconds):
             raise ValueError("finite loop duration required")
@@ -63,7 +63,7 @@ class LoopResult:
     model_calls: int
     tool_calls: int
     output_tokens: int
-    estimated_cost_pence: int
+    estimated_cost_cents: int
 
 
 def run_loop(
@@ -112,11 +112,11 @@ def run_loop(
         try:
             if check_current:
                 check_current()
-            if exposure + limits.estimated_call_pence > limits.model_budget_pence:
+            if exposure + limits.estimated_call_cents > limits.model_budget_cents:
                 return finish("MODEL_COST_LIMIT")
             if reserve_call:
                 reserve_call()
-            exposure += limits.estimated_call_pence
+            exposure += limits.estimated_call_cents
             model_count += 1
             turn = model.complete(
                 copy.deepcopy(transcript),
