@@ -26,7 +26,7 @@ The edition has nineteen chapter slots. **Eighteen chapters currently have two n
 | 8 | [Talk to the agent from your phone](ch08/profrod-sovereign-agent-ch08-telegram-messaging-solutions-guide.md) | Available draft — A and B, 90 minutes each |
 | 9 | [Wake up for schedules and stock events](ch09/profrod-sovereign-agent-ch09-schedules-stock-events-solutions-guide.md) | Available draft — A and B, 90 minutes each |
 | 10 | [Ask permission before spending](ch10/profrod-sovereign-agent-ch10-spending-permissions-solutions-guide.md) | Available draft — A and B, 90 minutes each |
-| 11 | [Survive the ambiguous supplier order](ch11/profrod-sovereign-agent-ch11-ambiguous-supplier-order-solutions-guide.md) | Available draft — A and B, 90 minutes each |
+| 11 | [Exactly one order: lost replies, retries and idempotency](ch11/profrod-sovereign-agent-ch11-ambiguous-supplier-order-solutions-guide.md) | Available draft — A and B, 90 minutes each |
 | 12 | [Recover work after a process crash](ch12/profrod-sovereign-agent-ch12-worker-recovery-solutions-guide.md) | Available draft — A and B, 90 minutes each |
 | 13 | [Build an MCP client and tool server](ch13/profrod-sovereign-agent-ch13-mcp-tools-solutions-guide.md) | PLANNED — brief only |
 | 14 | [Prompt injection and isolation: words steer the model, boundaries hold](ch14/profrod-sovereign-agent-ch14-tool-isolation-solutions-guide.md) | Available draft — A and B, 90 minutes each |
