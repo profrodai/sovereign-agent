@@ -1,4 +1,4 @@
-# Chapter 2: Give the agent reliable shop tools
+# Chapter 2: Structured output and typed tools: what a schema guarantees
 
 > **Learn with Prof Rod** — *Build Your Always-On AI Agent From Scratch*.
 > **Read the full book and get the latest learning materials:** [https://profrod.ai/book](https://profrod.ai/book).
@@ -13,9 +13,9 @@ Retain your own attempt before reading these worked solutions. Explain the reaso
 | Session | Notebook | Matching text | Purpose |
 |---|---|---|---|
 | A · 90 minutes | [A: pydantic shop tools](profrod-sovereign-agent-ch02-a-pydantic-shop-tools-solution.ipynb) | [Markdown](profrod-sovereign-agent-ch02-a-pydantic-shop-tools-solution.md) | Construct, connect and explain |
-| B · 90 minutes | [B: pydantic validation repair](profrod-sovereign-agent-ch02-b-pydantic-validation-repair-solution.ipynb) | [Markdown](profrod-sovereign-agent-ch02-b-pydantic-validation-repair-solution.md) | Diagnose, repair and transfer |
+| B · 90 minutes | [B: constrained decoding](profrod-sovereign-agent-ch02-b-constrained-decoding-solution.ipynb) | [Markdown](profrod-sovereign-agent-ch02-b-constrained-decoding-solution.md) | Derive, check against simulation and transfer |
 
-Each notebook includes its own setup, first-principles introductions and supplied teaching runtime. Use a Python 3.14 Jupyter kernel and Pydantic 2. No repository checkout, previous notebook kernel or live account is needed. Unit B can use an explicitly selected successful Unit A handoff; an invalid selected file refuses rather than substituting an answer.
+Each notebook includes its own setup, first-principles introductions and supplied teaching runtime. Use a Python 3.14 Jupyter kernel; Unit A also needs Pydantic 2, and Unit B only the standard library. No repository checkout, previous notebook kernel or live account is needed. Unit B can use an explicitly selected successful Unit A handoff; an invalid selected file refuses rather than substituting an answer.
 
 Ninety minutes is the planned work allowance per unit, excluding installation. Actual completion time and understanding require classroom observation.
 

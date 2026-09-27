@@ -12,6 +12,7 @@ Each file below is the completed comparison implementation for one chapter's con
 | --- | --- | --- |
 | 1 | `profrod_sovereign_agent_ch01_model_call_learner.py` | Byte-pair encoding, a bigram model, softmax with temperature, sampling, entropy and perplexity |
 | 2 | `profrod_sovereign_agent_ch02_pydantic_shop_tools_learner.py` | Tool schemas, handlers and dispatch |
+| 2 | `profrod_sovereign_agent_ch02_constrained_decoding_learner.py` | Validity over length, logit masking, and masked decoding against conditioning on a toy model |
 | 3 | `profrod_sovereign_agent_ch03_agent_loop_learner.py` | The owned model and tool loop, its adapter, and the reliability arithmetic |
 | 4 | `profrod_sovereign_agent_ch04_state_store_learner.py` | The durable state store |
 | 5 | `profrod_sovereign_agent_ch05_retrieval_learner.py` | BM25, cosine similarity, precision@k, recall@k, reciprocal rank and a context packer |

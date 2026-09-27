@@ -1,4 +1,4 @@
-# Teach Chapter 3: Build the model and tool loop
+# Teach Chapter 3: The agent loop: why reliability compounds, and a loop that stops
 
 > **Learn with Prof Rod** — *Build Your Always-On AI Agent From Scratch*.
 > **Read the full book and get the latest learning materials:** [https://profrod.ai/book](https://profrod.ai/book).

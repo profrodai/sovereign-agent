@@ -16,7 +16,7 @@
     {
       "number": 2,
       "lessonId": "shop-tools",
-      "title": "Give the agent reliable shop tools",
+      "title": "Structured output and typed tools: what a schema guarantees",
       "path": "ch02/profrod-sovereign-agent-ch02-pydantic-shop-tools-chapter.md",
       "checkpoint": "checkpoints/profrod_sovereign_agent_ch02_pydantic_shop_tools_checkpoint.py",
       "status": "DRAFT"

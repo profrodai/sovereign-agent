@@ -1,4 +1,4 @@
-# Teach Chapter 18: Deploy and maintain the agent
+# Teach Chapter 18: What a model call costs, and a deployment that survives
 
 > **Learn with Prof Rod** — *Build Your Always-On AI Agent From Scratch*.
 > **Read the full book and get the latest learning materials:** [https://profrod.ai/book](https://profrod.ai/book).
