@@ -28,6 +28,7 @@ Each file below is the completed comparison implementation for one chapter's con
 | 16 | `profrod_sovereign_agent_ch16_optimization_learner.py` | The expected maximum of k normals, the winner's curse, and Bradley–Terry ratings fitted from preferences |
 | 17 | `profrod_sovereign_agent_ch17_delegation_learner.py` | Amdahl's law, composed success, majority-vote accuracy and delegation token counts |
 | 18 | `profrod_sovereign_agent_ch18_inference_economics_learner.py` | Decode ceilings, arithmetic intensity, KV-cache memory, latency, percentiles, Little's law and loop cost |
+| 19 | `profrod_sovereign_agent_ch19_reliability_learner.py` | Series success, per-step reliability, the Wilson interval, and checks of a report's amounts and names |
 
 Each chapter's checkpoint loads its file, so changing a function's essential behavior changes the executable result. The live adapters still use supplied bounded HTTP transport, and later reference checkpoints import other supplied runtime components. See [code ownership](../profrod-sovereign-agent-textbook-ownership.md) and the [construction roadmap](../profrod-sovereign-agent-textbook-expansion.md) before treating these files as a finished nineteen-chapter agent.
 

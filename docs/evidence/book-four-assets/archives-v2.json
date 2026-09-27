@@ -4,8 +4,8 @@
     {
       "asset": "exercises",
       "path": "exercises/profrod-sovereign-agent-exercises-2026-09-10.zip",
-      "sha256": "b55b84da5ad45d1e2e62ee0d0dfb7f3880a81d3864c03dcb3ae25ce6b3c5b35a",
-      "sourceStartSha256": "2ce850b98f694351f889d353d0c1b5c2da2fadbcec6fe142cf74bc0b658f0669",
+      "sha256": "51b3da7d82a89ec419fe68d3f550c0cd242dbe8783e4eee7ad4118450b874599",
+      "sourceStartSha256": "b6f40c922c40a278bc98ff18931ef7a71aea61df10d3c75fac2b858e7a18ea69",
       "startTransform": "replace-named-download-link-with-extracted-notice-v2",
       "members": {
         "ch01/profrod-sovereign-agent-ch01-a-softmax-and-sampling-exercise.ipynb": "83feffb026b1d82e73eb4773f3f6e6a95e29adf02a90b271656958cb42b2c914",
@@ -98,16 +98,16 @@
         "ch19/profrod-sovereign-agent-ch19-a-integrated-day-acceptance-exercise.md": "8ddbb69a0246c2b6d22d930ad1f51e2d40145273d6296d5bcb05d44903114a0a",
         "ch19/profrod-sovereign-agent-ch19-b-acceptance-repair-transfer-exercise.ipynb": "3025bc20c8574bf719fc24f52b0eb4273ea7c5e08535ed62ac9d4e693b5db367",
         "ch19/profrod-sovereign-agent-ch19-b-acceptance-repair-transfer-exercise.md": "9fea1e965486a0066fa4464f06f25296cafddf7da53848bb0ea1b1426c1e6055",
-        "ch19/profrod-sovereign-agent-ch19-integrated-shop-day-exercise-guide.md": "e8a1546b96455bbb30e1b35ad1d640e558efb45ad05c8501da239c073896e4e5",
+        "ch19/profrod-sovereign-agent-ch19-integrated-shop-day-exercise-guide.md": "b44c8cc426f351bfbdd99e4e471ee3d9f5c267d841cc6fd6e577bea44df4e13d",
         "profrod-sovereign-agent-exercises-setup.md": "92af855580556693e9ef4702f09ad5bab7946dfee2889856722799fb234a9e0d",
-        "profrod-sovereign-agent-exercises-start-here.md": "2caf23968547974a91a95f184b0b802bc5cf9d7beff4709e5f8f15d7b8b27366"
+        "profrod-sovereign-agent-exercises-start-here.md": "e53e49b10dd1b1fc79394c81c79ab98d363caaaba56425c49aa9ce74d367ccc9"
       }
     },
     {
       "asset": "solutions",
       "path": "solutions/profrod-sovereign-agent-solutions-2026-09-10.zip",
-      "sha256": "8d6dc8653fd9b862948f895b718337d5d7a60c3dacd8f62f206d7575341d56ac",
-      "sourceStartSha256": "38eb5f60841c30baee6df97f767222e86f4418ea37be3cd1bbe6e8dbdc05be73",
+      "sha256": "1fa5a1f92080b8ad695a0a5c18a954ee5c9342e15990dceed9cdb4d276a81302",
+      "sourceStartSha256": "6a49600e72914f4fbf28de892d0e7871ecf6ca0840bc7c80823591d4c3d8d0c7",
       "startTransform": "replace-named-download-link-with-extracted-notice-v2",
       "members": {
         "ch01/profrod-sovereign-agent-ch01-a-softmax-and-sampling-solution.ipynb": "e4c9f65386e171aa5ca4513173972ccbe6db73edd69871d55f459f383f1b084b",
@@ -200,16 +200,16 @@
         "ch19/profrod-sovereign-agent-ch19-a-integrated-day-acceptance-solution.md": "5360e27d8b673638dd817810a0bca27be3354134e92ae661ccafd6f803b40a36",
         "ch19/profrod-sovereign-agent-ch19-b-acceptance-repair-transfer-solution.ipynb": "8f1b90d5dc2ed8cd75907ccb78bf46230bed8029afbd2d4502bc932b5b644761",
         "ch19/profrod-sovereign-agent-ch19-b-acceptance-repair-transfer-solution.md": "b20893726f34efe734e87863c5cb7a2c84724b50ec109f297599e05a6f06f154",
-        "ch19/profrod-sovereign-agent-ch19-integrated-shop-day-solutions-guide.md": "63c39cc0b19af662281740e84c276e04d532442218636a09b7ea275c633ad6c3",
+        "ch19/profrod-sovereign-agent-ch19-integrated-shop-day-solutions-guide.md": "9036a58dc9303c42c6866a19b5ac2c0fcd74abbe93ad88f39dcbb6153defc51f",
         "profrod-sovereign-agent-solutions-setup.md": "bc7c7f6539301dc96e44acb448958ef9a24115942dff55480f242ffe4646f4f0",
-        "profrod-sovereign-agent-solutions-start-here.md": "692ac9340b19ec45581b9bc4f925cf7ea4093f0029cd89cf7348e3597cb9f26c"
+        "profrod-sovereign-agent-solutions-start-here.md": "36fe1dd1ae4c057a751f091fa7d15b3da4d61ecdbb6d7bec887cec82498c60b7"
       }
     },
     {
       "asset": "educator",
       "path": "educator/profrod-sovereign-agent-educator-2026-09-10.zip",
-      "sha256": "162a40f763af157bc32c951c25b0af2f3b558ea2f3c5eca4400919bc8f4d8452",
-      "sourceStartSha256": "72cbcbfa3e0951049ff0854350dc7468a9c773227eb8d9bb056f3008ad839978",
+      "sha256": "c3912455c10bc6f93033d7d722772c6f606853e07558c88082e91b127d83d253",
+      "sourceStartSha256": "c3ce2a456b59948ec8686db9ccf8a6eba0927d7810bb913da2793e1f9f35d951",
       "startTransform": "replace-named-download-link-with-extracted-notice-v2",
       "members": {
         "ch01/profrod-sovereign-agent-ch01-first-model-call-educator-guide.md": "0a4a9158061203f3d7f1baa3a64ed8330d86fe5c34cea20e543a37f1923a9984",
@@ -383,7 +383,7 @@
         "ch18/student/profrod-sovereign-agent-ch18-a-deployment-restoration-educator-exercise.md": "d1538ef66d1ca4a13f0bebeb896302929a0b58444735b872e81f826fd8b5400b",
         "ch18/student/profrod-sovereign-agent-ch18-b-inference-planning-educator-exercise.ipynb": "57094e01d6bdcf51e245d8c039cf99a4b39d92468749f2ac554011e163cab035",
         "ch18/student/profrod-sovereign-agent-ch18-b-inference-planning-educator-exercise.md": "8cf150470135735f8ae76ea524b17c7dc8c01c1225d44ca2facbe489c06f3d25",
-        "ch19/profrod-sovereign-agent-ch19-integrated-shop-day-educator-guide.md": "7def2e36e2d9b5a5e12cbe2101cce7e053968d3203b0672bede8ce5dde28faea",
+        "ch19/profrod-sovereign-agent-ch19-integrated-shop-day-educator-guide.md": "776ac5bc65d7bc2b132403168b8cbaa18f3f5ae5bedfdb1e27bd1c6b5b86a074",
         "ch19/profrod-sovereign-agent-ch19-integrated-shop-day-teaching-guide.md": "1428d6ddbf9775cfda0fd0313309442de45011baaaacca4d6880f72583c73d50",
         "ch19/solutions/profrod-sovereign-agent-ch19-a-integrated-day-acceptance-educator-solution.ipynb": "07fca06240d8c29f64afb1dd4b93875ae129976f983a71c80b3a6eddf8cafed1",
         "ch19/solutions/profrod-sovereign-agent-ch19-a-integrated-day-acceptance-educator-solution.md": "5360e27d8b673638dd817810a0bca27be3354134e92ae661ccafd6f803b40a36",
@@ -395,7 +395,7 @@
         "ch19/student/profrod-sovereign-agent-ch19-b-acceptance-repair-transfer-educator-exercise.md": "9fea1e965486a0066fa4464f06f25296cafddf7da53848bb0ea1b1426c1e6055",
         "profrod-sovereign-agent-educator-classroom-observations.md": "2b5c6d2423a6bb6707765df52686d8aab08095f96d12a8286592c581a3712229",
         "profrod-sovereign-agent-educator-setup.md": "7ae1e87189de51965936ad190ea4dbffde8de6bbb0cb2e1807fa2ac12eb37c48",
-        "profrod-sovereign-agent-educator-start-here.md": "63d8a5a84b1012043c3a61954f61c206d8b3bd23b1b697ab6f3092937bcd1b44"
+        "profrod-sovereign-agent-educator-start-here.md": "8c4e8fb38392e6f8b4db035a39983430637e21c9476eedcfc10392df0a4694b4"
       }
     }
   ]

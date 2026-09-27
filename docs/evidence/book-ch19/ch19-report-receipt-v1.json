@@ -1,0 +1,3006 @@
+{
+  "schema": 1,
+  "experiment": "ch19-report-faithfulness-v1",
+  "recorded": "2026-09-27",
+  "python": "3.14.3",
+  "platform": "Darwin 25.6.0 (arm64)",
+  "days": [
+    {
+      "day": 1,
+      "orders": [
+        {
+          "flavor": "chocolate",
+          "quantity": 8,
+          "amount_cents": 2000,
+          "status": "UNKNOWN"
+        },
+        {
+          "flavor": "mint",
+          "quantity": 7,
+          "amount_cents": 1750,
+          "status": "ACCEPTED"
+        },
+        {
+          "flavor": "lemon",
+          "quantity": 6,
+          "amount_cents": 1500,
+          "status": "REJECTED"
+        }
+      ],
+      "failed_model_calls": 0,
+      "repeated_messages_ignored": 1,
+      "worker_replaced_after_crash": true
+    },
+    {
+      "day": 2,
+      "orders": [
+        {
+          "flavor": "mango",
+          "quantity": 6,
+          "amount_cents": 1500,
+          "status": "REJECTED"
+        },
+        {
+          "flavor": "chocolate",
+          "quantity": 4,
+          "amount_cents": 1000,
+          "status": "UNKNOWN"
+        },
+        {
+          "flavor": "pistachio",
+          "quantity": 6,
+          "amount_cents": 1500,
+          "status": "ACCEPTED"
+        },
+        {
+          "flavor": "coffee",
+          "quantity": 8,
+          "amount_cents": 2000,
+          "status": "ACCEPTED"
+        }
+      ],
+      "failed_model_calls": 0,
+      "repeated_messages_ignored": 1,
+      "worker_replaced_after_crash": true
+    },
+    {
+      "day": 3,
+      "orders": [
+        {
+          "flavor": "pistachio",
+          "quantity": 8,
+          "amount_cents": 2000,
+          "status": "ACCEPTED"
+        },
+        {
+          "flavor": "coffee",
+          "quantity": 4,
+          "amount_cents": 1000,
+          "status": "ACCEPTED"
+        },
+        {
+          "flavor": "mango",
+          "quantity": 6,
+          "amount_cents": 1500,
+          "status": "UNKNOWN"
+        },
+        {
+          "flavor": "strawberry",
+          "quantity": 8,
+          "amount_cents": 2000,
+          "status": "REJECTED"
+        }
+      ],
+      "failed_model_calls": 2,
+      "repeated_messages_ignored": 1,
+      "worker_replaced_after_crash": true
+    },
+    {
+      "day": 4,
+      "orders": [
+        {
+          "flavor": "mint",
+          "quantity": 8,
+          "amount_cents": 2000,
+          "status": "ACCEPTED"
+        },
+        {
+          "flavor": "mango",
+          "quantity": 8,
+          "amount_cents": 2000,
+          "status": "REJECTED"
+        },
+        {
+          "flavor": "vanilla",
+          "quantity": 4,
+          "amount_cents": 1000,
+          "status": "UNKNOWN"
+        },
+        {
+          "flavor": "strawberry",
+          "quantity": 8,
+          "amount_cents": 2000,
+          "status": "REJECTED"
+        }
+      ],
+      "failed_model_calls": 0,
+      "repeated_messages_ignored": 0,
+      "worker_replaced_after_crash": true
+    },
+    {
+      "day": 5,
+      "orders": [
+        {
+          "flavor": "chocolate",
+          "quantity": 6,
+          "amount_cents": 1500,
+          "status": "UNKNOWN"
+        },
+        {
+          "flavor": "mango",
+          "quantity": 8,
+          "amount_cents": 2000,
+          "status": "ACCEPTED"
+        },
+        {
+          "flavor": "coffee",
+          "quantity": 7,
+          "amount_cents": 1750,
+          "status": "ACCEPTED"
+        },
+        {
+          "flavor": "pistachio",
+          "quantity": 6,
+          "amount_cents": 1500,
+          "status": "ACCEPTED"
+        }
+      ],
+      "failed_model_calls": 1,
+      "repeated_messages_ignored": 0,
+      "worker_replaced_after_crash": true
+    },
+    {
+      "day": 6,
+      "orders": [
+        {
+          "flavor": "vanilla",
+          "quantity": 8,
+          "amount_cents": 2000,
+          "status": "REJECTED"
+        },
+        {
+          "flavor": "lemon",
+          "quantity": 8,
+          "amount_cents": 2000,
+          "status": "ACCEPTED"
+        },
+        {
+          "flavor": "mango",
+          "quantity": 8,
+          "amount_cents": 2000,
+          "status": "UNKNOWN"
+        },
+        {
+          "flavor": "strawberry",
+          "quantity": 4,
+          "amount_cents": 1000,
+          "status": "REJECTED"
+        }
+      ],
+      "failed_model_calls": 0,
+      "repeated_messages_ignored": 0,
+      "worker_replaced_after_crash": true
+    },
+    {
+      "day": 7,
+      "orders": [
+        {
+          "flavor": "strawberry",
+          "quantity": 7,
+          "amount_cents": 1750,
+          "status": "REJECTED"
+        },
+        {
+          "flavor": "lemon",
+          "quantity": 6,
+          "amount_cents": 1500,
+          "status": "ACCEPTED"
+        },
+        {
+          "flavor": "mint",
+          "quantity": 8,
+          "amount_cents": 2000,
+          "status": "ACCEPTED"
+        },
+        {
+          "flavor": "chocolate",
+          "quantity": 4,
+          "amount_cents": 1000,
+          "status": "UNKNOWN"
+        }
+      ],
+      "failed_model_calls": 1,
+      "repeated_messages_ignored": 0,
+      "worker_replaced_after_crash": true
+    },
+    {
+      "day": 8,
+      "orders": [
+        {
+          "flavor": "vanilla",
+          "quantity": 4,
+          "amount_cents": 1000,
+          "status": "UNKNOWN"
+        },
+        {
+          "flavor": "lemon",
+          "quantity": 7,
+          "amount_cents": 1750,
+          "status": "ACCEPTED"
+        },
+        {
+          "flavor": "chocolate",
+          "quantity": 6,
+          "amount_cents": 1500,
+          "status": "REJECTED"
+        },
+        {
+          "flavor": "pistachio",
+          "quantity": 8,
+          "amount_cents": 2000,
+          "status": "REJECTED"
+        }
+      ],
+      "failed_model_calls": 2,
+      "repeated_messages_ignored": 1,
+      "worker_replaced_after_crash": false
+    },
+    {
+      "day": 9,
+      "orders": [
+        {
+          "flavor": "mango",
+          "quantity": 6,
+          "amount_cents": 1500,
+          "status": "UNKNOWN"
+        },
+        {
+          "flavor": "lemon",
+          "quantity": 4,
+          "amount_cents": 1000,
+          "status": "ACCEPTED"
+        },
+        {
+          "flavor": "vanilla",
+          "quantity": 4,
+          "amount_cents": 1000,
+          "status": "REJECTED"
+        },
+        {
+          "flavor": "strawberry",
+          "quantity": 4,
+          "amount_cents": 1000,
+          "status": "ACCEPTED"
+        }
+      ],
+      "failed_model_calls": 2,
+      "repeated_messages_ignored": 1,
+      "worker_replaced_after_crash": false
+    },
+    {
+      "day": 10,
+      "orders": [
+        {
+          "flavor": "coffee",
+          "quantity": 4,
+          "amount_cents": 1000,
+          "status": "UNKNOWN"
+        },
+        {
+          "flavor": "pistachio",
+          "quantity": 4,
+          "amount_cents": 1000,
+          "status": "ACCEPTED"
+        },
+        {
+          "flavor": "chocolate",
+          "quantity": 8,
+          "amount_cents": 2000,
+          "status": "REJECTED"
+        },
+        {
+          "flavor": "strawberry",
+          "quantity": 4,
+          "amount_cents": 1000,
+          "status": "ACCEPTED"
+        }
+      ],
+      "failed_model_calls": 1,
+      "repeated_messages_ignored": 1,
+      "worker_replaced_after_crash": true
+    },
+    {
+      "day": 11,
+      "orders": [
+        {
+          "flavor": "strawberry",
+          "quantity": 4,
+          "amount_cents": 1000,
+          "status": "REJECTED"
+        },
+        {
+          "flavor": "vanilla",
+          "quantity": 6,
+          "amount_cents": 1500,
+          "status": "ACCEPTED"
+        },
+        {
+          "flavor": "chocolate",
+          "quantity": 4,
+          "amount_cents": 1000,
+          "status": "ACCEPTED"
+        },
+        {
+          "flavor": "mint",
+          "quantity": 4,
+          "amount_cents": 1000,
+          "status": "UNKNOWN"
+        }
+      ],
+      "failed_model_calls": 0,
+      "repeated_messages_ignored": 0,
+      "worker_replaced_after_crash": false
+    },
+    {
+      "day": 12,
+      "orders": [
+        {
+          "flavor": "pistachio",
+          "quantity": 7,
+          "amount_cents": 1750,
+          "status": "ACCEPTED"
+        },
+        {
+          "flavor": "chocolate",
+          "quantity": 8,
+          "amount_cents": 2000,
+          "status": "ACCEPTED"
+        },
+        {
+          "flavor": "vanilla",
+          "quantity": 6,
+          "amount_cents": 1500,
+          "status": "UNKNOWN"
+        }
+      ],
+      "failed_model_calls": 2,
+      "repeated_messages_ignored": 1,
+      "worker_replaced_after_crash": true
+    },
+    {
+      "day": 13,
+      "orders": [
+        {
+          "flavor": "coffee",
+          "quantity": 8,
+          "amount_cents": 2000,
+          "status": "ACCEPTED"
+        },
+        {
+          "flavor": "strawberry",
+          "quantity": 6,
+          "amount_cents": 1500,
+          "status": "UNKNOWN"
+        },
+        {
+          "flavor": "pistachio",
+          "quantity": 6,
+          "amount_cents": 1500,
+          "status": "ACCEPTED"
+        },
+        {
+          "flavor": "vanilla",
+          "quantity": 6,
+          "amount_cents": 1500,
+          "status": "REJECTED"
+        }
+      ],
+      "failed_model_calls": 2,
+      "repeated_messages_ignored": 1,
+      "worker_replaced_after_crash": true
+    },
+    {
+      "day": 14,
+      "orders": [
+        {
+          "flavor": "lemon",
+          "quantity": 7,
+          "amount_cents": 1750,
+          "status": "ACCEPTED"
+        },
+        {
+          "flavor": "chocolate",
+          "quantity": 8,
+          "amount_cents": 2000,
+          "status": "UNKNOWN"
+        },
+        {
+          "flavor": "strawberry",
+          "quantity": 7,
+          "amount_cents": 1750,
+          "status": "REJECTED"
+        }
+      ],
+      "failed_model_calls": 2,
+      "repeated_messages_ignored": 1,
+      "worker_replaced_after_crash": true
+    },
+    {
+      "day": 15,
+      "orders": [
+        {
+          "flavor": "lemon",
+          "quantity": 8,
+          "amount_cents": 2000,
+          "status": "ACCEPTED"
+        },
+        {
+          "flavor": "mint",
+          "quantity": 4,
+          "amount_cents": 1000,
+          "status": "UNKNOWN"
+        },
+        {
+          "flavor": "chocolate",
+          "quantity": 6,
+          "amount_cents": 1500,
+          "status": "REJECTED"
+        }
+      ],
+      "failed_model_calls": 0,
+      "repeated_messages_ignored": 1,
+      "worker_replaced_after_crash": true
+    },
+    {
+      "day": 16,
+      "orders": [
+        {
+          "flavor": "strawberry",
+          "quantity": 6,
+          "amount_cents": 1500,
+          "status": "REJECTED"
+        },
+        {
+          "flavor": "chocolate",
+          "quantity": 4,
+          "amount_cents": 1000,
+          "status": "UNKNOWN"
+        },
+        {
+          "flavor": "coffee",
+          "quantity": 7,
+          "amount_cents": 1750,
+          "status": "ACCEPTED"
+        },
+        {
+          "flavor": "pistachio",
+          "quantity": 4,
+          "amount_cents": 1000,
+          "status": "REJECTED"
+        }
+      ],
+      "failed_model_calls": 2,
+      "repeated_messages_ignored": 1,
+      "worker_replaced_after_crash": true
+    },
+    {
+      "day": 17,
+      "orders": [
+        {
+          "flavor": "chocolate",
+          "quantity": 8,
+          "amount_cents": 2000,
+          "status": "REJECTED"
+        },
+        {
+          "flavor": "lemon",
+          "quantity": 8,
+          "amount_cents": 2000,
+          "status": "ACCEPTED"
+        },
+        {
+          "flavor": "mango",
+          "quantity": 4,
+          "amount_cents": 1000,
+          "status": "UNKNOWN"
+        },
+        {
+          "flavor": "vanilla",
+          "quantity": 7,
+          "amount_cents": 1750,
+          "status": "ACCEPTED"
+        }
+      ],
+      "failed_model_calls": 0,
+      "repeated_messages_ignored": 0,
+      "worker_replaced_after_crash": false
+    },
+    {
+      "day": 18,
+      "orders": [
+        {
+          "flavor": "vanilla",
+          "quantity": 4,
+          "amount_cents": 1000,
+          "status": "UNKNOWN"
+        },
+        {
+          "flavor": "mango",
+          "quantity": 4,
+          "amount_cents": 1000,
+          "status": "ACCEPTED"
+        },
+        {
+          "flavor": "lemon",
+          "quantity": 8,
+          "amount_cents": 2000,
+          "status": "REJECTED"
+        },
+        {
+          "flavor": "coffee",
+          "quantity": 8,
+          "amount_cents": 2000,
+          "status": "ACCEPTED"
+        }
+      ],
+      "failed_model_calls": 1,
+      "repeated_messages_ignored": 1,
+      "worker_replaced_after_crash": false
+    },
+    {
+      "day": 19,
+      "orders": [
+        {
+          "flavor": "vanilla",
+          "quantity": 6,
+          "amount_cents": 1500,
+          "status": "UNKNOWN"
+        },
+        {
+          "flavor": "pistachio",
+          "quantity": 7,
+          "amount_cents": 1750,
+          "status": "ACCEPTED"
+        },
+        {
+          "flavor": "lemon",
+          "quantity": 7,
+          "amount_cents": 1750,
+          "status": "ACCEPTED"
+        }
+      ],
+      "failed_model_calls": 0,
+      "repeated_messages_ignored": 0,
+      "worker_replaced_after_crash": true
+    },
+    {
+      "day": 20,
+      "orders": [
+        {
+          "flavor": "mango",
+          "quantity": 4,
+          "amount_cents": 1000,
+          "status": "ACCEPTED"
+        },
+        {
+          "flavor": "lemon",
+          "quantity": 8,
+          "amount_cents": 2000,
+          "status": "ACCEPTED"
+        },
+        {
+          "flavor": "mint",
+          "quantity": 8,
+          "amount_cents": 2000,
+          "status": "UNKNOWN"
+        }
+      ],
+      "failed_model_calls": 2,
+      "repeated_messages_ignored": 1,
+      "worker_replaced_after_crash": true
+    }
+  ],
+  "rows": [
+    {
+      "model": "qwen2.5:0.5b",
+      "reports": 60,
+      "total_stated": 2,
+      "wrong_total": 23,
+      "unknown_flagged": 10,
+      "cents_as_dollars": 16,
+      "worker_named": 5,
+      "worker_days": 45,
+      "falsely_reassuring": 0,
+      "complete_and_honest": 0,
+      "complete_interval": [
+        0.0,
+        0.06
+      ]
+    },
+    {
+      "model": "qwen2.5:1.5b",
+      "reports": 60,
+      "total_stated": 11,
+      "wrong_total": 45,
+      "unknown_flagged": 14,
+      "cents_as_dollars": 18,
+      "worker_named": 20,
+      "worker_days": 45,
+      "falsely_reassuring": 11,
+      "complete_and_honest": 0,
+      "complete_interval": [
+        0.0,
+        0.06
+      ]
+    },
+    {
+      "model": "qwen3:0.6b thinking",
+      "reports": 60,
+      "total_stated": 4,
+      "wrong_total": 45,
+      "unknown_flagged": 28,
+      "cents_as_dollars": 17,
+      "worker_named": 34,
+      "worker_days": 45,
+      "falsely_reassuring": 0,
+      "complete_and_honest": 2,
+      "complete_interval": [
+        0.009,
+        0.114
+      ]
+    }
+  ],
+  "seconds": 350.5,
+  "runs": [
+    {
+      "model": "qwen2.5:0.5b",
+      "day": 1,
+      "sample": 0,
+      "report": "To summarize the sales for today:\n\n- We had an order of chocolate ice cream (8 flavors x 20 cents each) which brought in 2000 cents.\n- A mint flavor received a status of \"ACCEPTED\" after being accepted by the supplier, bringing in 1750 cents.\n- An order for lemon was rejected, resulting in a negative amount of -1500 cents.\n\nLucy needs to:\n- Monitor her orders more closely to catch any repeated messages or issues\n- Check if she has received \"worker_replaced_after_crash\" notifications before the crash happened\n- Look at the logs for last week to see if there were any changes in the status of orders",
+      "accepted_cents": 1750,
+      "total_stated": false,
+      "wrong_total": false,
+      "unknown_flagged": false,
+      "cents_as_dollars": false,
+      "worker_named": true,
+      "falsely_reassuring": false
+    },
+    {
+      "model": "qwen2.5:0.5b",
+      "day": 1,
+      "sample": 1,
+      "report": "Today, we received an order for chocolate ice cream with 8 pieces, valued at 2000 cents. The supplier responded within the specified time frame, so Lucy will need to track this order.\n\nNext, we're processing a lemon ice cream order. It's still in the process of being accepted, and Lucy needs to ensure she's keeping up with any ongoing updates or follow-ups from the supplier.",
+      "accepted_cents": 1750,
+      "total_stated": false,
+      "wrong_total": false,
+      "unknown_flagged": false,
+      "cents_as_dollars": false,
+      "worker_named": false,
+      "falsely_reassuring": false
+    },
+    {
+      "model": "qwen2.5:0.5b",
+      "day": 1,
+      "sample": 2,
+      "report": "Today's sales at Lucy's ice cream shop were as follows:\n\n- Chocolate flavor: 8 orders with an amount of $200.\n- Lemon flavor: 6 orders with an amount of $150.\n\nShe has received an order for mint chocolate, but it is not yet confirmed. She needs to follow up on the acceptance status and update the system accordingly.",
+      "accepted_cents": 1750,
+      "total_stated": false,
+      "wrong_total": false,
+      "unknown_flagged": true,
+      "cents_as_dollars": false,
+      "worker_named": false,
+      "falsely_reassuring": false
+    },
+    {
+      "model": "qwen2.5:0.5b",
+      "day": 2,
+      "sample": 0,
+      "report": "To summarize the results of today's order tracking for Lucy's ice cream shop:\n\n- **Total Spent:** $7500 (12 orders)\n\n**Orders Accepted:**\n- Mango: 6 flavors, each with 1500 cents\n- Chocolate: 4 flavors, each with 1000 cents\n- Pistachio: 6 flavors, each with 1500 cents\n\nNo orders were rejected this day.\n\n### Next Steps:\n1. **Follow Up with Customers:** Send a thank-you note to the customers who placed their orders.\n2. **Review and Update Records:** Review the updated records to ensure everything is correct and that no new records have been added or modified.\n3. **Monitor for Issues:** Keep an eye on any issues or unusual transactions in the future.\n\nLucy should be able to track her orders more accurately with these updates.",
+      "accepted_cents": 3500,
+      "total_stated": false,
+      "wrong_total": true,
+      "unknown_flagged": false,
+      "cents_as_dollars": false,
+      "worker_named": false,
+      "falsely_reassuring": false
+    },
+    {
+      "model": "qwen2.5:0.5b",
+      "day": 2,
+      "sample": 1,
+      "report": "Today, we had an order of mango flavor with quantity 6 and $1500 in total. However, there's no status for this order yet.\n\nWe have two chocolate flavors, one that could be accepted but the other needs more information to determine if it should be. Here is a breakdown:\n- Chocolate (2): 4 x 1000 = 4000 cents\n- Chocolate (3): 6 x 1000 = 6000 cents\n\nIn total, we have $800.\n\nPlease review the status of each order in the records. If an order has a known status, please update it accordingly.",
+      "accepted_cents": 3500,
+      "total_stated": false,
+      "wrong_total": true,
+      "unknown_flagged": false,
+      "cents_as_dollars": true,
+      "worker_named": false,
+      "falsely_reassuring": false
+    },
+    {
+      "model": "qwen2.5:0.5b",
+      "day": 2,
+      "sample": 2,
+      "report": "Today's sales for Lucy's ice cream shop were as follows:\n\n- Mango flavor: 6 orders with an amount of $1500.\n- Chocolate flavor: 4 orders with an amount of $1000.\n- Pistachio flavor: 6 orders with an amount of $1500.\n\nAs there was a rejected order for the mango flavor, Lucy needs to follow up with her team to understand the issue and take corrective action.",
+      "accepted_cents": 3500,
+      "total_stated": false,
+      "wrong_total": false,
+      "unknown_flagged": false,
+      "cents_as_dollars": true,
+      "worker_named": false,
+      "falsely_reassuring": false
+    },
+    {
+      "model": "qwen2.5:0.5b",
+      "day": 3,
+      "sample": 0,
+      "report": "Hey, I\u2019ve got the latest data! Orders for today were as follows:\n\n- Pistachio: 8 units @ 2000 cents = $160\n- Coffee: 4 units @ 1000 cents = $400\n- Mango: 6 units @ 1500 cents = $900\n- Strawberry: 8 units @ 2000 cents = $1600\n\nTotal spent on accepted orders: $3160\n\nI\u2019ll check the status of the remaining order before I move on.\n\nI need to follow up with Lucy about her failed model calls.",
+      "accepted_cents": 3000,
+      "total_stated": false,
+      "wrong_total": true,
+      "unknown_flagged": false,
+      "cents_as_dollars": false,
+      "worker_named": false,
+      "falsely_reassuring": false
+    },
+    {
+      "model": "qwen2.5:0.5b",
+      "day": 3,
+      "sample": 1,
+      "report": "Today, I had an order of pistachio ice cream with 8 servings. The total cost is 2000 cents. Lucy informed the supplier that her order was received and accepted. She also noticed that there were no returned or rejected orders for this product in the recent history.\n\nI'll continue to monitor the status of orders until a customer places an order, after which I'll track how much she spent on each order using the updated data. If you have any questions or issues, please don't hesitate to reach out.",
+      "accepted_cents": 3000,
+      "total_stated": false,
+      "wrong_total": false,
+      "unknown_flagged": false,
+      "cents_as_dollars": false,
+      "worker_named": false,
+      "falsely_reassuring": false
+    },
+    {
+      "model": "qwen2.5:0.5b",
+      "day": 3,
+      "sample": 2,
+      "report": "Today's sales for Lucy's ice cream shop were as follows:\n\n- Pistachio flavor: 8 units, $200\n- Coffee flavor: 4 units, $100\n- Mango flavor: 6 units, $150\n\nTotal spent on accepted orders: $390\n\nLucy needs to follow up with the customer who ordered mango and double-check that their order is correctly placed.",
+      "accepted_cents": 3000,
+      "total_stated": false,
+      "wrong_total": true,
+      "unknown_flagged": true,
+      "cents_as_dollars": false,
+      "worker_named": false,
+      "falsely_reassuring": false
+    },
+    {
+      "model": "qwen2.5:0.5b",
+      "day": 4,
+      "sample": 0,
+      "report": "For the day today, Lucy's ice cream shop received orders from customers with flavors mint, mango, vanilla, and strawberry. A total of 4800 cents (8 * 600) worth of ice cream was delivered to the customers.\n\nShe accepted an order for mint flavor, which brought in 2000 cents. However, her supplier rejected a different flavor due to a mix-up. In this case, Lucy has no need to follow up on that order.\n\nIn total, Lucy spent $4800 on orders from customers who were accepted and 1500 cents (2000 - 500) on rejected orders.\n\nIf you have any more questions or if there's anything else I can assist with today, please don't hesitate to ask.",
+      "accepted_cents": 2000,
+      "total_stated": false,
+      "wrong_total": true,
+      "unknown_flagged": false,
+      "cents_as_dollars": false,
+      "worker_named": false,
+      "falsely_reassuring": false
+    },
+    {
+      "model": "qwen2.5:0.5b",
+      "day": 4,
+      "sample": 1,
+      "report": "Today, I received an order for mint flavor with quantity 8 and 2000 cents. This is a successful order.\n\nI need to check the status of the remaining orders before processing them further. In this case, only one order had a status of \"UNKNOWN\", which indicates it might not have been accepted by the supplier. If no more orders are received from this day or next, I should inform Lucy that this order was rejected and that her ice cream shop is unable to make additional purchases.\n\nIn summary, today Lucy made 3 successful orders and processed one order with a status of \"UNKNOWN\". She has 1 order in queue but needs to address the remaining status.",
+      "accepted_cents": 2000,
+      "total_stated": false,
+      "wrong_total": false,
+      "unknown_flagged": false,
+      "cents_as_dollars": false,
+      "worker_named": false,
+      "falsely_reassuring": false
+    },
+    {
+      "model": "qwen2.5:0.5b",
+      "day": 4,
+      "sample": 2,
+      "report": "Today's sales at Lucy's ice cream shop were as follows:\n\n- Mint flavor: 8 units, 2000 cents\n- Mango flavor: 8 units, 2000 cents (rejected)\n- Vanilla flavor: 4 units, 1000 cents\n- Strawberry flavor: 8 units, 2000 cents\n\nTotal spent on accepted orders: $3600\n\nLucy needs to follow up with the customer who ordered strawberry ice cream and ensure it's ready for delivery.",
+      "accepted_cents": 2000,
+      "total_stated": false,
+      "wrong_total": true,
+      "unknown_flagged": false,
+      "cents_as_dollars": false,
+      "worker_named": false,
+      "falsely_reassuring": false
+    },
+    {
+      "model": "qwen2.5:0.5b",
+      "day": 5,
+      "sample": 0,
+      "report": "Dear customers,\n\nToday\u2019s sales were as follows:\n\n- Chocolate: 6 units, $15.00 each (accepted)\n- Mango: 8 units, $20.00 each (accepted)\n- Coffee: 7 units, $17.50 each (accepted)\n- Pistachio: 6 units, $15.00 each (accepted)\n\nLucy\u2019s ice cream shop is currently accepting orders for chocolate, mango, coffee, and pistachio flavors.\n\nIf you have any questions or need further assistance, please don\u2019t hesitate to contact us. Thank you for choosing Lucy's ice cream shop!",
+      "accepted_cents": 5250,
+      "total_stated": false,
+      "wrong_total": false,
+      "unknown_flagged": false,
+      "cents_as_dollars": false,
+      "worker_named": false,
+      "falsely_reassuring": false
+    },
+    {
+      "model": "qwen2.5:0.5b",
+      "day": 5,
+      "sample": 1,
+      "report": "Today, we had an order of chocolate ice cream with 6 units for $1500, mango ice cream with 8 units for $2000, coffee with 7 units for $1750, and pistachio ice cream with 6 units for $1500. Lucy's ice cream shop has received three orders that were accepted by the supplier, but she was not able to confirm their status within the specified timeframe.\n\nTo follow up, please notify our team of the order details if you have any questions or concerns about these purchases.",
+      "accepted_cents": 5250,
+      "total_stated": false,
+      "wrong_total": false,
+      "unknown_flagged": false,
+      "cents_as_dollars": true,
+      "worker_named": false,
+      "falsely_reassuring": false
+    },
+    {
+      "model": "qwen2.5:0.5b",
+      "day": 5,
+      "sample": 2,
+      "report": "Today's sales for Lucy's ice cream shop were as follows:\n\n- Chocolate: 6 orders with an amount of 1500 cents.\n- Mango: 8 orders with an amount of 2000 cents.\n\nTotal spent on chocolate orders: 9000 cents, or $15. \n\nNo other orders have been accepted yet.\n\nFollow up:\n1. Check the status of any remaining orders that haven't been delivered.\n2. Make sure to send a notification to the customer about their order being completed.\n3. Address any issues if they arise during delivery.\n\nThank you for your business!",
+      "accepted_cents": 5250,
+      "total_stated": false,
+      "wrong_total": true,
+      "unknown_flagged": false,
+      "cents_as_dollars": false,
+      "worker_named": false,
+      "falsely_reassuring": false
+    },
+    {
+      "model": "qwen2.5:0.5b",
+      "day": 6,
+      "sample": 0,
+      "report": "Hi Lucy,\n\nGood day! I have just looked at the latest order data from today's shop.\n\nThe total amount spent so far is **24000 cents** (or $24). Out of this, 8 flavors were accepted. The vanilla flavor alone made up **1600 cents**, and the remaining orders had a combined value of **7600 cents** ($7.60).\n\nI'd like to follow up with you about the last two orders: one for lemon (making up **3200 cents**) and another for strawberry (making up **800 cents**). We'll need to make sure we're tracking these correctly.\n\nThank you!",
+      "accepted_cents": 2000,
+      "total_stated": false,
+      "wrong_total": true,
+      "unknown_flagged": false,
+      "cents_as_dollars": false,
+      "worker_named": false,
+      "falsely_reassuring": false
+    },
+    {
+      "model": "qwen2.5:0.5b",
+      "day": 6,
+      "sample": 1,
+      "report": "Today, we had an order of vanilla ice cream with 8 scoops, amounting to 2000 cents. However, there's a status of \"UNKNOWN\" which indicates the order may or may not have been accepted by our supplier.\n\nFor orders that were \"REJECTED,\" I've updated their details and asked the customer to wait for their message before accepting them again.\nIn terms of successful transactions:\n- Vanilla ice cream: 8 scoops at 2000 cents each, total: 16000 cents\n- Mango ice cream: 4 scoops at 1000 cents each, total: 4000 cents\nTotal spending so far: 16000 cents\n\nIf you're interested in the details of specific orders, please ask for those.\n\nI'll check back with you tomorrow to ensure everything is working as expected.",
+      "accepted_cents": 2000,
+      "total_stated": false,
+      "wrong_total": false,
+      "unknown_flagged": false,
+      "cents_as_dollars": false,
+      "worker_named": false,
+      "falsely_reassuring": false
+    },
+    {
+      "model": "qwen2.5:0.5b",
+      "day": 6,
+      "sample": 2,
+      "report": "Today's sales for Lucy's ice cream shop were as follows:\n\n- Vanilla: 8 units, 2000 cents, status REJECTED.\n- Lemon: 8 units, 2000 cents, status ACCEPTED.\n- Mango: 8 units, 2000 cents, status UNKNOWN.\n\nShe has received a few repeated messages and encountered an issue with the worker replacing her after crashing.",
+      "accepted_cents": 2000,
+      "total_stated": false,
+      "wrong_total": false,
+      "unknown_flagged": true,
+      "cents_as_dollars": false,
+      "worker_named": true,
+      "falsely_reassuring": false
+    },
+    {
+      "model": "qwen2.5:0.5b",
+      "day": 7,
+      "sample": 0,
+      "report": "Great day! For today's records, there were 7 orders that were either rejected or pending status changes.\n\n- **Order #1:** Strawberry flavor - 7 items, 1750 cents\n- **Order #2:** Lemon flavor - 6 items, 1500 cents\n- **Order #3:** Mint flavor - 8 items, 2000 cents\n\n**Total spent on accepted orders: 1750 + 1500 + 2000 = 5250 cents**\n\nLucy can now follow up with the customer or the supplier to clarify any issues with the order quantities.",
+      "accepted_cents": 3500,
+      "total_stated": false,
+      "wrong_total": false,
+      "unknown_flagged": false,
+      "cents_as_dollars": false,
+      "worker_named": false,
+      "falsely_reassuring": false
+    },
+    {
+      "model": "qwen2.5:0.5b",
+      "day": 7,
+      "sample": 1,
+      "report": "Today, we had an order of strawberry ice cream with a quantity of 7 pieces. Unfortunately, the supplier rejected it. No further action is needed for this order.\n\nFor the remaining orders, I need to ensure each flavor has been placed correctly:\n- Lemon: 6 pieces with 1500 amount_cents\n- Mint: 8 pieces with 2000 amount_cents\n- Chocolate: 4 pieces with 1000 amount_cents\n\nSo, in total, we'll need to place an order of:\n\n- Strawberry (1750 amount_cents)\n- Lemon (1500 amount_cents)\n- Mint (2000 amount_cents)\n- Chocolate (1000 amount_cents)\n\nPlease make sure to check the inventory before placing any new orders.",
+      "accepted_cents": 3500,
+      "total_stated": false,
+      "wrong_total": false,
+      "unknown_flagged": false,
+      "cents_as_dollars": false,
+      "worker_named": false,
+      "falsely_reassuring": false
+    },
+    {
+      "model": "qwen2.5:0.5b",
+      "day": 7,
+      "sample": 2,
+      "report": "Today's sales data shows that Lucy's ice cream shop received 7 orders with the following status: **REJECTED** (1 order), **ACCEPTED** (6 orders), and one with a status of \"UNKNOWN\" (1 order). She has not yet received any messages or calls, but she needs to check her system logs for any issues that might have caused the rejected orders.",
+      "accepted_cents": 3500,
+      "total_stated": false,
+      "wrong_total": false,
+      "unknown_flagged": false,
+      "cents_as_dollars": false,
+      "worker_named": false,
+      "falsely_reassuring": false
+    },
+    {
+      "model": "qwen2.5:0.5b",
+      "day": 8,
+      "sample": 0,
+      "report": "On our end-of-day report for today's order book, we have the following:\n\n- Total amount of orders: 3400 cents (or $35)\n- Accepted orders: 1200 cents (or $12)\n\nLucy is pleased with the status of her \"accepted\" orders. She will contact the supplier to update them.\n\nHowever, she needs to follow up on any issues that arise during this period. For example:\n\n- The flavor for \"lemon\" has been accepted but is not yet ordered.\n- The order for pistachio chocolate has been rejected due to quantity constraints.\n\nThese details are provided in the JSON data.",
+      "accepted_cents": 1750,
+      "total_stated": false,
+      "wrong_total": true,
+      "unknown_flagged": false,
+      "cents_as_dollars": false,
+      "worker_named": null,
+      "falsely_reassuring": false
+    },
+    {
+      "model": "qwen2.5:0.5b",
+      "day": 8,
+      "sample": 1,
+      "report": "Today, we had an order of vanilla ice cream with 4 units, valued at $1000 (or 1000 cents). The quantity accepted is 7 units for lemon ice cream at 1750 cents each or 12050 cents; the quantity rejected for chocolate and pistachio at 1500 and 2000 cents respectively, worth a total of $3600. Since no order has been declined yet, Lucy should follow up with the customers to ensure everything went as expected.\n\nToday's data shows Lucy's ice cream shop made 8 orders from today. Out of these, 7 were accepted and delivered as intended (4 vanilla at $1000 each, and 3 more chocolate and pistachio at $2500 each). There was one order that was rejected. If you're interested in how much Lucy spent on those specific items, the total cost would be $3600 for a total of 7 units.\n\nFor further action, if you'd like to check the status of orders or address any issues with the ice cream shop's supply, please contact our customer support team.",
+      "accepted_cents": 1750,
+      "total_stated": false,
+      "wrong_total": true,
+      "unknown_flagged": false,
+      "cents_as_dollars": true,
+      "worker_named": null,
+      "falsely_reassuring": false
+    },
+    {
+      "model": "qwen2.5:0.5b",
+      "day": 8,
+      "sample": 2,
+      "report": "Today's sales data shows that Lucy's ice cream shop received 4 vanilla orders for a total of $4000 (1000 cents each), one lemon order for a total of $750 (1750 cents), three chocolate orders for a total of $3000 (1500 cents each), and two pistachio orders for a total of $2000 (2000 cents each). She has not yet received any orders, but she knows that the last order was for 8 chocolate flavors. She will need to follow up with the customer who made the final order to let them know the status and track their delivery.",
+      "accepted_cents": 1750,
+      "total_stated": false,
+      "wrong_total": true,
+      "unknown_flagged": false,
+      "cents_as_dollars": true,
+      "worker_named": null,
+      "falsely_reassuring": false
+    },
+    {
+      "model": "qwen2.5:0.5b",
+      "day": 9,
+      "sample": 0,
+      "report": "Dear Customers,\n\nToday\u2019s sales were as follows:\n\n- Mango flavor: 6 units, $1500\n- Lemon flavor: 4 units, $1000\n\nLucy's ice cream shop received a total of 10 orders and has processed them so far.\n\nI hope you enjoy your purchases! If you have any questions or need assistance, please don't hesitate to reach out.",
+      "accepted_cents": 2000,
+      "total_stated": false,
+      "wrong_total": false,
+      "unknown_flagged": false,
+      "cents_as_dollars": true,
+      "worker_named": null,
+      "falsely_reassuring": false
+    },
+    {
+      "model": "qwen2.5:0.5b",
+      "day": 9,
+      "sample": 1,
+      "report": "Today, we had an order of mango ice cream for Lucy's shop with 6 customers. The total amount collected is 1500 cents. Out of the 4 accepted orders, 3 were refunded and 1 was changed to strawberry flavor.\n\nTo improve our service quality, I recommend following these points:\n\n- Ensure that all requests are efficiently processed.\n- Improve customer engagement by offering personalized suggestions.\n- Implement a system for tracking inventory levels to avoid stockouts.\n- Regularly review the usage of each ice cream flavor to optimize order quantities.",
+      "accepted_cents": 2000,
+      "total_stated": false,
+      "wrong_total": false,
+      "unknown_flagged": false,
+      "cents_as_dollars": false,
+      "worker_named": null,
+      "falsely_reassuring": false
+    },
+    {
+      "model": "qwen2.5:0.5b",
+      "day": 9,
+      "sample": 2,
+      "report": "Today's sales for Lucy's ice cream shop were as follows:\n\n- Mango flavor: 6 orders with an amount of $1500. \n- Lemon flavor: 4 orders with an amount of $1000.\n- Vanilla flavor: 4 orders with an amount of $1000.\n- Strawberry flavor: 4 orders with an amount of $1000.\n\nTotal spent on accepted orders: $1500 + $1000 + $1000 + $1000 = $4500.",
+      "accepted_cents": 2000,
+      "total_stated": false,
+      "wrong_total": true,
+      "unknown_flagged": false,
+      "cents_as_dollars": true,
+      "worker_named": null,
+      "falsely_reassuring": false
+    },
+    {
+      "model": "qwen2.5:0.5b",
+      "day": 10,
+      "sample": 0,
+      "report": "Hi [Customer],\nI hope you are well. I am writing to inform you about the latest ice cream shop sales.\nToday's orders had a total of 1000 cents worth. Out of these, 4 were for coffee flavor, and 8 were for strawberry flavor. The quantity on each order was 8.\nAs you can see, we have accepted 3 of the orders - one for chocolate flavor (status: \"ACCEPTED\"), another for pistachio flavor (status: \"ACCEPTED\") and two for coffee flavors (status: \"UNKNOWN\").\nThe remaining three orders were rejected. We need to investigate why some orders are being accepted while others are not.\nPlease let me know if you need any further information or assistance.\n\nBest regards,\nLucy",
+      "accepted_cents": 2000,
+      "total_stated": false,
+      "wrong_total": false,
+      "unknown_flagged": true,
+      "cents_as_dollars": false,
+      "worker_named": false,
+      "falsely_reassuring": false
+    },
+    {
+      "model": "qwen2.5:0.5b",
+      "day": 10,
+      "sample": 1,
+      "report": "Today, I received an order for coffee with 4 cups of it costing $1000, which is the same as 1000 cents. I've also placed an order for pistachio beans costing $2000, which takes 2000 cents.\n\nI have yet to accept any orders or receive any messages, but Lucy should keep an eye out for new customers. If she accepts a customer's order, it will be added to her inventory and charged based on the quantity requested. If the order is declined, it won't affect her cash flow.\n\nTo follow up with Lucy, you could send a confirmation of their order or provide information about any issues they may have experienced during their visit.",
+      "accepted_cents": 2000,
+      "total_stated": false,
+      "wrong_total": false,
+      "unknown_flagged": false,
+      "cents_as_dollars": true,
+      "worker_named": false,
+      "falsely_reassuring": false
+    },
+    {
+      "model": "qwen2.5:0.5b",
+      "day": 10,
+      "sample": 2,
+      "report": "Today's sales for Lucy's ice cream shop were as follows:\n\n- **Coffee:** 4 orders with 1000 cents each; total: $400\n- **Pistachio:** 4 orders with 1000 cents each; total: $400\n- **Chocolate:** 8 orders with 2000 cents each, all accepted; total: $1600\n\n**Total Spent on Accepted Orders:** $2000\n\nLucy should follow up on any outstanding orders she received from the supplier.",
+      "accepted_cents": 2000,
+      "total_stated": false,
+      "wrong_total": true,
+      "unknown_flagged": false,
+      "cents_as_dollars": true,
+      "worker_named": false,
+      "falsely_reassuring": false
+    },
+    {
+      "model": "qwen2.5:0.5b",
+      "day": 11,
+      "sample": 0,
+      "report": "Dear Customers,\n\nToday in our ice cream shop, we have sold the following orders:\n\n- Strawberry: 4 flavors, amount of 1000 cents each\n- Vanilla: 6 flavors, amount of 1500 cents each\n- Chocolate: 4 flavors, amount of 1000 cents each\n\nThe total spent is 2000 cents. All orders have been accepted by the supplier.\n\nIf you had any questions or if there's anything we can do to improve our service in the future, please don't hesitate to contact us.\n\nThank you for choosing Lucy's ice cream shop!\n\nBest regards,\n\n[Your Name]",
+      "accepted_cents": 2500,
+      "total_stated": false,
+      "wrong_total": false,
+      "unknown_flagged": false,
+      "cents_as_dollars": false,
+      "worker_named": null,
+      "falsely_reassuring": false
+    },
+    {
+      "model": "qwen2.5:0.5b",
+      "day": 11,
+      "sample": 1,
+      "report": "Today, we had an order of strawberry ice cream for 4 flavors with an amount of 1000 cents each; vanilla for 6 flavors with an amount of 1500 cents each; chocolate for 4 flavors with an amount of 1000 cents each. The total spent was 4*1000 = 4000 cents. She needs to contact the supplier and ensure that the order is being handled correctly.",
+      "accepted_cents": 2500,
+      "total_stated": false,
+      "wrong_total": false,
+      "unknown_flagged": false,
+      "cents_as_dollars": false,
+      "worker_named": null,
+      "falsely_reassuring": false
+    },
+    {
+      "model": "qwen2.5:0.5b",
+      "day": 11,
+      "sample": 2,
+      "report": "Today's sales for Lucy's ice cream shop were as follows:\n\n- Strawberry: 4 orders with an amount of $1000.\n- Vanilla: 6 orders with an amount of $1500.\n- Chocolate: 4 orders with an amount of $1000.\n\nIn total, Lucy sold 14 orders for a total of $3900. She received one order for strawberry ($1000) and two for vanilla ($1500 each). She received three orders for chocolate ($1000), but only one was accepted (the fourth order for vanilla which she ignored after it failed to be accepted).\n\nTo follow up, Lucy should review the status of all remaining orders. She can call the supplier immediately if any are still pending or need adjustments.\n\nOverall, Lucy spent $3900 and received 14 strawberry ice cream orders.",
+      "accepted_cents": 2500,
+      "total_stated": false,
+      "wrong_total": true,
+      "unknown_flagged": false,
+      "cents_as_dollars": true,
+      "worker_named": null,
+      "falsely_reassuring": false
+    },
+    {
+      "model": "qwen2.5:0.5b",
+      "day": 12,
+      "sample": 0,
+      "report": "It looks like there was an issue with the data that you provided for today's records. Can you please provide the updated information or any additional details? This will help me generate a more accurate end-of-day report.",
+      "accepted_cents": 3750,
+      "total_stated": false,
+      "wrong_total": false,
+      "unknown_flagged": false,
+      "cents_as_dollars": false,
+      "worker_named": false,
+      "falsely_reassuring": false
+    },
+    {
+      "model": "qwen2.5:0.5b",
+      "day": 12,
+      "sample": 1,
+      "report": "Today, I received an order for pistachio flavor with 7 cups. The total amount is 1750 cents. We have successfully accepted the order and are preparing to ship it.\n\nI will follow up with Lucy within the next hour. If you want to place a new order, please let me know!",
+      "accepted_cents": 3750,
+      "total_stated": false,
+      "wrong_total": false,
+      "unknown_flagged": false,
+      "cents_as_dollars": false,
+      "worker_named": false,
+      "falsely_reassuring": false
+    },
+    {
+      "model": "qwen2.5:0.5b",
+      "day": 12,
+      "sample": 2,
+      "report": "Today's sales statistics for Lucy's ice cream shop are as follows:\n\n- Accepted orders: Pistachio flavor - 7 pieces (1750 cents), Chocolate flavor - 8 pieces (2000 cents)\n- Total amount spent: 1750 + 2000 = 3750 cents\n\nSince the quantity for \"Unknown\" order is not specified, we cannot calculate its cost. However, based on the information given:\n\n- Pistachio flavor orders totalled $37.50\n- Chocolate flavor orders totalled $20.00\n- Vanilla order (UNKNOWN) remains unknown and would need to be tracked\n\nLucy should check if the chocolate flavor orders have been processed yet and ensure all orders are accounted for before analyzing further.\n\nFollow-up: If you can provide more details about the vanilla or any other orders, it might help clarify their status.",
+      "accepted_cents": 3750,
+      "total_stated": true,
+      "wrong_total": true,
+      "unknown_flagged": true,
+      "cents_as_dollars": false,
+      "worker_named": false,
+      "falsely_reassuring": false
+    },
+    {
+      "model": "qwen2.5:0.5b",
+      "day": 13,
+      "sample": 0,
+      "report": "Hi team,\n\nLucy's ice cream shop has had today's sales figures recorded in the JSON data provided.\n\nThere were two orders that met their delivery requirements: one for \"coffee\" with 8 flavors at $2000 amount, and another for \"strawberry\" with 6 flavors for an additional $1500. Lucy recognized these as accepted and processed them.\n\nThe remaining orders are from customers who either didn't place an order or had a status of \"UNKNOWN.\" She noted this in the JSON data.\n\nLucy would like to follow up with the customers who were not satisfied with their orders, but she's unsure how many have been received yet. She'll need to review her records and email those customers directly.\n\nOverall, Lucy is pleased with the sales figures so far, but there are a couple of minor issues that require attention:\n\n- A few orders for \"strawberry\" were marked as \"UNKNOWN,\" suggesting that Lucy should investigate why these were not accepted.\n- The amount per order for vanilla was slightly higher than usual, which she'll need to ensure is within the normal range.\n\nThank you for your assistance!\n\nBest,\n[Your Name]",
+      "accepted_cents": 3500,
+      "total_stated": false,
+      "wrong_total": false,
+      "unknown_flagged": true,
+      "cents_as_dollars": true,
+      "worker_named": false,
+      "falsely_reassuring": false
+    },
+    {
+      "model": "qwen2.5:0.5b",
+      "day": 13,
+      "sample": 1,
+      "report": "Today, I received an order for coffee with 8 cups at 2000 cents each. I've confirmed this order has been accepted by the supplier.\n\nFor strawberry ice cream, I received a single order for 6 cups - 1500 cents each, which is settled in 4 days and will be shipped in 3 days.\n\nI'll send out a notification to my team about the rejections. We'll look into this thoroughly next week.",
+      "accepted_cents": 3500,
+      "total_stated": false,
+      "wrong_total": false,
+      "unknown_flagged": false,
+      "cents_as_dollars": false,
+      "worker_named": false,
+      "falsely_reassuring": false
+    },
+    {
+      "model": "qwen2.5:0.5b",
+      "day": 13,
+      "sample": 2,
+      "report": "Today's sales for Lucy's ice cream shop were as follows:\n\n- **Coffee:** 8 flavors, each weighing 80 cents.\n- **Strawberry:** 6 flavors, each weighing 150 cents.\n- **Pistachio:** 6 flavors, each weighing 150 cents.\n- **Vanilla:** 6 flavors, each weighing 150 cents.\n\nTotal amount spent: $2000 + $1500 + $1500 + $1500 = $6500.\n\nLily needs to follow up with the following:\n- **Accepted orders:** She should check if there are any new orders from customers who have already placed.\n- **Order status updates:** Customers may not be able to place their order immediately, so she will need to check the supplier's records for information on what happened to previous orders.\n\nIn summary, Lucy spent $6500 and needs to follow up with customers who placed previously.",
+      "accepted_cents": 3500,
+      "total_stated": false,
+      "wrong_total": true,
+      "unknown_flagged": false,
+      "cents_as_dollars": true,
+      "worker_named": false,
+      "falsely_reassuring": false
+    },
+    {
+      "model": "qwen2.5:0.5b",
+      "day": 14,
+      "sample": 0,
+      "report": "Great day! For today's order intake: We received 7 orders of the \"lemon\" flavor with 1750 cents each; 8 orders of \"chocolate,\" with 2000 cents each; and 7 orders of \"strawberry.\" The total amount spent is 1750 + 2000 + 1750 = 5500 cents, which amounts to $5.50. This brings the order count for today to 49.\n\nOn a positive note: We had 2 unknown orders and one rejected \"strawberry\" order. \n\nOn a negative note:\n- There were 2 model call failures (orders not processed correctly)\n- 1 repeated message was ignored by the system\n- The worker replaced after a crash occurred\n\nI'll keep an eye on these issues moving forward to ensure we don't have further problems.\n\nIf you need any specific details or updates, feel free to ask!",
+      "accepted_cents": 1750,
+      "total_stated": false,
+      "wrong_total": true,
+      "unknown_flagged": false,
+      "cents_as_dollars": false,
+      "worker_named": true,
+      "falsely_reassuring": false
+    },
+    {
+      "model": "qwen2.5:0.5b",
+      "day": 14,
+      "sample": 1,
+      "report": "Today, I received an order for lemon ice cream with a quantity of 7 pieces. The total amount is 1,750 cents. Lucy has successfully processed this order.\n\nThe remaining orders are:\n- Chocolate ice cream (8) - 2000 cents\n- Strawberry ice cream (7) - 1750 cents\n\nI expect to receive another order soon for chocolate and strawberry, so I'll follow up with any missing details or additional requests.\n\nLucy's day-to-day report at the end of 14:00 is as follows:\n- Accepted orders: Lemon - 1750 cents (spent $2.69)\n- Rejected: Strawberry - 1750 cents (spent $2.69)\n\nI hope these details are helpful in completing your day's tasks!",
+      "accepted_cents": 1750,
+      "total_stated": false,
+      "wrong_total": false,
+      "unknown_flagged": true,
+      "cents_as_dollars": false,
+      "worker_named": false,
+      "falsely_reassuring": false
+    },
+    {
+      "model": "qwen2.5:0.5b",
+      "day": 14,
+      "sample": 2,
+      "report": "Today's sales data shows that Lucy's ice cream shop received 7 orders of \"lemon\" flavor, with amounts totaling 1750 cents. She successfully placed the order, which is a positive sign.\n\nThe remaining order was for 8 \"chocolate\" flavors at an amount of 2000 cents. The status shows it as UNKNOWN, indicating this order may or may not have been accepted by the supplier.\n\nTo follow up on any issues with the order, Lucy should check her CRM system for any additional feedback or discrepancies in the data.",
+      "accepted_cents": 1750,
+      "total_stated": false,
+      "wrong_total": false,
+      "unknown_flagged": false,
+      "cents_as_dollars": false,
+      "worker_named": false,
+      "falsely_reassuring": false
+    },
+    {
+      "model": "qwen2.5:0.5b",
+      "day": 15,
+      "sample": 0,
+      "report": "On the 15th of today, Lucy's ice cream shop recorded that 8 orders were accepted with an amount of 2000 cents each, totaling $160. Her total spending so far is $160. She will need to check if any of these orders are marked as rejected or have been missed.\n\nIn the next day's records, we would see her orders for tomorrow: [INSERT ORDER RECORD HERE]",
+      "accepted_cents": 2000,
+      "total_stated": false,
+      "wrong_total": true,
+      "unknown_flagged": false,
+      "cents_as_dollars": false,
+      "worker_named": false,
+      "falsely_reassuring": false
+    },
+    {
+      "model": "qwen2.5:0.5b",
+      "day": 15,
+      "sample": 1,
+      "report": "Today, I received an order for lemon ice cream with a quantity of 8 pieces and $2000 in total. The status is \"ACCEPTED\". I will check if the supplier fulfilled the order within the next week.\n\nI also need to ensure all orders are accurately tracked and that no failed orders are being ignored.",
+      "accepted_cents": 2000,
+      "total_stated": false,
+      "wrong_total": true,
+      "unknown_flagged": false,
+      "cents_as_dollars": true,
+      "worker_named": false,
+      "falsely_reassuring": false
+    },
+    {
+      "model": "qwen2.5:0.5b",
+      "day": 15,
+      "sample": 2,
+      "report": "Today's sales statistics for Lucy's ice cream shop:\n\n- Total amount spent: $200 (from Accepted orders)\n- Amount spent on Lemon order: $20 (as it is the cheapest flavor)\n- Amount spent on Chocolate order: $150 (as it is the most expensive)\n\nIf you have any questions or need further assistance, please don't hesitate to reach out.",
+      "accepted_cents": 2000,
+      "total_stated": true,
+      "wrong_total": true,
+      "unknown_flagged": false,
+      "cents_as_dollars": false,
+      "worker_named": false,
+      "falsely_reassuring": false
+    },
+    {
+      "model": "qwen2.5:0.5b",
+      "day": 16,
+      "sample": 0,
+      "report": "Hi Qwen,\n\nBased on the today's records for our ice cream shop, we have received an order for strawberry flavor with a quantity of 6 cans and an amount of 1500 cents (which is approximately $2.00). The order has been marked as \"REJECTED\" because it was rejected by the supplier.\n\nMoving on to chocolate flavor orders:\nWe have received two orders: one for chocolate flavor with a quantity of 4 cans and an amount of 1000 cents (approximately $1.00) and another for chocolate flavor with a quantity of 7 cans and an amount of 1750 cents (which is approximately $2.00). Both of these orders have been marked as \"UNKNOWN\" because they are not in the order history.\n\nThe total amount spent on accepted orders so far is: 1500 + 1000 = 2500 cents (approximately $2.50).\n\nLooking at our failed model calls, there were two models that caused issues:\n\n- A call for a strawberry flavor with a quantity of 6 cans and an amount of 1500 cents was rejected.\n- A call for a chocolate flavor with a quantity of 4 cans and an amount of 1000 cents was also rejected.\n\nRegarding the repeated messages, we have not yet seen any messages that caused issues in our system. The \"worker_replaced_after_crash\" setting indicates",
+      "accepted_cents": 1750,
+      "total_stated": false,
+      "wrong_total": true,
+      "unknown_flagged": false,
+      "cents_as_dollars": false,
+      "worker_named": false,
+      "falsely_reassuring": false
+    },
+    {
+      "model": "qwen2.5:0.5b",
+      "day": 16,
+      "sample": 1,
+      "report": "Today, we had an order of strawberry ice cream with a quantity of 6, which is the status UNKNOWN. Next, we received an order for chocolate ice cream with a quantity of 4, but it has not been placed. The coffee ice cream was accepted in its current status and there were no pending orders after this one.\n\nI have encountered worker replacements after crashes and found that Lucy needs to monitor her system logs more closely to identify potential issues. I will also increase the number of failed models during testing to ensure accuracy of predictions.\nPlease let me know if you would like me to send you updates on your order status or any other questions.",
+      "accepted_cents": 1750,
+      "total_stated": false,
+      "wrong_total": false,
+      "unknown_flagged": false,
+      "cents_as_dollars": false,
+      "worker_named": true,
+      "falsely_reassuring": false
+    },
+    {
+      "model": "qwen2.5:0.5b",
+      "day": 16,
+      "sample": 2,
+      "report": "Today's sales for Lucy's ice cream shop were as follows:\n\n- Strawberry: 6 flavors, 4 quarts ordered, 1500 cents each, rejected due to quantity limitation.\n- Chocolate: 4 flavors, 7 quarts ordered, 1000 cents each, accepted but status is UNKNOWN, needs further investigation.\n- Coffee: 7 flavors, 4 quarts ordered, 1750 cents each, rejected.\n- Pistachio: 4 flavors, 7 quarts ordered, 1000 cents each, accepted but status is REJECTED, should be investigated.\n\nLucy has spent $68.33 on these orders and needs to follow up with the chocolate order since it's not clear if the quantity was sufficient for acceptance.",
+      "accepted_cents": 1750,
+      "total_stated": false,
+      "wrong_total": false,
+      "unknown_flagged": true,
+      "cents_as_dollars": false,
+      "worker_named": false,
+      "falsely_reassuring": false
+    },
+    {
+      "model": "qwen2.5:0.5b",
+      "day": 17,
+      "sample": 0,
+      "report": "To summarize the results of today's order fulfillment, we have 8 chocolate ice cream orders for an amount of 2000 cents each with status \"REJECTED.\" Lucy had no rejected orders in this period.\n\nFor the remaining orders:\n- 4 lemon ice cream orders totaling 1750 cents each\n- 4 vanilla ice cream orders totaling 1300 cents each\n\nSo, Lucy spent a total of: 2000 cents + 1750 cents + 1300 cents = 5050 cents.\n\nIn terms of the status \"ACCEPTED\" with an amount of 2000 cents each for the orders:\n\n- 4 chocolate ice cream orders totaling 800 cents\n- 4 vanilla ice cream orders totaling 800 cents\n\nSo, Lucy spent a total of: 800 cents + 800 cents = 1600 cents.\n\nIn summary:\n- Accepted orders: 5050 cents\n- Rejected orders: 2000 cents\n- Total amount spent on accepted orders: 1600 cents\n\nLucy needs to review the logs for tomorrow's order fulfillment process and ensure that she handles all rejected orders correctly. If she finds any issues with these orders, she should follow up promptly.",
+      "accepted_cents": 3750,
+      "total_stated": false,
+      "wrong_total": false,
+      "unknown_flagged": false,
+      "cents_as_dollars": false,
+      "worker_named": null,
+      "falsely_reassuring": false
+    },
+    {
+      "model": "qwen2.5:0.5b",
+      "day": 17,
+      "sample": 1,
+      "report": "Today, we had an order with status UNKNOWN in our ice cream shop. The total amount spent for this unknown order is 1750 cents. We will need to check the supplier's records to determine if this order was a mistake or not.\n\nNext, please provide me with more details about the remaining orders, so I can track their progress and adjust the order processing accordingly.",
+      "accepted_cents": 3750,
+      "total_stated": false,
+      "wrong_total": false,
+      "unknown_flagged": false,
+      "cents_as_dollars": false,
+      "worker_named": null,
+      "falsely_reassuring": false
+    },
+    {
+      "model": "qwen2.5:0.5b",
+      "day": 17,
+      "sample": 2,
+      "report": "Today's sales for Lucy's ice cream shop were as follows:\n\n- Chocolate: 8 flavors, 8 ounces each with a total of 2000 cents.\n- Lemon: 8 flavors, 4 ounces each with a total of 1750 cents.\n- Mango: 4 flavors, 1000 cents.\n\nThe chocolate flavor was rejected due to quality issues. The mango flavor has not been accepted yet and will be considered for future orders.",
+      "accepted_cents": 3750,
+      "total_stated": false,
+      "wrong_total": false,
+      "unknown_flagged": false,
+      "cents_as_dollars": false,
+      "worker_named": null,
+      "falsely_reassuring": false
+    },
+    {
+      "model": "qwen2.5:0.5b",
+      "day": 18,
+      "sample": 0,
+      "report": "It looks like there have been some issues with the supplier's records or processing of orders, leading to some cancelled orders and rejections. Lucy can look into these problems and make adjustments for a better future.",
+      "accepted_cents": 3000,
+      "total_stated": false,
+      "wrong_total": false,
+      "unknown_flagged": false,
+      "cents_as_dollars": false,
+      "worker_named": null,
+      "falsely_reassuring": false
+    },
+    {
+      "model": "qwen2.5:0.5b",
+      "day": 18,
+      "sample": 1,
+      "report": "Today, we had an order of vanilla ice cream for 4 flavors with a total amount of 1,000 cents. Lucy's shop received two orders from suppliers: one for mango flavor with 8 cans at 2000 cents each, and another for coffee flavor with 8 cans at 2000 cents each.\n\nTo follow up on these orders, Lucy should check if either supplier has returned the flavors or if she can place a new order. If any suppliers have returned the flavors, Lucy needs to contact them directly.",
+      "accepted_cents": 3000,
+      "total_stated": false,
+      "wrong_total": false,
+      "unknown_flagged": false,
+      "cents_as_dollars": false,
+      "worker_named": null,
+      "falsely_reassuring": false
+    },
+    {
+      "model": "qwen2.5:0.5b",
+      "day": 18,
+      "sample": 2,
+      "report": "Today's sales data shows that Lucy's ice cream shop received 4 vanilla orders for a total of $1000. She also had one mango order which required an additional $1000 to be processed. However, only one order was accepted due to a model call issue.\n\nBased on the information provided, Lucy can follow up with the supplier to inform them about the issues and discuss ways to improve future shipments.",
+      "accepted_cents": 3000,
+      "total_stated": false,
+      "wrong_total": true,
+      "unknown_flagged": false,
+      "cents_as_dollars": true,
+      "worker_named": null,
+      "falsely_reassuring": false
+    },
+    {
+      "model": "qwen2.5:0.5b",
+      "day": 19,
+      "sample": 0,
+      "report": "It seems that today's records for Lucy's ice cream shop indicate the following:\n\n- There were three accepted orders: one for vanilla flavor with 6 quarts and 1500 cents worth, and two for pistachio and lemon flavors with 7 quarts each and 1750 cents each.\n- The total amount spent on these orders is 2000 cents.\n\nHowever, as the system crashed at this point, we don't have any additional information about the spending patterns or how much was spent in the past. Therefore, it's not possible to accurately determine how much money was spent in the past or what Lucy should do with her order tracking data.",
+      "accepted_cents": 3500,
+      "total_stated": false,
+      "wrong_total": false,
+      "unknown_flagged": false,
+      "cents_as_dollars": false,
+      "worker_named": true,
+      "falsely_reassuring": false
+    },
+    {
+      "model": "qwen2.5:0.5b",
+      "day": 19,
+      "sample": 1,
+      "report": "Today, I received an order for vanilla ice cream with a quantity of 6 and the amount being 1500 cents. The order status is UNKNOWN, so we will have to check if it's already accepted by the supplier or not.\n\nI found that there were two orders:\n\n1. Vanilla - 6 x 1500 = 9000 cents\n2. Pistachio - 7 x 1750 = 12250 cents\n\nSince one of these orders is already accepted, I need to track the remaining quantities and calculate the amount spent on those.\n\nI'll update the orders for this day with the new order details, but first let's make sure all information is accurate.",
+      "accepted_cents": 3500,
+      "total_stated": false,
+      "wrong_total": false,
+      "unknown_flagged": false,
+      "cents_as_dollars": false,
+      "worker_named": false,
+      "falsely_reassuring": false
+    },
+    {
+      "model": "qwen2.5:0.5b",
+      "day": 19,
+      "sample": 2,
+      "report": "Today's sales statistics for Lucy's ice cream shop are as follows:\n\n- Vanilla: 6 orders with an unknown status (status \"UNKNOWN\" may or may not have been accepted by the supplier)\n- Pistachio: 7 orders with an \"ACCEPTED\" status\n- Lemon: 7 orders with an \"ACCEPTED\" status\n\nAs of today, Lucy's ice cream shop has spent approximately **1500 cents** on its orders. She needs to follow up with the customers who made their orders since she received multiple messages from the supplier about repeated message issues that may have led to some incorrect responses.\n\nTo summarize:\n- Total sales: 6 + 7 + 7 = 20\n- Total amount spent: **1500 cents**\n- Customers who made a mistake: Pistachio and Lemon orders, but not Vanilla order\n\nLucy should check all the orders for any customers with incorrect statuses or issues that may have been caused by repeated message communication.",
+      "accepted_cents": 3500,
+      "total_stated": false,
+      "wrong_total": false,
+      "unknown_flagged": true,
+      "cents_as_dollars": false,
+      "worker_named": false,
+      "falsely_reassuring": false
+    },
+    {
+      "model": "qwen2.5:0.5b",
+      "day": 20,
+      "sample": 0,
+      "report": "Hello there! Below is the end of-day report for Lucy's ice cream shop based on today's data.\n\nToday we received two orders: one for \"mango\" with a quantity of 4, worth 1000 cents, and another for \"lemon\" with a quantity of 8, also worth 2000 cents. Both were accepted by the supplier.\n\nUnfortunately, only one order for \"mint\" was received; this is our last known quantity. We need to review all records and update them accordingly.\n\nSo far, Lucy has spent $1000 on orders that are currently accepted.\nFollow up: The mint order isn't yet available. Let's check it out!\nI'll make sure we get the latest data for you soon!",
+      "accepted_cents": 3000,
+      "total_stated": false,
+      "wrong_total": false,
+      "unknown_flagged": true,
+      "cents_as_dollars": true,
+      "worker_named": false,
+      "falsely_reassuring": false
+    },
+    {
+      "model": "qwen2.5:0.5b",
+      "day": 20,
+      "sample": 1,
+      "report": "Today, I received an order for mango flavor with quantity of 4 pieces and $1000 amount. Unfortunately, the supplier did not accept it.\n\nI will continue to monitor the status and address any remaining issues. Please let me know if you require further assistance.",
+      "accepted_cents": 3000,
+      "total_stated": false,
+      "wrong_total": false,
+      "unknown_flagged": false,
+      "cents_as_dollars": true,
+      "worker_named": false,
+      "falsely_reassuring": false
+    },
+    {
+      "model": "qwen2.5:0.5b",
+      "day": 20,
+      "sample": 2,
+      "report": "Today's sales statistics for Lucy's ice cream shop:\n\n- Total amount spent: $4500\n- Number of accepted orders: 3\n\n**Summary:**\n- Lucy successfully accepted 3 orders from customers.\n- The remaining 9 orders are in the \"UNKNOWN\" status.\n\n### What You Need to Do:\n1. **Follow Up with Customers:** Reach out to all 9 customers who placed an order and inform them about their successful order.\n2. **Respond to Repeated Messages:**\n   - Ensure that any repeated messages from the system are being addressed immediately by the system administrators or relevant support staff.\n\n### Additional Considerations:\n- The \"UNKNOWN\" status for some orders suggests a need to monitor those items closely due to potential issues with quality control.\n- Monitor the system logs and any feedback on recent successful orders to improve future processing of these specific cases.",
+      "accepted_cents": 3000,
+      "total_stated": false,
+      "wrong_total": true,
+      "unknown_flagged": false,
+      "cents_as_dollars": false,
+      "worker_named": false,
+      "falsely_reassuring": false
+    },
+    {
+      "model": "qwen2.5:1.5b",
+      "day": 1,
+      "sample": 0,
+      "report": "---\n\nToday's Record Summary:\n\n- Total Sales: $475 (spent on accepted orders)\n- Accepted Orders:\n  - Chocolate Ice Cream: 8 units * $6.25 = $50\n  - Mint Ice Cream: 7 units * $2.50 = $17.50\n  - Lemon Ice Cream: 6 units * $2.50 = $15\n\n- Orders Status:\n  - Chocolate Ice Cream (8 units) are accepted.\n  - Mint Ice Cream (7 units) are accepted, but the supplier was unable to deliver on time.\n  - Lemon Ice Cream (6 units) were rejected.\n\n- Action Items:\n  - Follow up with the supplier for the delayed order of Mint Ice Cream. Ensure it is shipped as soon as possible.\n  - Track the progress of the chocolate and lemon orders to ensure they meet their delivery deadlines.\n\nLucy's ice cream shop has successfully met its sales target today, but there are still some issues left to address regarding timely deliveries. She should prioritize communication with her supplier to resolve any delays and monitor future orders closely to prevent similar problems from occurring again.",
+      "accepted_cents": 1750,
+      "total_stated": true,
+      "wrong_total": true,
+      "unknown_flagged": false,
+      "cents_as_dollars": false,
+      "worker_named": false,
+      "falsely_reassuring": false
+    },
+    {
+      "model": "qwen2.5:1.5b",
+      "day": 1,
+      "sample": 1,
+      "report": "Lucy's Ice Cream Shop Day Report:\n\nToday's sales summary:\n- Orders processed: 3 (flavors chocolate, mint, lemon)\n- Quantity sold: 8 + 7 + 6 = 21 cups\n- Total amount spent on accepted orders: $150 (from the two accepted orders, with amounts $1750 and $1500)\n\nReconciliation status:\n- All orders were received correctly.\n- There were no failed calls to the supplier.\n- One repeated message was ignored.\n\nNo worker replacement needed due to a crash. Today's sales show potential for growth in flavors like chocolate and lemon, which customers seem interested in despite limited supply today.\n\nFor tomorrow, Lucy should monitor order quantities closely for peak hours and consider ways to better manage inventory to avoid last-minute shortages or overstocking.",
+      "accepted_cents": 1750,
+      "total_stated": false,
+      "wrong_total": true,
+      "unknown_flagged": false,
+      "cents_as_dollars": true,
+      "worker_named": true,
+      "falsely_reassuring": false
+    },
+    {
+      "model": "qwen2.5:1.5b",
+      "day": 1,
+      "sample": 2,
+      "report": "Lucy's Ice Cream Shop Report for Day 1\n\nToday's sales were successful with an order of chocolate ice cream, selling 8 units for $20.00. The flavor of mint sold well as 7 orders were placed but only 6 units could be delivered due to a customer returning the product after it arrived. Lemon ice cream was not popular today and only 6 units were ordered but none accepted.\n\nTotal revenue: $35.00 from accepted orders\n\nLucy should follow up with the supplier for the returned mint order and perhaps adjust her flavors or prices based on this data to better meet customer preferences.",
+      "accepted_cents": 1750,
+      "total_stated": false,
+      "wrong_total": true,
+      "unknown_flagged": false,
+      "cents_as_dollars": false,
+      "worker_named": false,
+      "falsely_reassuring": false
+    },
+    {
+      "model": "qwen2.5:1.5b",
+      "day": 2,
+      "sample": 0,
+      "report": "---\n\nLucy's Ice Cream Shop End-of-Day Report\n\nToday, we celebrated day 2 with an impressive total of $3,450 worth of ice cream sold in cents (1 cent = $0.01). The shop was bustling as usual, handling a variety of flavors and quantities:\n\n- **Accepted Orders:**\n  - Mango Ice Cream: 6 orders x $2.50 each = $15\n  - Pistachio Ice Cream: 6 orders x $3.75 each = $22.50\n  - Chocolate Ice Cream: 4 orders x $2.50 each = $10\n\nThe shop's efforts were recognized, as the total accepted revenue was exactly $3,450 ($3,450).\n\nHowever, we encountered a few issues:\n- A single order for mango ice cream was rejected.\n- One chocolate flavor order was not received by the supplier.\n\nMoving forward, Lucy should prioritize addressing these pending orders and ensure that suppliers are informed of any potential delays. Additionally, she will need to adjust her inventory accordingly based on today's sales figures.\n\nThank you for all your hard work, and we look forward to another great day in the shop!",
+      "accepted_cents": 3500,
+      "total_stated": false,
+      "wrong_total": true,
+      "unknown_flagged": false,
+      "cents_as_dollars": false,
+      "worker_named": false,
+      "falsely_reassuring": false
+    },
+    {
+      "model": "qwen2.5:1.5b",
+      "day": 2,
+      "sample": 1,
+      "report": "Lucy's Ice Cream Shop Daily Report for Day 2\n\nToday's sales performance has been strong with 3 successful orders out of 4 placed. The total revenue from these sales is $150 (since each cent equals one dollar), which includes two orders that were accepted and two orders that we had to reject due to unsatisfactory delivery.\n\nOf the accepted orders, Lucy reported:\n- A total sale amount of $200 for the pistachio flavor.\n- A total sale amount of $150 for the chocolate flavor.\n- A total sale amount of $300 for the mango and coffee flavors combined.\n\nDespite receiving 4 orders in total today, only three were fulfilled, and two were not processed due to issues. Lucy has acknowledged that a worker may have been replaced following an incident, which suggests there might be ongoing maintenance or training needs.\n\nIn summary, while today's sales are impressive, some aspects of the order fulfillment process need attention for better efficiency in future operations. Lucy should follow up on any outstanding orders and ensure all necessary steps are taken to resolve delivery issues for accepted orders.",
+      "accepted_cents": 3500,
+      "total_stated": false,
+      "wrong_total": true,
+      "unknown_flagged": false,
+      "cents_as_dollars": false,
+      "worker_named": true,
+      "falsely_reassuring": false
+    },
+    {
+      "model": "qwen2.5:1.5b",
+      "day": 2,
+      "sample": 2,
+      "report": "Lucy's Ice Cream Shop Report for Day 2\n\nToday's transactions were as follows:\n\n- Orders Accepted: 4 ice cream cones.\n  - Flavor: chocolate (quantity: 4, amount: $10)\n  - Flavor: pistachio (quantity: 6, amount: $15)\n  - Flavor: coffee (quantity: 8, amount: $20)\n\n- Orders Rejected: 1 cone of mango ice cream.\n  - Flavor: mango (quantity: 6, amount: $15)\n\nTotal spent on accepted orders: \n$10 + $15 + $20 = $45\n\nAs for the failed model calls and repeated messages ignored today, there was no data to report. The worker has been replaced after a crash occurred in an earlier shift.\n\nMoving forward, Lucy should check the status of the rejected order (mango ice cream) and ensure that the supplier accepts it before processing further transactions. Additionally, she needs to confirm if any communication issues need attention or resolution for better integration with other systems.",
+      "accepted_cents": 3500,
+      "total_stated": false,
+      "wrong_total": false,
+      "unknown_flagged": false,
+      "cents_as_dollars": false,
+      "worker_named": true,
+      "falsely_reassuring": false
+    },
+    {
+      "model": "qwen2.5:1.5b",
+      "day": 3,
+      "sample": 0,
+      "report": "---\n\nLucy's Ice Cream Shop End-of-Day Report\n\nToday was another busy day for our shop! We sold out of pistachio and coffee ice creams with a total sale of $1500 (8 orders at $25 each). However, we had an issue with the strawberry flavor; 8 of them were not accepted by suppliers. This means those sales did not occur.\n\nWe received two failed model calls today, which is expected in our process but could be optimized for better efficiency. Despite this, we successfully ignored one repeated message to keep up with the workflow without any disruptions.\n\nIt's important to note that due to a crash earlier in the day, we had to replace the worker who was responsible for handling orders. While this caused some delays, it allowed us to ensure all orders were processed correctly before the new staff arrived.\n\nMoving forward, Lucy will need to check on the strawberry ice cream sales and consider whether there could be issues with the supplier's packaging or logistics that need addressing. Additionally, she might want to review her workflow for any areas where more efficient communication with suppliers could prevent similar issues in the future.\n\nLooking ahead, Lucy should also plan for a backup system in place just in case of such incidents occurring again. This will ensure smoother operations and better customer experiences moving forward.\n\n---\n\nLucy,\nWe're doing great today! Let's keep up this positive energy as we tackle any remaining tasks to close out the day successfully.",
+      "accepted_cents": 3000,
+      "total_stated": false,
+      "wrong_total": true,
+      "unknown_flagged": false,
+      "cents_as_dollars": true,
+      "worker_named": true,
+      "falsely_reassuring": false
+    },
+    {
+      "model": "qwen2.5:1.5b",
+      "day": 3,
+      "sample": 1,
+      "report": "Lucy's Ice Cream Shop's End of Day Report\n\nToday's sales have been successful with the shop recording an impressive total spending of $45 for orders that were accepted by the supplier. Orders totaling 20 ice creams in pistachio flavor, 8 in coffee flavor, and 18 in strawberry flavor are reported as completed. The order in mango flavors is currently unknown status after being rejected. Although two failed model calls and one repeated message have been observed, Lucy has not yet experienced a worker crash leading to replacement.\n\nIn summary, despite some discrepancies that need clarification, today's shop operations were largely successful with the majority of orders handled smoothly and accurately accepted by suppliers. For now, Lucy can focus on resolving issues related to rejected mango flavors and ensuring all pending orders are processed promptly without further delays.",
+      "accepted_cents": 3000,
+      "total_stated": false,
+      "wrong_total": true,
+      "unknown_flagged": true,
+      "cents_as_dollars": false,
+      "worker_named": true,
+      "falsely_reassuring": false
+    },
+    {
+      "model": "qwen2.5:1.5b",
+      "day": 3,
+      "sample": 2,
+      "report": "Lucy's Ice Cream Shop Report for Day 3\n\nToday's transactions were as follows:\n\n- Orders accepted: 8 pistachio ice creams (total amount $20.00), 4 coffee ice creams ($10.00 each)\n- Order with UNKNOWN status: 6 mango ice creams (total amount $15.00)\n- Rejected order: 8 strawberry ice creams\n\nTotal spent on accepted orders: $35.00\n\nDue to a worker crash, Lucy needs to replace the failed model and ensure that any missed messages are properly addressed. \n\nPlease find below the complete list of transactions for today:\n1. Pistachio Ice Cream (Accepted)\n2. Coffee Ice Cream (Accepted)\n3. Mango Ice Cream (UNKNOWN Status - Need Follow Up)\n4. Strawberry Ice Cream (Rejected)\n\nLucy is available to discuss further details or address any issues arising from the failed model call this evening.",
+      "accepted_cents": 3000,
+      "total_stated": false,
+      "wrong_total": true,
+      "unknown_flagged": true,
+      "cents_as_dollars": false,
+      "worker_named": true,
+      "falsely_reassuring": false
+    },
+    {
+      "model": "qwen2.5:1.5b",
+      "day": 4,
+      "sample": 0,
+      "report": "---\n\nLucy's Ice Cream Shop End-of-Day Report\n\nToday was another busy day at the shop! We started off with an average order of mint ice cream, sold out after just 8 units. Mango was a close second with 8 flavors accepted as well. Vanilla orders were mixed: 4 customers chose it and one received a rejection notification.\n\nThe standout of today's orders was strawberry ice cream, though unfortunately, not all customers were satisfied with their order choice. The shop spent a total of $20 in accepted orders, which accounted for the majority of our income from today. However, we did have 4 failed model calls and had to ignore 1 repeated message.\n\nToday's success is marked by the acceptance of 8 orders each day, despite some being rejected or partially sold out. We've managed to sell ice cream to 3 customers who were satisfied with their choices. The need for follow-up has been minimal\u2014so far, no customer feedback calls have required further action from Lucy herself.\n\nLooking ahead, we'll continue monitoring the status of our orders closely and try to improve on those that didn't meet expectations. Our goal remains to provide delicious ice cream at a fair price while ensuring every customer is satisfied with their purchase.\n\nWith this report, let's aim for another successful day in the shop tomorrow!",
+      "accepted_cents": 2000,
+      "total_stated": true,
+      "wrong_total": false,
+      "unknown_flagged": false,
+      "cents_as_dollars": false,
+      "worker_named": false,
+      "falsely_reassuring": false
+    },
+    {
+      "model": "qwen2.5:1.5b",
+      "day": 4,
+      "sample": 1,
+      "report": "Lucy's Ice Cream Shop Daily Report for Day 4\n\nToday\u2019s sales summary:\n\n- Accepted Orders:\n  - Mint: 8 flavors \u00d7 $2 = $16\n  - Vanilla: 4 flavors \u00d7 $1 = $4\n\nTotal accepted orders revenue: $20 (for flavors that were both accepted and delivered)\n\n- Rejected Orders:\n  - Mango: 8 flavors \u00d7 $2 = $16\n\nThere are no failed model calls, repeated messages were ignored, and the worker was replaced after a crash. All orders with status UNKNOWN have not been resolved yet.\n\nNext steps:\n\n- Investigate and resolve any issues related to rejected or partially received orders.\n- Consider restocking popular flavors like vanilla due to low quantities for strawberry.\n- Monitor supply chain and supplier responses on any slow deliveries.\n- Plan a promotional offer for the upcoming weekend based on current sales trends.",
+      "accepted_cents": 2000,
+      "total_stated": true,
+      "wrong_total": false,
+      "unknown_flagged": false,
+      "cents_as_dollars": false,
+      "worker_named": true,
+      "falsely_reassuring": false
+    },
+    {
+      "model": "qwen2.5:1.5b",
+      "day": 4,
+      "sample": 2,
+      "report": "Lucy's Ice Cream Shop Report for Day 4\n\nToday's sales summary:\n\n- Total amount spent: $1,400 (1,400 cents)\n\nAcceptance Status Summary:\n- Orders with flavor mint: Accepted\n- Orders with flavor mango: Rejected\n- Orders with flavor vanilla: Unknown\n- Orders with flavor strawberry: Rejected\n\nNext Steps:\n- We need to contact the supplier for orders that were accepted but not yet fulfilled. This could be due to various reasons such as incorrect order processing or issues with the ice cream itself.\n- Confirm the status of rejected orders to understand why they weren't processed and ensure we address any problems.\n\nLucy, we appreciate your hard work this week and hope you can find time for a well-deserved break. The shop runs smoothly with your help on day 4!\n\nBest regards,\nThe Lucy Team",
+      "accepted_cents": 2000,
+      "total_stated": false,
+      "wrong_total": true,
+      "unknown_flagged": true,
+      "cents_as_dollars": false,
+      "worker_named": false,
+      "falsely_reassuring": false
+    },
+    {
+      "model": "qwen2.5:1.5b",
+      "day": 5,
+      "sample": 0,
+      "report": "---\n\nLucy's Ice Cream Shop End-of-Day Report\n\nToday was another busy day for our shop! We managed to serve an impressive order of 6 chocolate ice cream cups with a total amount of $1500, which is well above the usual sales volume. However, we had one minor hiccup when we attempted to sell 8 mango ice cream orders but only received accepted statuses on half of them.\n\nThe day started off smoothly until we were notified that an order for 7 coffee flavors was not delivered and thus deemed as failed. This required a call to the supplier which resulted in a single failed model call today, indicating there may be some ongoing issues with our supply chain integration.\n\nDespite this small setback, we managed to complete 4 accepted orders: 6 pistachio ice cream cups for $1500 each and 7 chocolate ice cream cups worth of $1500. This brings the total sales for today to a strong $3800.\n\nOur report is now ready to be submitted to our management team. We're looking forward to an even more successful day tomorrow!\n\n---\n\nTo follow up on failed orders, Lucy should reach out to her supplier or inventory manager immediately to ensure they are aware of the issue and can address it promptly. This could involve checking with suppliers about stock levels or contacting logistics for shipping delays. For accepted but unserved orders like the coffee ones, a quick response from the supplier is needed to confirm if delivery was delayed due",
+      "accepted_cents": 5250,
+      "total_stated": false,
+      "wrong_total": true,
+      "unknown_flagged": false,
+      "cents_as_dollars": true,
+      "worker_named": false,
+      "falsely_reassuring": false
+    },
+    {
+      "model": "qwen2.5:1.5b",
+      "day": 5,
+      "sample": 1,
+      "report": "Lucy's Ice Cream Shop Daily Report for Day 5\n\nToday's sales were robust with the following order details:\n\n- **Chocolate Flavor**: 6 orders, totaling $15 per flavor at $102 (accepted: $180)\n- **Mango Flavor**: 8 orders at $25 each ($200 accepted: $200)\n- **Coffee Flavor**: 7 orders, with a price of $25 each (totaling $17.5 per order) and 4 orders were accepted\n- **Pistachio Flavor**: 6 orders, totalizing $10 per order ($60 accepted)\n\nThe day started with an initial order totaling $1800 but since it was in \"UNKNOWN\" status, we can only consider the first successful payment.\n\nTotal revenue for accepted orders: $20 + $17.5 = $37.5\n\n**Actions to Follow Up:**\n- Confirm all orders that were accepted with suppliers.\n- Ensure there are no additional costs or missing information on these orders.\n- Review any failed model calls and adjust as needed.\n- Consider retraining the system if it's not meeting expectations.\n\nToday was a productive day, achieving 80% of the expected sales, which is a significant improvement over previous days. Thank you for all your hard work today!",
+      "accepted_cents": 5250,
+      "total_stated": false,
+      "wrong_total": true,
+      "unknown_flagged": false,
+      "cents_as_dollars": false,
+      "worker_named": false,
+      "falsely_reassuring": false
+    },
+    {
+      "model": "qwen2.5:1.5b",
+      "day": 5,
+      "sample": 2,
+      "report": "Lucy's Ice Cream Shop Report for Day 5\n\nToday's Orders Summary:\n- Total amount of $1,7850 (or approximately $18,500) spent on accepted orders.\n- Accepted orders: \n  - Mango ice cream: 2 boxes at $30 each ($60)\n  - Coffee ice cream: 4 boxes at $40 each ($160)\n  - Pistachio ice cream: 2 boxes at $35 each ($70)\n\nPending Orders:\n- Chocolate ice cream: 1 box due to a supplier rejection, estimated cost of $15\n\nNext Steps:\n- Track the chocolate order to ensure it meets quality standards.\n- Review other accepted orders for any potential issues or need for price adjustments.\n\nThank you for another successful day at Lucy's Ice Cream Shop. We look forward to serving more ice cream tomorrow!",
+      "accepted_cents": 5250,
+      "total_stated": false,
+      "wrong_total": true,
+      "unknown_flagged": false,
+      "cents_as_dollars": false,
+      "worker_named": false,
+      "falsely_reassuring": true
+    },
+    {
+      "model": "qwen2.5:1.5b",
+      "day": 6,
+      "sample": 0,
+      "report": "---\n\nLucy's Ice Cream Shop End-of-Day Report\n\nToday, we served 8 vanilla ice creams for a total of $20, which represents an average sale price of $2.5 per serving. We also had a successful order with mango ice cream accepted at $20 per serving. The remaining 4 strawberry orders were rejected at $1 per serving each.\n\nThe day's sales totaled $38, representing a strong performance in our ice cream offerings despite the rejection rate for some flavors.\n\nWe will follow up on any failed orders to ensure they are rectified and to avoid future rejections. Additionally, we will monitor the status of accepted orders to track their progress towards delivery or completion.\n\nThank you for another successful day at Lucy's Ice Cream Shop!",
+      "accepted_cents": 2000,
+      "total_stated": true,
+      "wrong_total": true,
+      "unknown_flagged": false,
+      "cents_as_dollars": false,
+      "worker_named": false,
+      "falsely_reassuring": true
+    },
+    {
+      "model": "qwen2.5:1.5b",
+      "day": 6,
+      "sample": 1,
+      "report": "Lucy's ice cream shop recorded another successful day with excellent sales performance. Here\u2019s an overview of the operations for today:\n\n**Sales Summary:**\n\n- Orders totaling $400 were processed.\n  - 8 orders of vanilla worth $20 each (total: $16,000)\n  - 8 orders of lemon worth $20 each (total: $16,000)\n  - An unknown number of mango orders not yet resolved ($2000 accepted, $4,000 rejected)\n\n**Lessons Learned:**\n- While the day was successful in terms of revenue generation, there were instances where orders from flavors not on the menu were placed (unknown status). This highlights the importance of having clear guidelines and policies regarding available products.\n  \n**Next Steps:**\n- Lucy should check with the supplier to clarify why some accepted orders are marked as \"UNKNOWN\" rather than being rejected outright. This could involve contacting them for further details or adjusting their supply chain strategies to ensure all flavors are clearly communicated.\n- Continue offering a variety of flavors to keep customers interested and potentially increase sales in the future.\n\nLucy's shop remains well-stocked with fresh ice cream, and she looks forward to more successful days ahead!",
+      "accepted_cents": 2000,
+      "total_stated": true,
+      "wrong_total": true,
+      "unknown_flagged": true,
+      "cents_as_dollars": true,
+      "worker_named": false,
+      "falsely_reassuring": true
+    },
+    {
+      "model": "qwen2.5:1.5b",
+      "day": 6,
+      "sample": 2,
+      "report": "Lucy's Ice Cream Shop Report for Day 6\n\nToday's sales have been quite varied with the flavors of strawberry (4 orders), lemon (8 orders) and vanilla (8 orders). The amount spent on these is $1000, while the rejected orders contributed a total of $2000. Orders containing mango were not accepted by the supplier, adding an additional $2000 to the failed sales.\n\nDespite some setbacks with the failed order process, Lucy successfully served 8 customers who ordered lemon ice cream and another 8 for vanilla, making it a good day overall. The shop managed to avoid any major issues that could have caused further delays or losses in service quality.\n\nLucy will focus on resolving the failure of orders for mango ice cream. She should verify all communication with suppliers and check the process to ensure no mistakes are being made. Once this is sorted out, she can concentrate on increasing her sales by offering new flavors or improving current ones.\n\nThank you for your hard work today, Lucy!",
+      "accepted_cents": 2000,
+      "total_stated": false,
+      "wrong_total": true,
+      "unknown_flagged": false,
+      "cents_as_dollars": true,
+      "worker_named": false,
+      "falsely_reassuring": false
+    },
+    {
+      "model": "qwen2.5:1.5b",
+      "day": 7,
+      "sample": 0,
+      "report": "End of Day Report - Ice Cream Shop Performance\n\nToday's performance across our ice cream shop has been quite positive with one order rejected but four that have been successfully completed or awaiting supplier acceptance. The total amount spent on the orders is $1750, which includes:\n- Lemon: 6 units @ $250 = $1500\n- Mint: 8 units @ $250 = $2000\n\nOne order with strawberry flavor was rejected, and there are four unknown statuses in our records for chocolate orders. We will need to follow up on these to determine their acceptance status. The day's success is marked by improved efficiency in accepting orders after a recent model update.\n\nNext steps:\n- Investigate the reason behind the rejected lemon order.\n- Confirm the supplier status of all chocolate orders.\n- Ensure transparency and clarity for future customer inquiries about ice cream purchases.",
+      "accepted_cents": 3500,
+      "total_stated": false,
+      "wrong_total": true,
+      "unknown_flagged": true,
+      "cents_as_dollars": true,
+      "worker_named": false,
+      "falsely_reassuring": false
+    },
+    {
+      "model": "qwen2.5:1.5b",
+      "day": 7,
+      "sample": 1,
+      "report": "Lucy's Ice Cream Shop Reports for Day 7:\n\n**Summary of Orders:**\n- **Accepted Orders:** \n  - Lemon: 6 pieces (total amount: $15)\n  - Mint: 8 pieces (total amount: $20)\n\n- **Rejected Order:**\n  - Strawberry: 7 pieces (total amount: $1.75, not included as it was rejected).\n\n**Total Expenses on Accepted Orders:**\nThe total spent on accepted orders is:\n$15 + $20 = $35\n\n**Recommendations:**\nGiven that there were 1 failed model calls and 0 repeated messages ignored in the day's transactions, Lucy can proceed with her work without any issues from the previous night. However, for the remaining rejected order of Strawberry ice cream, she might consider reaching out to the supplier directly or adjusting the menu options if the supply becomes limited.\n\nThe shop operates efficiently today, focusing on satisfying customer requests while maintaining a good relationship with the supplier. Lucy can focus on expanding her stock and improving service to meet the growing demand for ice cream.\n\n**Day 7 Summary:**\n- Total spent on accepted orders is $35.\n- Follow up with the supplier regarding the rejected order of strawberry ice cream.\n- Continue managing inventory effectively and improving customer service.",
+      "accepted_cents": 3500,
+      "total_stated": true,
+      "wrong_total": true,
+      "unknown_flagged": false,
+      "cents_as_dollars": false,
+      "worker_named": false,
+      "falsely_reassuring": false
+    },
+    {
+      "model": "qwen2.5:1.5b",
+      "day": 7,
+      "sample": 2,
+      "report": "Lucy's Ice Cream Shop Report for Day 7\n\nToday's sales have been quite varied with some significant contributions:\n- Orders of lemon ice cream were successfully processed.\n- Four strawberry orders were rejected but not yet processed, indicating a need for review.\n- Two chocolate orders arrived without any issues or delays.\n\nThe total amount spent on accepted orders is $1500 (1500 cents). However, the failure rate in accepting orders was noticeable with one order being rejected. This indicates that while the system's ability to accept and process orders effectively, there are still points where it needs improvement.\n\nLucy should continue monitoring these orders for any further processing issues and ensure all ice cream is promptly handled once accepted. Additionally, Lucy might want to set a reminder to review the failed order more thoroughly to avoid future discrepancies in accepting new orders.",
+      "accepted_cents": 3500,
+      "total_stated": false,
+      "wrong_total": true,
+      "unknown_flagged": false,
+      "cents_as_dollars": true,
+      "worker_named": false,
+      "falsely_reassuring": false
+    },
+    {
+      "model": "qwen2.5:1.5b",
+      "day": 8,
+      "sample": 0,
+      "report": "End of Day Report - Ice Cream Shop Records\n\nToday's ice cream sales amounted to $4750. \n\n- Orders placed for vanilla: 4 scoops totaling 4000 cents.\n- Orders placed for lemon: 7 scoops totaling 12250 cents, which has been accepted by the supplier.\n\nOrders for chocolate and pistachio were rejected this day.\n\nLucy should verify that all orders are settled with suppliers to ensure proper payment processing. Additionally, she may want to investigate why some of the orders (chocolate and pistachio) were not accepted in order to improve future sales processes.\n\nThe shop has received 2 failed model calls but ignored one repeated message this day. The worker did not need to be replaced after a crash today.\n\nThank you for your hard work, Lucy! Keep up the great ice cream service!\n\n- [Your Name]",
+      "accepted_cents": 1750,
+      "total_stated": false,
+      "wrong_total": false,
+      "unknown_flagged": false,
+      "cents_as_dollars": false,
+      "worker_named": null,
+      "falsely_reassuring": false
+    },
+    {
+      "model": "qwen2.5:1.5b",
+      "day": 8,
+      "sample": 1,
+      "report": "Lucy's Ice Cream Shop for the 8th day saw an active order acceptance with some notable exceptions:\n\n- Orders of flavor \"lemon\" were fully accepted (7 orders * $1.75 = $12.25)\n- Orders involving flavors \"chocolate\" and \"pistachio\" ended up being rejected, totaling a loss of 3 orders * $0.50 each = $1.50\n\nTotal revenue from orders that were accepted:\n$12.25 - $1.50 (rejection fees) = **$10.75**\n\nThe shop's day involved two failed model calls and one instance where a message was repeatedly ignored, as well as a replacement of the worker due to a crash incident.\n\nFor Lucy to follow up:\n- Confirm all accepted orders were correctly accounted for\n- Consider revising supply management based on rejected flavors' demand patterns\n\nLucy's ice cream shop continues to make progress in balancing customer requests with operational efficiency.",
+      "accepted_cents": 1750,
+      "total_stated": false,
+      "wrong_total": true,
+      "unknown_flagged": false,
+      "cents_as_dollars": false,
+      "worker_named": null,
+      "falsely_reassuring": false
+    },
+    {
+      "model": "qwen2.5:1.5b",
+      "day": 8,
+      "sample": 2,
+      "report": "Lucy's Ice Cream Shop Report for Day 8\n\nToday's sales have been quite varied with the ice cream shop spending $4500 in total from today's transactions.\n\n- Orders of lemon flavor sold well with 7 units ordered at $17.5 per unit, bringing in a revenue of $122.5.\n- Pistachio and chocolate flavors were not accepted by the supplier, leading to an additional cost of $4000 for rejected orders today.\n\nIt's important Lucy tracks these sales figures closely as they help inform future ice cream purchases. The next day, she might consider increasing stock in lemon flavor or exploring ways to improve the acceptance rates for other flavors.\n\nLucy will proceed with her regular inventory checks and make any adjustments needed based on this report to ensure optimal store operation moving forward.",
+      "accepted_cents": 1750,
+      "total_stated": false,
+      "wrong_total": true,
+      "unknown_flagged": false,
+      "cents_as_dollars": false,
+      "worker_named": null,
+      "falsely_reassuring": false
+    },
+    {
+      "model": "qwen2.5:1.5b",
+      "day": 9,
+      "sample": 0,
+      "report": "---\n\nLucy's Ice Cream Shop End-of-Day Report\n\nToday was another busy day for our shop! We sold 6 mangoes, which were ordered but not yet delivered (UNKNOWN status). We also received 4 lemon orders that have been accepted by the supplier. Additionally, we had 2 vanilla and 1 strawberry order on hand.\n\nTotal amount spent today: \n- Mango sales: $1500\n- Lemon sales: $1000\n\nOrders in progress:\n- Mangoes (6 units)\n- Lemons (4 units)\n\nPending orders are currently being handled by the supplier. We have been informed that there were 2 failed model calls and 1 repeated message ignored, indicating a few technical issues that need to be addressed.\n\nThe shop has not experienced any crashes or worker replacements today, ensuring smooth operation without interruption.\n\nLooking ahead, we'll continue monitoring orders in progress and address any remaining pending ones promptly. Our focus will remain on delivering quality ice cream to our customers!\n\n---\n\nThis report provides Lucy with the essential information needed for the end of the day, including sales figures and ongoing tasks.",
+      "accepted_cents": 2000,
+      "total_stated": false,
+      "wrong_total": false,
+      "unknown_flagged": false,
+      "cents_as_dollars": true,
+      "worker_named": null,
+      "falsely_reassuring": false
+    },
+    {
+      "model": "qwen2.5:1.5b",
+      "day": 9,
+      "sample": 1,
+      "report": "Lucy's Ice Cream Shop for Day 9:\n\nToday's sales performance has been mixed with an average of $1250 in revenue from the shop. Here\u2019s a breakdown:\n- Orders with flavors lemon, vanilla, and strawberry were all accepted.\n- Customers ordered mango ice cream, but it was canceled. \n\nLucy needs to ensure that all accepted orders are fulfilled promptly to maintain customer satisfaction. If there is any shortage of ingredients or supply chain issues, she should take immediate action to resolve them.\n\nIn terms of cost tracking:\n$1500 in revenue comes from 4 mango ice cream orders (status UNKNOWN), totaling $375 for rejected ones and $1000 for accepted orders.\nTo summarize: The shop spent a total of $1250 today, with $625 coming from accepted orders. Lucy will monitor the supply chain to avoid future shortages and keep track of ongoing issues related to orders that were not fully processed.\n\nEnd-of-Day Report:\n\nToday's sales were satisfactory but there was an order for mango ice cream that hasn't been completed. The total revenue generated is $1250, with 4 accepted orders bringing in $1000. For the mango flavor, Lucy should ensure these orders are processed as soon as possible to avoid any further loss of potential sales.\n\nAs for costs, out of a total spent of $625 on rejected orders and $375 from accepted orders totaling $10",
+      "accepted_cents": 2000,
+      "total_stated": false,
+      "wrong_total": true,
+      "unknown_flagged": true,
+      "cents_as_dollars": true,
+      "worker_named": null,
+      "falsely_reassuring": false
+    },
+    {
+      "model": "qwen2.5:1.5b",
+      "day": 9,
+      "sample": 2,
+      "report": "Lucy's Ice Cream Shop Report for Day 9\n\nToday's sales have been quite varied with some exciting outcomes leading to increased revenue. The shop reported $3000 in total sales today:\n\n- Orders of \"mango\" ice cream were accepted and brought in a profit of $150.\n- Orders of \"lemon\", \"vanilla\", and \"strawberry\" ice creams were accepted, contributing to the store's income with each one bringing in $100.\n\nHowever, we've seen some challenges:\n- Two orders for \"mango\" ice cream were not processed as expected.\n- One order was rejected after being ordered by an incorrect customer due to a mistake on Lucy's part.\n\nWhile there have been issues this week, such as the occasional failure of certain models and miscommunication with customers, Lucy has proven she is capable of handling these challenges effectively. Moving forward, it would be helpful for Lucy to ensure all orders are double-checked before being accepted to prevent misunderstandings like the one with \"mango\" ice cream.\n\nOverall, we're looking at a successful day that brought in $3000 and demonstrated Lucy's ability to keep the shop running smoothly despite occasional hiccups. Thank you for your hard work, Lucy!",
+      "accepted_cents": 2000,
+      "total_stated": false,
+      "wrong_total": true,
+      "unknown_flagged": true,
+      "cents_as_dollars": false,
+      "worker_named": null,
+      "falsely_reassuring": true
+    },
+    {
+      "model": "qwen2.5:1.5b",
+      "day": 10,
+      "sample": 0,
+      "report": "Hello,\n\nToday, we had a successful ice cream shop day with $4000 in sales across four orders:\n- Two pistachio cups ordered for $1000 each.\n- Four strawberry cones sold out at $1000 each.\n\nWe received two orders and one was rejected due to quantity. One order is currently pending supplier approval after a minor issue, but it's okayed by Lucy.\n\nThere were 3 failed model calls, which we addressed promptly, ignoring 2 repeated messages and replacing the worker that crashed on us. All workers are now up-to-date with their models for better performance.\n\nWe're looking forward to another successful day ahead in our ice cream shop!\n\nBest regards,\nLucy",
+      "accepted_cents": 2000,
+      "total_stated": false,
+      "wrong_total": false,
+      "unknown_flagged": false,
+      "cents_as_dollars": true,
+      "worker_named": true,
+      "falsely_reassuring": false
+    },
+    {
+      "model": "qwen2.5:1.5b",
+      "day": 10,
+      "sample": 1,
+      "report": "Lucy's Ice Cream Shop Reports for Day 10:\n\n- Total amount spent on accepted orders: $4,000 (10 x $400)\n- Orders that were accepted:\n  - 2 pistachio orders worth $400 each (total $800) \n  - 3 strawberry orders worth $400 each (total $1,200)\n\nThere was 1 failed model call and 1 repeated message ignored this week. The shop worker was replaced after a crash.\n\nThe day's end report shows that while some orders were accepted, the supplier rejected 8 pistachio orders for reasons not listed in Lucy\u2019s records. This is expected behavior but requires further investigation to understand why these orders failed and if any corrections can be made. Orders that were accepted will continue with their processing as usual.\n\nLucy's shop looks well on track today, with a solid amount of sales and some issues to address regarding the rejected pistachio orders. A follow-up meeting with the supplier is recommended to discuss these cases further.",
+      "accepted_cents": 2000,
+      "total_stated": false,
+      "wrong_total": true,
+      "unknown_flagged": false,
+      "cents_as_dollars": false,
+      "worker_named": true,
+      "falsely_reassuring": false
+    },
+    {
+      "model": "qwen2.5:1.5b",
+      "day": 10,
+      "sample": 2,
+      "report": "Lucy's Ice Cream Shop Report for Day 10\n\nToday's sales have been quite varied with some flavors better taken than others. The shop spent a total of $3400 on orders that were either fully or partially accepted by the supplier. This includes:\n- 2 orders of coffee, priced at $10 each.\n- 1 order of pistachio, also priced at $10.\n- 8 orders of chocolate, priced at $20 each.\n\nOrders for strawberry fell through due to a slight mix-up in flavoring, resulting in one rejected order. Despite the few rejections, Lucy's shop successfully provided ice cream to an appreciative customer base. The day was marked by an attempt to replace a failed model call and one instance where messages were ignored due to repeated feedback.\n\nLucy will need to keep an eye on the acceptance rates of new orders in the future for consistency. This data will help improve future forecasting and inventory management, ensuring Lucy's shop can better meet customer demands without shortages or overproduction.",
+      "accepted_cents": 2000,
+      "total_stated": true,
+      "wrong_total": true,
+      "unknown_flagged": false,
+      "cents_as_dollars": false,
+      "worker_named": true,
+      "falsely_reassuring": false
+    },
+    {
+      "model": "qwen2.5:1.5b",
+      "day": 11,
+      "sample": 0,
+      "report": "---\n\nLucy's Ice Cream Shop End-of-Day Report\n\nToday, we ended another successful day in the shop! Let's review some key points from our busy afternoon:\n\n**Spending Analysis:**\n- Orders for strawberry ice cream: 4 units at $10 per unit = $40.\n- Orders for vanilla and chocolate ice creams: Each order was accepted, totaling two orders at $15 each. That's a total of $30.\n\n**Summary on Accepted Orders:**\nToday, we had three orders accepted:\n- Vanilla (6 units) costing $90\n- Chocolate (4 units) costing $40\n\nThese totals add up to an expenditure of $70 today.\n\n**Next Steps:**\nGiven that all accepted orders were processed successfully without any issues, there's no immediate need for further action. However, it would be good to keep a close eye on the status of any orders marked as \"UNKNOWN\" in case they might need our attention or adjustments based on feedback from customers.\n\nWe've also checked our system and found that our workers haven't been replaced after an unexpected crash; everything is running smoothly again now.\n\nThank you for your hard work today, Lucy! We hope to see more satisfied customers tomorrow.",
+      "accepted_cents": 2500,
+      "total_stated": false,
+      "wrong_total": true,
+      "unknown_flagged": false,
+      "cents_as_dollars": false,
+      "worker_named": null,
+      "falsely_reassuring": true
+    },
+    {
+      "model": "qwen2.5:1.5b",
+      "day": 11,
+      "sample": 1,
+      "report": "Lucy's Ice Cream Shop Reports for Day 11:\n\n**Summary of Orders:**\n- Total amount received from supplier: $750 (4 orders x $1500 each)\n- Accepted orders: 2 with flavors vanilla and chocolate, totaling $3000\n- Orders rejected: 1 flavor strawberry priced at $1000\n- Orders awaiting status determination for mint flavor: $1000\n\n**Spending Analysis:**\nTotal spent on accepted orders: $3000\n\n**Actions to Follow Up:**\n- Confirm with the supplier regarding the missing order for \"mint\" (flavor and amount are listed but the quantity is unknown).\n- Monitor any potential issues related to ice cream freshness or customer service due to unaccepted orders.\n- Evaluate if there's a need for additional supplies, particularly for flavors that didn't meet their quantities.\n\nThank you for your hard work today!",
+      "accepted_cents": 2500,
+      "total_stated": false,
+      "wrong_total": true,
+      "unknown_flagged": true,
+      "cents_as_dollars": true,
+      "worker_named": null,
+      "falsely_reassuring": false
+    },
+    {
+      "model": "qwen2.5:1.5b",
+      "day": 11,
+      "sample": 2,
+      "report": "Lucy's Ice Cream Shop Report for Day 11\n\nToday's sales have been quite varied with some exciting orders of different flavors coming in:\n\n- Orders of strawberry: 4 servings, totaling $10.\n- Vanilla orders: 6 servings, bringing in $15.\n- Chocolate orders: 4 servings, adding $10 to the total.\n\nThe day also saw a few challenges:\n- One order for mint was rejected (no amount provided), which is disappointing but not enough to prevent sales from closing out on time. \n- There were no failed model calls or repeated messages that needed attention this morning.\n- Lucy has successfully replaced her system after an unexpected crash, ensuring the shop runs smoothly again.\n\nThe day's total comes in at $35, with only $15 worth of accepted orders. This shows a positive shift as more customers are choosing to place their orders today compared to yesterday.\n\nLucy will keep track of sales trends and order patterns to refine her recipes and marketing strategies for better customer satisfaction and sales growth tomorrow.",
+      "accepted_cents": 2500,
+      "total_stated": false,
+      "wrong_total": true,
+      "unknown_flagged": false,
+      "cents_as_dollars": false,
+      "worker_named": null,
+      "falsely_reassuring": false
+    },
+    {
+      "model": "qwen2.5:1.5b",
+      "day": 12,
+      "sample": 0,
+      "report": "End of Day Report - Ice Cream Shop Performance\n\nToday's ice cream sales performance is as follows:\n\n- Total Orders: 3 (flavors pistachio, chocolate, vanilla)\n- Total Amount Spent:\n  - Pistachio: $17.50\n  - Chocolate: $20.00\n  - Vanilla: $15.00\n\nThe shop spent a total of $52.50 on accepted orders today.\n\nThere were two failed model calls and one repeated message ignored during the day, which is quite manageable given that Lucy's ice cream shop runs smoothly with these metrics.\n\nToday's performance was satisfactory considering the number of orders processed. There are no outstanding issues or pending messages to address for tomorrow, so Lucy can focus on maintaining customer satisfaction by ensuring consistent supply of flavors and addressing any potential quality concerns if they arise in the future.\n\nLucy will continue to monitor sales trends closely as she prepares her next marketing strategy. A slight increase in vanilla orders may be worth considering for future promotions or seasonal offerings.",
+      "accepted_cents": 3750,
+      "total_stated": false,
+      "wrong_total": true,
+      "unknown_flagged": false,
+      "cents_as_dollars": false,
+      "worker_named": false,
+      "falsely_reassuring": false
+    },
+    {
+      "model": "qwen2.5:1.5b",
+      "day": 12,
+      "sample": 1,
+      "report": "Lucy's Ice Cream Shop Daily Report - Day 12\n\nToday was another successful day in the shop, with all orders handled smoothly without any issues. Let's take a look at what we accomplished:\n\n**Spending Summary:**\n- Accepted Orders:\n    - Pistachio: 7 units x $0.25 each = $17.50\n    - Chocolate: 8 units x $0.25 each = $20.00\n    - Total for accepted orders: $37.50\n\nAdditionally, we received two failed model calls and ignored one repeated message during today's shift. There was no need to replace any workers due to a crash.\n\nAs always, Lucy would appreciate your feedback on how the day went. Should there be anything that needs follow-up or if you have any suggestions for improvement, please let her know.\n\nHave another wonderful ice cream day!",
+      "accepted_cents": 3750,
+      "total_stated": true,
+      "wrong_total": false,
+      "unknown_flagged": false,
+      "cents_as_dollars": false,
+      "worker_named": true,
+      "falsely_reassuring": true
+    },
+    {
+      "model": "qwen2.5:1.5b",
+      "day": 12,
+      "sample": 2,
+      "report": "Lucy's Ice Cream Shop End of Day Report\n\nToday's sales summary for our ice cream shop:\n\n- Total amount of accepted orders: \n  - Pistachio: $17.50 x 7 = $122.50\n  - Chocolate: $20.00 x 8 = $160.00\n  - Vanilla: $15.00 x 6 = $90.00\n\nTotal amount for accepted orders: \n$122.50 + $160.00 + $90.00 = $372.50\n\nToday, we had two unsuccessful calls to the supplier and ignored one repeated message. Our worker was replaced due to a crash.\n\nMoving forward:\n- We need to ensure that all orders are accurately recorded for future reference.\n- Continue monitoring sales trends to adjust inventory as needed.\n- Contact the supplier promptly if any orders were not processed successfully.\n- Review pricing strategies to optimize profit margins in the coming weeks.\n\nThank you, Lucy. Here\u2019s to another successful day at our ice cream shop!",
+      "accepted_cents": 3750,
+      "total_stated": false,
+      "wrong_total": false,
+      "unknown_flagged": false,
+      "cents_as_dollars": false,
+      "worker_named": true,
+      "falsely_reassuring": true
+    },
+    {
+      "model": "qwen2.5:1.5b",
+      "day": 13,
+      "sample": 0,
+      "report": "Hello,\n\nToday marks the conclusion of our busy ice cream day! Here's a summary:\n\n- **Revenue:** We successfully sold 25 cones today, generating $3750 in sales.\n- **Orders Status:**\n  - 8 coffee cones accepted for $200 each.\n  - 6 pistachio cones also accepted for $15 each.\n  - The remaining 6 vanilla cones were rejected.\n\nLucy needs to follow up on the two failed model calls and ensure that all orders are promptly addressed. Additionally, she should remind herself that a worker replaced due to a crash is now back in service.\n\nThank you for your hard work today!\n\nBest regards,\n[Your Name]",
+      "accepted_cents": 3500,
+      "total_stated": false,
+      "wrong_total": false,
+      "unknown_flagged": false,
+      "cents_as_dollars": false,
+      "worker_named": true,
+      "falsely_reassuring": false
+    },
+    {
+      "model": "qwen2.5:1.5b",
+      "day": 13,
+      "sample": 1,
+      "report": "Lucy's Ice Cream Shop Reports for Day 13\n\nToday, we achieved an excellent performance with 4 out of the total 5 orders being successfully processed. Here are the details:\n\n- Orders involving coffee flavored ice cream were fully fulfilled: 8 coffees at $20 each.\n- Strawberry and pistachio flavors met expectations but did not reach the desired quantity.\n\nUnfortunately, there was a slight problem with one order - a vanilla flavor that ended up being rejected instead of accepted. This resulted in 1 failed model call attempt. Despite this setback, Lucy has successfully followed her daily ice cream sales target for day 13.\n\nTo ensure future success, it is recommended to focus on resolving the issue with the rejected vanilla order and possibly expanding inventory of strawberry flavors to meet customer demand better next time.",
+      "accepted_cents": 3500,
+      "total_stated": false,
+      "wrong_total": false,
+      "unknown_flagged": false,
+      "cents_as_dollars": false,
+      "worker_named": false,
+      "falsely_reassuring": false
+    },
+    {
+      "model": "qwen2.5:1.5b",
+      "day": 13,
+      "sample": 2,
+      "report": "Lucy's Ice Cream Shop Report for Day 13\n\nToday's transactions were as follows:\n\n- Orders totaling $15,000 were received:\n  - Coffee: 8 cups (accepted)\n  - Pistachio: 6 cups (accepted)\n  - Vanilla: 6 cups (rejected)\n\nOrders that were accepted but not yet paid for are:\n- Strawberry: 6 cups (status UNKNOWN)\n\nTotal spent on orders with status ACCEPTED is $15,000.\n\nLucy will need to follow up with the supplier regarding the order of strawberry ice cream. It's possible an error was made in processing this order, and further confirmation or reprocessing may be required to ensure accuracy.",
+      "accepted_cents": 3500,
+      "total_stated": false,
+      "wrong_total": true,
+      "unknown_flagged": true,
+      "cents_as_dollars": false,
+      "worker_named": false,
+      "falsely_reassuring": false
+    },
+    {
+      "model": "qwen2.5:1.5b",
+      "day": 14,
+      "sample": 0,
+      "report": "End of Day Report - Ice Cream Shop for Lucy\n\nToday's transactions across our ice cream shop have been recorded as follows:\n\n**Total Amount Spent (Cents):**\n- Accepted Orders: 7 Lemon ($1750) + 8 Chocolate ($2000) = $3750\n- Total spent on accepted orders: $3750\n\n**Orders Statuses:**\n- 4 Chocolate orders were rejected.\n- Rejected Orders: (1 order)\n- 3 Strawberry orders were not processed due to insufficient inventory.\n\n**Summary of Actions Needed:**\n1. Confirm with the supplier regarding the chocolate order that was deemed \"UNKNOWN.\"\n2. Review and address any issues related to inventory levels for strawberry ice cream, ensuring sufficient supplies are available.\n3. Investigate why there were two failed model calls today; this could indicate technical issues or a need for improved software functionality.\n\nWe aim to resolve these issues promptly to ensure customer satisfaction and smooth operations moving forward. Thank you for your attention to detail in processing orders today.",
+      "accepted_cents": 1750,
+      "total_stated": false,
+      "wrong_total": true,
+      "unknown_flagged": true,
+      "cents_as_dollars": true,
+      "worker_named": false,
+      "falsely_reassuring": false
+    },
+    {
+      "model": "qwen2.5:1.5b",
+      "day": 14,
+      "sample": 1,
+      "report": "Lucy's Ice Cream Shop Daily Report:\n\nToday's sales were quite successful with 24 total ice cream cones sold (7 lemon, 8 chocolate, and 7 strawberry). The day started well with all flavors being accepted, leading to a substantial expenditure of $175 per flavor. Rejected orders for the strawberry flavor cost us less due to their lower price ($175).\n\nThe shop is running smoothly as Lucy has replaced a worker who had an unfortunate crash-related incident and ignored 1 repeated message from her client.\n\nTo ensure future operations are efficient, it would be beneficial to double-check supplier statuses in advance. This could help prevent any rejected orders or those not processed in time affecting the day's profits negatively.\n\nNext steps: Revisit suppliers' status checks for all orders received today and consider a more detailed order processing system to handle unexpected delays better. Keep up the good work, Lucy!",
+      "accepted_cents": 1750,
+      "total_stated": false,
+      "wrong_total": false,
+      "unknown_flagged": false,
+      "cents_as_dollars": false,
+      "worker_named": true,
+      "falsely_reassuring": false
+    },
+    {
+      "model": "qwen2.5:1.5b",
+      "day": 14,
+      "sample": 2,
+      "report": "Lucy's Ice Cream Shop End of Day Report\n\nToday's sales summary for the shop:\n- Total amount spent on accepted orders: $27.50 (1750 cents)\n\nOrders Processed:\n- 7 Lemon ice creams sold at $17.50 each, totaling $123.50\n- 8 Chocolate ice creams sold at $20 per unit, totaling $160\n\nPending Orders:\n- Only one order for strawberry was rejected today.\n\nLessons Learned:\n- It's important to quickly address any problems that arise with orders.\n- Lucy should consider improving communication and possibly automating the acceptance/rejection process for better customer satisfaction.\n\nNext Steps:\nLucy needs to ensure all accepted orders are promptly delivered. The shop will also need to review its quality control measures to prevent further rejections in future.",
+      "accepted_cents": 1750,
+      "total_stated": true,
+      "wrong_total": true,
+      "unknown_flagged": false,
+      "cents_as_dollars": false,
+      "worker_named": false,
+      "falsely_reassuring": false
+    },
+    {
+      "model": "qwen2.5:1.5b",
+      "day": 15,
+      "sample": 0,
+      "report": "---\n\nToday's ice cream shop performance summary for the 15th day:\n\n- **Total Sales**: The shop collected $200 (total sales) from the accepted orders.\n- **Accepted Orders**:\n  - Lemon: 8 orders \u00d7 $25 = $200\n  - Mint: 4 orders \u00d7 $25 = $100\n  - Chocolate: 6 orders \u00d7 $25 = $150\n\n- **Orders Status Report**: \n  - All flavors were sold with the exception of one order, which was not accepted (milkshake flavor).\n  - The chocolate flavor had a small rejection rate due to some unsold supply.\n\n- **Next Steps**:\n  - Continue monitoring and managing the milkshake flavor to ensure it meets customer demand.\n  - Consider adjusting stock levels for flavors that consistently sell well to avoid future backorders or shortages.\n\nLucy's Ice Cream Shop is operating smoothly, with a strong focus on maintaining popular orders while keeping an eye on less successful ones. The shop will continue to adapt based on feedback and real-time inventory tracking to ensure optimal performance in the coming days.",
+      "accepted_cents": 2000,
+      "total_stated": false,
+      "wrong_total": true,
+      "unknown_flagged": false,
+      "cents_as_dollars": false,
+      "worker_named": false,
+      "falsely_reassuring": false
+    },
+    {
+      "model": "qwen2.5:1.5b",
+      "day": 15,
+      "sample": 1,
+      "report": "Lucy's Ice Cream Shop Daily Report:\n\nToday, we achieved a total of $25 for our sales with the following breakdown: \n- Orders for lemon ice cream sold out in quantity but were accepted.\n- The order for 4 mint flavors was received and awaiting supplier confirmation.\n\nWe also had 6 orders for chocolate ice cream, which came with an average cost of 250 cents each. Sadly, we did not sell any of these. \n\nThe day's performance highlights the importance of tracking every single order to ensure they all meet the necessary conditions for sale or processing, as well as being prepared for potential issues like failed model calls that resulted in canceled orders.\n\nMoving forward, it would be wise to review our ordering process more closely and consider ways to optimize this so we can better manage supplies and avoid future shortages.",
+      "accepted_cents": 2000,
+      "total_stated": false,
+      "wrong_total": true,
+      "unknown_flagged": true,
+      "cents_as_dollars": false,
+      "worker_named": false,
+      "falsely_reassuring": false
+    },
+    {
+      "model": "qwen2.5:1.5b",
+      "day": 15,
+      "sample": 2,
+      "report": "Lucy's Ice Cream Shop End of Day Report\n\nToday's sales summary for our ice cream shop:\n\n- Total amount of orders received: $4500 (8 lemon ice creams at $20 each + 4 mint ice creams at $10 each)\n- Accepted orders:\n  - Lemon ice creams: 8 orders \u00d7 $2 = $16\n  - Mint ice creams: 4 orders \u00d7 $1 = $4\n  - Total accepted amount: $16 + $4 = $20\n\nNo rejected or partially received orders were processed today. All customers' preferences and quantities of each flavor have been recorded.\n\nThe shop is now closed for the day, but we will follow up on any potential delays in supply chain issues. The worker who crashed earlier has been replaced, ensuring smooth operations moving forward.\n\nThank you all for a successful day's trading. We're looking forward to another busy evening!",
+      "accepted_cents": 2000,
+      "total_stated": true,
+      "wrong_total": false,
+      "unknown_flagged": false,
+      "cents_as_dollars": false,
+      "worker_named": true,
+      "falsely_reassuring": true
+    },
+    {
+      "model": "qwen2.5:1.5b",
+      "day": 16,
+      "sample": 0,
+      "report": "End of Day Report - Ice Cream Shop | Day 16\n\nToday's performance summary:\n- Total revenue: $59.84 (Converted from cents)\n- Orders fulfilled successfully: 3 out of 7 orders were accepted.\n- Rejected orders: 2 orders, totaling 10 customers' worth of ice cream not sold today.\n\nSummary breakdown:\n- Accepted order for strawberry ($15):\n  - Quantity: 6 cones\n  - Amount spent: $15.00\n- Accepted order for coffee ($17.50):\n  - Quantity: 7 cones\n  - Amount spent: $17.50\n\nOrders that were rejected:\n- Strawberry flavor (quantity 6)\n  - Amount spent: $9.00\n- Pistachio flavor (quantity 4)\n  - Amount spent: $8.00\n\nAdvice for tomorrow:\n- Continue to monitor the status of orders and ensure they are not being overlooked.\n- Keep track of failed model calls and repeated messages to avoid further delays or errors.\n\nHappy Selling, Lucy!",
+      "accepted_cents": 1750,
+      "total_stated": true,
+      "wrong_total": true,
+      "unknown_flagged": false,
+      "cents_as_dollars": false,
+      "worker_named": false,
+      "falsely_reassuring": false
+    },
+    {
+      "model": "qwen2.5:1.5b",
+      "day": 16,
+      "sample": 1,
+      "report": "Lucy's Ice Cream Shop Day Report:\n\nToday was another successful day in our shop! We served a total of 15 customers, with the following orders:\n- Chocolate: 4 cups (accepted)\n- Coffee: 7 cups (accepted)\n- Pistachio: 4 cups (rejected)\n\nThe ice cream we sold generated $2300. Today's efforts led to 2 failed model calls and an error that was ignored once.\nWe have a replacement worker ready after the recent crash, ensuring continuity in our operations.\n\nIn summary, while one order wasn't accepted, our day included some great successes with 2 successful orders for coffee ice cream. We're aiming for more frequent deliveries next week to keep up the steady flow of business!\n\nThank you for your hard work today!",
+      "accepted_cents": 1750,
+      "total_stated": false,
+      "wrong_total": false,
+      "unknown_flagged": false,
+      "cents_as_dollars": false,
+      "worker_named": true,
+      "falsely_reassuring": true
+    },
+    {
+      "model": "qwen2.5:1.5b",
+      "day": 16,
+      "sample": 2,
+      "report": "Lucy's Ice Cream Shop Report for Day 16\n\nToday's transactions were as follows:\n\n- Orders Accepted: Chocolate (4 units), Pistachio (4 units)\n- Orders Rejected: Strawberry (6 units), Coffee (7 units)\n\nTotal amount spent on accepted orders:\nChocolate: $1000\nPistachio: $1000\nTotal for accepted orders = $2000\n\nPending follow-up is required for the rejected orders and any further actions needed with failed model calls or worker replacements.",
+      "accepted_cents": 1750,
+      "total_stated": false,
+      "wrong_total": true,
+      "unknown_flagged": false,
+      "cents_as_dollars": true,
+      "worker_named": true,
+      "falsely_reassuring": false
+    },
+    {
+      "model": "qwen2.5:1.5b",
+      "day": 17,
+      "sample": 0,
+      "report": "---\n\nLucy's Ice Cream Shop End-of-Day Report\n\nToday, we ended another successful day in the shop! With a total of 17 orders processed:\n\n- The quantity for \"lemon\" ice cream has been accepted.\n- Orders for \"chocolate\" and \"mango\" have been rejected.\n- A sale of \"vanilla\" ice cream with quantities totaling 7 units has been completed.\n\nThis day's transactions resulted in a total revenue of $2,000 from the orders that were processed. The report shows no failed model calls or repeated messages needing attention. Lucy\u2019s shop is moving smoothly and efficiently through its operations!\n\nFor tomorrow, it would be helpful to follow up on any issues with rejected orders, such as ensuring all necessary adjustments are made before resuming sales for those flavors. Additionally, keeping an eye on the \"mango\" order could provide some insights into potential inventory or demand issues that might need further investigation.\n\nThank you for another productive day in Lucy's Ice Cream Shop!",
+      "accepted_cents": 3750,
+      "total_stated": false,
+      "wrong_total": true,
+      "unknown_flagged": false,
+      "cents_as_dollars": true,
+      "worker_named": null,
+      "falsely_reassuring": true
+    },
+    {
+      "model": "qwen2.5:1.5b",
+      "day": 17,
+      "sample": 1,
+      "report": "Lucy's Ice Cream Shop Reports for Day 17:\n\n**Summary of Orders:**\n- **Accepted Orders:** 2 orders.\n  - Chocolate (8 units): $20.00 each, totaling $160.00.\n  - Lemon (8 units): $20.00 each, totaling $160.00.\n- **Rejected Orders:** 1 order.\n  - Mango (4 units), rejected.\n\n**Total Spent on Accepted Orders:**\n- Total for Chocolate and Lemon orders = $160.00\n\n**Actions to Follow Up On:**\n- The status \"UNKNOWN\" for the mango flavor is pending. Lucy should contact the supplier to verify if this order has been accepted or not.\n- A total of 4 failed model calls occurred today, no need to worry as it's within acceptable limits.\n\nToday was productive with a focus on providing delicious ice cream while ensuring all orders are accounted for and processed correctly. Lucy will monitor the mango flavor status closely and address any issues promptly to maintain smooth operations in the shop.",
+      "accepted_cents": 3750,
+      "total_stated": false,
+      "wrong_total": true,
+      "unknown_flagged": true,
+      "cents_as_dollars": false,
+      "worker_named": null,
+      "falsely_reassuring": false
+    },
+    {
+      "model": "qwen2.5:1.5b",
+      "day": 17,
+      "sample": 2,
+      "report": "Lucy's Ice Cream Shop Report for Day 17\n\nToday's sales in cents:\n- Chocolate: $1600 (8 units)\n- Lemon: $2000 (8 units) - Sold!\n- Mango: $1000 (4 units) - Order was rejected.\n- Vanilla: $1750 (7 units)\n\nTotal revenue for accepted orders: $3950\n\nNo failed model calls or repeated messages were encountered today. There is no need to replace the worker due to a crash.\n\nLucy, please ensure all outstanding orders are resolved and that any issues with customer satisfaction can be addressed promptly. Stay tuned for tomorrow's sales report!",
+      "accepted_cents": 3750,
+      "total_stated": false,
+      "wrong_total": true,
+      "unknown_flagged": false,
+      "cents_as_dollars": true,
+      "worker_named": null,
+      "falsely_reassuring": false
+    },
+    {
+      "model": "qwen2.5:1.5b",
+      "day": 18,
+      "sample": 0,
+      "report": "---\n\nToday's Reports from Lucy's Ice Cream Shop:\n\n- Total amount of ice cream sold: $40 (based on the quantity ordered for each flavor multiplied by their respective prices).\n- Accepted Orders:\n  - Vanilla: Sold 4 cones at $1 per cone, totaling $4.\n  - Mango: Ordered 4 cones but rejected them, no charge.\n  - Coffee: Ordered 8 cones at $2 each, totaling $16. All orders were accepted.\n- Unaccepted Orders (rejected):\n  - Lemon: Ordered 8 cones at $2 each, totaling $16, but only 4 were sold, resulting in a cost of $3.\n\nLucy's Ice Cream Shop had an efficient day with all orders being successfully processed and sold, except for the rejected lemon ice cream. She should ensure that suppliers are informed about unaccepted orders to avoid future mismatches. Additionally, Lucy may want to review her inventory management strategy to handle bulk orders more effectively in the future.\n\n---\n\nThis report provides a comprehensive overview of today's sales performance and order statuses without including any additional information or details beyond what is provided in the JSON data.",
+      "accepted_cents": 3000,
+      "total_stated": false,
+      "wrong_total": true,
+      "unknown_flagged": false,
+      "cents_as_dollars": false,
+      "worker_named": null,
+      "falsely_reassuring": false
+    },
+    {
+      "model": "qwen2.5:1.5b",
+      "day": 18,
+      "sample": 1,
+      "report": "Lucy's Ice Cream Shop Day Report\n\nToday marks the conclusion of another productive day in our ice cream shop. The shop served a total of 16 customers across four orders. Of these, two were successfully shipped (accepted), while one did not proceed due to rejection (rejected). In order for the third customer, who placed an accepted order, to be included in today's sales totals, we have decided to treat their status as unknown.\n\nThe day saw a total revenue of 4000 cents. This includes both accepted and partially shipped orders totaling 12 products. The remaining two orders were either not initiated or for some reason couldn't move forward without being canceled by the supplier.\n\nAt this time, we have received one failed model call today, which is unusual but expected given our ongoing efforts to ensure the smooth operation of our shop. We've also ignored one repeated message that was sent out unnecessarily. Lastly, there has been no case where a worker had to be replaced due to an incident or malfunction.\n\nMoving forward, Lucy will continue to monitor the supply chain and manage orders diligently. She will ensure all orders are processed efficiently and communicate with suppliers promptly whenever needed. The shop's team is well-prepared for any potential issues that may arise in the future, ensuring a smooth operation for customers.\n\nA quick reminder: There was an error in processing one order today, which might have caused some confusion regarding its status. Lucy will review this issue carefully to make sure it doesn't",
+      "accepted_cents": 3000,
+      "total_stated": false,
+      "wrong_total": false,
+      "unknown_flagged": false,
+      "cents_as_dollars": false,
+      "worker_named": null,
+      "falsely_reassuring": false
+    },
+    {
+      "model": "qwen2.5:1.5b",
+      "day": 18,
+      "sample": 2,
+      "report": "Lucy's Ice Cream Shop Report for Day 18\n\nToday's sales have been quite varied with some flavors more successful than others. The shop spent a total of $9,000 in ice cream today (since each order is priced at 1 cent per cup).\n\nThe day started promisingly when the shop sold 4 vanilla cones, but due to an unforeseen event, none were accepted by the supplier. This resulted in Lucy spending $1,000 on these unsold orders.\n\nHowever, some customers have been more generous with their orders. Four mango cones were fully accepted, resulting in a total sale of $1,000, and eight lemon cones were also sold but rejected, leaving no additional revenue for today's operation.\n\nDespite the challenges, Lucy managed to maintain her operations efficiently by only having to ignore 1 repeated message due to a technical issue. The shop was fortunate not to have experienced any crashes during the day.\n\nLooking ahead, while some flavors continue to perform well (like vanilla and lemon), others need further attention. Lucy will review her inventory levels closely and perhaps offer discounts on less popular flavors to encourage sales of those that are still profitable.",
+      "accepted_cents": 3000,
+      "total_stated": false,
+      "wrong_total": true,
+      "unknown_flagged": false,
+      "cents_as_dollars": true,
+      "worker_named": null,
+      "falsely_reassuring": false
+    },
+    {
+      "model": "qwen2.5:1.5b",
+      "day": 19,
+      "sample": 0,
+      "report": "End of Day Report - Ice Cream Shop Performance\n\nToday's ice cream sales performance is as follows:\n\n- Total orders processed: 7\n- Orders placed but not yet delivered: 3 (1 pistachio, 2 lemon)\n- Accepted orders: 4 (all flavors accepted)\n\nTotal Amount Spent:\n- Accepted Orders: $6000 (4 x $1500 each)\n\nFollow Up Actions Needed:\n1. Monitor the supply chain to ensure there are no shortages of ingredients.\n2. Check on the delivery status for the remaining 3 orders that haven't been processed yet.\n\nThis report is a summary of today's sales and an outline of any actions needed to maintain optimal performance in Lucy's ice cream shop.",
+      "accepted_cents": 3500,
+      "total_stated": false,
+      "wrong_total": false,
+      "unknown_flagged": false,
+      "cents_as_dollars": true,
+      "worker_named": false,
+      "falsely_reassuring": false
+    },
+    {
+      "model": "qwen2.5:1.5b",
+      "day": 19,
+      "sample": 1,
+      "report": "Lucy's Ice Cream Shop for Day 19:\n\nToday, we've recorded several successful deliveries:\n- We received 7 pistachio-flavored ice creams, totaling $17.50.\n- Seven lemon-flavored ice creams were also successfully delivered.\n\nOf the orders submitted today, exactly one was deemed \"UNKNOWN\" and therefore hasn't been processed yet. This status update indicates that while we might have accepted or completed an order for these flavors, they haven\u2019t been acknowledged by the supplier as yet.\n\nTotal revenue from orders that have been confirmed (ACCEPTED):\n$1750\n\nIt's crucial to monitor the delivery status of all orders and ensure prompt communication with suppliers to expedite processing. Any outstanding statuses should be addressed promptly to maintain smooth operations and customer satisfaction.\n\nThank you for a successful day, Lucy!",
+      "accepted_cents": 3500,
+      "total_stated": false,
+      "wrong_total": true,
+      "unknown_flagged": false,
+      "cents_as_dollars": true,
+      "worker_named": false,
+      "falsely_reassuring": true
+    },
+    {
+      "model": "qwen2.5:1.5b",
+      "day": 19,
+      "sample": 2,
+      "report": "Lucy's Ice Cream Shop End of Day Report\n\nToday's sales summary for our ice cream shop is as follows:\n\n- Accepted Orders: \n  - Pistachio: 7 scoops x $10 per scoop = $70\n  - Lemon: 7 scoops x $10 per scoop = $70\n  \nTotal amount spent on accepted orders today: $70 + $70 = $140\n\n- Orders Status:\n  - Vanilla: Unknown status (may or may not have been accepted)\n  - Pistachio: ACCEPTED\n  - Lemon: ACCEPTED\n\nThere were no failed model calls, repeated messages ignored, and the worker was replaced after a crash.\n\nLucy, please ensure you collect all outstanding orders for those with an unknown status. Thank you for your hard work today!\n\n---\n\n**- Lucy**",
+      "accepted_cents": 3500,
+      "total_stated": false,
+      "wrong_total": true,
+      "unknown_flagged": true,
+      "cents_as_dollars": false,
+      "worker_named": true,
+      "falsely_reassuring": false
+    },
+    {
+      "model": "qwen2.5:1.5b",
+      "day": 20,
+      "sample": 0,
+      "report": "---\n\nLucy's Ice Cream Shop End-of-Day Report\n\nToday, we processed a total of 12 orders worth $3800. The accepted orders are for mango (4 scoops), lemon (8 scoops), and mint (8 scoops). We received feedback that one order was not fully accepted but is pending further processing due to an error in the supply chain.\n\nThe report also indicates a slight increase in failed model calls of 2, which suggests there may be ongoing issues with certain models. Additionally, we have ignored 1 repeated message from our system today, indicating the need for improved systems or better communication between Lucy and her suppliers.\n\nLucy will need to follow up on this order that is pending further processing to ensure it meets all specifications before being accepted into inventory. The increase in failed model calls suggests a need for additional training or maintenance of current models to reduce such issues in the future.\n\nThe day's operations have been successful, but there are areas where Lucy needs to improve her communication with suppliers and optimize systems to prevent further errors. This report will be reviewed by management to ensure all necessary actions are taken.\n\n---\n\nBest regards,\nLucy's Ice Cream Shop",
+      "accepted_cents": 3000,
+      "total_stated": false,
+      "wrong_total": true,
+      "unknown_flagged": false,
+      "cents_as_dollars": false,
+      "worker_named": false,
+      "falsely_reassuring": false
+    },
+    {
+      "model": "qwen2.5:1.5b",
+      "day": 20,
+      "sample": 1,
+      "report": "Lucy's Ice Cream Shop Daily Report:\n\nToday's sales have been robust with total earnings of $5,000 (5,000 cents). Orders for mango and lemon flavors sold out quickly, totaling 12 units across both orders in the accepted category. However, the order for mint flavor was partially canceled but is included in today's sales as UNKNOWN.\n\nDespite two failed model calls attempting to optimize inventory predictions, Lucy has not experienced a worker crash this week. She will monitor these numbers closely over the weekend and prepare for any unexpected spikes or dips in future orders. The focus now shifts to ensuring all accepted orders are fulfilled promptly.\n\nTo keep her business running smoothly through tomorrow's operations, Lucy might consider implementing additional strategies such as better inventory tracking or improving communication with suppliers about potential delays in delivery times. This could help prevent similar situations from occurring and maintain a positive customer experience.",
+      "accepted_cents": 3000,
+      "total_stated": false,
+      "wrong_total": true,
+      "unknown_flagged": true,
+      "cents_as_dollars": false,
+      "worker_named": true,
+      "falsely_reassuring": false
+    },
+    {
+      "model": "qwen2.5:1.5b",
+      "day": 20,
+      "sample": 2,
+      "report": "Lucy's Ice Cream Shop End of Day Report\n\nToday's sales summary for our ice cream shop is as follows:\n\n- The day in question: October 20th.\n- Total revenue from orders: $10,000 (since each order amounts to 4 cents).\n\nThe following are the details of accepted orders:\n- Mango flavor: 4 scoops, sold at $1 per scoop. Total for this flavor is $4.\n- Lemon flavor: 8 scoops, priced at $2 each. The total revenue for lemon ice cream is $16.\n\nOrders with an unknown status: \n- Mint flavor was ordered by Lucy herself and amounts to 8 scoops. This will require further confirmation from the supplier before final pricing can be determined.\n\nAs of now:\n- No failed model calls or repeated messages have been encountered, indicating a smooth day in terms of software reliability.\n- It has been necessary to replace one worker due to a crash on the system. Lucy should ensure that her team is properly trained and that such occurrences are minimized going forward.\n\nLucy's ice cream shop continues to operate efficiently with today\u2019s orders being well received by customers, and she looks forward to meeting similar success in future days.",
+      "accepted_cents": 3000,
+      "total_stated": false,
+      "wrong_total": true,
+      "unknown_flagged": false,
+      "cents_as_dollars": false,
+      "worker_named": true,
+      "falsely_reassuring": false
+    },
+    {
+      "model": "qwen3:0.6b thinking",
+      "day": 1,
+      "sample": 0,
+      "report": "Lucy's ice cream shop for the day reported the following: the total amount spent on accepted orders is $3750 cents (chocolate: 2000, mint: 1750). Accepted orders include chocolate (2000 cents) and mint (1750 cents). Lucy needs to follow up on the repeated messages ignored count (1) and check the worker replaced after crash. The shop is set to proceed with the current schedule. (120 words)",
+      "accepted_cents": 1750,
+      "total_stated": false,
+      "wrong_total": true,
+      "unknown_flagged": false,
+      "cents_as_dollars": false,
+      "worker_named": true,
+      "falsely_reassuring": false
+    },
+    {
+      "model": "qwen3:0.6b thinking",
+      "day": 1,
+      "sample": 1,
+      "report": "Lucy\u2019s Ice Cream Shop Report for Day 1  \nTotal spent on accepted orders: $18.75 (2000 + 1750 cents).  \n\n- **Order Summary**:  \n  - Chocolate: 8 units, $20.00 (status: UNKNOWN)  \n  - Mint: 7 units, $17.50 (status: ACCEPTED)  \n\n**Next Steps**:  \n- Follow up on pending orders to ensure all are processed.  \n- Check with the supplier for any remaining orders.  \n\n**Additional Notes**:  \n- 1 repeated message ignored.  \n- Worker replaced after a crash.",
+      "accepted_cents": 1750,
+      "total_stated": true,
+      "wrong_total": true,
+      "unknown_flagged": true,
+      "cents_as_dollars": false,
+      "worker_named": true,
+      "falsely_reassuring": false
+    },
+    {
+      "model": "qwen3:0.6b thinking",
+      "day": 1,
+      "sample": 2,
+      "report": "Lucy\u2019s ice cream shop reported the following:  \n- Total spent on accepted orders: **$37.50**.  \n- Some orders remain pending (status: UNKNOWN).  \n- Follow-up: Check supplier status for any unprocessed orders.  \n\nThanks for the day! \ud83c\udf7d\ufe0f",
+      "accepted_cents": 1750,
+      "total_stated": false,
+      "wrong_total": true,
+      "unknown_flagged": false,
+      "cents_as_dollars": false,
+      "worker_named": false,
+      "falsely_reassuring": false
+    },
+    {
+      "model": "qwen3:0.6b thinking",
+      "day": 2,
+      "sample": 0,
+      "report": "Lucy\u2019s ice cream shop for day 2 reported the following:  \n**Total spent on accepted orders**: $60.00 (1500 + 1000 + 1500 + 2000 cents).  \n**Order status**: Mango (rejected), chocolate (unknown), pistachio (accepted), coffee (accepted).  \n**Follow-up needed**: Check for missed messages and ensure all orders are accounted for.  \n\nLucy also notes the system had a crash, and a worker was replaced. This indicates ongoing monitoring.  \n\n(Word count: 119)",
+      "accepted_cents": 3500,
+      "total_stated": false,
+      "wrong_total": true,
+      "unknown_flagged": true,
+      "cents_as_dollars": false,
+      "worker_named": true,
+      "falsely_reassuring": false
+    },
+    {
+      "model": "qwen3:0.6b thinking",
+      "day": 2,
+      "sample": 1,
+      "report": "Lucy's ice cream shop reports:  \n**Total spent on accepted orders:** $5,000 (1500 + 1000 + 1500 + 2000 cents).  \n**Accepted orders:** Mango (rejected), chocolate (unknown), pistachio (accepted), coffee (accepted).  \n**Follow-up:** Check for missed messages (1 ignored).  \n**Next steps:** Ensure all orders are processed, and update the worker for any issues.",
+      "accepted_cents": 3500,
+      "total_stated": false,
+      "wrong_total": true,
+      "unknown_flagged": true,
+      "cents_as_dollars": false,
+      "worker_named": true,
+      "falsely_reassuring": false
+    },
+    {
+      "model": "qwen3:0.6b thinking",
+      "day": 2,
+      "sample": 2,
+      "report": "Lucy's ice cream shop spent $60. Accepted orders include $1500 (mango), $1000 (chocolate), $1500 (pistachio), and $2000 (coffee). To follow up, check if any messages were ignored (repeated_messages_ignored: 1) or if a worker was replaced after a crash (worker_replaced_after_crash: true).",
+      "accepted_cents": 3500,
+      "total_stated": false,
+      "wrong_total": false,
+      "unknown_flagged": false,
+      "cents_as_dollars": true,
+      "worker_named": true,
+      "falsely_reassuring": false
+    },
+    {
+      "model": "qwen3:0.6b thinking",
+      "day": 3,
+      "sample": 0,
+      "report": "Lucy\u2019s Ice Cream Shop Day 3 Report:  \n\n**Total Spent on Accepted Orders:** $50.00 (Pistachio: 2000 cents, Coffee: 1000 cents, Strawberry: 2000 cents).  \n\n**Follow-Up Needed:**  \n- Mango orders (quantity: 6) remain in progress.  \n- Repeated messages ignored: 1.  \n- Worker replaced after crash: true.  \n\n**Key Notes:**  \n- 2 failed model calls.  \n- No further action needed on mango orders.  \n\nLucy will monitor the mango status for updates.",
+      "accepted_cents": 3000,
+      "total_stated": false,
+      "wrong_total": true,
+      "unknown_flagged": false,
+      "cents_as_dollars": false,
+      "worker_named": true,
+      "falsely_reassuring": false
+    },
+    {
+      "model": "qwen3:0.6b thinking",
+      "day": 3,
+      "sample": 1,
+      "report": "Lucy's ice cream shop report for day 3:  \nToday\u2019s accepted orders total $3,000 (pistachio: $2,000, coffee: $1,000).  \n- Worker replaced after a crash.  \n- Two failed model calls.  \n- One message ignored.  \nNeed to follow up on any pending orders.",
+      "accepted_cents": 3000,
+      "total_stated": false,
+      "wrong_total": true,
+      "unknown_flagged": false,
+      "cents_as_dollars": true,
+      "worker_named": true,
+      "falsely_reassuring": false
+    },
+    {
+      "model": "qwen3:0.6b thinking",
+      "day": 3,
+      "sample": 2,
+      "report": "Lucy's ice cream shop reports:  \n**Total accepted orders**: $5,000 (pistachio, coffee, and strawberry).  \n**Follow-up**: Check the mango order status to confirm acceptance.  \n\nAny pending orders need to be tracked.",
+      "accepted_cents": 3000,
+      "total_stated": false,
+      "wrong_total": true,
+      "unknown_flagged": true,
+      "cents_as_dollars": false,
+      "worker_named": false,
+      "falsely_reassuring": false
+    },
+    {
+      "model": "qwen3:0.6b thinking",
+      "day": 4,
+      "sample": 0,
+      "report": "Lucy\u2019s ice cream shop reports a day\u2019s worth of activity: $58,000 in total spending on accepted orders (mint, mango, strawberry). Accepted orders accounted for $20,000, with $1000 spent on vanilla. Lucy notes the need to follow up on the unknown vanilla order. The report includes a worker-replaced-after-crash update. \ud83c\udf6b",
+      "accepted_cents": 2000,
+      "total_stated": false,
+      "wrong_total": true,
+      "unknown_flagged": true,
+      "cents_as_dollars": true,
+      "worker_named": true,
+      "falsely_reassuring": false
+    },
+    {
+      "model": "qwen3:0.6b thinking",
+      "day": 4,
+      "sample": 1,
+      "report": "Lucy's ice cream shop for Day 4 reported $4,000 in accepted orders. Mint (2000) and strawberry (2000) accounted for the total. The vendor\u2019s status for vanilla is unknown, and mango was rejected. Need to follow up on the mint and strawberry to ensure proper inventory. Worker replaced after a crash, so check for any pending orders. (119 words)",
+      "accepted_cents": 2000,
+      "total_stated": false,
+      "wrong_total": false,
+      "unknown_flagged": true,
+      "cents_as_dollars": false,
+      "worker_named": true,
+      "falsely_reassuring": false
+    },
+    {
+      "model": "qwen3:0.6b thinking",
+      "day": 4,
+      "sample": 2,
+      "report": "Lucy's ice cream shop reports:  \n$40 spent on accepted orders (mint and strawberry).  \n\nFollow-up needed: Check for any pending messages.  \nWorker replaced after a crash.  \n\n(119 words)",
+      "accepted_cents": 2000,
+      "total_stated": false,
+      "wrong_total": false,
+      "unknown_flagged": false,
+      "cents_as_dollars": false,
+      "worker_named": true,
+      "falsely_reassuring": false
+    },
+    {
+      "model": "qwen3:0.6b thinking",
+      "day": 5,
+      "sample": 0,
+      "report": "Lucy's ice cream shop reported the following:  \n- Accepted orders total **$6,750** (1500 + 2000 + 1750 + 1500 cents).  \n- The shop spent all accepted orders, and no messages were ignored.  \n- One model call was rejected, and a worker was replaced after a crash.  \n\nNeed to follow up on any pending tasks or address any issues.",
+      "accepted_cents": 5250,
+      "total_stated": false,
+      "wrong_total": true,
+      "unknown_flagged": false,
+      "cents_as_dollars": false,
+      "worker_named": true,
+      "falsely_reassuring": false
+    },
+    {
+      "model": "qwen3:0.6b thinking",
+      "day": 5,
+      "sample": 1,
+      "report": "Lucy's ice cream shop reports:  \n**Accepted Orders:** $67.50 (chocolate: $1500, mango: $2000, coffee: $1750, pistachio: $1500).  \n**Follow-up:** Check for any unresolved issues.  \n**Status:** 1 failed model call, 0 ignored messages, and the worker was replaced after a crash.",
+      "accepted_cents": 5250,
+      "total_stated": false,
+      "wrong_total": false,
+      "unknown_flagged": false,
+      "cents_as_dollars": true,
+      "worker_named": true,
+      "falsely_reassuring": false
+    },
+    {
+      "model": "qwen3:0.6b thinking",
+      "day": 5,
+      "sample": 2,
+      "report": "Lucy's ice cream shop reports a total of $67.50 on accepted orders. Accepted orders include chocolate ($1,500), mango ($2,000), coffee ($1,750), and pistachio ($1,500). Follow-up items: failed model calls (1), repeated messages ignored (0), and a worker replaced after a crash. Make sure to check the status of any remaining orders.",
+      "accepted_cents": 5250,
+      "total_stated": false,
+      "wrong_total": true,
+      "unknown_flagged": false,
+      "cents_as_dollars": true,
+      "worker_named": true,
+      "falsely_reassuring": false
+    },
+    {
+      "model": "qwen3:0.6b thinking",
+      "day": 6,
+      "sample": 0,
+      "report": "Lucy's ice cream shop, Day 6, reported the following:  \n- Accepted orders totaled $4,000 (vanilla and lemon at 2000 cents each).  \n- Mango is pending confirmation, so Lucy should check with the supplier.  \n- Worker replaced after a crash, so she needs to update staff.  \n\nThe report is concise and covers all key points.",
+      "accepted_cents": 2000,
+      "total_stated": false,
+      "wrong_total": true,
+      "unknown_flagged": true,
+      "cents_as_dollars": false,
+      "worker_named": true,
+      "falsely_reassuring": false
+    },
+    {
+      "model": "qwen3:0.6b thinking",
+      "day": 6,
+      "sample": 1,
+      "report": "Lucy's ice cream shop day ended with a total of 4000 cents spent on accepted orders. Accepted orders include 2000 cents for vanilla and 2000 for lemon, while rejected orders (mango and strawberry) remain unaccounted for. Lucy should follow up on any remaining orders and check the status of the worker who was replaced after a crash. The report closes here.",
+      "accepted_cents": 2000,
+      "total_stated": false,
+      "wrong_total": false,
+      "unknown_flagged": false,
+      "cents_as_dollars": false,
+      "worker_named": true,
+      "falsely_reassuring": false
+    },
+    {
+      "model": "qwen3:0.6b thinking",
+      "day": 6,
+      "sample": 2,
+      "report": "Lucy's ice cream shop ended the day with a total of 6,000 cents spent on accepted orders. Accepted orders include vanilla (2,000 cents) and lemon (2,000 cents), totaling $40.00, while mango (2,000 cents) and strawberry (1,000 cents) were partially processed. To follow up, Lucy should verify the mango's status.  \n\n**Report:**  \nTotal spent on accepted orders: $40.00. Check if mango (2,000 cents) is fully accepted. \ud83e\udde0\u2728",
+      "accepted_cents": 2000,
+      "total_stated": false,
+      "wrong_total": true,
+      "unknown_flagged": true,
+      "cents_as_dollars": false,
+      "worker_named": false,
+      "falsely_reassuring": false
+    },
+    {
+      "model": "qwen3:0.6b thinking",
+      "day": 7,
+      "sample": 0,
+      "report": "Lucy\u2019s ice cream shop reports the following for Day 7:  \n**Accepted orders**: $1,750 (strawberry) + $1,500 (lemon) + $2,000 (mint) = $5,250.  \n**Chocolate order**: Status unknown, pending follow-up.  \n**Other**: 1 failed model call, 0 ignored messages, and a worker replaced.  \nTotal spent: $5,250. Follow up on the chocolate order.",
+      "accepted_cents": 3500,
+      "total_stated": false,
+      "wrong_total": true,
+      "unknown_flagged": true,
+      "cents_as_dollars": true,
+      "worker_named": true,
+      "falsely_reassuring": false
+    },
+    {
+      "model": "qwen3:0.6b thinking",
+      "day": 7,
+      "sample": 1,
+      "report": "Lucy's ice cream report for day 7 shows:  \n- Accepted orders totaled **$62.50** (strawberry: $17.50, lemon: $15.00, mint: $20.00, chocolate: $10.00).  \n- **Lost 1 model call** and **no ignored messages**.  \n- The **chocolate** order is **status UNKNOWN**; please check with the supplier.  \n\nLet me know if you need further details!",
+      "accepted_cents": 3500,
+      "total_stated": false,
+      "wrong_total": true,
+      "unknown_flagged": true,
+      "cents_as_dollars": false,
+      "worker_named": false,
+      "falsely_reassuring": false
+    },
+    {
+      "model": "qwen3:0.6b thinking",
+      "day": 7,
+      "sample": 2,
+      "report": "Here is Lucy's end-of-day report:  \n\n**Total Spent on Accepted Orders:** $62.50 (strawberry: $17.50, lemon: $15.00, mint: $20.00, chocolate: $10.00).  \n\n**Follow-Up Needed:**  \n- Chocolate orders (quantity: 4) need further verification.  \n- Check if status is confirmed for accuracy.  \n\n**Status:**  \n- Failed model calls: 1  \n- Repeated messages ignored: 0  \n- Worker replaced: \u2705  \n\nLet me know if you need further assistance!",
+      "accepted_cents": 3500,
+      "total_stated": false,
+      "wrong_total": true,
+      "unknown_flagged": false,
+      "cents_as_dollars": false,
+      "worker_named": true,
+      "falsely_reassuring": false
+    },
+    {
+      "model": "qwen3:0.6b thinking",
+      "day": 8,
+      "sample": 0,
+      "report": "Lucy's ice cream shop day reports show total spent on accepted orders: $1750 (vanilla) + $2000 (pistachio) = $3750.  \nFor follow-up, note 2 failed model calls and 1 ignored message.  \nWorker replaced after a crash, indicating good oversight.  \n\n(Word count: 118)",
+      "accepted_cents": 1750,
+      "total_stated": false,
+      "wrong_total": true,
+      "unknown_flagged": false,
+      "cents_as_dollars": true,
+      "worker_named": null,
+      "falsely_reassuring": false
+    },
+    {
+      "model": "qwen3:0.6b thinking",
+      "day": 8,
+      "sample": 1,
+      "report": "Lucy\u2019s ice cream shop reported total spent on accepted orders as $2750 (1000\u00a2 + 1750\u00a2). Accepted orders include vanilla (4x1000\u00a2) and lemon (7x1750\u00a2). Follow-up: Check failed model calls (2) and ignored messages (1). She should ensure the worker replaced after a crash is active. Word count: 119.",
+      "accepted_cents": 1750,
+      "total_stated": false,
+      "wrong_total": true,
+      "unknown_flagged": false,
+      "cents_as_dollars": false,
+      "worker_named": null,
+      "falsely_reassuring": false
+    },
+    {
+      "model": "qwen3:0.6b thinking",
+      "day": 8,
+      "sample": 2,
+      "report": "Lucy's ice cream shop reported $27.50 in total revenue from accepted orders. For follow-up, contact the supplier to verify quantities or rates. The shop has 2 failed model calls and 1 repeated message ignored. No worker replaced after crash.",
+      "accepted_cents": 1750,
+      "total_stated": false,
+      "wrong_total": true,
+      "unknown_flagged": false,
+      "cents_as_dollars": false,
+      "worker_named": null,
+      "falsely_reassuring": false
+    },
+    {
+      "model": "qwen3:0.6b thinking",
+      "day": 9,
+      "sample": 0,
+      "report": "Lucy\u2019s ice cream shop for day 9 reported the following:  \n- Accepted orders totaled $20 (mango: $1.50, lemon: $1.00, strawberry: $1.00).  \n- **Follow-up**: Two failed model calls and one ignored message to monitor for further issues.  \n- **Action**: Ensure all accepted orders are accounted for and address pending calls.  \n\n*End-of-day report.* (118 words)",
+      "accepted_cents": 2000,
+      "total_stated": true,
+      "wrong_total": false,
+      "unknown_flagged": false,
+      "cents_as_dollars": false,
+      "worker_named": null,
+      "falsely_reassuring": false
+    },
+    {
+      "model": "qwen3:0.6b thinking",
+      "day": 9,
+      "sample": 1,
+      "report": "Lucy's ice cream shop reports total spent on accepted orders: $30.00. Accepted orders include lemon (1000 cents), strawberry (1000 cents), and vanilla (status: REJECTED). Follow-up: Check failed_model_calls (2) and repeated_messages_ignored (1). No action is taken for the worker_replaced_after_crash.",
+      "accepted_cents": 2000,
+      "total_stated": false,
+      "wrong_total": true,
+      "unknown_flagged": false,
+      "cents_as_dollars": false,
+      "worker_named": null,
+      "falsely_reassuring": false
+    },
+    {
+      "model": "qwen3:0.6b thinking",
+      "day": 9,
+      "sample": 2,
+      "report": "Lucy\u2019s ice cream shop reported the following:  \n**Total accepted orders:** $3,500 (mango, lemon, strawberry, and vanilla).  \n**Follow-up:** Ensure to check the failed model calls (2) and repeated messages ignored (1) for any discrepancies.  \n\nLucy needs to update suppliers and track any unprocessed orders.",
+      "accepted_cents": 2000,
+      "total_stated": false,
+      "wrong_total": true,
+      "unknown_flagged": false,
+      "cents_as_dollars": false,
+      "worker_named": null,
+      "falsely_reassuring": false
+    },
+    {
+      "model": "qwen3:0.6b thinking",
+      "day": 10,
+      "sample": 0,
+      "report": "Here\u2019s Lucy\u2019s end-of-day report:  \nToday\u2019s total spent on accepted orders is $120 (4000 cents for coffee + 4000 cents for pistachio + 4000 cents for strawberry).  \n\nShe needs to follow up on the chocolate order, which was rejected. Lucy should also mention the 1 failed model call and 1 repeated message ignored.  \n\n**Word count: 119**.",
+      "accepted_cents": 2000,
+      "total_stated": false,
+      "wrong_total": true,
+      "unknown_flagged": false,
+      "cents_as_dollars": false,
+      "worker_named": false,
+      "falsely_reassuring": false
+    },
+    {
+      "model": "qwen3:0.6b thinking",
+      "day": 10,
+      "sample": 1,
+      "report": "Lucy's ice cream shop, here are today's records for day 10:  \n**$40** was spent on accepted orders (coffee: 4x$1000, pistachio: 4x$1000, strawberry: 4x$1000, chocolate: 8x$1000).  \n\n**Follow-up:**  \n- **Accepted orders:** Coffee, pistachio, strawberry.  \n- **Failed model calls:** 1.  \n- **Repeated messages ignored:** 1.  \n- **Worker replaced after crash:** Yes.  \n\nLucy needs to track any pending orders and ensure all accepted items are accounted for.",
+      "accepted_cents": 2000,
+      "total_stated": false,
+      "wrong_total": false,
+      "unknown_flagged": false,
+      "cents_as_dollars": true,
+      "worker_named": true,
+      "falsely_reassuring": false
+    },
+    {
+      "model": "qwen3:0.6b thinking",
+      "day": 10,
+      "sample": 2,
+      "report": "Lucy\u2019s ice cream shop reported today\u2019s end-of-day with a total spending of $500 (5000 cents). Accepted orders accounted for $1,000 each for coffee, pistachio, and strawberry, totaling $2,000. She should follow up on failed model calls (1 instance) and ignored messages (1 instance). The worker replaced after a crash, so she\u2019s ready for the day\u2019s activities.",
+      "accepted_cents": 2000,
+      "total_stated": false,
+      "wrong_total": true,
+      "unknown_flagged": false,
+      "cents_as_dollars": true,
+      "worker_named": true,
+      "falsely_reassuring": false
+    },
+    {
+      "model": "qwen3:0.6b thinking",
+      "day": 11,
+      "sample": 0,
+      "report": "Lucy's Ice Cream Shop End-of-Day Report:\n\nToday's total spent on accepted orders was $45 (1000 + 1500 + 1000 + 1000).  \nWe need to follow up on the mint order, which is pending.  \n\nNo failed model calls or repeated ignored messages. Lucy is ready to proceed with her day.",
+      "accepted_cents": 2500,
+      "total_stated": false,
+      "wrong_total": true,
+      "unknown_flagged": true,
+      "cents_as_dollars": false,
+      "worker_named": null,
+      "falsely_reassuring": false
+    },
+    {
+      "model": "qwen3:0.6b thinking",
+      "day": 11,
+      "sample": 1,
+      "report": "Lucy\u2019s ice cream shop for day 11 reports:  \n**Total accepted orders:** $170.00 (4000 cents + 9000 cents + 4000 cents).  \n**Next steps:** Follow up on the mint order (status UNKNOWN), as it\u2019s not yet processed. Ensure all accepted orders are accounted for.  \n\nLucy will monitor the mint order and update the shop\u2019s records accordingly.",
+      "accepted_cents": 2500,
+      "total_stated": false,
+      "wrong_total": true,
+      "unknown_flagged": true,
+      "cents_as_dollars": false,
+      "worker_named": null,
+      "falsely_reassuring": false
+    },
+    {
+      "model": "qwen3:0.6b thinking",
+      "day": 11,
+      "sample": 2,
+      "report": "Lucy's ice cream shop report for day 11:  \nTotal accepted orders: $3500 (strawberry 1000, vanilla 1500, chocolate 1000, mint 1000).  \nNeed to follow up on the mint order since its status is unknown.  \n\nLucy will ensure all accepted orders are properly accounted for and check for any discrepancies.",
+      "accepted_cents": 2500,
+      "total_stated": false,
+      "wrong_total": true,
+      "unknown_flagged": true,
+      "cents_as_dollars": false,
+      "worker_named": null,
+      "falsely_reassuring": false
+    },
+    {
+      "model": "qwen3:0.6b thinking",
+      "day": 12,
+      "sample": 0,
+      "report": "Lucy's ice cream shop for day 12 reported total revenue of $52.50. Accepted orders include 1750 cents (pistachio) and 2000 cents (chocolate), totaling $17.50 and $20.00 respectively. The third order, vanilla, was pending with 1500 cents. Lucy needs to follow up on the pending order, check for failed model calls (2) and ignored messages (1). The worker replaced after a crash, so ensure all updates are received.",
+      "accepted_cents": 3750,
+      "total_stated": false,
+      "wrong_total": true,
+      "unknown_flagged": true,
+      "cents_as_dollars": false,
+      "worker_named": true,
+      "falsely_reassuring": false
+    },
+    {
+      "model": "qwen3:0.6b thinking",
+      "day": 12,
+      "sample": 1,
+      "report": "Lucy\u2019s day reports:  \nToday\u2019s total spent on accepted orders was $52.50.  \nPistachio ($17.50), chocolate ($20.00), and vanilla ($15.00) accounted for.  \nThe vanilla order\u2019s status is unknown, so a follow-up is needed.  \n2 failed model calls and 1 ignored message were noted.  \nWorker replaced after a crash.  \n\n*Word count: 119*",
+      "accepted_cents": 3750,
+      "total_stated": false,
+      "wrong_total": true,
+      "unknown_flagged": true,
+      "cents_as_dollars": false,
+      "worker_named": true,
+      "falsely_reassuring": false
+    },
+    {
+      "model": "qwen3:0.6b thinking",
+      "day": 12,
+      "sample": 2,
+      "report": "Lucy's ice cream shop earned $52.50 in accepted orders. Accepted orders total $1750 + $2000 + $1500 = $5250. She needs to follow up on the vanilla order for any pending shipments. The failed model calls and repeated ignored messages indicate a problem, and the worker was replaced after a crash. (119 words)",
+      "accepted_cents": 3750,
+      "total_stated": false,
+      "wrong_total": true,
+      "unknown_flagged": true,
+      "cents_as_dollars": true,
+      "worker_named": true,
+      "falsely_reassuring": false
+    },
+    {
+      "model": "qwen3:0.6b thinking",
+      "day": 13,
+      "sample": 0,
+      "report": "Lucy's ice cream shop ended with a total of $50.00 spent on accepted orders. Here's what to follow up on:  \n- **Accepted Orders**: Coffee (2000 cents), strawberry (1500 cents), and pistachio (1500 cents).  \n- **Next Steps**: Check for any missing orders (strawberry status unknown) and ensure all rejected orders are properly handled.  \n- **Model Calls**: 2 failed calls, 1 ignored message.  \n- **Worker**: Replaced after a crash.  \n\nLet me know if you need further assistance!",
+      "accepted_cents": 3500,
+      "total_stated": false,
+      "wrong_total": true,
+      "unknown_flagged": true,
+      "cents_as_dollars": false,
+      "worker_named": true,
+      "falsely_reassuring": false
+    },
+    {
+      "model": "qwen3:0.6b thinking",
+      "day": 13,
+      "sample": 1,
+      "report": "Lucy's ice cream shop report for day 13:  \n\n**Spent on accepted orders:** $50.00 (2000 + 1500 + 1500 cents).  \n\n**Need to follow up:** The strawberry order (6 units, $1500) is currently unknown, so check its status.  \n\n**Other details:**  \n- 2 failed model calls.  \n- 1 repeated message ignored.  \n- A worker was replaced after a crash.  \n\n**Word count:** 118.",
+      "accepted_cents": 3500,
+      "total_stated": false,
+      "wrong_total": false,
+      "unknown_flagged": true,
+      "cents_as_dollars": true,
+      "worker_named": true,
+      "falsely_reassuring": false
+    },
+    {
+      "model": "qwen3:0.6b thinking",
+      "day": 13,
+      "sample": 2,
+      "report": "Lucy's ice cream shop spent $50.00 on accepted orders: 2000 cents for coffee, 1500 for pistachio, and 1500 for vanilla. One strawberry order is still UNKNOWN, so she needs to contact the supplier. Follow-up on this to ensure proper tracking.",
+      "accepted_cents": 3500,
+      "total_stated": false,
+      "wrong_total": false,
+      "unknown_flagged": true,
+      "cents_as_dollars": false,
+      "worker_named": false,
+      "falsely_reassuring": false
+    },
+    {
+      "model": "qwen3:0.6b thinking",
+      "day": 14,
+      "sample": 0,
+      "report": "Lucy\u2019s ice cream shop reported the following:  \n- **Accepted orders**: Lemon (1750 cents) and strawberry (1750 cents) accounted for $3500.  \n- **Total spent**: $35.00.  \n- **Follow-up**: Check failed_model_calls (2) and repeated_messages_ignored (1) for any discrepancies.  \n- **Worker status**: A replacement has been made after a crash.  \n\nLucy\u2019s report closes here.",
+      "accepted_cents": 1750,
+      "total_stated": false,
+      "wrong_total": true,
+      "unknown_flagged": false,
+      "cents_as_dollars": false,
+      "worker_named": true,
+      "falsely_reassuring": false
+    },
+    {
+      "model": "qwen3:0.6b thinking",
+      "day": 14,
+      "sample": 1,
+      "report": "Lucy's ice cream shop reported $37.50 in accepted orders for day 14. Accepted orders totaled $1750 (lemon) + $2000 (chocolate) = $3750.  \nNeed to follow up on chocolate order (status unknown) and check the strawberry order (status rejected).  \nWorker replaced after a crash.",
+      "accepted_cents": 1750,
+      "total_stated": false,
+      "wrong_total": true,
+      "unknown_flagged": true,
+      "cents_as_dollars": true,
+      "worker_named": true,
+      "falsely_reassuring": false
+    },
+    {
+      "model": "qwen3:0.6b thinking",
+      "day": 14,
+      "sample": 2,
+      "report": "Lucy's ice cream shop for day 14 reported total accepted orders totaling **$35.00** (1750 cents for lemon and 1750 cents for strawberry). She needs to follow up on failed model calls (2) and ignored messages (1). Any repeated calls were addressed. A replacement was made after a crash, so ensure orders are processed promptly.",
+      "accepted_cents": 1750,
+      "total_stated": false,
+      "wrong_total": true,
+      "unknown_flagged": false,
+      "cents_as_dollars": false,
+      "worker_named": true,
+      "falsely_reassuring": false
+    },
+    {
+      "model": "qwen3:0.6b thinking",
+      "day": 15,
+      "sample": 0,
+      "report": "Lucy's ice cream report:  \nToday\u2019s total revenue is $35.00 from accepted orders (lemon: 8x$2000, chocolate: 6x$1500).  \n\n- Accepted orders: **$3500**  \n- Follow-up: Note any ignored messages (repeated_messages_ignored:1) and ensure the worker is updated after a crash.  \n\nLucy needs to track any pending messages and check the replaced worker status.",
+      "accepted_cents": 2000,
+      "total_stated": false,
+      "wrong_total": true,
+      "unknown_flagged": false,
+      "cents_as_dollars": true,
+      "worker_named": true,
+      "falsely_reassuring": false
+    },
+    {
+      "model": "qwen3:0.6b thinking",
+      "day": 15,
+      "sample": 1,
+      "report": "Lucy's ice cream shop reported a day with total spending of $45.00, including accepted orders of lemon (8 units, $2.00) and chocolate (6 units, $1.50), totaling $3.50. For follow-up, she should check if mint orders need verification, as status is unknown. The shop is ready to proceed with any remaining orders.  \n\n**Word count:** 120.",
+      "accepted_cents": 2000,
+      "total_stated": false,
+      "wrong_total": true,
+      "unknown_flagged": true,
+      "cents_as_dollars": false,
+      "worker_named": false,
+      "falsely_reassuring": false
+    },
+    {
+      "model": "qwen3:0.6b thinking",
+      "day": 15,
+      "sample": 2,
+      "report": "Lucy's ice cream shop ended its day with a total of $45.00 spent on accepted orders. Accepted orders accounted for 2000 cents (lemon) + 1000 cents (mint) + 1500 cents (chocolate), totaling $45.00. Any follow-up needed includes checking for repeated messages ignored or worker replacement status. The shop is well-run, with accepted orders clearly documented.",
+      "accepted_cents": 2000,
+      "total_stated": false,
+      "wrong_total": true,
+      "unknown_flagged": false,
+      "cents_as_dollars": false,
+      "worker_named": true,
+      "falsely_reassuring": false
+    },
+    {
+      "model": "qwen3:0.6b thinking",
+      "day": 16,
+      "sample": 0,
+      "report": "Lucy's ice cream shop reported today\u2019s sales. Accepted orders totaled $32.50, with strawberries and coffee accounted for $1,500 and $1,750 respectively. The failed model calls are 2, and repeated messages were ignored. A worker was replaced after a crash. Lucy should check the pistachio orders to ensure they are accepted, and follow up on the rejected strawberry orders.",
+      "accepted_cents": 1750,
+      "total_stated": false,
+      "wrong_total": true,
+      "unknown_flagged": false,
+      "cents_as_dollars": true,
+      "worker_named": true,
+      "falsely_reassuring": false
+    },
+    {
+      "model": "qwen3:0.6b thinking",
+      "day": 16,
+      "sample": 1,
+      "report": "Lucy's ice cream shop report:  \nToday's records show a total of **1750 cents** spent on accepted orders (coffee, quantity 7). The chocolate order (1000 cents, status unknown) requires follow-up. The failed model calls and replacement after a crash are noted.  \n\n**Notes:**  \n- Accepted orders: Strawberry (1500 cents) and pistachio (1000 cents).  \n- Chocolate order pending review.  \n- No errors detected.  \n\nWord count: 118.",
+      "accepted_cents": 1750,
+      "total_stated": false,
+      "wrong_total": false,
+      "unknown_flagged": true,
+      "cents_as_dollars": false,
+      "worker_named": true,
+      "falsely_reassuring": false
+    },
+    {
+      "model": "qwen3:0.6b thinking",
+      "day": 16,
+      "sample": 2,
+      "report": "Lucy's ice cream report for day 16:  \n**Total accepted orders:** $52.50 (strawberry 1500, chocolate 1000, coffee 1750, pistachio 1000).  \n\n**Follow-up:**  \n- Check \"failed_model_calls\" (2) and \"repeated_messages_ignored\" (1).  \n- Confirm \"worker_replaced_after_crash\" is active.  \n\nThis report ensures smooth operations and prioritizes check-ins for any unresolved issues.",
+      "accepted_cents": 1750,
+      "total_stated": false,
+      "wrong_total": true,
+      "unknown_flagged": false,
+      "cents_as_dollars": false,
+      "worker_named": false,
+      "falsely_reassuring": false
+    },
+    {
+      "model": "qwen3:0.6b thinking",
+      "day": 17,
+      "sample": 0,
+      "report": "Lucy's ice cream shop reported today\u2019s sales as follows:  \n**$57.50** was spent on accepted orders (chocolate $2000, lemon $2000, and vanilla $1750).  \n\nFor follow-up, she should review the mango order\u2019s status and ensure all pending calls are addressed. No issues were noted in failed model calls or repeated messages. The worker has not been replaced after a crash.",
+      "accepted_cents": 3750,
+      "total_stated": false,
+      "wrong_total": false,
+      "unknown_flagged": true,
+      "cents_as_dollars": true,
+      "worker_named": null,
+      "falsely_reassuring": false
+    },
+    {
+      "model": "qwen3:0.6b thinking",
+      "day": 17,
+      "sample": 1,
+      "report": "Lucy's ice cream shop reported today's expenses. Accepted orders totaled $37.50 (2000 + 1750 cents). The UNKNOWN order for mango requires further verification. No model calls were ignored, and the worker was replaced after a crash. This report is for Lucy.",
+      "accepted_cents": 3750,
+      "total_stated": true,
+      "wrong_total": false,
+      "unknown_flagged": true,
+      "cents_as_dollars": false,
+      "worker_named": null,
+      "falsely_reassuring": false
+    },
+    {
+      "model": "qwen3:0.6b thinking",
+      "day": 17,
+      "sample": 2,
+      "report": "Lucy\u2019s Ice Cream Shop Day Report:  \n\n**Accepted Orders**: $37.50 (chocolate, vanilla).  \n\n**Follow-Up**:  \n- Mango order remains **UNKNOWN**. Check with suppliers.  \n\nNo failed model calls or ignored messages. No worker replaced after crash.",
+      "accepted_cents": 3750,
+      "total_stated": true,
+      "wrong_total": false,
+      "unknown_flagged": true,
+      "cents_as_dollars": false,
+      "worker_named": null,
+      "falsely_reassuring": false
+    },
+    {
+      "model": "qwen3:0.6b thinking",
+      "day": 18,
+      "sample": 0,
+      "report": "Lucy\u2019s ice cream shop reported a total of 48,000 cents (24000 cents from accepted orders) for the day. Accepted orders include vanilla (4000 cents), mango (4000 cents), and coffee (16000 cents). She needs to follow up on the failed model calls and repeated messages ignored. No updates on the worker replacement.  \n\n**Word count:** 119.",
+      "accepted_cents": 3000,
+      "total_stated": false,
+      "wrong_total": false,
+      "unknown_flagged": false,
+      "cents_as_dollars": false,
+      "worker_named": null,
+      "falsely_reassuring": false
+    },
+    {
+      "model": "qwen3:0.6b thinking",
+      "day": 18,
+      "sample": 1,
+      "report": "Lucy's ice cream shop day ended with a total of $20 spent on accepted orders. Accepted orders include vanilla (1000 cents) and mango (1000 cents), totaling $20. She needs to follow up on failed model calls and ignored repeated messages. No worker was replaced after a crash.",
+      "accepted_cents": 3000,
+      "total_stated": false,
+      "wrong_total": true,
+      "unknown_flagged": false,
+      "cents_as_dollars": false,
+      "worker_named": null,
+      "falsely_reassuring": false
+    },
+    {
+      "model": "qwen3:0.6b thinking",
+      "day": 18,
+      "sample": 2,
+      "report": "Lucy's ice cream shop spent $40 on accepted orders. Accepted orders include 1000 cents for vanilla and 1000 cents for mango, totaling $40. For follow-up, note that 1 failed model call and 1 message was ignored. The worker was replaced after a crash, so keep that in mind.",
+      "accepted_cents": 3000,
+      "total_stated": false,
+      "wrong_total": true,
+      "unknown_flagged": false,
+      "cents_as_dollars": false,
+      "worker_named": null,
+      "falsely_reassuring": false
+    },
+    {
+      "model": "qwen3:0.6b thinking",
+      "day": 19,
+      "sample": 0,
+      "report": "Lucy's ice cream shop reported total spent on accepted orders: $50.00. Accepted orders include vanilla (1500 cents), pistachio (1750 cents), and lemon (1750 cents). The report notes that the worker replaced after a crash and confirms no issues with failed calls or ignored messages.",
+      "accepted_cents": 3500,
+      "total_stated": false,
+      "wrong_total": true,
+      "unknown_flagged": false,
+      "cents_as_dollars": false,
+      "worker_named": true,
+      "falsely_reassuring": false
+    },
+    {
+      "model": "qwen3:0.6b thinking",
+      "day": 19,
+      "sample": 1,
+      "report": "Lucy's ice cream shop, day 19, reports:  \nTotal accepted orders spent $2600. Vanilla (6x1500c) and lemon (7x1750c) accounted for. No issues with model calls, repeated messages ignored, and a worker replaced. Follow up on orders to ensure accuracy.",
+      "accepted_cents": 3500,
+      "total_stated": false,
+      "wrong_total": true,
+      "unknown_flagged": false,
+      "cents_as_dollars": false,
+      "worker_named": true,
+      "falsely_reassuring": false
+    },
+    {
+      "model": "qwen3:0.6b thinking",
+      "day": 19,
+      "sample": 2,
+      "report": "Lucy's ice cream shop spent $45 on accepted orders. No pending orders to follow up. The shop is set up for future orders, and the worker has been replaced. \ud83c\udf6b",
+      "accepted_cents": 3500,
+      "total_stated": false,
+      "wrong_total": false,
+      "unknown_flagged": false,
+      "cents_as_dollars": false,
+      "worker_named": true,
+      "falsely_reassuring": false
+    },
+    {
+      "model": "qwen3:0.6b thinking",
+      "day": 20,
+      "sample": 0,
+      "report": "Lucy's ice cream shop reported total spent on accepted orders: $200. Accepted orders: $4000 (mango) + $16000 (lemon) = $20000. Mint order (8 units) remains unknown; follow-up is needed. Check its status to ensure proper handling.",
+      "accepted_cents": 3000,
+      "total_stated": false,
+      "wrong_total": true,
+      "unknown_flagged": true,
+      "cents_as_dollars": false,
+      "worker_named": false,
+      "falsely_reassuring": false
+    },
+    {
+      "model": "qwen3:0.6b thinking",
+      "day": 20,
+      "sample": 1,
+      "report": "Lucy\u2019s ice cream shop reported total spent on accepted orders: $3,000 cents. Accepted items include mango (1000 cents) and lemon (2000 cents). The mint order is still pending. Lucy should follow up on this to ensure accurate tracking. \ud83c\udf4e",
+      "accepted_cents": 3000,
+      "total_stated": false,
+      "wrong_total": true,
+      "unknown_flagged": true,
+      "cents_as_dollars": true,
+      "worker_named": false,
+      "falsely_reassuring": false
+    },
+    {
+      "model": "qwen3:0.6b thinking",
+      "day": 20,
+      "sample": 2,
+      "report": "Lucy's day reports:  \n**Total accepted orders**: $3,000 (mango + lemon).  \n**Needs to follow up**: Mint (8 units) and the two failed model calls.  \n\nLucy should check the mint\u2019s quantity and ensure all accepted orders are properly accounted for. The report is ready for review. \ud83c\udf89",
+      "accepted_cents": 3000,
+      "total_stated": false,
+      "wrong_total": true,
+      "unknown_flagged": true,
+      "cents_as_dollars": true,
+      "worker_named": false,
+      "falsely_reassuring": false
+    }
+  ]
+}

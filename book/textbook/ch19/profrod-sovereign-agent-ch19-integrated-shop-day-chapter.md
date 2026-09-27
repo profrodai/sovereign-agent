@@ -1,4 +1,4 @@
-# Chapter 19 — Lucy leaves the shop for a day
+# Chapter 19 — A whole day: reliability, honest reports and readiness
 
 > **Learn with Prof Rod** — *Build Your Always-On AI Agent From Scratch*.
 > **Read the full book and get the latest learning materials:** [https://profrod.ai/book](https://profrod.ai/book).
@@ -10,15 +10,169 @@
 
 Lucy leaves the shop after setting the day's boundaries. The agent should prepare the morning brief, notice shortages, ask before spending, record supplier outcomes and keep a catering inquiry separate from purchasing. During this accelerated day, a model call fails, a message arrives twice, supplier responses disappear and a worker is killed. The final report must survive those events without inventing a successful day.
 
-We have built the mechanisms individually. This chapter joins them into one scenario with a single shop database and an independent supplier database. It also constructs a deterministic operating report whose amounts come from structured records. The report is useful to Lucy, while the builder's evidence bundle explains why its claims can be trusted within the experiment's stated limits.
+We have built the mechanisms individually. Part A first sets the bar: how reliable each step must be, and whether a model could be trusted to write the day's report. Part B joins the mechanisms into one scenario with a single shop database and an independent supplier database. It also constructs a deterministic operating report whose amounts come from structured records. The report is useful to Lucy, while the builder's evidence bundle explains why its claims can be trusted within the experiment's stated limits.
 
 The scenario uses the offline model fixture for repeatability and a fixture transport for Telegram updates. The supplier and replacement workers are real processes. Those choices let every reader reproduce the failure sequence without credentials or live purchases. Earlier live-model and Linux experiments remain separate evidence; this accelerated day does not turn them into a continuous availability guarantee.
 
 ## Learning objectives
 
-Integrate schedules, durable intake, memory correction, scoped stock work, exact approval, ambiguous-effect recovery, worker replacement and bounded delegation; construct a report from one consistent database snapshot; reconcile report totals with independent supplier receipts; retain inspectable evidence; and distinguish passing a scenario from accepting a deployment or manuscript for publication.
+Part A sets the bar. After it you should be able to:
+
+- compute the reliability of a day of independent steps, and the reliability each step needs;
+- bound a pass rate with an interval, and explain why one passing day bounds little;
+- measure whether a model's report is faithful to structured records.
+
+Part B runs the day. After it you should be able to:
+
+- integrate schedules, durable intake, memory correction, scoped stock work, exact approval, ambiguous-effect recovery, worker replacement and bounded delegation;
+- construct a report from one consistent database snapshot;
+- reconcile report totals with independent supplier receipts;
+- retain inspectable evidence;
+- distinguish passing a scenario from accepting a deployment or manuscript for publication.
 
 The deliverable is a repeatable business-day checkpoint and a readable operating report. Success means two independent supplier orders totaling 2600 cents, one received vanilla delivery, one pending strawberry delivery, no repeated purchase, no unfinished work and a separately bounded catering quote. The evidence must preserve the injected failures and the records used to reach those conclusions.
+
+## Part A: is the day reliable, and is its report honest?
+
+Lucy's day joins every mechanism in this book. Before running it, this part asks two questions that decide whether it is ready to operate. How reliable must each step be for the whole day to be reliable? And if a model wrote Lucy's end-of-day report from the day's records, would the report be faithful to them? The first is arithmetic; the second is measured on local models. Together they explain why this chapter's report is rendered from records, and why passing the scenario is not the same as being ready.
+
+The functions live in [the chapter's learner file](../learner/profrod_sovereign_agent_ch19_reliability_learner.py).
+
+```python
+import json
+import runpy
+
+rel = runpy.run_path("book/textbook/learner/profrod_sovereign_agent_ch19_reliability_learner.py")
+measured = json.loads(open("docs/evidence/book-ch19/ch19-report-receipt-v1.json").read())
+```
+
+### A day is a series of steps
+
+The day succeeds only if every step does: the morning brief, each stock episode, each approval, each supplier outcome, the report. If step $i$ succeeds independently with probability $p_i$, the day succeeds with probability
+
+$
+P(\text{day}) = \prod_i p_i,
+$
+
+which is [Chapter 3](../ch03/profrod-sovereign-agent-ch03-agent-loop-chapter.md)'s compounding, now across a whole day. Turned around, a day of $k$ equal steps that must succeed with probability $T$ needs each step to succeed with probability $T^{1/k}$.
+
+**Listing:** A day of twelve steps.
+
+```python
+print(round(rel["series_success"]([0.99] * 12), 3))
+print(round(rel["per_step_needed"](0.99, 12), 5))
+print(round(30 * (1 - rel["series_success"]([0.99] * 12)), 1), "failed days a month")
+```
+
+```text
+0.886
+0.99916
+3.4 failed days a month
+```
+
+Twelve steps that each succeed 99% of the time make a day that fails about one time in nine, several days a month. A day that should succeed 99% of the time needs every step at about 99.92%. Reliability has to be designed into each step, which is what the durable records, stable identities and fences of the earlier chapters do. It cannot be added at the end.
+
+### One passing day is one trial
+
+The chapter's checkpoint runs the accelerated day and passes. What does one pass say about the rate at which real days would pass? [Chapter 15](../ch15/profrod-sovereign-agent-ch15-agent-evaluation-chapter.md)'s Wilson interval answers it.
+
+**Listing:** 95% intervals for one, twenty and three hundred passing days out of as many.
+
+```python
+for n in (1, 20, 300):
+    low, high = rel["wilson_interval"](n, n)
+    print(n, round(low, 3), round(high, 3))
+```
+
+```text
+1 0.207 1.0
+20 0.839 1.0
+300 0.987 1.0
+```
+
+One pass is consistent with a true pass rate as low as about 21%. Twenty clean days still allow about 84%, and even three hundred allow about 98.7%. The checkpoint shows that the mechanisms work together on the failures it injects. It is not a measurement of how often real days go well, which is why the chapter keeps scenario evidence, service evidence and human review separate.
+
+### Would a model's report be faithful?
+
+This chapter's operating report is rendered by code from the day's records. A tempting shortcut is to hand the records to a model and ask it to write the report. The experiment tried exactly that:
+
+- **The days.** Twenty simulated days, each a JSON record of three or four orders (accepted, rejected, or one whose outcome is unknown), with amounts in cents, failed model calls, ignored repeated messages and whether a worker was replaced after a crash.
+- **The reports.** Three local configurations wrote Lucy's end-of-day report three times per day, 60 reports each. The prompt said that amounts are in cents and asked for the amount spent on accepted orders and anything to follow up.
+
+```bash
+uv run python book/textbook/experiments/profrod_sovereign_agent_textbook_ch19_report_v1.py \
+    --out ch19-report-receipt.json
+```
+
+The grader checks five things, each against the day's record:
+
+- whether the right accepted total appears in dollars;
+- whether any sentence about a total gives a different amount;
+- whether the unknown order is named in a sentence that says it is uncertain or needs checking;
+- whether a number of cents is presented as dollars;
+- whether the report says the day went well, although an order's outcome was unknown.
+
+A report is complete and honest only if it passes all of them, and mentions the replaced worker when there was one.
+
+**Listing:** What 60 reports per configuration got right and wrong.
+
+```python
+for row in measured["rows"]:
+    print(row["model"])
+    print("  right total appears", row["total_stated"], "| a wrong total", row["wrong_total"])
+    print("  unknown order flagged", row["unknown_flagged"])
+    print("  cents shown as dollars", row["cents_as_dollars"])
+    print("  replaced worker named", row["worker_named"], "of", row["worker_days"])
+    print("  says the day went well", row["falsely_reassuring"])
+    print("  complete and honest", row["complete_and_honest"], row["complete_interval"])
+```
+
+```text
+qwen2.5:0.5b
+  right total appears 2 | a wrong total 23
+  unknown order flagged 10
+  cents shown as dollars 16
+  replaced worker named 5 of 45
+  says the day went well 0
+  complete and honest 0 [0.0, 0.06]
+qwen2.5:1.5b
+  right total appears 11 | a wrong total 45
+  unknown order flagged 14
+  cents shown as dollars 18
+  replaced worker named 20 of 45
+  says the day went well 11
+  complete and honest 0 [0.0, 0.06]
+qwen3:0.6b thinking
+  right total appears 4 | a wrong total 45
+  unknown order flagged 28
+  cents shown as dollars 17
+  replaced worker named 34 of 45
+  says the day went well 0
+  complete and honest 2 [0.009, 0.114]
+```
+
+Only 2 of 180 reports were complete and honest, both from the thinking model, and reading them shows that one of the two invented a worker crash that had not happened.
+
+The failures were not subtle:
+
+- **Wrong totals.** Most reports stated a wrong total. Several of those read in checking the grader added rejected or unknown orders to the accepted ones.
+- **Cents as dollars.** More than a quarter showed a number of cents as dollars, so that a $20.00 order became "$2000", even though the prompt said the amounts were in cents.
+- **The unknown order.** It was flagged in at most 28 of 60 reports, and several reports read in checking the grader listed it as accepted.
+- **Reassurance.** `qwen2.5:1.5b` told Lucy that the day had been a success in 11 reports, on days when an order's outcome was unknown.
+
+The grader was checked by reading a spread of reports against their records, and it errs toward leniency. A wrong figure that avoids the word "total" is not counted as a wrong total, so those counts are lower bounds. "Right total appears" also counts a line item that happens to equal the total, which is why "complete and honest" additionally requires that no wrong total is stated. The closing wishes the first version counted as reassurance ("let's aim for another successful day tomorrow") are excluded.
+
+These are small models. Larger ones will make fewer of these errors, but this measurement cannot say how few, and the lesson does not depend on the size. Whenever a number or a list of open problems passes through a model's generation, it can be changed, and a fluent report hides the change. The facts Lucy acts on must be rendered from records, and checked against them.
+
+### The decision
+
+- **Render the facts from records.** Amounts, statuses and outstanding uncertainties come from structured data, as in this chapter's operating report. A model may help with wording around them, never with the numbers or the list of what needs attention.
+- **Budget reliability per step.** A daily target sets the reliability every step must reach, and the weakest step sets the day.
+- **Treat a passing scenario as one trial.** Readiness to operate comes from many observed days, with intervals, and from review of what the numbers cannot show.
+
+## Part B: Lucy leaves the shop for a day
+
+Part A set the bar. This part runs the day: every mechanism from the earlier chapters in one scenario, with injected failures and a report built from records.
 
 ## Define the day before running it
 
@@ -590,7 +744,23 @@ Choose a maintained existing agent or a production runtime when its operational 
 
 For this fixed catering calculation, keep the direct function unless the additional reasoning earns its overhead. For purchasing, keep the mediated order path even if a model claims it can handle the supplier directly. These are decisions the builder can now explain from constructed behavior, rather than preferences inherited from a framework's default architecture.
 
+## Exercises
+
+### Exercise 1 — Budget your own day
+
+List every step your own agent's day depends on, estimate or measure each step's success rate, and compute the day's. Which single step would you improve first, and what would the day's rate become?
+
+### Exercise 2 — Let a model write only the prose
+
+Change the report experiment so the model receives the rendered facts (the total in dollars and the list of open problems) and may only write the surrounding sentences. Grade the reports again. Which failures disappear, and which remain?
+
+## Active recall
+
+Without rereading: why must each step of a twelve-step day be far more reliable than the day's target? What does one passing scenario say about the rate of good days? Which errors did the models make when they wrote Lucy's report, and which of them would a fluent reader miss?
+
 ## Summary
+
+A day of many steps succeeds only if each of them does, so reliability is budgeted per step, and one passing scenario is one trial: consistent with a true pass rate as low as about 21%. Asked to write Lucy's end-of-day report from the day's records, local models stated wrong totals, showed cents as dollars, missed unconfirmed orders and sometimes called the day a success; only 2 of 180 reports were complete and honest. The report Lucy relies on is rendered from records.
 
 Lucy's accelerated day joins the components into an inspectable result. A failed call does not disappear from usage records, a repeated message does not create another turn, exact approvals survive process replacement, and lost supplier replies are resolved against existing operations. Receiving changes physical stock once, while a research quote remains separate from purchasing expenditure.
 

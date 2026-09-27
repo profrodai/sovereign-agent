@@ -152,7 +152,7 @@
     {
       "number": 19,
       "lessonId": "acceptance",
-      "title": "Lucy leaves the shop for a day",
+      "title": "A whole day: reliability, honest reports and readiness",
       "path": "ch19/profrod-sovereign-agent-ch19-integrated-shop-day-chapter.md",
       "checkpoint": "checkpoints/profrod_sovereign_agent_ch19_integrated_shop_day_checkpoint.py",
       "status": "DRAFT"

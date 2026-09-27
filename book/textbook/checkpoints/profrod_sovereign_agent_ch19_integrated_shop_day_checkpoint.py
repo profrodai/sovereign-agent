@@ -8,6 +8,7 @@
 import argparse
 import hashlib
 import json
+import math
 import os
 import runpy
 import signal
@@ -330,6 +331,37 @@ def day(root, checkpoint_dir):
             db.close()
 
 
+BOOK = Path(__file__).resolve().parents[1]
+RELIABILITY = runpy.run_path(
+    str(BOOK / "learner/profrod_sovereign_agent_ch19_reliability_learner.py")
+)
+
+
+def reliability_arithmetic():
+    """Part A's formulas checked independently; the receipt's counts recomputed from its runs."""
+    assert math.isclose(RELIABILITY["series_success"]([0.9, 0.5]), 0.45)
+    assert math.isclose(RELIABILITY["per_step_needed"](0.99, 12) ** 12, 0.99)
+    low, high = RELIABILITY["wilson_interval"](20, 20)
+    assert round(low, 3) == 0.839 and high == 1.0
+    assert RELIABILITY["dollars"](2600) == "$26.00" and RELIABILITY["dollars"](175) == "$1.75"
+    assert RELIABILITY["states_amount"]("Spent $26.00 today.", 2600)
+    assert not RELIABILITY["states_amount"]("Spent $2600 today.", 2600)
+    print("ok   a day is a product of its steps; one passing day bounds little")
+    receipt = json.loads(
+        (BOOK.parents[1] / "docs/evidence/book-ch19/ch19-report-receipt-v1.json").read_text()
+    )
+    for row in receipt["rows"]:
+        runs = [r for r in receipt["runs"] if r["model"] == row["model"]]
+        for field in ("total_stated", "wrong_total", "unknown_flagged", "cents_as_dollars"):
+            assert row[field] == sum(r[field] for r in runs)
+        for run in runs:
+            day = receipt["days"][run["day"] - 1]
+            accepted = sum(o["amount_cents"] for o in day["orders"] if o["status"] == "ACCEPTED")
+            assert run["accepted_cents"] == accepted
+            assert run["total_stated"] == RELIABILITY["states_amount"](run["report"], accepted)
+    print("ok   report counts recompute; accepted totals and stated amounts regraded from records")
+
+
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--worker", type=Path)
@@ -341,6 +373,7 @@ def main():
     if args.worker:
         child(args.worker, args.supplier, args.work, args.order)
         return
+    reliability_arithmetic()
     checkpoint_dir = Path(__file__).resolve().parent
     if not (
         checkpoint_dir / "profrod_sovereign_agent_ch11_ambiguous_supplier_order_checkpoint.py"
