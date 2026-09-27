@@ -40,7 +40,7 @@
     {
       "number": 5,
       "lessonId": "memory",
-      "title": "Remember across conversations",
+      "title": "Memory and retrieval: what the model sees, and a memory that forgets",
       "path": "ch05/profrod-sovereign-agent-ch05-durable-memory-chapter.md",
       "checkpoint": "checkpoints/profrod_sovereign_agent_ch05_durable_memory_checkpoint.py",
       "status": "DRAFT"

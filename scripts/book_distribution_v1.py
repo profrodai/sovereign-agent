@@ -37,7 +37,7 @@ UNIT_TOPICS = {
     2: ("pydantic-shop-tools", "pydantic-validation-repair"),
     3: ("bounded-agent-loop", "reliability-and-retries"),
     4: ("durable-state-store", "interrupted-migration"),
-    5: ("durable-memory", "memory-repair-transfer"),
+    5: ("durable-memory", "retrieval-and-recall"),
     6: ("versioned-skills", "skill-repair-transfer"),
     7: ("durable-work-inbox", "report-outbox-lost-reply"),
     8: ("private-telegram-messaging", "messaging-repair-transfer"),

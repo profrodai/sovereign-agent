@@ -1,4 +1,4 @@
-# Chapter 5 — Remember across conversations
+# Chapter 5 — Memory and retrieval: what the model sees, and a memory that forgets
 
 > **Learn with Prof Rod** — *Build Your Always-On AI Agent From Scratch*.
 > **Read the full book and get the latest learning materials:** [https://profrod.ai/book](https://profrod.ai/book).
@@ -14,13 +14,273 @@ Lucy returns to the shop the next morning. Yesterday she asked for morning deliv
 
 There is another problem hiding behind the first one. Suppose Lucy later asks you to forget that preference. Deleting a row looks sufficient until an old generated brief repeats the preference and your context builder sends that brief to the model again. The preference has returned through a different path. A useful memory implementation needs both persistence and a clear boundary around forgetting.
 
-In this chapter you will build explicit preferences with provenance, correction and retrieval. You will assemble a bounded context from those records and recent results, reproduce the returning-preference failure, and repair it with a context revision. The supplier's order records and the shop's inventory will remain separate sources of truth. Remembering a statement about a delivery never establishes that a delivery occurred.
+Part A starts with the choice every agent with a memory makes on every call: which stored records to send. It derives BM25 and the ranking metrics, and measures retrieval against sending everything on a real model. Part B then builds the memory. In it you will build explicit preferences with provenance, correction and retrieval. You will assemble a bounded context from those records and recent results, reproduce the returning-preference failure, and repair it with a context revision. The supplier's order records and the shop's inventory will remain separate sources of truth. Remembering a statement about a delivery never establishes that a delivery occurred.
 
 ## Learning objectives
 
-Implement durable, session-scoped preferences in SQLite; correct a preference without losing the source of its current version; retrieve useful records within a context budget; and make forgetting change the context of future turns.
+Part A treats memory as a selection problem. After it you should be able to:
+
+- explain what each prompt token costs, and why memory is a choice of what to send;
+- measure a retriever with precision@k, recall@k and mean reciprocal rank;
+- derive BM25 from rarity, saturation and length normalization, and say which requests it cannot serve;
+- explain cosine similarity over embeddings, and what it trades for matching paraphrases;
+- decide from measurements whether to retrieve or to send the whole memory.
+
+Part B builds the memory. After it you should be able to:
+
+- implement durable, session-scoped preferences in SQLite; correct a preference without losing the source of its current version; retrieve useful records within a context budget; and make forgetting change the context of future turns.
 
 By the end, reopening the database will retain Lucy's corrected preference. Forgetting it will remove every preference version and exclude older results from future context, while the operational record remains inspectable. You will also pass the selected context into the loop from [Chapter 3](../ch03/profrod-sovereign-agent-ch03-agent-loop-chapter.md) and verify that it reached the model boundary. That last check measures the program's data flow; assessing how well a live model follows preferences belongs to the evaluation work developed throughout the book.
+
+## Part A: what the model sees, and how to choose it
+
+A model knows nothing about Lucy's shop except what is in its context window on this call. Memory, for an agent, is therefore a selection problem: of everything the program has stored, what goes into the next prompt? This part treats that choice as an engineering question with measurable answers. It covers what context costs, how retrieval ranks records, how to score a ranking, and whether retrieval beats simply sending everything.
+
+The functions live in [the chapter's learner file](../learner/profrod_sovereign_agent_ch05_retrieval_learner.py). The notes and questions come from the chapter's experiment.
+
+```python
+import json
+import runpy
+
+memory = runpy.run_path("book/textbook/learner/profrod_sovereign_agent_ch05_retrieval_learner.py")
+retrieval_lab = runpy.run_path(
+    "book/textbook/experiments/profrod_sovereign_agent_textbook_ch05_retrieval_v1.py"
+)
+NOTES, QUESTIONS = retrieval_lab["NOTES"], retrieval_lab["QUESTIONS"]
+measured = json.loads(open("docs/evidence/book-ch05/ch05-retrieval-receipt-v1.json").read())
+print(len(NOTES), "notes,", len(QUESTIONS), "questions")
+```
+
+```text
+40 notes, 16 questions
+```
+
+### The context is a budget
+
+[Chapter 18](../ch18/profrod-sovereign-agent-ch18-deployment-restoration-chapter.md) measures what each prompt token costs:
+
+- **Time:** prefill reads every token.
+- **Memory:** the key-value cache stores every token for the rest of the call.
+- **Money:** a hosted model charges per input token, on every call of a loop.
+
+Context windows are also finite. The practical question is not whether to remember, but which records to send, and how to tell whether the choice was good.
+
+There are two broad answers. One is to send everything that fits. The other is to **retrieve**: score every stored record against the current request, and send only the best few. Retrieval can only help if its scores put the right record near the top, so we need a way to measure that.
+
+### Retrieval is ranking, and ranking has metrics
+
+Given a request, a retriever orders the records. Call the records that actually answer the request **relevant**; in an evaluation, a person labels them in advance. Three measures summarize a ranking:
+
+- **Precision@k:** the share of the top $k$ records that are relevant.
+- **Recall@k:** the share of the relevant records that appear in the top $k$. For an agent this is the measure that matters most: a relevant record outside the top $k$ never reaches the model.
+- **Reciprocal rank:** $1/r$, where $r$ is the position of the first relevant record. Averaged over requests, it is the **mean reciprocal rank** (MRR).
+
+**Listing:** One ranking, three scores.
+
+```python
+ranked, relevant = [4, 1, 7, 2], {1}
+print("precision@3", round(memory["precision_at_k"](ranked, relevant, 3), 3))
+print("recall@3", memory["recall_at_k"](ranked, relevant, 3))
+print("reciprocal rank", memory["reciprocal_rank"](ranked, relevant))
+```
+
+```text
+precision@3 0.333
+recall@3 1.0
+reciprocal rank 0.5
+```
+
+### Lexical search: BM25, derived
+
+The simplest retriever counts shared words, but not all words are equally informative. "Vanilla" in a query says much more than "the". Three ideas refine the count, and together they give **BM25**, the standard lexical ranking function.
+
+1. **Rare terms matter more.** A term found in $n_t$ of $N$ records is weighted by its **inverse document frequency**:
+
+   $
+   \mathrm{idf}(t) = \ln\!\left(1 + \frac{N - n_t + 0.5}{n_t + 0.5}\right).
+   $
+
+   A term in every record scores near zero; a term in one record scores about $\ln N$.
+2. **Repetition helps, with diminishing returns.** A term appearing $f$ times contributes $\frac{f(k_1 + 1)}{f + k_1}$. This rises with $f$ but never exceeds $k_1 + 1$, so a record cannot win by repeating one word.
+3. **Long records are penalized.** A record longer than average is more likely to contain any term by chance. BM25 replaces $k_1$ in the denominator by $k_1(1 - b + b\,|d|/\overline{|d|})$, where $|d|$ is its length and $\overline{|d|}$ the average.
+
+Together:
+
+$
+\mathrm{BM25}(q, d) = \sum_{t \in q} \mathrm{idf}(t)\,\frac{f_{t,d}\,(k_1 + 1)}{f_{t,d} + k_1\left(1 - b + b\,\frac{|d|}{\overline{|d|}}\right)},
+$
+
+with the conventional $k_1 = 1.5$ and $b = 0.75$.
+
+**Listing:** BM25 on Lucy's notes, for a direct question and a paraphrase.
+
+```python
+for question in (
+    "Who is the sales contact at Hartwell Dairy?",
+    "At what hour should the supplier's van turn up?",
+):
+    scores = memory["bm25_scores"](question, NOTES)
+    top = memory["ranking"](scores)[:3]
+    print(question)
+    for i in top:
+        print(f"  {scores[i]:5.2f}  {NOTES[i][:70]}")
+```
+
+```text
+Who is the sales contact at Hartwell Dairy?
+  12.93  The vanilla supplier is Hartwell Dairy, and its sales contact is Priya
+   4.75  Hartwell Dairy charges 250 cents for a tub of vanilla.
+   4.75  Hartwell Dairy needs orders by Monday evening for Tuesday delivery.
+At what hour should the supplier's van turn up?
+   5.13  Delivery drivers should ring the bell at the back door and wait.
+   4.20  The morning brief goes to Lucy's phone at eight.
+   4.10  The shop's delivery door is at the back, on Mill Lane.
+```
+
+The direct question shares rare words with its note, and BM25 puts that note first. The paraphrase shares none with its note, "Lucy asked for deliveries in the afternoon". Its best matches share only incidental words. No lexical scorer can find a record that uses different words for the same meaning.
+
+### Vector search: similarity of meaning
+
+**Embedding** models address exactly this. An embedding model maps a text to a vector, trained so that texts with similar meanings land close together. Retrieval then ranks records by the **cosine similarity** between the request's vector and each record's:
+
+$
+\cos(\mathbf{a}, \mathbf{b}) = \frac{\mathbf{a} \cdot \mathbf{b}}{\lVert \mathbf{a} \rVert\,\lVert \mathbf{b} \rVert},
+$
+
+which is 1 for vectors pointing the same way, 0 for unrelated directions, and does not depend on length.
+
+**Listing:** Cosine similarity ignores length and measures direction.
+
+```python
+for a, b in (([1, 2, 0], [2, 4, 0]), ([1, 0, 0], [0, 1, 0]), ([1, 1, 0], [1, 0, 0])):
+    print(round(memory["cosine"](a, b), 4))
+```
+
+```text
+1.0
+0.0
+0.7071
+```
+
+Embeddings trade one failure for another. They match paraphrases, but they blur exact identifiers: two SKUs or two dates can embed almost identically. Production systems often combine both kinds of score. This book's local model server was not configured to serve embeddings, so the measurements below are lexical. Exercise 6 asks you to add an embedding model and rerun them.
+
+### Measured: three rankers on Lucy's notes
+
+The experiment ranks the forty notes for sixteen questions, each with one labeled relevant note. Twelve questions reuse words from their note. Four are paraphrases.
+
+```bash
+uv run python book/textbook/experiments/profrod_sovereign_agent_textbook_ch05_retrieval_v1.py \
+    --out ch05-retrieval-receipt.json --live
+```
+
+**Listing:** Recall@3 and MRR for three rankers.
+
+```python
+for row in measured["rankers"]:
+    print(
+        f"{row['ranker']:13} recall@3 {row['recall_at_3']:.3f}  MRR {row['mrr']:.3f}"
+        f"  direct {row['recall_at_3_direct']:.2f}  paraphrases {row['recall_at_3_paraphrase']:.2f}"
+    )
+```
+
+```text
+bm25          recall@3 0.875  MRR 0.791  direct 1.00  paraphrases 0.50
+word_overlap  recall@3 0.812  MRR 0.804  direct 1.00  paraphrases 0.25
+most_recent   recall@3 0.062  MRR 0.072  direct 0.00  paraphrases 0.25
+```
+
+```mermaid
+xychart-beta
+    title "Recall@3 on Lucy's notes"
+    x-axis ["BM25", "Word overlap", "Most recent"]
+    y-axis "Share of relevant notes in the top three" 0 --> 1
+    bar [1.0, 1.0, 0.0]
+    line [0.5, 0.25, 0.25]
+```
+
+**Figure:** Bars are the twelve direct questions; the line is the four paraphrases. Lexical rankers are perfect when the words match and weak when they do not.
+
+On direct questions both lexical rankers are perfect. On paraphrases, BM25 finds two of four, and word overlap finds one. "The most recent notes" is the policy many chatbots use by default, and it almost never finds the relevant note. Recency is a good ranking for a conversation's last few turns, and a poor one for a long memory.
+
+### Measured: does position in a long context matter?
+
+Language models are known to use information unevenly across a long context. The concern is that a fact buried in the middle is found less reliably than one at the start or end. The experiment tested this directly. It planted a four-digit code at five depths of filler notes, at about 1,000 and 4,000 tokens, with eight trials each, for `qwen2.5:0.5b` and `qwen2.5:1.5b`.
+
+**Listing:** Recall of the planted code by position.
+
+```python
+for row in measured["position"]:
+    print(
+        f"{row['model']:13} {row['prompt_tokens']:5} tokens, depth {row['depth']:.2f}: {row['recalled']}"
+    )
+```
+
+```text
+qwen2.5:0.5b   1042 tokens, depth 0.00: 8/8
+qwen2.5:0.5b   1030 tokens, depth 0.25: 8/8
+qwen2.5:0.5b   1040 tokens, depth 0.50: 8/8
+qwen2.5:0.5b   1036 tokens, depth 0.75: 8/8
+qwen2.5:0.5b   1030 tokens, depth 1.00: 8/8
+qwen2.5:0.5b   4114 tokens, depth 0.00: 8/8
+qwen2.5:0.5b   4114 tokens, depth 0.25: 8/8
+qwen2.5:0.5b   4129 tokens, depth 0.50: 8/8
+qwen2.5:0.5b   4116 tokens, depth 0.75: 8/8
+qwen2.5:0.5b   4114 tokens, depth 1.00: 8/8
+qwen2.5:1.5b   1042 tokens, depth 0.00: 8/8
+qwen2.5:1.5b   1030 tokens, depth 0.25: 8/8
+qwen2.5:1.5b   1040 tokens, depth 0.50: 8/8
+qwen2.5:1.5b   1036 tokens, depth 0.75: 8/8
+qwen2.5:1.5b   1030 tokens, depth 1.00: 8/8
+qwen2.5:1.5b   4114 tokens, depth 0.00: 8/8
+qwen2.5:1.5b   4114 tokens, depth 0.25: 8/8
+qwen2.5:1.5b   4129 tokens, depth 0.50: 8/8
+qwen2.5:1.5b   4116 tokens, depth 0.75: 8/8
+qwen2.5:1.5b   4114 tokens, depth 1.00: 8/8
+```
+
+Both models recalled the code in all 160 trials. **At these lengths, for a single unique fact, position did not matter.** This is a null result, and it is worth stating precisely. The task was easy: the code was the only four-digit number introduced as a "back-door code". Harder retrieval inside the context is where position effects are reported: several similar facts, a fact that must be combined with another, or contexts many times longer. This experiment does not rule them out. It shows that for this model and this kind of lookup, a 4,000-token memory is safe to send whole.
+
+### Measured: retrieve, or send everything?
+
+The final measurement asks the question an agent builder faces. For each question, `qwen2.5:1.5b` answered once with all forty notes in context and once with only BM25's top three.
+
+**Listing:** Accuracy and cost of the two policies.
+
+```python
+for mode, row in measured["retrieval_against_everything"]["summary"].items():
+    print(
+        f"{mode:10} correct {row['correct']}  paraphrases {row['correct_on_paraphrases']}"
+        f"  relevant note sent {row['relevant_note_in_context']}"
+        f"  {row['mean_prompt_tokens']} prompt tokens, {row['mean_prefill_seconds']} s prefill"
+    )
+```
+
+```text
+everything correct 14/16  paraphrases 3/4  relevant note sent 16/16  592 prompt tokens, 0.034 s prefill
+bm25_top3  correct 14/16  paraphrases 3/4  relevant note sent 14/16  82 prompt tokens, 0.022 s prefill
+```
+
+```mermaid
+xychart-beta
+    title "Prompt tokens per question, qwen2.5:1.5b"
+    x-axis ["All forty notes", "BM25 top three"]
+    y-axis "Prompt tokens" 0 --> 650
+    bar [592, 82]
+```
+
+**Figure:** Retrieval sent a seventh of the tokens for the same fourteen correct answers. At this size the saving is milliseconds; at a hundred times the memory it is the difference between fitting and not.
+
+The two policies tied on accuracy, and each got the same two questions wrong. Retrieval cut the prompt by a factor of seven. At 592 tokens that saved about 12 milliseconds of prefill, which is nothing. Three observations generalize:
+
+- **The model can fail with the evidence in front of it.** Asked when deliveries should arrive, with every note in context it invented a weekly delivery schedule, and with the top three it described the back door instead. The "afternoon" note was in its context both times. Retrieval cannot fix a model that does not use what it is given.
+- **Retrieval failures can hide behind correct answers.** BM25 did not send the freezer note for "How cold is the freezer kept?" The model still answered "approximately -18°C", from general knowledge of freezers rather than from Lucy's records. It scored as correct, and it would have been wrong for a shop that keeps its freezer colder. Measure whether the relevant record was sent, not only whether the answer looks right.
+- **Grade the grader.** The first scoring of this experiment matched answers by substring. It marked "8 AM" wrong against the expected "eight", and "Tuesdays" wrong against "Tuesday". Every answer was then read by hand, and the grader was rewritten to match whole words and accept numerals. The retained answers were scored again without calling the model. [Chapter 15](../ch15/profrod-sovereign-agent-ch15-agent-evaluation-chapter.md) treats grader validity in depth.
+
+The design rule follows. **When the memory fits comfortably in the context, send it all; retrieve when it does not, and then measure recall.** Lucy's forty notes cost 592 tokens. At 40,000 notes, sending everything would be impossible, and the recall of the retriever would decide what the agent can know. The rest of this chapter builds the memory itself: what to store, how to correct it and how to forget it.
+
+## Part B: remember across conversations
+
+Part A measured how to choose what the model sees. This part builds the durable memory those choices draw from.
 
 ## Decide what kind of memory each fact needs
 
@@ -533,6 +793,10 @@ assert outcome == 0
 ```
 
 ```text
+ok   BM25 equals idf for a single occurrence, and saturates below idf (k1 + 1)
+ok   precision@k, recall@k and reciprocal rank by their definitions
+ok   cosine ignores length; the packer keeps the budget and skips what does not fit
+ok   the receipt's BM25 recall@3 and MRR recompute exactly: 0.875
 After reopening: Ask for morning delivery
 After correction: Ask for afternoon delivery
 Forgotten value in future context: False
@@ -572,15 +836,29 @@ Capture a revision, forget the preference through another connection, and record
 
 Run a live brief with a format preference and retain the actual first request. If the output ignores the preference, distinguish selection failure from model behavior. Propose one evaluation case that would detect a regression after changing the context policy.
 
+### Exercise 5: tune BM25
+
+Rerun the rankers with $b = 0$ and with $b = 1$, and with $k_1 = 0.5$ and $k_1 = 3$. Predict first which questions change rank, from the lengths of their notes. Then explain which setting you would keep for Lucy's short notes, and why a corpus of long documents might choose differently.
+
+### Exercise 6: add an embedding model
+
+Start a local server with embeddings enabled, or use any embedding API, and add a ranker that orders notes by cosine similarity to the question. Measure recall@3 on the direct questions and on the paraphrases. Then combine the two rankers, for example by adding their normalized scores, and report whether the combination beats both.
+
 ## Active recall
+
+Without rereading, derive BM25's saturation term, and explain why recall@k matters more to an agent than precision@k. Why can a correct answer hide a retrieval failure? Then:
 
 Why does a preference need a source in addition to a value? Which write pair must commit together during correction? What does a retrieval score of zero mean in this implementation? Why is deleting a row insufficient when old results are also retrieved? At which point must a turn capture its context revision? Which records remain after forgetting, and what would be false about calling the operation secure erasure?
 
 ## Vocabulary
 
+**Retrieval** ranks stored records against a request. **Recall@k** is the share of relevant records in the top k. **Mean reciprocal rank** averages one over the rank of the first relevant record. **BM25** is a lexical ranking function built from inverse document frequency, saturation and length normalization. An **embedding** maps text to a vector so that similar meanings lie close; **cosine similarity** compares two such vectors by angle.
+
 A **preference revision** is a retained version of a named operator preference. **Provenance** identifies the source from which a selected record came. **Context selection** chooses what to include in a particular model request. A **context revision** controls which past results may enter future automatic history after forgetting. An **excerpt** is a bounded portion of a source record; it is not a verified replacement for the full record. **Operational evidence** records what the system observed or did and has a retention scope distinct from conversational guidance.
 
 ## Summary
+
+A model sees only its context, and every token costs time, memory and money. Retrieval chooses what to send by ranking records, and recall@k measures whether the right record arrives. BM25 ranks by rare shared words and cannot find a paraphrase; embeddings can, and trade away exactness. On Lucy's forty notes, sending everything and retrieving the top three tied, and the failures that mattered came from the model and the grader. Send the whole memory while it fits, and measure recall once it does not.
 
 You built a memory path whose behavior can be inspected across process boundaries. Preferences have explicit sources, correction commits atomically, retrieval respects sessions, and complete selected items fit a declared budget. The returning-preference experiment showed why the whole path into a future model request must be checked. Context revisions now exclude old summaries after forgetting without pretending to erase operational records or remote copies.
 

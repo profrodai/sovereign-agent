@@ -1,0 +1,1937 @@
+{
+  "schema": 1,
+  "experiment": "ch05-retrieval-v1",
+  "recorded": "2026-09-26",
+  "python": "3.14.3",
+  "platform": "Darwin 25.6.0 (arm64)",
+  "notes": 40,
+  "questions": 16,
+  "rankers": [
+    {
+      "ranker": "bm25",
+      "recall_at_3": 0.875,
+      "mrr": 0.791,
+      "recall_at_3_direct": 1.0,
+      "recall_at_3_paraphrase": 0.5
+    },
+    {
+      "ranker": "word_overlap",
+      "recall_at_3": 0.812,
+      "mrr": 0.804,
+      "recall_at_3_direct": 1.0,
+      "recall_at_3_paraphrase": 0.25
+    },
+    {
+      "ranker": "most_recent",
+      "recall_at_3": 0.062,
+      "mrr": 0.072,
+      "recall_at_3_direct": 0.0,
+      "recall_at_3_paraphrase": 0.25
+    }
+  ],
+  "position": [
+    {
+      "model": "qwen2.5:0.5b",
+      "prompt_tokens": 1042,
+      "depth": 0.0,
+      "recalled": "8/8"
+    },
+    {
+      "model": "qwen2.5:0.5b",
+      "prompt_tokens": 1030,
+      "depth": 0.25,
+      "recalled": "8/8"
+    },
+    {
+      "model": "qwen2.5:0.5b",
+      "prompt_tokens": 1040,
+      "depth": 0.5,
+      "recalled": "8/8"
+    },
+    {
+      "model": "qwen2.5:0.5b",
+      "prompt_tokens": 1036,
+      "depth": 0.75,
+      "recalled": "8/8"
+    },
+    {
+      "model": "qwen2.5:0.5b",
+      "prompt_tokens": 1030,
+      "depth": 1.0,
+      "recalled": "8/8"
+    },
+    {
+      "model": "qwen2.5:0.5b",
+      "prompt_tokens": 4114,
+      "depth": 0.0,
+      "recalled": "8/8"
+    },
+    {
+      "model": "qwen2.5:0.5b",
+      "prompt_tokens": 4114,
+      "depth": 0.25,
+      "recalled": "8/8"
+    },
+    {
+      "model": "qwen2.5:0.5b",
+      "prompt_tokens": 4129,
+      "depth": 0.5,
+      "recalled": "8/8"
+    },
+    {
+      "model": "qwen2.5:0.5b",
+      "prompt_tokens": 4116,
+      "depth": 0.75,
+      "recalled": "8/8"
+    },
+    {
+      "model": "qwen2.5:0.5b",
+      "prompt_tokens": 4114,
+      "depth": 1.0,
+      "recalled": "8/8"
+    },
+    {
+      "model": "qwen2.5:1.5b",
+      "prompt_tokens": 1042,
+      "depth": 0.0,
+      "recalled": "8/8"
+    },
+    {
+      "model": "qwen2.5:1.5b",
+      "prompt_tokens": 1030,
+      "depth": 0.25,
+      "recalled": "8/8"
+    },
+    {
+      "model": "qwen2.5:1.5b",
+      "prompt_tokens": 1040,
+      "depth": 0.5,
+      "recalled": "8/8"
+    },
+    {
+      "model": "qwen2.5:1.5b",
+      "prompt_tokens": 1036,
+      "depth": 0.75,
+      "recalled": "8/8"
+    },
+    {
+      "model": "qwen2.5:1.5b",
+      "prompt_tokens": 1030,
+      "depth": 1.0,
+      "recalled": "8/8"
+    },
+    {
+      "model": "qwen2.5:1.5b",
+      "prompt_tokens": 4114,
+      "depth": 0.0,
+      "recalled": "8/8"
+    },
+    {
+      "model": "qwen2.5:1.5b",
+      "prompt_tokens": 4114,
+      "depth": 0.25,
+      "recalled": "8/8"
+    },
+    {
+      "model": "qwen2.5:1.5b",
+      "prompt_tokens": 4129,
+      "depth": 0.5,
+      "recalled": "8/8"
+    },
+    {
+      "model": "qwen2.5:1.5b",
+      "prompt_tokens": 4116,
+      "depth": 0.75,
+      "recalled": "8/8"
+    },
+    {
+      "model": "qwen2.5:1.5b",
+      "prompt_tokens": 4114,
+      "depth": 1.0,
+      "recalled": "8/8"
+    }
+  ],
+  "retrieval_against_everything": {
+    "model": "qwen2.5:1.5b",
+    "summary": {
+      "everything": {
+        "correct": "14/16",
+        "correct_on_paraphrases": "3/4",
+        "relevant_note_in_context": "16/16",
+        "mean_prompt_tokens": 592,
+        "mean_prefill_seconds": 0.034
+      },
+      "bm25_top3": {
+        "correct": "14/16",
+        "correct_on_paraphrases": "3/4",
+        "relevant_note_in_context": "14/16",
+        "mean_prompt_tokens": 82,
+        "mean_prefill_seconds": 0.022
+      }
+    }
+  },
+  "runs": [
+    {
+      "kind": "position",
+      "model": "qwen2.5:0.5b",
+      "sentences": 80,
+      "depth": 0.0,
+      "code": "4201",
+      "answer": "4201",
+      "prompt_tokens": 1054
+    },
+    {
+      "kind": "position",
+      "model": "qwen2.5:0.5b",
+      "sentences": 80,
+      "depth": 0.0,
+      "code": "7932",
+      "answer": "7932",
+      "prompt_tokens": 1051
+    },
+    {
+      "kind": "position",
+      "model": "qwen2.5:0.5b",
+      "sentences": 80,
+      "depth": 0.0,
+      "code": "4176",
+      "answer": "4176",
+      "prompt_tokens": 1031
+    },
+    {
+      "kind": "position",
+      "model": "qwen2.5:0.5b",
+      "sentences": 80,
+      "depth": 0.0,
+      "code": "3141",
+      "answer": "3141",
+      "prompt_tokens": 1054
+    },
+    {
+      "kind": "position",
+      "model": "qwen2.5:0.5b",
+      "sentences": 80,
+      "depth": 0.0,
+      "code": "2654",
+      "answer": "2654",
+      "prompt_tokens": 1013
+    },
+    {
+      "kind": "position",
+      "model": "qwen2.5:0.5b",
+      "sentences": 80,
+      "depth": 0.0,
+      "code": "5329",
+      "answer": "5329",
+      "prompt_tokens": 1023
+    },
+    {
+      "kind": "position",
+      "model": "qwen2.5:0.5b",
+      "sentences": 80,
+      "depth": 0.0,
+      "code": "1931",
+      "answer": "1931",
+      "prompt_tokens": 1057
+    },
+    {
+      "kind": "position",
+      "model": "qwen2.5:0.5b",
+      "sentences": 80,
+      "depth": 0.0,
+      "code": "2254",
+      "answer": "2254",
+      "prompt_tokens": 1033
+    },
+    {
+      "kind": "position",
+      "model": "qwen2.5:0.5b",
+      "sentences": 80,
+      "depth": 0.25,
+      "code": "3381",
+      "answer": "3381",
+      "prompt_tokens": 1033
+    },
+    {
+      "kind": "position",
+      "model": "qwen2.5:0.5b",
+      "sentences": 80,
+      "depth": 0.25,
+      "code": "9629",
+      "answer": "9629",
+      "prompt_tokens": 1033
+    },
+    {
+      "kind": "position",
+      "model": "qwen2.5:0.5b",
+      "sentences": 80,
+      "depth": 0.25,
+      "code": "9094",
+      "answer": "9094",
+      "prompt_tokens": 1012
+    },
+    {
+      "kind": "position",
+      "model": "qwen2.5:0.5b",
+      "sentences": 80,
+      "depth": 0.25,
+      "code": "8362",
+      "answer": "8362",
+      "prompt_tokens": 1042
+    },
+    {
+      "kind": "position",
+      "model": "qwen2.5:0.5b",
+      "sentences": 80,
+      "depth": 0.25,
+      "code": "9899",
+      "answer": "9899",
+      "prompt_tokens": 1009
+    },
+    {
+      "kind": "position",
+      "model": "qwen2.5:0.5b",
+      "sentences": 80,
+      "depth": 0.25,
+      "code": "1605",
+      "answer": "1605",
+      "prompt_tokens": 1028
+    },
+    {
+      "kind": "position",
+      "model": "qwen2.5:0.5b",
+      "sentences": 80,
+      "depth": 0.25,
+      "code": "1625",
+      "answer": "1625",
+      "prompt_tokens": 998
+    },
+    {
+      "kind": "position",
+      "model": "qwen2.5:0.5b",
+      "sentences": 80,
+      "depth": 0.25,
+      "code": "2027",
+      "answer": "2027",
+      "prompt_tokens": 1035
+    },
+    {
+      "kind": "position",
+      "model": "qwen2.5:0.5b",
+      "sentences": 80,
+      "depth": 0.5,
+      "code": "4129",
+      "answer": "4129",
+      "prompt_tokens": 1045
+    },
+    {
+      "kind": "position",
+      "model": "qwen2.5:0.5b",
+      "sentences": 80,
+      "depth": 0.5,
+      "code": "5427",
+      "answer": "5427",
+      "prompt_tokens": 1023
+    },
+    {
+      "kind": "position",
+      "model": "qwen2.5:0.5b",
+      "sentences": 80,
+      "depth": 0.5,
+      "code": "7885",
+      "answer": "7885",
+      "prompt_tokens": 1049
+    },
+    {
+      "kind": "position",
+      "model": "qwen2.5:0.5b",
+      "sentences": 80,
+      "depth": 0.5,
+      "code": "6705",
+      "answer": "6705",
+      "prompt_tokens": 1036
+    },
+    {
+      "kind": "position",
+      "model": "qwen2.5:0.5b",
+      "sentences": 80,
+      "depth": 0.5,
+      "code": "7063",
+      "answer": "7063",
+      "prompt_tokens": 1047
+    },
+    {
+      "kind": "position",
+      "model": "qwen2.5:0.5b",
+      "sentences": 80,
+      "depth": 0.5,
+      "code": "7825",
+      "answer": "7825",
+      "prompt_tokens": 1035
+    },
+    {
+      "kind": "position",
+      "model": "qwen2.5:0.5b",
+      "sentences": 80,
+      "depth": 0.5,
+      "code": "9056",
+      "answer": "9056",
+      "prompt_tokens": 1025
+    },
+    {
+      "kind": "position",
+      "model": "qwen2.5:0.5b",
+      "sentences": 80,
+      "depth": 0.5,
+      "code": "7479",
+      "answer": "7479",
+      "prompt_tokens": 1070
+    },
+    {
+      "kind": "position",
+      "model": "qwen2.5:0.5b",
+      "sentences": 80,
+      "depth": 0.75,
+      "code": "2881",
+      "answer": "2881",
+      "prompt_tokens": 1047
+    },
+    {
+      "kind": "position",
+      "model": "qwen2.5:0.5b",
+      "sentences": 80,
+      "depth": 0.75,
+      "code": "9089",
+      "answer": "9089",
+      "prompt_tokens": 1021
+    },
+    {
+      "kind": "position",
+      "model": "qwen2.5:0.5b",
+      "sentences": 80,
+      "depth": 0.75,
+      "code": "9386",
+      "answer": "9386",
+      "prompt_tokens": 1052
+    },
+    {
+      "kind": "position",
+      "model": "qwen2.5:0.5b",
+      "sentences": 80,
+      "depth": 0.75,
+      "code": "6959",
+      "answer": "6959",
+      "prompt_tokens": 1035
+    },
+    {
+      "kind": "position",
+      "model": "qwen2.5:0.5b",
+      "sentences": 80,
+      "depth": 0.75,
+      "code": "1547",
+      "answer": "1547",
+      "prompt_tokens": 1038
+    },
+    {
+      "kind": "position",
+      "model": "qwen2.5:0.5b",
+      "sentences": 80,
+      "depth": 0.75,
+      "code": "7607",
+      "answer": "7607",
+      "prompt_tokens": 1041
+    },
+    {
+      "kind": "position",
+      "model": "qwen2.5:0.5b",
+      "sentences": 80,
+      "depth": 0.75,
+      "code": "7862",
+      "answer": "7862",
+      "prompt_tokens": 1031
+    },
+    {
+      "kind": "position",
+      "model": "qwen2.5:0.5b",
+      "sentences": 80,
+      "depth": 0.75,
+      "code": "6102",
+      "answer": "6102",
+      "prompt_tokens": 993
+    },
+    {
+      "kind": "position",
+      "model": "qwen2.5:0.5b",
+      "sentences": 80,
+      "depth": 1.0,
+      "code": "7907",
+      "answer": "7907",
+      "prompt_tokens": 1020
+    },
+    {
+      "kind": "position",
+      "model": "qwen2.5:0.5b",
+      "sentences": 80,
+      "depth": 1.0,
+      "code": "8765",
+      "answer": "8765",
+      "prompt_tokens": 1052
+    },
+    {
+      "kind": "position",
+      "model": "qwen2.5:0.5b",
+      "sentences": 80,
+      "depth": 1.0,
+      "code": "4184",
+      "answer": "4184",
+      "prompt_tokens": 1022
+    },
+    {
+      "kind": "position",
+      "model": "qwen2.5:0.5b",
+      "sentences": 80,
+      "depth": 1.0,
+      "code": "1768",
+      "answer": "1768",
+      "prompt_tokens": 1020
+    },
+    {
+      "kind": "position",
+      "model": "qwen2.5:0.5b",
+      "sentences": 80,
+      "depth": 1.0,
+      "code": "9018",
+      "answer": "9018",
+      "prompt_tokens": 1052
+    },
+    {
+      "kind": "position",
+      "model": "qwen2.5:0.5b",
+      "sentences": 80,
+      "depth": 1.0,
+      "code": "1788",
+      "answer": "1788",
+      "prompt_tokens": 1041
+    },
+    {
+      "kind": "position",
+      "model": "qwen2.5:0.5b",
+      "sentences": 80,
+      "depth": 1.0,
+      "code": "1366",
+      "answer": "1366",
+      "prompt_tokens": 1037
+    },
+    {
+      "kind": "position",
+      "model": "qwen2.5:0.5b",
+      "sentences": 80,
+      "depth": 1.0,
+      "code": "8950",
+      "answer": "8950",
+      "prompt_tokens": 1020
+    },
+    {
+      "kind": "position",
+      "model": "qwen2.5:0.5b",
+      "sentences": 330,
+      "depth": 0.0,
+      "code": "4217",
+      "answer": "4217",
+      "prompt_tokens": 4094
+    },
+    {
+      "kind": "position",
+      "model": "qwen2.5:0.5b",
+      "sentences": 330,
+      "depth": 0.0,
+      "code": "1887",
+      "answer": "1887",
+      "prompt_tokens": 4112
+    },
+    {
+      "kind": "position",
+      "model": "qwen2.5:0.5b",
+      "sentences": 330,
+      "depth": 0.0,
+      "code": "5731",
+      "answer": "5731",
+      "prompt_tokens": 4116
+    },
+    {
+      "kind": "position",
+      "model": "qwen2.5:0.5b",
+      "sentences": 330,
+      "depth": 0.0,
+      "code": "2842",
+      "answer": "2842",
+      "prompt_tokens": 4146
+    },
+    {
+      "kind": "position",
+      "model": "qwen2.5:0.5b",
+      "sentences": 330,
+      "depth": 0.0,
+      "code": "6954",
+      "answer": "6954",
+      "prompt_tokens": 4101
+    },
+    {
+      "kind": "position",
+      "model": "qwen2.5:0.5b",
+      "sentences": 330,
+      "depth": 0.0,
+      "code": "1457",
+      "answer": "1457",
+      "prompt_tokens": 4133
+    },
+    {
+      "kind": "position",
+      "model": "qwen2.5:0.5b",
+      "sentences": 330,
+      "depth": 0.0,
+      "code": "8889",
+      "answer": "8889",
+      "prompt_tokens": 4104
+    },
+    {
+      "kind": "position",
+      "model": "qwen2.5:0.5b",
+      "sentences": 330,
+      "depth": 0.0,
+      "code": "1517",
+      "answer": "1517",
+      "prompt_tokens": 4118
+    },
+    {
+      "kind": "position",
+      "model": "qwen2.5:0.5b",
+      "sentences": 330,
+      "depth": 0.25,
+      "code": "6139",
+      "answer": "6139",
+      "prompt_tokens": 4110
+    },
+    {
+      "kind": "position",
+      "model": "qwen2.5:0.5b",
+      "sentences": 330,
+      "depth": 0.25,
+      "code": "2356",
+      "answer": "2356",
+      "prompt_tokens": 4134
+    },
+    {
+      "kind": "position",
+      "model": "qwen2.5:0.5b",
+      "sentences": 330,
+      "depth": 0.25,
+      "code": "3553",
+      "answer": "3553",
+      "prompt_tokens": 4106
+    },
+    {
+      "kind": "position",
+      "model": "qwen2.5:0.5b",
+      "sentences": 330,
+      "depth": 0.25,
+      "code": "7880",
+      "answer": "7880",
+      "prompt_tokens": 4135
+    },
+    {
+      "kind": "position",
+      "model": "qwen2.5:0.5b",
+      "sentences": 330,
+      "depth": 0.25,
+      "code": "8117",
+      "answer": "8117",
+      "prompt_tokens": 4108
+    },
+    {
+      "kind": "position",
+      "model": "qwen2.5:0.5b",
+      "sentences": 330,
+      "depth": 0.25,
+      "code": "1880",
+      "answer": "1880",
+      "prompt_tokens": 4117
+    },
+    {
+      "kind": "position",
+      "model": "qwen2.5:0.5b",
+      "sentences": 330,
+      "depth": 0.25,
+      "code": "1044",
+      "answer": "1044",
+      "prompt_tokens": 4082
+    },
+    {
+      "kind": "position",
+      "model": "qwen2.5:0.5b",
+      "sentences": 330,
+      "depth": 0.25,
+      "code": "9499",
+      "answer": "9499",
+      "prompt_tokens": 4170
+    },
+    {
+      "kind": "position",
+      "model": "qwen2.5:0.5b",
+      "sentences": 330,
+      "depth": 0.5,
+      "code": "1634",
+      "answer": "1634",
+      "prompt_tokens": 4103
+    },
+    {
+      "kind": "position",
+      "model": "qwen2.5:0.5b",
+      "sentences": 330,
+      "depth": 0.5,
+      "code": "9696",
+      "answer": "9696",
+      "prompt_tokens": 4133
+    },
+    {
+      "kind": "position",
+      "model": "qwen2.5:0.5b",
+      "sentences": 330,
+      "depth": 0.5,
+      "code": "4515",
+      "answer": "4515",
+      "prompt_tokens": 4130
+    },
+    {
+      "kind": "position",
+      "model": "qwen2.5:0.5b",
+      "sentences": 330,
+      "depth": 0.5,
+      "code": "5314",
+      "answer": "5314",
+      "prompt_tokens": 4097
+    },
+    {
+      "kind": "position",
+      "model": "qwen2.5:0.5b",
+      "sentences": 330,
+      "depth": 0.5,
+      "code": "5198",
+      "answer": "5198",
+      "prompt_tokens": 4081
+    },
+    {
+      "kind": "position",
+      "model": "qwen2.5:0.5b",
+      "sentences": 330,
+      "depth": 0.5,
+      "code": "6324",
+      "answer": "6324",
+      "prompt_tokens": 4148
+    },
+    {
+      "kind": "position",
+      "model": "qwen2.5:0.5b",
+      "sentences": 330,
+      "depth": 0.5,
+      "code": "7229",
+      "answer": "7229",
+      "prompt_tokens": 4152
+    },
+    {
+      "kind": "position",
+      "model": "qwen2.5:0.5b",
+      "sentences": 330,
+      "depth": 0.5,
+      "code": "7466",
+      "answer": "7466",
+      "prompt_tokens": 4128
+    },
+    {
+      "kind": "position",
+      "model": "qwen2.5:0.5b",
+      "sentences": 330,
+      "depth": 0.75,
+      "code": "1519",
+      "answer": "1519",
+      "prompt_tokens": 4150
+    },
+    {
+      "kind": "position",
+      "model": "qwen2.5:0.5b",
+      "sentences": 330,
+      "depth": 0.75,
+      "code": "4595",
+      "answer": "4595",
+      "prompt_tokens": 4081
+    },
+    {
+      "kind": "position",
+      "model": "qwen2.5:0.5b",
+      "sentences": 330,
+      "depth": 0.75,
+      "code": "1265",
+      "answer": "1265",
+      "prompt_tokens": 4069
+    },
+    {
+      "kind": "position",
+      "model": "qwen2.5:0.5b",
+      "sentences": 330,
+      "depth": 0.75,
+      "code": "6284",
+      "answer": "6284",
+      "prompt_tokens": 4171
+    },
+    {
+      "kind": "position",
+      "model": "qwen2.5:0.5b",
+      "sentences": 330,
+      "depth": 0.75,
+      "code": "4581",
+      "answer": "4581",
+      "prompt_tokens": 4112
+    },
+    {
+      "kind": "position",
+      "model": "qwen2.5:0.5b",
+      "sentences": 330,
+      "depth": 0.75,
+      "code": "7744",
+      "answer": "7744",
+      "prompt_tokens": 4177
+    },
+    {
+      "kind": "position",
+      "model": "qwen2.5:0.5b",
+      "sentences": 330,
+      "depth": 0.75,
+      "code": "6311",
+      "answer": "6311",
+      "prompt_tokens": 4048
+    },
+    {
+      "kind": "position",
+      "model": "qwen2.5:0.5b",
+      "sentences": 330,
+      "depth": 0.75,
+      "code": "4535",
+      "answer": "4535",
+      "prompt_tokens": 4121
+    },
+    {
+      "kind": "position",
+      "model": "qwen2.5:0.5b",
+      "sentences": 330,
+      "depth": 1.0,
+      "code": "2514",
+      "answer": "2514",
+      "prompt_tokens": 4146
+    },
+    {
+      "kind": "position",
+      "model": "qwen2.5:0.5b",
+      "sentences": 330,
+      "depth": 1.0,
+      "code": "1498",
+      "answer": "1498",
+      "prompt_tokens": 4159
+    },
+    {
+      "kind": "position",
+      "model": "qwen2.5:0.5b",
+      "sentences": 330,
+      "depth": 1.0,
+      "code": "4715",
+      "answer": "4715",
+      "prompt_tokens": 4111
+    },
+    {
+      "kind": "position",
+      "model": "qwen2.5:0.5b",
+      "sentences": 330,
+      "depth": 1.0,
+      "code": "2942",
+      "answer": "2942",
+      "prompt_tokens": 4083
+    },
+    {
+      "kind": "position",
+      "model": "qwen2.5:0.5b",
+      "sentences": 330,
+      "depth": 1.0,
+      "code": "8308",
+      "answer": "8308",
+      "prompt_tokens": 4117
+    },
+    {
+      "kind": "position",
+      "model": "qwen2.5:0.5b",
+      "sentences": 330,
+      "depth": 1.0,
+      "code": "7700",
+      "answer": "7700",
+      "prompt_tokens": 4039
+    },
+    {
+      "kind": "position",
+      "model": "qwen2.5:0.5b",
+      "sentences": 330,
+      "depth": 1.0,
+      "code": "2608",
+      "answer": "2608",
+      "prompt_tokens": 4146
+    },
+    {
+      "kind": "position",
+      "model": "qwen2.5:0.5b",
+      "sentences": 330,
+      "depth": 1.0,
+      "code": "6902",
+      "answer": "6902",
+      "prompt_tokens": 4081
+    },
+    {
+      "kind": "position",
+      "model": "qwen2.5:1.5b",
+      "sentences": 80,
+      "depth": 0.0,
+      "code": "4201",
+      "answer": "4201",
+      "prompt_tokens": 1054
+    },
+    {
+      "kind": "position",
+      "model": "qwen2.5:1.5b",
+      "sentences": 80,
+      "depth": 0.0,
+      "code": "7932",
+      "answer": "7932",
+      "prompt_tokens": 1051
+    },
+    {
+      "kind": "position",
+      "model": "qwen2.5:1.5b",
+      "sentences": 80,
+      "depth": 0.0,
+      "code": "4176",
+      "answer": "4176",
+      "prompt_tokens": 1031
+    },
+    {
+      "kind": "position",
+      "model": "qwen2.5:1.5b",
+      "sentences": 80,
+      "depth": 0.0,
+      "code": "3141",
+      "answer": "3141",
+      "prompt_tokens": 1054
+    },
+    {
+      "kind": "position",
+      "model": "qwen2.5:1.5b",
+      "sentences": 80,
+      "depth": 0.0,
+      "code": "2654",
+      "answer": "2654",
+      "prompt_tokens": 1013
+    },
+    {
+      "kind": "position",
+      "model": "qwen2.5:1.5b",
+      "sentences": 80,
+      "depth": 0.0,
+      "code": "5329",
+      "answer": "5329",
+      "prompt_tokens": 1023
+    },
+    {
+      "kind": "position",
+      "model": "qwen2.5:1.5b",
+      "sentences": 80,
+      "depth": 0.0,
+      "code": "1931",
+      "answer": "1931",
+      "prompt_tokens": 1057
+    },
+    {
+      "kind": "position",
+      "model": "qwen2.5:1.5b",
+      "sentences": 80,
+      "depth": 0.0,
+      "code": "2254",
+      "answer": "2254",
+      "prompt_tokens": 1033
+    },
+    {
+      "kind": "position",
+      "model": "qwen2.5:1.5b",
+      "sentences": 80,
+      "depth": 0.25,
+      "code": "3381",
+      "answer": "3381",
+      "prompt_tokens": 1033
+    },
+    {
+      "kind": "position",
+      "model": "qwen2.5:1.5b",
+      "sentences": 80,
+      "depth": 0.25,
+      "code": "9629",
+      "answer": "9629",
+      "prompt_tokens": 1033
+    },
+    {
+      "kind": "position",
+      "model": "qwen2.5:1.5b",
+      "sentences": 80,
+      "depth": 0.25,
+      "code": "9094",
+      "answer": "9094",
+      "prompt_tokens": 1012
+    },
+    {
+      "kind": "position",
+      "model": "qwen2.5:1.5b",
+      "sentences": 80,
+      "depth": 0.25,
+      "code": "8362",
+      "answer": "8362",
+      "prompt_tokens": 1042
+    },
+    {
+      "kind": "position",
+      "model": "qwen2.5:1.5b",
+      "sentences": 80,
+      "depth": 0.25,
+      "code": "9899",
+      "answer": "9899",
+      "prompt_tokens": 1009
+    },
+    {
+      "kind": "position",
+      "model": "qwen2.5:1.5b",
+      "sentences": 80,
+      "depth": 0.25,
+      "code": "1605",
+      "answer": "1605",
+      "prompt_tokens": 1028
+    },
+    {
+      "kind": "position",
+      "model": "qwen2.5:1.5b",
+      "sentences": 80,
+      "depth": 0.25,
+      "code": "1625",
+      "answer": "1625",
+      "prompt_tokens": 998
+    },
+    {
+      "kind": "position",
+      "model": "qwen2.5:1.5b",
+      "sentences": 80,
+      "depth": 0.25,
+      "code": "2027",
+      "answer": "2027",
+      "prompt_tokens": 1035
+    },
+    {
+      "kind": "position",
+      "model": "qwen2.5:1.5b",
+      "sentences": 80,
+      "depth": 0.5,
+      "code": "4129",
+      "answer": "4129",
+      "prompt_tokens": 1045
+    },
+    {
+      "kind": "position",
+      "model": "qwen2.5:1.5b",
+      "sentences": 80,
+      "depth": 0.5,
+      "code": "5427",
+      "answer": "5427",
+      "prompt_tokens": 1023
+    },
+    {
+      "kind": "position",
+      "model": "qwen2.5:1.5b",
+      "sentences": 80,
+      "depth": 0.5,
+      "code": "7885",
+      "answer": "7885",
+      "prompt_tokens": 1049
+    },
+    {
+      "kind": "position",
+      "model": "qwen2.5:1.5b",
+      "sentences": 80,
+      "depth": 0.5,
+      "code": "6705",
+      "answer": "6705",
+      "prompt_tokens": 1036
+    },
+    {
+      "kind": "position",
+      "model": "qwen2.5:1.5b",
+      "sentences": 80,
+      "depth": 0.5,
+      "code": "7063",
+      "answer": "7063",
+      "prompt_tokens": 1047
+    },
+    {
+      "kind": "position",
+      "model": "qwen2.5:1.5b",
+      "sentences": 80,
+      "depth": 0.5,
+      "code": "7825",
+      "answer": "7825",
+      "prompt_tokens": 1035
+    },
+    {
+      "kind": "position",
+      "model": "qwen2.5:1.5b",
+      "sentences": 80,
+      "depth": 0.5,
+      "code": "9056",
+      "answer": "9056",
+      "prompt_tokens": 1025
+    },
+    {
+      "kind": "position",
+      "model": "qwen2.5:1.5b",
+      "sentences": 80,
+      "depth": 0.5,
+      "code": "7479",
+      "answer": "7479",
+      "prompt_tokens": 1070
+    },
+    {
+      "kind": "position",
+      "model": "qwen2.5:1.5b",
+      "sentences": 80,
+      "depth": 0.75,
+      "code": "2881",
+      "answer": "2881",
+      "prompt_tokens": 1047
+    },
+    {
+      "kind": "position",
+      "model": "qwen2.5:1.5b",
+      "sentences": 80,
+      "depth": 0.75,
+      "code": "9089",
+      "answer": "9089",
+      "prompt_tokens": 1021
+    },
+    {
+      "kind": "position",
+      "model": "qwen2.5:1.5b",
+      "sentences": 80,
+      "depth": 0.75,
+      "code": "9386",
+      "answer": "9386",
+      "prompt_tokens": 1052
+    },
+    {
+      "kind": "position",
+      "model": "qwen2.5:1.5b",
+      "sentences": 80,
+      "depth": 0.75,
+      "code": "6959",
+      "answer": "6959",
+      "prompt_tokens": 1035
+    },
+    {
+      "kind": "position",
+      "model": "qwen2.5:1.5b",
+      "sentences": 80,
+      "depth": 0.75,
+      "code": "1547",
+      "answer": "1547",
+      "prompt_tokens": 1038
+    },
+    {
+      "kind": "position",
+      "model": "qwen2.5:1.5b",
+      "sentences": 80,
+      "depth": 0.75,
+      "code": "7607",
+      "answer": "7607",
+      "prompt_tokens": 1041
+    },
+    {
+      "kind": "position",
+      "model": "qwen2.5:1.5b",
+      "sentences": 80,
+      "depth": 0.75,
+      "code": "7862",
+      "answer": "7862",
+      "prompt_tokens": 1031
+    },
+    {
+      "kind": "position",
+      "model": "qwen2.5:1.5b",
+      "sentences": 80,
+      "depth": 0.75,
+      "code": "6102",
+      "answer": "6102",
+      "prompt_tokens": 993
+    },
+    {
+      "kind": "position",
+      "model": "qwen2.5:1.5b",
+      "sentences": 80,
+      "depth": 1.0,
+      "code": "7907",
+      "answer": "7907",
+      "prompt_tokens": 1020
+    },
+    {
+      "kind": "position",
+      "model": "qwen2.5:1.5b",
+      "sentences": 80,
+      "depth": 1.0,
+      "code": "8765",
+      "answer": "8765",
+      "prompt_tokens": 1052
+    },
+    {
+      "kind": "position",
+      "model": "qwen2.5:1.5b",
+      "sentences": 80,
+      "depth": 1.0,
+      "code": "4184",
+      "answer": "4184",
+      "prompt_tokens": 1022
+    },
+    {
+      "kind": "position",
+      "model": "qwen2.5:1.5b",
+      "sentences": 80,
+      "depth": 1.0,
+      "code": "1768",
+      "answer": "1768",
+      "prompt_tokens": 1020
+    },
+    {
+      "kind": "position",
+      "model": "qwen2.5:1.5b",
+      "sentences": 80,
+      "depth": 1.0,
+      "code": "9018",
+      "answer": "9018",
+      "prompt_tokens": 1052
+    },
+    {
+      "kind": "position",
+      "model": "qwen2.5:1.5b",
+      "sentences": 80,
+      "depth": 1.0,
+      "code": "1788",
+      "answer": "1788",
+      "prompt_tokens": 1041
+    },
+    {
+      "kind": "position",
+      "model": "qwen2.5:1.5b",
+      "sentences": 80,
+      "depth": 1.0,
+      "code": "1366",
+      "answer": "1366",
+      "prompt_tokens": 1037
+    },
+    {
+      "kind": "position",
+      "model": "qwen2.5:1.5b",
+      "sentences": 80,
+      "depth": 1.0,
+      "code": "8950",
+      "answer": "8950",
+      "prompt_tokens": 1020
+    },
+    {
+      "kind": "position",
+      "model": "qwen2.5:1.5b",
+      "sentences": 330,
+      "depth": 0.0,
+      "code": "4217",
+      "answer": "4217",
+      "prompt_tokens": 4094
+    },
+    {
+      "kind": "position",
+      "model": "qwen2.5:1.5b",
+      "sentences": 330,
+      "depth": 0.0,
+      "code": "1887",
+      "answer": "1887",
+      "prompt_tokens": 4112
+    },
+    {
+      "kind": "position",
+      "model": "qwen2.5:1.5b",
+      "sentences": 330,
+      "depth": 0.0,
+      "code": "5731",
+      "answer": "5731",
+      "prompt_tokens": 4116
+    },
+    {
+      "kind": "position",
+      "model": "qwen2.5:1.5b",
+      "sentences": 330,
+      "depth": 0.0,
+      "code": "2842",
+      "answer": "2842",
+      "prompt_tokens": 4146
+    },
+    {
+      "kind": "position",
+      "model": "qwen2.5:1.5b",
+      "sentences": 330,
+      "depth": 0.0,
+      "code": "6954",
+      "answer": "6954",
+      "prompt_tokens": 4101
+    },
+    {
+      "kind": "position",
+      "model": "qwen2.5:1.5b",
+      "sentences": 330,
+      "depth": 0.0,
+      "code": "1457",
+      "answer": "1457",
+      "prompt_tokens": 4133
+    },
+    {
+      "kind": "position",
+      "model": "qwen2.5:1.5b",
+      "sentences": 330,
+      "depth": 0.0,
+      "code": "8889",
+      "answer": "8889",
+      "prompt_tokens": 4104
+    },
+    {
+      "kind": "position",
+      "model": "qwen2.5:1.5b",
+      "sentences": 330,
+      "depth": 0.0,
+      "code": "1517",
+      "answer": "1517",
+      "prompt_tokens": 4118
+    },
+    {
+      "kind": "position",
+      "model": "qwen2.5:1.5b",
+      "sentences": 330,
+      "depth": 0.25,
+      "code": "6139",
+      "answer": "6139",
+      "prompt_tokens": 4110
+    },
+    {
+      "kind": "position",
+      "model": "qwen2.5:1.5b",
+      "sentences": 330,
+      "depth": 0.25,
+      "code": "2356",
+      "answer": "2356",
+      "prompt_tokens": 4134
+    },
+    {
+      "kind": "position",
+      "model": "qwen2.5:1.5b",
+      "sentences": 330,
+      "depth": 0.25,
+      "code": "3553",
+      "answer": "3553",
+      "prompt_tokens": 4106
+    },
+    {
+      "kind": "position",
+      "model": "qwen2.5:1.5b",
+      "sentences": 330,
+      "depth": 0.25,
+      "code": "7880",
+      "answer": "7880",
+      "prompt_tokens": 4135
+    },
+    {
+      "kind": "position",
+      "model": "qwen2.5:1.5b",
+      "sentences": 330,
+      "depth": 0.25,
+      "code": "8117",
+      "answer": "8117",
+      "prompt_tokens": 4108
+    },
+    {
+      "kind": "position",
+      "model": "qwen2.5:1.5b",
+      "sentences": 330,
+      "depth": 0.25,
+      "code": "1880",
+      "answer": "1880",
+      "prompt_tokens": 4117
+    },
+    {
+      "kind": "position",
+      "model": "qwen2.5:1.5b",
+      "sentences": 330,
+      "depth": 0.25,
+      "code": "1044",
+      "answer": "1044",
+      "prompt_tokens": 4082
+    },
+    {
+      "kind": "position",
+      "model": "qwen2.5:1.5b",
+      "sentences": 330,
+      "depth": 0.25,
+      "code": "9499",
+      "answer": "9499",
+      "prompt_tokens": 4170
+    },
+    {
+      "kind": "position",
+      "model": "qwen2.5:1.5b",
+      "sentences": 330,
+      "depth": 0.5,
+      "code": "1634",
+      "answer": "1634",
+      "prompt_tokens": 4103
+    },
+    {
+      "kind": "position",
+      "model": "qwen2.5:1.5b",
+      "sentences": 330,
+      "depth": 0.5,
+      "code": "9696",
+      "answer": "9696",
+      "prompt_tokens": 4133
+    },
+    {
+      "kind": "position",
+      "model": "qwen2.5:1.5b",
+      "sentences": 330,
+      "depth": 0.5,
+      "code": "4515",
+      "answer": "4515",
+      "prompt_tokens": 4130
+    },
+    {
+      "kind": "position",
+      "model": "qwen2.5:1.5b",
+      "sentences": 330,
+      "depth": 0.5,
+      "code": "5314",
+      "answer": "5314",
+      "prompt_tokens": 4097
+    },
+    {
+      "kind": "position",
+      "model": "qwen2.5:1.5b",
+      "sentences": 330,
+      "depth": 0.5,
+      "code": "5198",
+      "answer": "5198",
+      "prompt_tokens": 4081
+    },
+    {
+      "kind": "position",
+      "model": "qwen2.5:1.5b",
+      "sentences": 330,
+      "depth": 0.5,
+      "code": "6324",
+      "answer": "6324",
+      "prompt_tokens": 4148
+    },
+    {
+      "kind": "position",
+      "model": "qwen2.5:1.5b",
+      "sentences": 330,
+      "depth": 0.5,
+      "code": "7229",
+      "answer": "7229",
+      "prompt_tokens": 4152
+    },
+    {
+      "kind": "position",
+      "model": "qwen2.5:1.5b",
+      "sentences": 330,
+      "depth": 0.5,
+      "code": "7466",
+      "answer": "7466",
+      "prompt_tokens": 4128
+    },
+    {
+      "kind": "position",
+      "model": "qwen2.5:1.5b",
+      "sentences": 330,
+      "depth": 0.75,
+      "code": "1519",
+      "answer": "1519",
+      "prompt_tokens": 4150
+    },
+    {
+      "kind": "position",
+      "model": "qwen2.5:1.5b",
+      "sentences": 330,
+      "depth": 0.75,
+      "code": "4595",
+      "answer": "4595",
+      "prompt_tokens": 4081
+    },
+    {
+      "kind": "position",
+      "model": "qwen2.5:1.5b",
+      "sentences": 330,
+      "depth": 0.75,
+      "code": "1265",
+      "answer": "1265",
+      "prompt_tokens": 4069
+    },
+    {
+      "kind": "position",
+      "model": "qwen2.5:1.5b",
+      "sentences": 330,
+      "depth": 0.75,
+      "code": "6284",
+      "answer": "6284",
+      "prompt_tokens": 4171
+    },
+    {
+      "kind": "position",
+      "model": "qwen2.5:1.5b",
+      "sentences": 330,
+      "depth": 0.75,
+      "code": "4581",
+      "answer": "4581",
+      "prompt_tokens": 4112
+    },
+    {
+      "kind": "position",
+      "model": "qwen2.5:1.5b",
+      "sentences": 330,
+      "depth": 0.75,
+      "code": "7744",
+      "answer": "7744",
+      "prompt_tokens": 4177
+    },
+    {
+      "kind": "position",
+      "model": "qwen2.5:1.5b",
+      "sentences": 330,
+      "depth": 0.75,
+      "code": "6311",
+      "answer": "6311",
+      "prompt_tokens": 4048
+    },
+    {
+      "kind": "position",
+      "model": "qwen2.5:1.5b",
+      "sentences": 330,
+      "depth": 0.75,
+      "code": "4535",
+      "answer": "4535",
+      "prompt_tokens": 4121
+    },
+    {
+      "kind": "position",
+      "model": "qwen2.5:1.5b",
+      "sentences": 330,
+      "depth": 1.0,
+      "code": "2514",
+      "answer": "2514",
+      "prompt_tokens": 4146
+    },
+    {
+      "kind": "position",
+      "model": "qwen2.5:1.5b",
+      "sentences": 330,
+      "depth": 1.0,
+      "code": "1498",
+      "answer": "1498",
+      "prompt_tokens": 4159
+    },
+    {
+      "kind": "position",
+      "model": "qwen2.5:1.5b",
+      "sentences": 330,
+      "depth": 1.0,
+      "code": "4715",
+      "answer": "4715",
+      "prompt_tokens": 4111
+    },
+    {
+      "kind": "position",
+      "model": "qwen2.5:1.5b",
+      "sentences": 330,
+      "depth": 1.0,
+      "code": "2942",
+      "answer": "2942",
+      "prompt_tokens": 4083
+    },
+    {
+      "kind": "position",
+      "model": "qwen2.5:1.5b",
+      "sentences": 330,
+      "depth": 1.0,
+      "code": "8308",
+      "answer": "8308",
+      "prompt_tokens": 4117
+    },
+    {
+      "kind": "position",
+      "model": "qwen2.5:1.5b",
+      "sentences": 330,
+      "depth": 1.0,
+      "code": "7700",
+      "answer": "7700",
+      "prompt_tokens": 4039
+    },
+    {
+      "kind": "position",
+      "model": "qwen2.5:1.5b",
+      "sentences": 330,
+      "depth": 1.0,
+      "code": "2608",
+      "answer": "2608",
+      "prompt_tokens": 4146
+    },
+    {
+      "kind": "position",
+      "model": "qwen2.5:1.5b",
+      "sentences": 330,
+      "depth": 1.0,
+      "code": "6902",
+      "answer": "6902",
+      "prompt_tokens": 4081
+    },
+    {
+      "kind": "retrieval",
+      "answer": "Deliveries are scheduled for Mondays, Wednesdays, Fridays, and Saturdays.",
+      "question": 0,
+      "mode": "everything",
+      "correct": false,
+      "relevant_in_context": true,
+      "prompt_tokens": 588,
+      "prefill_seconds": 0.039348
+    },
+    {
+      "kind": "retrieval",
+      "answer": "Deliveries should be left at the back door after ringing it.",
+      "question": 0,
+      "mode": "bm25_top3",
+      "correct": false,
+      "relevant_in_context": true,
+      "prompt_tokens": 79,
+      "prefill_seconds": 0.011054
+    },
+    {
+      "kind": "retrieval",
+      "answer": "Priya is the sales contact at Hartwell Dairy.",
+      "question": 1,
+      "mode": "everything",
+      "correct": true,
+      "relevant_in_context": true,
+      "prompt_tokens": 593,
+      "prefill_seconds": 0.037778
+    },
+    {
+      "kind": "retrieval",
+      "answer": "Priya is the sales contact at Hartwell Dairy.",
+      "question": 1,
+      "mode": "bm25_top3",
+      "correct": true,
+      "relevant_in_context": true,
+      "prompt_tokens": 87,
+      "prefill_seconds": 0.045256
+    },
+    {
+      "kind": "retrieval",
+      "answer": "A tub of strawberry costs 275 cents.",
+      "question": 2,
+      "mode": "everything",
+      "correct": true,
+      "relevant_in_context": true,
+      "prompt_tokens": 592,
+      "prefill_seconds": 0.032874
+    },
+    {
+      "kind": "retrieval",
+      "answer": "A tub of strawberry costs 275 cents.",
+      "question": 2,
+      "mode": "bm25_top3",
+      "correct": true,
+      "relevant_in_context": true,
+      "prompt_tokens": 83,
+      "prefill_seconds": 0.009
+    },
+    {
+      "kind": "retrieval",
+      "answer": "The freezer holds at most forty tubs in total.",
+      "question": 3,
+      "mode": "everything",
+      "correct": true,
+      "relevant_in_context": true,
+      "prompt_tokens": 592,
+      "prefill_seconds": 0.032705
+    },
+    {
+      "kind": "retrieval",
+      "answer": "The freezer can hold up to forty tubs.",
+      "question": 3,
+      "mode": "bm25_top3",
+      "correct": true,
+      "relevant_in_context": true,
+      "prompt_tokens": 79,
+      "prefill_seconds": 0.043622
+    },
+    {
+      "kind": "retrieval",
+      "answer": "The shop opens at ten on Saturdays.",
+      "question": 4,
+      "mode": "everything",
+      "correct": true,
+      "relevant_in_context": true,
+      "prompt_tokens": 592,
+      "prefill_seconds": 0.032857
+    },
+    {
+      "kind": "retrieval",
+      "answer": "The shop opens at 10 AM on Saturdays.",
+      "question": 4,
+      "mode": "bm25_top3",
+      "correct": true,
+      "relevant_in_context": true,
+      "prompt_tokens": 70,
+      "prefill_seconds": 0.04315
+    },
+    {
+      "kind": "retrieval",
+      "answer": "The reorder point for chocolate is six tubs.",
+      "question": 5,
+      "mode": "everything",
+      "correct": true,
+      "relevant_in_context": true,
+      "prompt_tokens": 591,
+      "prefill_seconds": 0.032587
+    },
+    {
+      "kind": "retrieval",
+      "answer": "The reorder point for chocolate is six tubs.",
+      "question": 5,
+      "mode": "bm25_top3",
+      "correct": true,
+      "relevant_in_context": true,
+      "prompt_tokens": 72,
+      "prefill_seconds": 0.043113
+    },
+    {
+      "kind": "retrieval",
+      "answer": "Above 2000 cents, Lucy approves orders herself.",
+      "question": 6,
+      "mode": "everything",
+      "correct": true,
+      "relevant_in_context": true,
+      "prompt_tokens": 593,
+      "prefill_seconds": 0.033165
+    },
+    {
+      "kind": "retrieval",
+      "answer": "Above 2000 cents must be approved by Lucy.",
+      "question": 6,
+      "mode": "bm25_top3",
+      "correct": true,
+      "relevant_in_context": true,
+      "prompt_tokens": 80,
+      "prefill_seconds": 0.009607
+    },
+    {
+      "kind": "retrieval",
+      "answer": "Meadow Farm delivers on Tuesdays and Fridays.",
+      "question": 7,
+      "mode": "everything",
+      "correct": true,
+      "relevant_in_context": true,
+      "prompt_tokens": 591,
+      "prefill_seconds": 0.032985
+    },
+    {
+      "kind": "retrieval",
+      "answer": "Meadow Farm delivers on Tuesdays and Fridays.",
+      "question": 7,
+      "mode": "bm25_top3",
+      "correct": true,
+      "relevant_in_context": true,
+      "prompt_tokens": 78,
+      "prefill_seconds": 0.009483
+    },
+    {
+      "kind": "retrieval",
+      "answer": "The minimum order for Chocolate at Cocoa Works is ten tubs.",
+      "question": 8,
+      "mode": "everything",
+      "correct": true,
+      "relevant_in_context": true,
+      "prompt_tokens": 592,
+      "prefill_seconds": 0.037933
+    },
+    {
+      "kind": "retrieval",
+      "answer": "The minimum order at Cocoa Works is ten tubs.",
+      "question": 8,
+      "mode": "bm25_top3",
+      "correct": true,
+      "relevant_in_context": true,
+      "prompt_tokens": 89,
+      "prefill_seconds": 0.009105
+    },
+    {
+      "kind": "retrieval",
+      "answer": "The morning brief arrives at 8 AM on weekdays.",
+      "question": 9,
+      "mode": "everything",
+      "correct": true,
+      "relevant_in_context": true,
+      "prompt_tokens": 590,
+      "prefill_seconds": 0.03388
+    },
+    {
+      "kind": "retrieval",
+      "answer": "The morning brief arrives at 8 AM.",
+      "question": 9,
+      "mode": "bm25_top3",
+      "correct": true,
+      "relevant_in_context": true,
+      "prompt_tokens": 73,
+      "prefill_seconds": 0.043771
+    },
+    {
+      "kind": "retrieval",
+      "answer": "Pistachio is not stocked because Tom, who works in the shop on Saturdays, is allergic to nuts.",
+      "question": 10,
+      "mode": "everything",
+      "correct": true,
+      "relevant_in_context": true,
+      "prompt_tokens": 591,
+      "prefill_seconds": 0.032766
+    },
+    {
+      "kind": "retrieval",
+      "answer": "Tom is allergic to nuts, so pistachio is not stocked.",
+      "question": 10,
+      "mode": "bm25_top3",
+      "correct": true,
+      "relevant_in_context": true,
+      "prompt_tokens": 92,
+      "prefill_seconds": 0.009536
+    },
+    {
+      "kind": "retrieval",
+      "answer": "The accountant, Marcus, receives the monthly spending report on the first.",
+      "question": 11,
+      "mode": "everything",
+      "correct": true,
+      "relevant_in_context": true,
+      "prompt_tokens": 590,
+      "prefill_seconds": 0.033243
+    },
+    {
+      "kind": "retrieval",
+      "answer": "Marcus receives the monthly spending report.",
+      "question": 11,
+      "mode": "bm25_top3",
+      "correct": true,
+      "relevant_in_context": true,
+      "prompt_tokens": 83,
+      "prefill_seconds": 0.044342
+    },
+    {
+      "kind": "retrieval",
+      "answer": "The supplier's van should turn up by Monday evening for Tuesday delivery.",
+      "question": 12,
+      "mode": "everything",
+      "correct": false,
+      "relevant_in_context": true,
+      "prompt_tokens": 594,
+      "prefill_seconds": 0.033225
+    },
+    {
+      "kind": "retrieval",
+      "answer": "The supplier's van should arrive at 8 AM.",
+      "question": 12,
+      "mode": "bm25_top3",
+      "correct": false,
+      "relevant_in_context": false,
+      "prompt_tokens": 83,
+      "prefill_seconds": 0.009107
+    },
+    {
+      "kind": "retrieval",
+      "answer": "The freezer is kept at minus eighteen degrees.",
+      "question": 13,
+      "mode": "everything",
+      "correct": true,
+      "relevant_in_context": true,
+      "prompt_tokens": 590,
+      "prefill_seconds": 0.032488999
+    },
+    {
+      "kind": "retrieval",
+      "answer": "The freezer maintains a temperature of approximately -18\u00b0C.",
+      "question": 13,
+      "mode": "bm25_top3",
+      "correct": true,
+      "relevant_in_context": false,
+      "prompt_tokens": 82,
+      "prefill_seconds": 0.009281
+    },
+    {
+      "kind": "retrieval",
+      "answer": "Crisp & Co. makes our waffle cones.",
+      "question": 14,
+      "mode": "everything",
+      "correct": true,
+      "relevant_in_context": true,
+      "prompt_tokens": 589,
+      "prefill_seconds": 0.032854999
+    },
+    {
+      "kind": "retrieval",
+      "answer": "Crisp & Co. makes our waffle cones.",
+      "question": 14,
+      "mode": "bm25_top3",
+      "correct": true,
+      "relevant_in_context": true,
+      "prompt_tokens": 90,
+      "prefill_seconds": 0.009628
+    },
+    {
+      "kind": "retrieval",
+      "answer": "Yes, Cocoa Works offers a dairy-free chocolate at 320 cents per tub.",
+      "question": 15,
+      "mode": "everything",
+      "correct": true,
+      "relevant_in_context": true,
+      "prompt_tokens": 599,
+      "prefill_seconds": 0.034288
+    },
+    {
+      "kind": "retrieval",
+      "answer": "Yes, there is a dairy-free chocolate available at 320 cents per tub. It costs 320 cents.",
+      "question": 15,
+      "mode": "bm25_top3",
+      "correct": true,
+      "relevant_in_context": true,
+      "prompt_tokens": 95,
+      "prefill_seconds": 0.009617
+    }
+  ],
+  "seconds": 30.1,
+  "regraded": "retained answers scored again by graded(); the model was not called"
+}

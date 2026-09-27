@@ -14,6 +14,7 @@ Each file below is the completed comparison implementation for one chapter's con
 | 2 | `profrod_sovereign_agent_ch02_pydantic_shop_tools_learner.py` | Tool schemas, handlers and dispatch |
 | 3 | `profrod_sovereign_agent_ch03_agent_loop_learner.py` | The owned model and tool loop, its adapter, and the reliability arithmetic |
 | 4 | `profrod_sovereign_agent_ch04_state_store_learner.py` | The durable state store |
+| 5 | `profrod_sovereign_agent_ch05_retrieval_learner.py` | BM25, cosine similarity, precision@k, recall@k, reciprocal rank and a context packer |
 | 7 | `profrod_sovereign_agent_ch07_work_queue_learner.py` | The durable work queue |
 | 15 | `profrod_sovereign_agent_ch15_evaluation_statistics_learner.py` | Wilson intervals, clustered standard errors, McNemar's test, sample size, pass@k and kappa |
 | 18 | `profrod_sovereign_agent_ch18_inference_economics_learner.py` | Decode ceilings, arithmetic intensity, KV-cache memory, latency, percentiles, Little's law and loop cost |
