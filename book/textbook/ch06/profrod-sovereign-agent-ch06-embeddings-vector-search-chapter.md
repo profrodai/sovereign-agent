@@ -250,8 +250,8 @@ The experiment probed three known weaknesses.
 probes = measured["probes"]
 for row in probes["codes"]["rows"]:
     print(
-        row["query"], "dense rank", row["dense_rank"], "score", row["dense_score"],
-        "best rival", row["best_rival_dense_score"], "| BM25 rank", row["bm25_rank"],
+        f"{row['query']} dense rank {row['dense_rank']} score {row['dense_score']} "
+        f"best rival {row['best_rival_dense_score']} | BM25 rank {row['bm25_rank']}"
     )
 for row in probes["negation"]:
     negated, paraphrased = row["cosine_negated"], row["cosine_paraphrase"]
