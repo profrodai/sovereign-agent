@@ -1,4 +1,4 @@
-# Teach Chapter 19: Lucy leaves the shop for a day
+# Teach Chapter 19: A whole day: reliability, honest reports and readiness
 
 > **Learn with Prof Rod** — *Build Your Always-On AI Agent From Scratch*.
 > **Read the full book and get the latest learning materials:** [https://profrod.ai/book](https://profrod.ai/book).

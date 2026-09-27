@@ -30,7 +30,7 @@ Run from the complete repository root using the [frozen environment](profrod-sov
 | 16 | [Optimizing against an evaluation: the winner's curse and preferences](ch16/profrod-sovereign-agent-ch16-controlled-improvement-chapter.md) | [ch16.py](checkpoints/profrod_sovereign_agent_ch16_controlled_improvement_checkpoint.py) |
 | 17 | [When a second agent pays: parallelism, errors and bounded delegation](ch17/profrod-sovereign-agent-ch17-bounded-delegation-chapter.md) | [ch17.py](checkpoints/profrod_sovereign_agent_ch17_bounded_delegation_checkpoint.py) |
 | 18 | [What a model call costs, and a deployment that survives](ch18/profrod-sovereign-agent-ch18-deployment-restoration-chapter.md) | [ch18.py](checkpoints/profrod_sovereign_agent_ch18_deployment_restoration_checkpoint.py) |
-| 19 | [Lucy leaves the shop for a day](ch19/profrod-sovereign-agent-ch19-integrated-shop-day-chapter.md) | [ch19.py](checkpoints/profrod_sovereign_agent_ch19_integrated_shop_day_checkpoint.py) |
+| 19 | [A whole day: reliability, honest reports and readiness](ch19/profrod-sovereign-agent-ch19-integrated-shop-day-chapter.md) | [ch19.py](checkpoints/profrod_sovereign_agent_ch19_integrated_shop_day_checkpoint.py) |
 
 The final accelerated day retains two databases, a readable report and JSON evidence:
 

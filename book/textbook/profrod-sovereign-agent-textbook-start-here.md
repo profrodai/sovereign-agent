@@ -40,7 +40,7 @@ You can read the drafted chapters and run their supplied reference checkpoints n
 | 16 | [Optimizing against an evaluation: the winner's curse and preferences](ch16/profrod-sovereign-agent-ch16-controlled-improvement-chapter.md) | DRAFT |
 | 17 | [When a second agent pays: parallelism, errors and bounded delegation](ch17/profrod-sovereign-agent-ch17-bounded-delegation-chapter.md) | DRAFT |
 | 18 | [What a model call costs, and a deployment that survives](ch18/profrod-sovereign-agent-ch18-deployment-restoration-chapter.md) | DRAFT |
-| 19 | [Lucy leaves the shop for a day](ch19/profrod-sovereign-agent-ch19-integrated-shop-day-chapter.md) | DRAFT |
+| 19 | [A whole day: reliability, honest reports and readiness](ch19/profrod-sovereign-agent-ch19-integrated-shop-day-chapter.md) | DRAFT |
 
 The four parts are: **1–4, First useful construction**; **5–9, Continuity and initiative**; **10–14, Permission and external boundaries**; and **15–19, Evaluate and operate**.
 

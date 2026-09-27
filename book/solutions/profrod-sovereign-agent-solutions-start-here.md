@@ -34,7 +34,7 @@ The edition has nineteen chapter slots. **Eighteen chapters currently have two n
 | 16 | [Optimizing against an evaluation: the winner's curse and preferences](ch16/profrod-sovereign-agent-ch16-controlled-improvement-solutions-guide.md) | Available draft — A and B, 90 minutes each |
 | 17 | [When a second agent pays: parallelism, errors and bounded delegation](ch17/profrod-sovereign-agent-ch17-bounded-delegation-solutions-guide.md) | Available draft — A and B, 90 minutes each |
 | 18 | [What a model call costs, and a deployment that survives](ch18/profrod-sovereign-agent-ch18-deployment-restoration-solutions-guide.md) | Available draft — A and B, 90 minutes each |
-| 19 | [Lucy leaves the shop for a day](ch19/profrod-sovereign-agent-ch19-integrated-shop-day-solutions-guide.md) | Available draft — A and B, 90 minutes each |
+| 19 | [A whole day: reliability, honest reports and readiness](ch19/profrod-sovereign-agent-ch19-integrated-shop-day-solutions-guide.md) | Available draft — A and B, 90 minutes each |
 
 ## How to use this asset
 
