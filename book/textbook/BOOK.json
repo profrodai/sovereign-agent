@@ -64,7 +64,7 @@
     {
       "number": 8,
       "lessonId": "messaging",
-      "title": "Talk to the agent from your phone",
+      "title": "Where the wait goes: prefill, decode and a phone channel",
       "path": "ch08/profrod-sovereign-agent-ch08-telegram-messaging-chapter.md",
       "checkpoint": "checkpoints/profrod_sovereign_agent_ch08_telegram_messaging_checkpoint.py",
       "status": "DRAFT"

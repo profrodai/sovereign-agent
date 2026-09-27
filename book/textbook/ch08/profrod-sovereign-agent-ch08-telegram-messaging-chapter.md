@@ -1,4 +1,4 @@
-# Chapter 8 — Talk to the agent from your phone
+# Chapter 8 — Where the wait goes: prefill, decode and a phone channel
 
 > **Learn with Prof Rod** — *Build Your Always-On AI Agent From Scratch*.
 > **Read the full book and get the latest learning materials:** [https://profrod.ai/book](https://profrod.ai/book).
@@ -14,13 +14,163 @@ Lucy has left the shop to collect packaging. She wants to ask for the opening br
 
 The interesting failure is easy to overlook. A messaging service delivers a request, the local process stores it, and the connection drops before either side is certain what happened. When the request arrives again, should the model run twice? On the return path, the service might accept a report and lose its reply. Sending the report again would make the interface look unreliable even though the underlying stock work completed correctly.
 
-In this chapter you will build one Telegram adapter around durable intake, stable session identity and an explicit outbound delivery state. You will keep the local bot interface available for offline exercises. The same loop and active opening skill from [Chapter 6](../ch06/profrod-sovereign-agent-ch06-versioned-skills-chapter.md) will perform the work. Consequential purchasing remains outside this chapter's dispatcher.
+Part A first measures where the wait for a reply goes inside the model. Part B then builds one Telegram adapter around durable intake, stable session identity and an explicit outbound delivery state. You will keep the local bot interface available for offline exercises. The same loop and active opening skill from [Chapter 6](../ch06/profrod-sovereign-agent-ch06-versioned-skills-chapter.md) will perform the work. Consequential purchasing remains outside this chapter's dispatcher.
 
 ## Learning objectives
 
-Implement a narrow HTTP bot adapter; authenticate an operator by an explicit numeric allowlist; bind private requests to stable sessions; commit accepted work and the inbound cursor together; serialize conflicting session work; and distinguish a successful report delivery from an unknown outcome.
+Part A measures latency. After it you should be able to:
+
+- separate a reply's time into prefill and decode, and explain why they are limited by different things;
+- fit prefill time as $b\,n + c\,n^2$, and explain the quadratic term;
+- explain what streaming changes for the person waiting;
+- derive the prompt tokens a growing conversation rereads, with and without a prefix cache.
+
+Part B builds the phone channel. After it you should be able to:
+
+- implement a narrow HTTP bot adapter;
+- authenticate an operator by an explicit numeric allowlist;
+- bind private requests to stable sessions;
+- commit accepted work and the inbound cursor together;
+- serialize conflicting session work;
+- distinguish a successful report delivery from an unknown outcome.
 
 The deliverable is a phone-capable agent with a deterministic local checkpoint. The local checkpoint proves admission, duplicate handling, context routing and delivery-state behavior without credentials. The optional Telegram run adds a real service interaction and requires you to inspect the reply on your phone. These are different observations. A fake bot returning a message identifier cannot prove that a handset received anything.
+
+## Part A: where does the wait for a reply go?
+
+When Lucy messages the agent from her phone, she waits. Part of the wait is the network and the queue, which later chapters measure. The rest happens inside the model, in two phases with different costs. This part derives both, measures them on two local models, and shows what the prefix cache does to a conversation that grows with every message.
+
+The functions live in [the chapter's learner file](../learner/profrod_sovereign_agent_ch08_latency_learner.py).
+
+```python
+import json
+import runpy
+
+lat = runpy.run_path("book/textbook/learner/profrod_sovereign_agent_ch08_latency_learner.py")
+measured = json.loads(open("docs/evidence/book-ch08/ch08-latency-receipt-v1.json").read())
+```
+
+### Two phases: prefill and decode
+
+A reply is generated in two phases:
+
+- **Prefill** reads the whole prompt: the system instructions, the conversation so far and Lucy's new message. All of its tokens are known in advance, so the model processes them together in large matrix multiplications. Its time grows with the number of prompt tokens $n$.
+- **Decode** then writes the reply one token at a time, because each token depends on the one before. [Chapter 18](../ch18/profrod-sovereign-agent-ch18-deployment-restoration-chapter.md) showed that each step is limited by reading the model's weights from memory, so its time per token is roughly fixed.
+
+Prefill has two parts. Every prompt token passes through the model's layers, about $2P$ floating-point operations for a model with $P$ parameters, which costs a fixed $b$ seconds per token. And in **attention**, every token is compared with every token before it, which adds a cost that grows with the square of the prompt length. With a decode cost of $d$ seconds per generated token, the time to the first token and the time to a whole reply of $m$ tokens are
+
+$
+T_{\text{first}} = b\,n + c\,n^2 + d,
+\qquad
+T_{\text{reply}} = T_{\text{first}} + (m - 1)\,d.
+$
+
+Prefill processes all the prompt's tokens together in large matrix multiplications, so it is limited by arithmetic. Decode is limited by memory. Prefill therefore handles tokens far faster than decode writes them.
+
+### Measured: prefill and decode
+
+The experiment sent prompts of one to eight copies of Lucy's forty notes to `qwen2.5:0.5b` and `qwen2.5:1.5b`, three times each. Each prompt began with a fresh random marker so that nothing cached could be reused. Ollama reports how many prompt tokens it evaluated and how long prefill took. Dividing prefill time by $n$ gives $b + c\,n$, so a least-squares line through the time per token against $n$ gives $b$ and $c$.
+
+```bash
+uv run python book/textbook/experiments/profrod_sovereign_agent_textbook_ch08_latency_v1.py \
+    --out ch08-latency-receipt.json
+```
+
+**Listing:** Prefill and decode rates for both models.
+
+```python
+for model, m in measured["models"].items():
+    p = m["prefill"]
+    print(
+        f"{model}: b = {p['seconds_per_token']:.2e} s, c = {p['seconds_per_token_squared']:.2e} s; "
+        f"prefill {p['tokens_per_second_shortest']} to {p['tokens_per_second_longest']} tokens/s; "
+        f"decode {round(1 / m['decode']['seconds_per_output_token'])} tokens/s"
+    )
+```
+
+```text
+qwen2.5:0.5b: b = 1.62e-04 s, c = 2.61e-08 s; prefill 5607 to 3543 tokens/s; decode 213 tokens/s
+qwen2.5:1.5b: b = 5.39e-04 s, c = 5.81e-08 s; prefill 1742 to 1302 tokens/s; decode 129 tokens/s
+```
+
+For both models, the time per prompt token rises with the prompt's length, as the $n^2$ term predicts. `qwen2.5:0.5b` read about 5,600 tokens per second from a 600-token prompt, but only 3,500 per second from a 4,500-token one. At that length attention took about 40% of the prefill time: $c\,n^2 = 0.52$ seconds of 1.25.
+
+The larger model's per-token cost $b$ is 3.3 times the smaller's, close to its roughly three times as many parameters, as work limited by arithmetic should be.
+
+Decode was far slower: 213 and 129 tokens per second, 26 and 13 times slower than prefill on a short prompt. Between the two models decode differs by a factor of only 1.65, not the parameter ratio, because it is limited by memory traffic and fixed overheads rather than arithmetic.
+
+### Streaming changes what Lucy feels
+
+A person reading a reply starts reading at the first token. **Streaming** sends each piece as it is generated, so what Lucy waits for is $T_{\text{first}}$, not $T_{\text{reply}}$. The experiment streamed five answers of up to 150 tokens about the shop notes.
+
+**Listing:** Time to the first piece and to the whole reply.
+
+```python
+for model, m in measured["models"].items():
+    first = [r["first_piece_seconds"] for r in m["streaming"]]
+    whole = [r["whole_reply_seconds"] for r in m["streaming"]]
+    print(f"{model}: first piece {sorted(first)}, whole reply {sorted(whole)}")
+```
+
+```text
+qwen2.5:0.5b: first piece [0.102, 0.102, 0.103, 0.104, 0.105], whole reply [0.294, 0.311, 0.395, 0.447, 0.468]
+qwen2.5:1.5b: first piece [0.124, 0.126, 0.128, 0.129, 0.134], whole reply [0.603, 0.665, 0.74, 1.339, 1.34]
+```
+
+The first piece arrived after about 0.10 seconds for the small model and 0.13 for the larger one, whatever the length of the reply. The whole reply took up to 0.47 and 1.34 seconds. Streaming does not make the model faster: it lets Lucy start reading as soon as the first words exist, and the longer the reply, the more it saves.
+
+### A growing conversation and the prefix cache
+
+Every message Lucy sends is appended to the conversation, and the whole conversation is sent again. If each turn adds $m$ tokens, turn $i$ has about $i\,m$ tokens of history, and a conversation of $k$ turns makes the model read
+
+$
+\sum_{i=1}^{k} i\,m = m\,\frac{k(k+1)}{2}
+$
+
+prompt tokens in total. That is quadratic in the length of the conversation. A **prefix cache** keeps the model's internal state for the start of the prompt (its key–value cache, from Chapter 18) and reuses it when the next prompt begins the same way. Then each turn reads only what is new, $k\,m$ in total.
+
+**Listing:** Prompt tokens read over a conversation of eight turns of 100 tokens, without and with a prefix cache.
+
+```python
+without = lat["conversation_prefill"](8, 100, cached=False)
+with_cache = lat["conversation_prefill"](8, 100, cached=True)
+print(without, with_cache)
+```
+
+```text
+3600 800
+```
+
+The experiment held an eight-turn conversation about the shop with `qwen2.5:0.5b`, answering Chapter 5's questions from the notes. It ran twice: once with the history unchanged, so the prefix could be reused, and once with a marker at the very start that changed every turn, so nothing could be reused.
+
+**Listing:** Prompt tokens and prefill time each turn.
+
+```python
+for mode, rows in measured["conversation"].items():
+    print(mode, [r["prompt_tokens_evaluated"] for r in rows])
+    print(mode, [r["prefill_seconds"] for r in rows])
+```
+
+```text
+cached [583, 616, 646, 676, 708, 739, 769, 802]
+cached [0.0067, 0.0187, 0.0216, 0.0218, 0.0284, 0.0301, 0.0312, 0.0261]
+uncached [615, 649, 691, 721, 753, 787, 815, 849]
+uncached [0.128, 0.1214, 0.1279, 0.134, 0.1384, 0.1461, 0.1523, 0.1596]
+```
+
+Ollama reported nearly the full prompt length in both runs, so its token count cannot show the cache; the prefill time can. With the history unchanged, turns 2 to 8 took 0.019 to 0.031 seconds of prefill. With the changing marker they took 0.121 to 0.160 seconds, five to seven times as long, growing with every turn. The whole reply took about 0.19 seconds per turn with the cache and 0.31 without.
+
+The first turn of the cached run took only 0.007 seconds of prefill. An earlier run of this same experiment had sent the identical first prompt shortly before, and the server still held its state. A cache outlives the request that filled it.
+
+### The decision
+
+- **Stream replies to Lucy's phone** when the channel allows it, or send a short acknowledgment first. The first token arrives long before the whole reply.
+- **Keep the start of the prompt stable.** Anything that changes at the start (a timestamp, a random identifier, a reordered tool list) defeats the prefix cache, and every turn then rereads the whole conversation.
+- **Bound the history.** Even with a cache, a long conversation costs context memory and prefill after every change near its start. Summaries and retrieval (Chapter 5) keep it bounded.
+
+## Part B: talk to the agent from your phone
+
+Part A measured what Lucy waits for inside the model. This part builds the channel between her phone and the agent, and makes each message and report durable along the way.
 
 ## Give each identity one job
 
@@ -810,6 +960,8 @@ with patch.object(sys, "argv", ["ch08.py"]):
 ```
 
 ```text
+ok   prefill b n + c n^2, reply time, and quadratic against linear conversation cost
+ok   prefill fits recompute; cached turns always prefilled faster than uncached ones
 Accepted private requests: 2
 Duplicate intake after restart: 0
 Conflicting session claim: None
@@ -871,6 +1023,14 @@ Hold the first work claim while a second request arrives in the same private ses
 
 Change an admitted report's delivery state to `UNKNOWN` before a late successful API response returns. Confirm that the old completion does not append a new success event or overwrite the changed state. Explain what the fixture knows about remote acceptance, what the runtime can record safely, and why the operator may still need to inspect the actual conversation.
 
+### Exercise 5: Break the cache on purpose
+
+Put the current time at the start of the system prompt, as many agents do, and rerun the conversation measurement. Then move the time to the end of the latest message instead. Report prefill time per turn for both. Which other common prompt contents would defeat the cache in the same way?
+
+### Exercise 6: A latency budget for Lucy's phone
+
+Suppose Lucy should see the first words of a reply within one second, and the whole reply within five. Using the measured $b$, $c$ and $d$, find the longest prompt and the longest reply each model can serve within that budget, with and without streaming. Check one of your answers against a real call.
+
 ## Operating limits of the teaching channel
 
 Use one bot account with one active installation database. The poller lease coordinates processes sharing that database; it cannot coordinate two independent installations using the same token. Stop the other installation if Telegram reports a competing poller or webhook conflict. Never try to solve that conflict by deleting the local cursor.
@@ -881,13 +1041,15 @@ An outbound `UNKNOWN` or interrupted `SENDING` report is not automatically repla
 
 ## Active recall
 
-Which identity deduplicates a request, and which identity selects memory? Why must accepted work and the inbound cursor share a transaction? What does the poller lease prevent that a numeric operator allowlist does not? Why is a `DONE` work record compatible with an `UNKNOWN` report delivery? What does a message identifier establish, and what must still be observed on the phone?
+Without rereading: why does prefill read tokens faster than decode writes them? Where does the $n^2$ term come from? What does streaming change, and what does it not? How many prompt tokens does an eight-turn conversation reread without a prefix cache, and with one? Which identity deduplicates a request, and which identity selects memory? Why must accepted work and the inbound cursor share a transaction? What does the poller lease prevent that a numeric operator allowlist does not? Why is a `DONE` work record compatible with an `UNKNOWN` report delivery? What does a message identifier establish, and what must still be observed on the phone?
 
 ## Vocabulary
 
-A **channel adapter** translates between one messaging protocol and runtime work. An **inbound cursor** identifies the next remote update position to request. A **durable origin** binds one external delivery to its immutable local request. A **poller lease** authorizes one local consumer to commit a bot account's intake. An **outbound receipt** records the service's successful message identifier, while an **unknown delivery** preserves uncertainty after an admitted send lacks a committed completion.
+**Prefill** reads the prompt; **decode** writes the reply one token at a time. **Attention** compares each token with those before it. **Streaming** sends a reply piece by piece. A **prefix cache** keeps the model's state for a prompt's start and reuses it. A **channel adapter** translates between one messaging protocol and runtime work. An **inbound cursor** identifies the next remote update position to request. A **durable origin** binds one external delivery to its immutable local request. A **poller lease** authorizes one local consumer to commit a bot account's intake. An **outbound receipt** records the service's successful message identifier, while an **unknown delivery** preserves uncertainty after an admitted send lacks a committed completion.
 
 ## Summary
+
+Prefill read prompt tokens 13 to 26 times faster than decode wrote reply tokens, and its cost per token grew with the prompt's length because of attention. Streaming put the first words in front of Lucy in about a tenth of a second. Keeping the start of the prompt stable let the prefix cache cut each turn's prefill five- to sevenfold, which a token counter alone did not show.
 
 You built a narrow bot API client, admitted only explicitly allowed private senders, bound accepted requests to stable sessions, and committed intake with its cursor. The existing skill and model loop now handle work originating from the phone. Results have a separate delivery state and a durable successful receipt, so losing a network response does not silently trigger a duplicate report. The next chapter creates work from schedules and stock events while the operator is away.
 
