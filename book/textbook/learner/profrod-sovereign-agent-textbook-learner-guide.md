@@ -6,9 +6,18 @@
 > — bring your questions, compare experiments and share what you build.
 > **Original source and updates:** [profrodai/sovereign-agent](https://github.com/profrodai/sovereign-agent).
 
-Chapter 2 explains how to save tool schemas, handlers and dispatch in `profrod_sovereign_agent_ch02_pydantic_shop_tools_learner.py`. Chapter 3 adds the owned model/tool loop and adapter in `profrod_sovereign_agent_ch03_agent_loop_learner.py`. The included files are completed comparison implementations; work in your own checkout and retain your attempts before replacing them with a comparison.
+Each file below is the completed comparison implementation for one chapter's construction. Work in your own checkout, and retain your attempts before replacing them with a comparison.
 
-The Chapter 3 checkpoint loads these files, so changing their essential behavior changes the executable result. The live adapter still uses supplied bounded HTTP transport. Later reference checkpoints import other supplied runtime components. See [code ownership](../profrod-sovereign-agent-textbook-ownership.md) and the [construction roadmap](../profrod-sovereign-agent-textbook-expansion.md) before treating these two files as a finished nineteen-chapter agent.
+| Chapter | File | What it builds |
+| --- | --- | --- |
+| 1 | `profrod_sovereign_agent_ch01_model_call_learner.py` | Byte-pair encoding, a bigram model, softmax with temperature, sampling, entropy and perplexity |
+| 2 | `profrod_sovereign_agent_ch02_pydantic_shop_tools_learner.py` | Tool schemas, handlers and dispatch |
+| 3 | `profrod_sovereign_agent_ch03_agent_loop_learner.py` | The owned model and tool loop, its adapter, and the reliability arithmetic |
+| 4 | `profrod_sovereign_agent_ch04_state_store_learner.py` | The durable state store |
+| 7 | `profrod_sovereign_agent_ch07_work_queue_learner.py` | The durable work queue |
+| 15 | `profrod_sovereign_agent_ch15_evaluation_statistics_learner.py` | Wilson intervals, clustered standard errors, McNemar's test, sample size, pass@k and kappa |
+
+Each chapter's checkpoint loads its file, so changing a function's essential behavior changes the executable result. The live adapters still use supplied bounded HTTP transport, and later reference checkpoints import other supplied runtime components. See [code ownership](../profrod-sovereign-agent-textbook-ownership.md) and the [construction roadmap](../profrod-sovereign-agent-textbook-expansion.md) before treating these files as a finished nineteen-chapter agent.
 
 ## Keep building with Prof Rod
 
