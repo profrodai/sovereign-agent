@@ -25,7 +25,7 @@ Run from the complete repository root using the [frozen environment](profrod-sov
 | 11 | [Survive the ambiguous supplier order](ch11/profrod-sovereign-agent-ch11-ambiguous-supplier-order-chapter.md) | [ch11.py](checkpoints/profrod_sovereign_agent_ch11_ambiguous_supplier_order_checkpoint.py) |
 | 12 | [Recover work after a process crash](ch12/profrod-sovereign-agent-ch12-worker-recovery-chapter.md) | [ch12.py](checkpoints/profrod_sovereign_agent_ch12_worker_recovery_checkpoint.py) |
 | 13 | [Connect an external tool with MCP](ch13/profrod-sovereign-agent-ch13-mcp-tools-chapter.md) | PLANNED — no executable checkpoint |
-| 14 | [Isolate tools and untrusted content](ch14/profrod-sovereign-agent-ch14-tool-isolation-chapter.md) | [ch14.py](checkpoints/profrod_sovereign_agent_ch14_tool_isolation_checkpoint.py) |
+| 14 | [Prompt injection and isolation: words steer the model, boundaries hold](ch14/profrod-sovereign-agent-ch14-tool-isolation-chapter.md) | [ch14.py](checkpoints/profrod_sovereign_agent_ch14_tool_isolation_checkpoint.py) |
 | 15 | [Evaluation as measurement: error bars and paired comparisons](ch15/profrod-sovereign-agent-ch15-agent-evaluation-chapter.md) | [ch15.py](checkpoints/profrod_sovereign_agent_ch15_agent_evaluation_checkpoint.py) |
 | 16 | [Optimizing against an evaluation: the winner's curse and preferences](ch16/profrod-sovereign-agent-ch16-controlled-improvement-chapter.md) | [ch16.py](checkpoints/profrod_sovereign_agent_ch16_controlled_improvement_checkpoint.py) |
 | 17 | [Delegate one bounded task](ch17/profrod-sovereign-agent-ch17-bounded-delegation-chapter.md) | [ch17.py](checkpoints/profrod_sovereign_agent_ch17_bounded_delegation_checkpoint.py) |

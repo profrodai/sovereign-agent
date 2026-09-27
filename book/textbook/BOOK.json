@@ -112,7 +112,7 @@
     {
       "number": 14,
       "lessonId": "isolation",
-      "title": "Isolate tools and untrusted content",
+      "title": "Prompt injection and isolation: words steer the model, boundaries hold",
       "path": "ch14/profrod-sovereign-agent-ch14-tool-isolation-chapter.md",
       "checkpoint": "checkpoints/profrod_sovereign_agent_ch14_tool_isolation_checkpoint.py",
       "status": "DRAFT"

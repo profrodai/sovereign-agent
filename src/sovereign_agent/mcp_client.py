@@ -145,6 +145,11 @@ class MCPClient:
             os.killpg(self.process.pid, signal.SIGKILL)
         except ProcessLookupError:
             pass
+        except PermissionError:
+            # macOS reports EPERM, not ESRCH, for a group whose leader has exited but is not yet
+            # reaped. Only a leader that is still running makes the refusal a real failure.
+            if self.process.poll() is None:
+                raise
         self.process.wait(timeout=5)
         if self.process.stdin:
             self.process.stdin.close()
