@@ -127,7 +127,7 @@ mixed 0.6901 0.9855 c^2 = 1.07
 
 Short notes took 0.47 seconds on average with little variation ($c^2 = 0.08$): the 120-token cap makes them nearly identical. The mixed pilot measured 0.69 seconds with $c^2 = 1.07$.
 
-But the mixed pilot's 60 jobs happened to include only 6 long reports, 10%, where the design called for 20%. In the runs, 63 and 64 of 400 jobs took longer than 1.5 seconds, and the mean service time was 0.91 seconds. The pilot had underestimated the mean by about a quarter, and that mistake matters below.
+But only 6 of the mixed pilot's 60 jobs, 10%, took longer than 1.5 seconds, although one job in five was meant to be a long report. In the runs, 63 and 64 of 400 jobs took that long, about 16%, and the mean service time was 0.91 seconds. The pilot had underestimated the mean by about a quarter, and that mistake matters below.
 
 **Listing:** Mean wait before service, measured and predicted.
 
