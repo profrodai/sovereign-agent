@@ -1,55 +1,53 @@
 # Sovereign Agent
 
-> **Learn with Prof Rod** — *Build Your Always-On AI Agent From Scratch*.
-> **Read the full book and get the latest learning materials:** [https://profrod.ai/book](https://profrod.ai/book).
-> **Join the Prof Rod learner community:** [https://profrod.ai/community](https://profrod.ai/community)
-> — bring your questions, compare experiments and share what you build.
-> **Original source and updates:** [profrodai/sovereign-agent](https://github.com/profrodai/sovereign-agent).
-
-**Build Your Always-On AI Agent From Scratch — in Python.**
+**An always-on AI agent you can read end to end, in Python.**
 
 [![CI](https://github.com/profrodai/sovereign-agent/actions/workflows/ci.yml/badge.svg)](https://github.com/profrodai/sovereign-agent/actions/workflows/ci.yml)
 [![PyPI](https://img.shields.io/pypi/v/sovereign-agent.svg)](https://pypi.org/project/sovereign-agent/)
 [![Python 3.14+](https://img.shields.io/badge/python-3.14%2B-blue.svg)](https://www.python.org/downloads/)
 [![License: Apache-2.0](https://img.shields.io/badge/license-Apache--2.0-blue.svg)](LICENSE)
 
-Sovereign Agent is a self-contained teaching implementation for Lucy's ice cream
-shop. The reader builds the model/tool loop, memory, local skills, messaging,
-scheduling, permissions, recovery and operating report. Python 3.14, SQLite and
-one direct runtime dependency keep the implementation inspectable. Zeocore is an
-optional tool integration; the teaching agent does not require it.
+Sovereign Agent runs Lucy's ice cream shop unattended. It answers her messages, keeps stock,
+orders from suppliers within the spending she approved, survives a worker crash without ordering
+twice, and reports its day from receipts rather than from what the model said. Everything an
+agent harness needs is here, small enough to read: the model and tool loop, typed tools, durable
+SQLite state, memory with retrieval, versioned skills, a durable work queue, messaging and
+schedules, approvals bound to the exact spend, idempotent external actions, leases and fencing for
+recovery, execution isolation, evaluation, controlled improvement and bounded delegation. Python
+3.14, SQLite and one runtime dependency, Pydantic.
 
-[Start with the book](book/README.md): one twenty-chapter teaching sequence,
-organized into [textbook](book/textbook/profrod-sovereign-agent-textbook-start-here.md), [exercises](book/exercises/profrod-sovereign-agent-exercises-start-here.md),
-[solutions](book/solutions/profrod-sovereign-agent-solutions-start-here.md) and [educator materials](book/educator/profrod-sovereign-agent-educator-start-here.md).
-Nineteen manuscript drafts and 38 ninety-minute practical units are available.
-Chapter 14 has a documented scope; its new lesson is still planned.
-The edition remains an unreleased construction draft. Use this checkout's locked
-runtime for its checkpoints; the published PyPI release is not an edition substitute.
+**If it helps you understand how agents really work, [star the repository](https://github.com/profrodai/sovereign-agent)**:
+it is how other engineers find it.
 
-## Run the constructed agent from this checkout
+## Build it yourself, one chapter at a time
 
-After the development install below, run the final accelerated day:
+This repository is the finished agent. The way to understand it is to build it:
+
+- **Read the book:** [*Build Your Always-On AI Agent From Scratch*](https://profrod.ai/book) on
+  profrod.ai. Twenty chapters, each measuring its mechanism on real local models before building
+  it.
+- **Do the exercises:** [the book's course](https://github.com/profrodai/profrodai-resources/tree/main/courses/sovereign-agent-book)
+  in profrodai-resources. 38 ninety-minute notebook units that open in Colab, worked solutions,
+  educator guides, and each chapter's checkpoint code, which runs against this package.
+- **Join the learner community:** [profrod.ai/community](https://profrod.ai/community). Bring a
+  result, a question or a failure you learned from.
+
+Its final checkpoint runs a whole shop day: a separate simulated supplier loses replies, a worker is
+killed, and the agent verifies two purchases totaling USD 26.00 without a duplicate order.
 
 ```bash
-uv run --python 3.14 python book/textbook/checkpoints/profrod_sovereign_agent_ch20_integrated_shop_day_checkpoint.py
+git clone https://github.com/profrodai/profrodai-resources.git
+cd profrodai-resources/courses/sovereign-agent-book
+make setup run
 ```
 
-It runs a separate simulated supplier, loses replies, kills a worker and verifies
-two purchases totaling USD 26.00 without a duplicate order. The phone transport
-and model are deterministic fixtures in this checkpoint; no credentials or live
-purchases are needed. The command removes its temporary state after checking it.
-Use the checkpoint's `--output` option with a new directory to retain evidence.
+For an initialized shop directory, `sovereign-agent agent report --root PATH` prints the current
+ledger-derived report. Amounts come from structured records, with uncertain outcomes and
+accounting disagreements made explicit.
 
-For an initialized shop directory, `sovereign-agent agent report --root PATH`
-prints the current ledger-derived report. Amounts come from structured records,
-with uncertain outcomes and accounting disagreements made explicit. Current
-retained totals are distinct from current-UTC-day model estimates and from a
-provider invoice. See [Chapter 20](book/textbook/ch20/profrod-sovereign-agent-ch20-integrated-shop-day-chapter.md).
-
-Always-on means unattended work and explicit restart/recovery behavior while the
-host and dependencies are available. The [Linux deployment chapter](book/textbook/ch19/profrod-sovereign-agent-ch19-deployment-restoration-chapter.md)
-provides the one-host recipe. Maintained production organizations can graduate to
+Always-on means unattended work and explicit restart and recovery while the host and its
+dependencies are available. The book's [deployment chapter](https://profrod.ai/book/ch19-operation)
+gives the one-host recipe. Maintained production organizations can graduate to
 [Zeocore](https://github.com/profrodai/zeocore).
 
 ## Install and run with uv
@@ -117,10 +115,8 @@ uv run sovereign-agent mechanisms --root /tmp/sovereign-agent-mechanisms
 
 This demonstrates four-plane isolation policy, durable condition scheduling,
 recoverable context compaction, session-incarnation fencing, bounded tool
-discovery, and provenance-bearing hybrid memory. See
-the [historical runtime lessons](docs/archive/README.md). These demonstrations
-remain supported; the current reading sequence starts at the
-[textbook contents](book/textbook/profrod-sovereign-agent-textbook-start-here.md).
+discovery, and provenance-bearing hybrid memory. The book at
+[profrod.ai/book](https://profrod.ai/book) builds each of them from first principles.
 
 ## Product vocabulary
 
@@ -160,7 +156,7 @@ and [v0.7 migration guide](docs/migration-v0.7-to-v1.md).
 
 ## Project resources
 
-- [Book and runnable exercises](book/README.md)
+- [The book](https://profrod.ai/book) and [its exercises](https://github.com/profrodai/profrodai-resources/tree/main/courses/sovereign-agent-book)
 - [Architecture](docs/architecture.md) and [API reference](docs/api_reference.md)
 - [Contributing guide](CONTRIBUTING.md)
 - [Support](SUPPORT.md) and [security policy](SECURITY.md)
