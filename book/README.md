@@ -21,9 +21,9 @@ Every asset uses the same chapter numbers. For example, `textbook/ch02`, `exerci
 
 ## What is available now
 
-The twenty-chapter edition is under construction. **Eighteen chapters have manuscript drafts and two ninety-minute practical units each. Chapters 6 and 14 have detailed planned scopes; their new lessons and practical units are not yet written.** The [textbook contents](textbook/profrod-sovereign-agent-textbook-start-here.md) marks each chapter's status explicitly.
+The twenty-chapter edition is under construction. **Nineteen chapters have manuscript drafts and two ninety-minute practical units each. Chapter 14 has a detailed planned scope; its new lesson and two practical units are not yet written.** The [textbook contents](textbook/profrod-sovereign-agent-textbook-start-here.md) marks each chapter's status explicitly.
 
-There are currently 36 student units and 36 worked counterparts: 54 hours of planned student practice. The completed twenty-chapter course will contain 40 student units: 60 hours. Every available notebook includes its own required setup, concepts and supplied teaching runtime. Its successful execution does not certify that the learner has built that entire runtime from scratch.
+There are currently 38 student units and 38 worked counterparts: 57 hours of planned student practice. The completed twenty-chapter course will contain 40 student units: 60 hours. Every available notebook includes its own required setup, concepts and supplied teaching runtime. Its successful execution does not certify that the learner has built that entire runtime from scratch.
 
 The exercises run on Google Colab or any Python 3.12+ kernel; the solutions use Python 3.14. Both need Jupyter and Pydantic 2; their setup pages explain preparation. The textbook explains how to install the locked repository environment for chapter checkpoints. Core practical work runs offline after setup. Live Telegram, model, container and operating-system observations are identified separately from local fixtures.
 

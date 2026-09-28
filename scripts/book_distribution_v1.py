@@ -39,6 +39,7 @@ UNIT_TOPICS = {
     3: ("bounded-agent-loop", "reliability-and-retries"),
     4: ("durable-state-store", "interrupted-migration"),
     5: ("durable-memory", "retrieval-and-recall"),
+    6: ("embeddings-and-vector-store", "retrieval-evaluation"),
     7: ("versioned-skills", "skill-repair-transfer"),
     8: ("durable-work-inbox", "report-outbox-lost-reply"),
     9: ("private-telegram-messaging", "messaging-repair-transfer"),

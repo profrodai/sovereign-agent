@@ -1,0 +1,998 @@
+---
+jupyter:
+  authors:
+  - name: Prof Rod
+    website: https://profrod.ai
+  course:
+    book_url: https://profrod.ai/book
+    community_url: https://profrod.ai/community
+    distribution_version: '2026-09-10'
+    edition: nineteen-chapter-v1
+    instructor: true
+    lesson_id: embeddings
+    planned_minutes: 90
+    resource_id: profrod-sovereign-agent-ch06-b-retrieval-evaluation-solution
+    self_contained_runtime: true
+    source_basis: chapter-6-manuscript
+    source_unit: ch06-b
+    source_url: https://github.com/profrodai/sovereign-agent
+    unit: ch06-b
+  jupytext:
+    notebook_metadata_filter: all
+    text_representation:
+      extension: .md
+      format_name: markdown
+      format_version: '1.3'
+      jupytext_version: 1.19.5
+  kernelspec:
+    display_name: Python 3
+    language: python
+    name: python3
+  language_info:
+    name: python
+    version: '3.12'
+---
+
+# Chapter 6, Unit B: Evaluate and repair retrieval
+
+> **Learn with Prof Rod** — *Build Your Always-On AI Agent From Scratch*.
+> **Read the full book and get the latest learning materials:** [https://profrod.ai/book](https://profrod.ai/book).
+> **Join the Prof Rod learner community:** [https://profrod.ai/community](https://profrod.ai/community)
+> — bring your questions, compare experiments and share what you build.
+> **Original source and updates:** [profrodai/sovereign-agent](https://github.com/profrodai/sovereign-agent).
+
+**Instructor worked edition · 90 minutes of dedicated work · 2026-09-27**
+
+This is the worked edition of Chapter 6, Unit B. It contains:
+
+- complete answers;
+- the instructor explanation;
+- holdout cases that the student edition does not show.
+
+Use it after a first attempt, or to rehearse the session. It runs on Google Colab (Python 3.13) or any local Python 3.12+ kernel, using only the standard library.
+
+| Minutes | Dedicated work | Saved evidence |
+| --- | --- | --- |
+| 0–10 | Predict which retriever finds paraphrases | Written prediction |
+| 10–30 | Labeled questions, the metrics, and your starting evidence | Worked outputs and handoff |
+| 30–55 | Construct `evaluate` and pass the visible cases | Learner code and grade table |
+| 55–70 | Measure three retrievers on Lucy's questions | Independent observation |
+| 70–85 | Changed-constraint task: weighted fusion | Transfer results |
+| 85–90 | Explain the result and save evidence | Retained submission |
+
+
+## Run the self-contained setup
+
+The collapsed cell below creates your work folder and defines the supplied parts of the unit:
+
+- **Lucy's twelve notes** and **twelve labeled questions**: six asked in the notes' own words, and six paraphrases that share none of their words.
+- **BM25**, as in Chapter 5, returning only notes that share at least one word with the question.
+- **Vector arithmetic**, `note_vector` from Unit A, and a supplied `search` that behaves like the one you built.
+- **`all-minilm`'s vectors** for every note and question, computed with the real model through Ollama on September 27, 2026 and rounded to five decimals.
+
+Run setup on every fresh kernel. Your saved work lives in `practical-work/ch06-b`.
+
+<details><summary>Supplied setup, questions, BM25 and the real model's vectors</summary>
+
+```python jupyter={"source_hidden": true} tags=["setup", "embedded-runtime"]
+import base64
+import json
+import math
+import os
+import re
+import sys
+import tempfile
+import zlib
+from collections import Counter
+from pathlib import Path
+
+minimum_python = (3, 12)
+if sys.version_info[:2] < minimum_python:
+    raise RuntimeError("This unit needs Python 3.12 or newer; Google Colab runs Python 3.13.")
+
+if "COURSE_START_DIRECTORY" not in globals():
+    COURSE_START_DIRECTORY = Path.cwd()
+    COURSE_ROOT = Path(tempfile.mkdtemp(prefix="ch06-course-"))
+
+NOTES = [
+    "mango sorbet is dairy-free and vegan",
+    "oat vanilla is dairy-free and vegan",
+    "vegan customers ask for sorbet",
+    "dairy-free customers ask for oat vanilla",
+    "vanilla scoop in a waffle cone",
+    "chocolate scoop in a waffle cone",
+    "strawberry scoop in a sugar cone",
+    "kids want a chocolate cone",
+    "the supplier delivers tubs on monday",
+    "the supplier sends the invoice on friday",
+    "pay the supplier invoice in cents",
+    "order more tubs from the supplier",
+]
+NOTE_IDS = [f"n{i + 1}" for i in range(len(NOTES))]
+STOP = {
+    "a",
+    "an",
+    "the",
+    "is",
+    "and",
+    "in",
+    "on",
+    "for",
+    "of",
+    "from",
+    "more",
+    "ask",
+    "want",
+    "with",
+}
+WORD = re.compile(r"[a-z0-9]+")
+
+
+def tokenize(text):
+    words = "".join(c if c.isalpha() or c == "-" else " " for c in text.lower()).split()
+    return [w for w in words if w not in STOP]
+
+
+def dot(a, b):
+    return sum(x * y for x, y in zip(a, b, strict=True))
+
+
+def normalize(v):
+    length = math.sqrt(dot(v, v))
+    if length == 0:
+        raise ValueError("cannot normalize a zero vector")
+    return [x / length for x in v]
+
+
+def note_vector(text, embedding):
+    words = [w for w in tokenize(text) if w in embedding]
+    if not words:
+        raise ValueError(f"no known words in {text!r}")
+    dim = len(next(iter(embedding.values())))
+    return normalize([sum(embedding[w][k] for w in words) / len(words) for k in range(dim)])
+
+
+def search(index, query, k):
+    """Unit A's contract: current rows only, one model only, best first, ties by id."""
+    current = [row for row in index if row["current"]]
+    for row in current:
+        if row["model"] != query["model"] or len(row["vector"]) != len(query["vector"]):
+            raise ValueError("vectors from another model cannot be compared")
+    scored = sorted(current, key=lambda row: (-dot(row["vector"], query["vector"]), row["id"]))
+    return [row["id"] for row in scored[:k]]
+
+
+def bm25_ranking(question, k1=1.5, b=0.75):
+    """Chapter 5's BM25 over the twelve notes; only notes that share a word are ranked."""
+    tokenized = [WORD.findall(note.lower()) for note in NOTES]
+    average = sum(len(t) for t in tokenized) / len(tokenized)
+    containing = Counter(term for t in tokenized for term in set(t))
+    scores = []
+    for tokens in tokenized:
+        frequency = Counter(tokens)
+        score = 0.0
+        for term in sorted(set(WORD.findall(question.lower()))):
+            f = frequency[term]
+            if f:
+                idf = math.log(1 + (len(NOTES) - containing[term] + 0.5) / (containing[term] + 0.5))
+                score += idf * f * (k1 + 1) / (f + k1 * (1 - b + b * len(tokens) / average))
+        scores.append(score)
+    order = sorted(range(len(NOTES)), key=lambda i: (-scores[i], i))
+    return [NOTE_IDS[i] for i in order if scores[i] > 0]
+
+
+MINILM_ENCODED = (
+    "c-nov*^(UBm2LYgX?zCCcHh*ml<5IQB#SUngf0MyCOdZi{aW}QV|fIt>O7I6vWaxx&02HK=KuWk|NZ0r`;RYQfB*"
+    "i|zyHU7{Pf4KUw;1e?fchn|M~vo?aTMKf4=|Mr{912@E<?@o`3qwho3%w`S$+vkDvbX;qjH9e!TtH*Z1#lUw(i4^"
+    "!CT6Uw--R{q5(kzrSB!-hcY=)9>TIeb4*vZ=WCE^W)d|x9|V>``>^2^8W4Z^ZRdK{`vmx?Z-d<^ZWJ9`%mBZ>(@W"
+    "tK7W1t<NfXLpZ@jwy<dL+=hrVkpWm7P$Itlr>)T(yeE$CS$EV+aTwk{Sm#@11*0-Pk@%_iwzrBC^{`TqnU*CTD`t"
+    "ACj`ls*t^!DT1`==joe|-7z>(_t$c>CLz-~P&D`tZ~5<?+>j|MczC-+%q~>HGWrw}1Km_Vpj%-oF3%`tx7kK7afA"
+    "_rJe?e*5~%FZW;lKYdp`vH$$?+i!25zJ2@hPyXQaKYYulx6kk2zrTO`@%HntUw-@i?fv(+-@g3y{r=Pc^!4|{{r>"
+    "*r$8Ya%*Yo(}{q5@?@7Hhr<JYghy?_7o+xxetr~IcM^7y)M@1NiP^Znbmf4%+k+oyl>;O3vd_%9!R`se%4KfZqZ{"
+    "?otzpP&Br>G%Ko`n29YfBN$6Umt(@_Wu6%>G#hpzkmOa^lxe8F+O}u|CUP4^ZJ)jdi{|8E!C9whwCfy{E+@Fr&;>"
+    "-1$Ec+FFB>_D^gkO`VVca>s#mA=PUE9kAKN+&hr&B_s0)QtE_r{M&Il4({mZ^{I-34K`A|-pP6!g{D-#3x_((&{r"
+    "cZ)U;o_s{4<q#zM;=~{e(LA`4p?waz0KU=YyBt&iC|r{meX5x&HU=?fmj~9?F<}VLpFpUF-aWmFxAF@<_@$&#dHe"
+    "epPP$d_$^@r`oO`o!fZ;Wv}y<J@xauQu0TZ^B?;1F`lm+{_<4v^<Q$GHS-6ZKcw#SFv@J(S2WLGR>p_(hOWOferw"
+    "+2`huJXKcQY<n9KQ#^ZEE~_46UpSm&MZbbdq0{2|3xI?pRjHC>-&mYjJe<NWS=K2zUyoex{CKYWdHeZ!cezCMwf&"
+    "oirgoNsLBC(hK)6KO5+AabtPa^f+kv>Hz+we$C}Oj6y~r^&UPWnS3`d1T&UJ%2~;yoXZwlG?}lsl7~I(Hxl-Q&@("
+    "h@tfDRe$(jJPir}y|2_vlt=IDSid^=24rwg@m{HD`W?uMXIk_a#c}8RB^GwRP9^RVUC49cJZ~pMYC(JdSKdaV#?d"
+    "w%}-1BU~H1}iyp8t^REFaSOzu3pE&3-=f`73j-_4+esE$1t8zW%CIdpkeAm3B7r;6JR|H}AQh*ElL0G_SK<M>%`B"
+    "JeJhQ^YqSVYqhws);T!3OW?8puP@nW54JLSiuJ6!UODn+TfEqL7TVgp#on&p&-xoFv;NM<n~RscT4VR{wA-HS=5c"
+    ";$THCkmeyQaw#PeQS;mD}#e7si5c@2X@Xtuuinelng(cEX}6dmVtjFS9q&9j2jWOBB(#x@-_pMNRo>`V8|F0Ae{d"
+    "pT<<pM_ac;WS8`;=Hf4crBy5MRMf<_-k4^e|YMgDW&eSGb;B<n$znej@9dj<W$=^{3pMsrgD9P+0Q>yJIlV0^U6}"
+    "=U8m`DXkIwO-F$XVp68k6+%vbpxrkWDi9e*5!DZoJ=CxPZovA-w%lYEY7u9vn%X00Z$8~j%gWPxuW1fvO(!Bn;cJ"
+    "=7yNlq^2IykfI;3{04tf{!_u4S9+VlUKre%s)PeH?%6&gG%JuAeo=<Y}A-S^K#XcbZfK=eSI{uxZ!X&S|nqxO!G<"
+    "JdMiP*eXYETdd#gpVW7%T*Q2?=8vZwNPJ7}oKm&;U-mdpHrIZh=-_{@*E@06b{@)E=6lc05@BHuu4eC}n$HHze5l"
+    "zoB?(vKX2C2r`CuE=QO-`9=a$X8`xDyrJ6FDT)Z--LT4tHF#}Rnl@n_RNj?;5|u6X+#2YH=0Gt1e~*Lpm=hnt@3Y"
+    "w}_Gx!`K%)*M_w{?1Z1=i>R0vvRf9-Of92=K<8occyfH^=fBt=j$tYDLp>L<6)0;b+`Vg49`V%*6QO;`<U5w<-D("
+    "T?x#M^0?Se4v{R}iHq2&+j(jeQyw8HmsjaJGEsMW6XAYFnPw`mG`Ieq35Ax(++Ro=ocjrhijS{X6j?$XWC$47!R^"
+    "DMrXTg<yKH%c!&#dJ~h2)vs{SNke<&&1hg_qa#x4ZAok()Am{~WaW@zMEI=Zx&_tejlCE2mn}P=cQ0yf&`gI?uw-"
+    "ocpa(Ij7b<yv|SLLydHHOy@)O$yQqH9O-*`2&7Z8jm#FA<NAu6eFk-<`j-zsef{*~?Vq21|MJ^!pZ?zsOUrDCmiM"
+    "Vp(>X)>dFs1&YY40Toq1j7Qzw_j=IE{GHm&6xj(PYX#yUsEpblCTm-8w)@}o>(#Zt@DqtwQYHdx!MTxU;CjcYk~s"
+    ">7a78ITfXbRMUb$g#RDw3`JS<w&xyZXQ3yMYGSLUVEk-*qfW%%C!wn&3)cnZ`-0Mo!ykH#V$A1<7nk%=L%gVc>|t"
+    "Gp^wc<iI2p2o*O087{#82MdRjdmB*NOqgFo~zSDh`e$Jums6VyTxs+;SDbTF(gG;5fDpo^dur6oz#+<!*G@N6V3%"
+    "akfYRaQ8IJ=)y(kHl2{hT+eA@kzepaSQ8waKAlg<2PDKlA^bYO1Z}g=MkJQQq%X?QF|axfD*yVSU)o?knk>+vWV<"
+    "kIL)$$VkO1aU@>kNask%iIS#|k!dJdQgwNRo&%|HT(@y{Pp;il<{bHT+X*ykjadh+JHJ0?d-i&c&X(w2I;}zTYCX"
+    "kcE^c;Lcq$x&r~k;0qTU*e3MJRGe0Dtx`Ru~0eLRmp+r~dO&g&CO)&8-aX0UWNpG8gTle2J**Voh<ZEKtM0<7zP9"
+    "$9<*^W2)}P0ixnov&6n*UU2<;t?#3zOu*XjC13hBj*Cig(o;xje3cq-Q{wYU7pKj#r@XeFW8Hk;_R%EG9|~URijn"
+    "O{K%0`ZPF+0X>y<C?v+P<IoS0zS^f8O(B)d9t6yS39w(K{4zy^p1EQ!;tpGyoMX`34>+q@_b+Ug8zqm}!(fX+H&t"
+    "j(sXw(3S7BW#4X9}ar`C7#R9?knXkz5Vye2&%5KTA8+SRUud>ib-fCDrr43k8$CX1DwR$;hLhrQhdy_`7nQ+cb4I"
+    "qNjgL*$TzF`>GZAaxR`$4qj8+wMui&{NlWMVwJWpagpwP;Jypn0*2u{=3dz8^c}ezRH-%kx0J8b<58o4hRg&02n+"
+    "60a*TP`4QKUoKox+*UanQ0b32=To>RJ7{N&}*P5C|~KOV5pLYX!<dj+O*J``KAM!#KZ_M~+k0>9Lq-JzqrG_`fRL"
+    "7Uy$02%RS&-=W|mB#6R&r=+O{+Ojy+j&H3B&&;aRoA?&^iI7}*-B59=4L}aFvGL|&Z=qk9Q3UQu5wD9)9cV1r<Hh"
+    "dee83YOzz-E@kfIQzA(6?PeYmddAc)zx7-fyRGLjHd!{du&~|>=8e${kte--^*w=YdHJ{UX+L=_=8_j61=Lz+}F*"
+    "F9pVlQmza$vdHSwB~43$&2Wb+K%kD_uk5tet0VwS5ZfZrj~NFf%9q^0uf{SG!P<^>Lbr);Q36^2FrE$%#Wav&3?0"
+    "^X0}F?Yyic=29m2NEz0W0eqj{H=W%RFiLBl_@{4c4VZUP{Pj)Sy{s9^7DV@Oo}L%&yc~|=>TmCxv%j9_wLF2Vm_c"
+    "72v^IASe2<06A>)pIps<wC=Qhf5mek?9-L7gjL?0{&%F@L`Ntrq#kM)8IrFmWNd2lf8KGrpB`5%W`j9gBqQfsFd7"
+    "PJ~vsb{?pTDfxmkqcNN-A3=6zl)vK%c(@uI%_BQBv4z<9vdEMvtFP~F7@0Mc~x4`1D2Le7ir~_^ZCNPH@F%%#Y{F"
+    "!-7=I#-n;MDd**@lat5En+jSXdHjQXBJr=YTguUk~j&M$;?0vv@?&OUd@VXFa7d5Ye^fj;A(}TK{Mx*R*$!U%SDH"
+    "m7H6F{SHOP(H|b%=SMXUIONiH4!YlnFcuTwsD!*8;S&CrB(Wwpjk9?eCb48+QrGTQVLbBj*mX*VwqLf%=@!T@Uz>"
+    ">o{d<vgr>fFg1ENK7UO~+>ZMuosS17pL4Pg?B^m&`?O5EbZ3d1M{<gqYK7%aU6tN}j<2j6BxZ3@id9Rn3)%f>1<s"
+    "6((vEUEbGAF0%H!Zb8JMC7;LPSU%kf<5p1QT$o}NNYRBSZ{la-@mI#smzeKdOK*Gy0m=U@~Iaj4bJ?s~KlOjc|-("
+    "m5n{<^haqb=rG$O_i~XV8Y;DatjD6Rxi-u_=`(r(!J#tL*41T$bVT)h~04jcR^;9RjNS5`R5*sIZ3zYKcxoef9;e"
+    "An|aE#;oYaSt=nZj`P{U3kC%SFG-h%xnChg{;Y6AT2b(GCVCEaA|EUgdu7Tw_md^TS$k2wjMqWIDm~5Vx)0a0*-|"
+    "Rvg*|kK!JBJR3e%(<qR@+0`9B;pp8AXn`u7@|;v=DMO>LRZ(Y<J>U3uSr-$pIKFgPLQBBn3Jv+PLO<MtcCP#2{fY"
+    "UZibF-iM_KnzQApxJGu1we_b-SmCZofaLU$RDqAO*UISJhZiKuW9Tt}@-bgWQrhPvTF&8m_srs_<vBopyTj!q{4Y"
+    "G(C>|>dq-MUP<a9_1o4%$qcFLT()$@7zj7Q<{q!0(`X_XQv9Vn}BE5+Ug;!b%}>^V!LU2t<;p9XyXY=#WbFtRho!"
+    "APVtcHjmcK-1MRvLHd(pkR4ZKqqDccIPd}A{`XJR~g^idD8O~N-6i`=RQAbQiPTm`T(ia3DCx4chC3XqN5)gnOP7"
+    "M4p%`3#~I9N(_GwzoSm5_a-Hfnmjl&3+5^f7+e-)SG%pqKFSk?5c3Z9%<bV>C5gSw|S1>2`ILCB{_ApcNx-UK{C>"
+    "JrSg=v$wM=<Xx<-k+UvZ}xe<GQpN&QP%pi@`)&3%CTl*ktX9>sH_KEDb6ISM5mWag0o{wfl80<OiYW`dPEsPO*s|"
+    "@ZZ_S9COvqa`Ic&s36`Ra?S}iua9%9ClHN%(DO&fQO}d5(CR&=Y^T!{{sz;%#>HnxyCBX{n=@$dg-<^oc?SR;%=U"
+    "U~uW0*ZL)Rpz+~O}h#cJldXhL#nfMzZ#ge?kIogB8ru3?F$nIy$zSqn|{<=nd4dDC^LpW?;;vYQ3BNP2z{?CxR8f"
+    "A3hH1}~>=DGt7BKc~m36vi1~=VU{0HM!SoJHK>+TxDKEF8O>x7l+;l2hB0$UFDpLJAujMv*2<blq)lXXmh_#*i&="
+    "ZjmjrG4b5s%zHxQ#U3yHtIEv*VaI0teJx)e*WpxZ2$t{ks<j5U#iqoJ^HtKdC^b$vkXl9inlxgs6y8GT9=$s5Pzl"
+    "!}(;b>d7fL$Ea;&aQetAYJ=2ZNrMn@gLMx8_r@?#aC|?xzRwYL{o+xBAO+^2FegN>S@{Fl{>Xce3B0A}}4Pi`Iba"
+    "WUa}6mlwyiaZco12JiDh?K(y0u-FCh2CqpiYT8l&1`3ziDKVxf@~E;Pd;<?s8XGfOu=6ZN@@8bbYF$%gB2@-Jjy{"
+    "DW+T>r#paHA_M$tdnK*yLaovk-${g-2yw795iI)&I28ZX|OYq5%NCWHq(O+dDV$uc=>&mN`cTG>->0TYs#B?DW}p"
+    "t@X~qia!>b3i}{%-8tsx{yQ;T4h4kqBbng#baSnq(SG@n>Rv@M)UNGj)j_^C-HXdYtG<xxKWzCxM6cxuJ@UTe5kp"
+    "ENcVC(I1gBf!IevbKbSLngN63ASOE;+N|hFBmB+ToHwA#pZ?T**-R$GtpVJelE?6|3g~%0_lX!<ih(#Zkx~=2#9)"
+    "w-8if92#B#-IMBnO}Zc{d8xF44+KvcOz!@HRL+f~VR_(1IN?w5OKmR2t0tfZ@*jZl1F}c@PGMG@_YVcmHz@<Im;m"
+    "tUmYCnH6iPd6ssETDV-&Y47&ZLFQV|svpc#H~s2W4xJAHAuf*7^Zz^Jz8d`$Q&Ji?jxTmLpl+1a#iExn%mx3QgVD"
+    "=@X9Q9avoK+|vN*fSfS$KUfEwovgX!Shywfh_oHGxx2p|GW*Yl$K?q|HZ+<^rwqggu_83bIb5`7-LH5sTZ)Op4fM"
+    "G~@e>k$oj_vAc;3nAtSpj6^^^&ZS}bENg!6U56sr6bMMJy*6?%;g-8rLp7|@LjSuf?m+F_%jpXxI5N_LBO*W3>h@"
+    "rT>EV3TzZuKPf!n&yfeHBCfBK$>$&=_a`uVzI6FkH4Pp}|8U=GI)0H8o)Z3!K*r~1=)_(B}Y4eGk$zwS1erE<-9C"
+    "WUGN<u3@BXSDpt93bDgX9-$=`?uJ(CS;Z^yDvR-kZb=D+~x>+PY3dzO7(J7F(8*-^z*sLZ*`6;+P^QygJclsCA_|"
+    "VF*&I-OgUm3^|6oojK@q2$&tju%zbQLwH1rtp)iOJYdBreN17jm}SsWb$AtAf<rpim<~Pb;?9snS>1V-0&u1MZL4"
+    "%yx)#O5OZwFL$&+<-XgZratp)F{aTDwT6mPRU&*iq{0PQ~dW2^!L?EBAOzyAHdE1>@UKTa*o2yzt~+q1Vzy6N1Gl"
+    "g?qVr}ZqIV=9cnyx+ZBi)7!-N*lpVm-=4wIfJZ`3YCYIM$N#{qlTb>o}Jrmgk0u4xB?!=*hJn=cEB=X<RD|ge!Py"
+    "gUpY1pY#WG*i@R4&a;O>Al1|F)6UC=WY-SUAc8w<Mg-f#)0I<o8LJ?k@^9k9ekE`UYEXtZZVw!ot^6JdeV|IRUiJ"
+    "oenuF+lD&N!!v$`*>$wF=EWf}e*3!I5NkgwbK2C>G+14+5t3;R7Xwx^V8}B4QwA%6|!_w4>#<_&hNDtrJ4oQ|<he"
+    "%%o5v)K><Wcl@$bdBD8q`O(E5%6ANk;2b4s!_ms25Lki+v&e&RaJE()Ig(JF#yO10)2#*ps5(F4Kn|p+S71!L?AR"
+    "X{ruO_L-H+6>U8KausG1s|<l-fqnu|ezJpCEtNPwE_Q~>WjCErx*)_hfnfO4{jf&S3pj<0NQnPHnagj(C#o+G6gk"
+    "4_Keps;cF^D}15TnF8a+^FJ(<WUd3p{zKB#=RKN{MyQ>P*cI95h>sTEzCgEl0-@?SQtXY+$*i>Y}P?x_4E-%+kEg"
+    "dWmX~h;PlY>QDa|E=d=c=Fp+Fo`Ls$dR`UYmG%1jt`Rn?Si9^wmcM`BZ+jDZh^u(=H)<k}`m4*e*C{%J!B<vm`E?"
+    "i(zF8P2;8^|H|q-?N>Z7Psz5{b`thT6VwapejI{n>N$OcLA#&8@Pka?G3$6QkMIH|EVDr#tIC$J1|BflZ&FR?I#|"
+    "uuvWk>y&%8!<8dv6#<&jLa1`K#4XDE_{<yZF-d`!BKt^T#h|-r?4|-Sb8H7+u(mQ-U1j_~oWzVd+N)G-FaGL4$d<"
+    "~+bRg=e(OUD!P>Ggkl$>r&SUELuMj=GX@Z6PVCFg#Rqr{Vh+h0kJ6dY!wZL$m-hwG4y3#PXCXIf&3<!sdrqwSIto"
+    "Sw{Pcrl8Wm~=??xfJFcX^IlXOvTq%DN$uFlxCd=Q8MjK6DE{b9EXj-ty+B*q~!r^EW{^=<JE?vDp+P7eTQP0B&<V"
+    "@tPWE+_p|#(%1mqWf)8$=w(RU?Lzp=5LNZCor!Y78mYcK7l9)F*ukCf({eBZY;A3|_rgA}g&6_d7vphR7(XQs`R?"
+    "q1@d>P=(mmZmc1q6xlG7_;ooy^|0bS(#5=Z~Ji)Vax(63fpL^gRu)G2NM!1nF-1Jy0(>fmVn)8VaxN+$#1{Fo^Ao"
+    "_?B%~=+LXd5KeI#b0-9h^`Q3LWU%us@`2kCojSiRf<Dx01?kHG@a?6j1lY*nY=40wcJbP-=SQ?f4}~PO%K_c3&cA"
+    "&4>E~a+{`~c~Pe0!O-#toQ%z5GeA-?QcLD*J1*w>k07lv7og9;?k;&i_&B=g32CZ<CzbTmI+E{udK|H5vc8Tx%ku"
+    "W+_!flL&mtrUY0`ZuVDkD(?%TLzzEQb)_<d31Rmu#oKvaeV_zMyttzx6X;!1oYKFIUY&XVObC*HpsHDsvO(4k+Ba"
+    "123h4UW37y=qf+rbRLQR*7q$N-#zc*|7PWSjnYfd{=Z>-Qv<6(j(fu53?Lb_)-8_ly?5BtPjrqcv3McM?;OXaH<u"
+    "t$&o6Z+F{(VjLApZ|p0b3T>oMWMhOGnjLQ#AA3eHPEPvDxZ$e#V)yx?p<_)&SRIKkdO>PJ_DYa9i-MQNbB&h!l?+"
+    "6R<8923jOMpPGu~vY@sl`Cf=B-7C-_yLJIhZUy6l)D%l7Xf6Y=KW?%q>#9z6tc^|RCVLB>Bi9%2a#=T&pbmGt6np"
+    "G0Mfobp4i$AGAyBV*o)J{@3V*5Q^hy*i+=Xp7_auUs&IZ~_m%A5hUgw9mB(>xmDnbxhl(#~Re2l*#I0Y^Z@F0g<x"
+    "T-wEB?JB<$kb@?6Qkvm_ZBBgiZiBdbvrY9VU!9o6J`Cd0x0C5lje(ybl7$o()#4emv*=TnkTjfyc~tpGh^1#y{x8"
+    "eUC4$q?kTvg;v4m?aK}{_@_hZpuCpCT3TH>BnabeL3pLg5PSxnb#DqfIm%MBqDhi$pGo<1C#|fLIUBL&Wb;^Qn#}"
+    "(?k=D<fpaKui`(F`Y)YMJrDnKz6QvjQ*@x{R9!f31@b&jOet_oi8Q&A=!p7*}8#F$1-BDE2RXJWpu{s_=1Yx?EwW"
+    "G#ca{>`t*6>h(4RR;<;Q^d#D^2`^-2L26Xr?aV=QmQ!DsUEjD5H@U3#Wx*!4qEcj<m>89c-q?~hh$scNSz)P^623"
+    "7a#(hKWb>PW<Nle0!x#SR`cWS}Yz_*-*%#}^=0p<K=@*hoGfrE1qrV$7z19TDsV}yb`ms{RNBUY@FT^nL-mXVXOW"
+    "SPN7W1pltox(qeJ}#BUSfIpEdfJEC?Ke^6YL|#&O|<xeSI#*P&H?ZNq+7dQB>eAytnnD=*<o%D?!v)w6bujQgK;5"
+    "l_~yj;f>BdO#L%~9JyMh%ZR;E|e6(9P4t<ss-#QWKyE1=tq-HthqOAq3Tiwot7}q&s6$=}iD{PCm`2lCJ=rSm9j3"
+    "GF&Lo_v<>^IoY{6C9nXFikR$0&noyfSU|-Fb^~IW5}r-ZF(*<ajm3Y10Zad)+Ec*f0!=+x>L8jdOTb8k!Ck4p9#$"
+    "t6CWAEks-#1^Y?*aG<XNEBUmBT&VIzYoFsUAAb7&<J+e{j&Imgr}F(D|MltHbEA@^Yi6EO##Te-^-z0y3_x<32n^"
+    "(^6iS7LDMXUQq0v#V62lx;bUmgxj#7P+JH)K%qvVD|k<w0uR^ZT~updfSyK&&)@x<$UNaTIz0{$%=o2v353;y{!L"
+    "MbUmKIhH!o-E%OJxzXXP;zY_hR6jPy^?S59%hP?b*%t4y{rJ{&{L>;&!T}GVGXkw>*3_F0A?>7>(DF^&ht*?5)?b"
+    "Au^GKD#~!z61s0!7u9Y>W85ng?!{#X~dZHjzsW7_Nd|WspKxJmCnytK{DlqJam*cIez#58QN!(51=)*R)wo@0hB!"
+    "ua~n08pGaXFw|sc|q;WLbX3p{BY77C;tI>Wq|@1h-mzK2u_-eb}G|Y$3H)N>OpoaR%5~X|-tU<=Kj<n&hJ{A5L0t"
+    "Ssj-2u(6d8$cRGvMRMhJd04rMzdAfG?L}?z(8VVUD%Bw2`({Zwp2*s>f&G?qi_R)H!Sc(=uX3$YWl@2|W#*B&#H4"
+    "u&*wa@&iNKVxu!v*;kHGyVvQ$QHeV&%DZ5=R5pdp9tUmUd^j4^j0Q&rAcaei5gec9&idhs;M9JBx}rhFED)$a0oD"
+    "mj7vB#jdb7A0vhzDYTzc^{uVyDW?{O=PPQMF9rwRe9Jd1(KxHBpxzVxc5-Wz<Vwl7(R(%&cRTGxW~(8%Ilocn|EH"
+    "K>jF^;J1D#E0T@!{<%eJqtSH&~d9Y*)MF}n{KVyT%_T0$k`PON}TIgVfCO3WNqic_mCCB^*XbH7eMlC!>^cRZl1@"
+    "eGCHoZ4xWs?&aD$Y=rRo8oid?%=Vu80RoreorGZb1jPp7U|HWYpTrYjDvc^eU5C=F0SR#iyWauj%AXL2StXI*O0W"
+    "dFMJBcR0mxc_e}DsP!MBRS2455_;5t3^d+plM<g-l@)j<J67AFPU@kz?o<aOdhZFZ&4IcU=(v76Coa`}o(#=^+p_"
+    "&aAcNt{*;km8Ny$m!{y3jRG7pX<d?o9I+xZDU2;_yJ2R)1uPMMdRjwH>opHwJ2pS*flSRvk$+NRoIGyJH?<a_9wG"
+    "U9i~I574AWh&#zeDUp`<zHFV)>)9-z8@Xgx^CjrSyFm*Q8Fnb4faw+!<8L#)rqVT-N55{H|8y#7xQe0ZLtcqzJ^_"
+    "aM5h|)?V2z?93?>?sm(>Z_zz+;5Im|*Tb->!vzKA&Ce%gM>5VQTK$}bFqe>-TEYCQ5o1U;0JJ~kxW6pVsb?j|&B("
+    "XULV31!x2Q9q@1M$A46|HtWIOec(Kps_aTU7p&CZMd6G)R_m26D_(W#QG(`9CuO+t7<LJ#;DIAN}^}?VhX9oV++7"
+    "P)a0tHEiAKwv#I~65tIEewmh})iqwmYRfSU@Sajb;lGS4gtns<zI4`^vP0$^%7l9No$eQYX+6WT2MQu0W#_&9FSm"
+    "1&wFyJ*2O9NapOTpo=pA`nSRVi{wVyyJ65%d6x8l;#dbj~OL(%21bSk7I6C}9l5K>2_k*;A;Im1&H=IRKNy2}wat"
+    "Z*BZ6EV-r$(qPD;rpN{g)dW-Ed`=Tf_k50UNMlAcj_UuyrZ$TP()Vb@vZq}xx+$Ppdd>h-xiA7f#ZyBD>|LDC7W~"
+    "FJUIT$696U{RWrIAxlWn@=sjDVBF7*!X%XVw#|v;R^qq0r3L|p9+gjR5CQ$w4-_!-?+^WrUr8SkR$L6e5XN0u8At"
+    "GU@Qni{MlLJT^at)fB&}hRPW?1UuMwc{{QY3wCn*%<HLS?mdj*>3E1iczGcd5wKYir_gi88vL;cgCM9#>EC8|%%Y"
+    "Ot0=<3ydo~y=1ec81<b~D%@J8A4WOE06eJpLL^!{VMoA`#M@szI2Cj(P`k>^$BzNs@`jF8nHLp{5gk&i#su=ULfs"
+    "v33!b7aM*BIIG?Zqi3w<DwWjs+CU>9Fc_$@7+2aah}Vgy6Yk^S>TlYlBRC5U})j2$Naty_b_oM(G+=^DzrklxejI"
+    "ReJPt;HvtLC?T-df71-rnPECtnDx2Mz{$di!G--RzT;^>qQI+&Rh!mC{&Ia<!^aW>6dU5svMzu@$7I#fW4~K>&W{"
+    "_eVF*;mmV=qvpGyT*m5yU5ycUem!61-Kml)jumt!&G&IqUk^Zi-{n|0keJGny{43OTU|x^HCMOIfb439*^f^zIqD"
+    "7~pU}alyE9jUq8f{cz?G=ZxLC0y)fX1w`-9q84x($_jLdEVP8@}-~%t_Q3q0p{~mFZj?7|ZCGO5k$KrPq}yRQdMB"
+    "YN=~omc3TS6s-d$Up~=n=MzAB9RQKqHQfOEy!EiBc-HF)F6C%S{dpO6AC(X)Y&mcN70~CWb$ZG<uz9fu@30<@GWz"
+    "55XgX&t#qrW=FlKayQAW}=ZIlEw;hweL*d~<&3D;WRSc$v79`@tIO)~0h)xzP`gYs3oh~??6?ycH^RrQ?@<UoW}v"
+    "b78;h1t4*pg;(t%iLu4Le~doUmeJBQoa|;rHPEWTP}17D-i#qe5fIF2y=Qn8(&Ng`H9A9u=ba0uK|CyfSmK~#E9c"
+    "Oc?$gcke)p2N5Bmj-myftL)tX8!diMu93Uq6=RG{TnR!<YOguC}K)T+iJ(%_#z9Vo9(vUz$Nyr$rKm3UQrzD;4SC"
+    "r1%*Wcg%_VxGApZ+D+tL^p@a3Lxg5fEDicA^lelD2$&56yxL!DDKNC+d8rVg%aLoIKBj@6HTYl=8$KfQiz53;Om+"
+    "-<1QBrC{g^Q|<btDR*Tcsu~-f7C8WZTCyx1B-1<Y9)^t0re(FVu9x}`N28k5w6NXQEr7N;gwBAV1M-k&u_;B8%`3"
+    "v&be2dANW-wXA;D{zd%V=3s4hSNb+S6<DS*omVz@8MwlSxoQ7|&GRc|txQaFsuoG#(@#8fs@Z4DKI+(sQ6kglhPm"
+    "IC+{gb@_hLYXPkh+{R(=|Ea>h?&^XjKR3s8NINHz)F@(T_yT71(CDVS54c6wI4qkvlZBjOmMkskwq~#jL?U?9bBv"
+    "!PC`j7UcRBo-7>qYC=Ucd_yaLfuoLQrgFvEyt~76JTdozVF$Xb0c-)3naCewLa+x)xyPe?oVqlBX0|t5nB5z?3V("
+    "?DIO>4&U)&_9f6yLKoX}Gdnwm}`zjw&eFH6puD+y_xFH16XyI74DU>2fR`cf=)GhMf$oF#x0vx4ftzX~+31NAamY"
+    "XN|T>k5he-66p-JrkEEAh5(YQhdzwOoC`t;t$J1t)Lw|*unU#*<tC^r{SFrB`O~(;>?S=Pb)W8~p*T-eUc<5Y`0z"
+    "}*LywpG(%$>FVuu?k{03(4wPL-&EiMr<8I&+s!y4uFrb3^m4LziqNt3w@XHfl#E^rXotF}W>KaEaln({K}5)p0TO"
+    "pjHM%vg+D+YwXe%RVW2O6+GZCXZrpq7#3jEb@H%2-l#ogZ&*-Bqe*(u}zBrhK->=@?Pp&48lhgvbfM#BVfE9Hu4W"
+    "{ha$lKGOVcd4YfP@uB!9Bc$0tWlwU8)dSWx@l&;CX>_rkD`*z{WHgVa_{D`T8WC=bq6T;Rs3+~2d7_27d!3eiND4"
+    ")S6^9~G?2tkjBCIF$#dYPJMRU}F9`zW6>!s+JfPl6#+kHkry4A$`3MSVv>S?YOYA&YrL9m%(;FRksW+b9%|ncHs^"
+    "2BA%Ev|)NzIAfrc?;WxMe3>qIKLFo`RP!sY?Z_7(lwlJ<wSv#~Bjl(u`0CIYGUkvD)*?GAZ|s|~wCO$6s2d3g6PW"
+    "Nqi*zxhXliY84O>U(!pO85)D@3aV92nFzRsmX<kNOmy=`Bd?^+KwMR<{_5|l^phAo%h@miM8*o@g(PMw6Pt)QCmY"
+    "nT2t0Pj<sFO49ArH04rw)Ez(3s471z~WBU+{i%07P6}*;ZkyResT{|;1mRke+$ubH#vqIY1QzCI9rmwDAEL}80}a"
+    "48h`FlzQ6ze`NUb0-TCNKe);z0?o&E4#v#I!BIXcFzQ+=j0b<<JCi};G_!3ZIlT*W^=;PBuK8!Go6$~d3g&Njdbe"
+    "vaLLn*GCX_VL{c<jr-rS+o8=;(68;BcjgserYh#80Kl=s65<RlN2HwuCbV2pXoqr?~VEY!YnX>xW0Wj!^L0viT0d"
+    "LOIvn6<T+uM8M#%pnGt8t@=v%J?Rk-%|<V&g4!pvoo(ob=Y+w!e0UBSV>l#I8K)wd&S5|m7D)Q=EOmARmjCe3^>`"
+    "+=sd^y_`c-%kyR)5U1V606UxCUv`g=tAY{yGXVmIRVrCi=jp|cpGlhppi0cQxnwO`LY+JA^xBP>1?farY&VV|cs8"
+    ")FX~vBI-0TtjdB&=^m1TZ{iY(sx6KpB%)YqFQ@MT!T+MxJtlW8pb8}rlL<D1f7I;RATWjtLRQ~Nj%+UEBO+Rlvb7"
+    "D&CKcGCSh_|ZY!=Ch7%t(MS+koU!C@r%2iq7mxK8sJgE+oQu*jA0tq|S`~L78Z(%>O^_`l^0JCIX!%$ScRuT;xq@"
+    "0R{NCITrl6RnI0mWRSu4i}O&=DyJXXVxwaiGj0m5k?@04{A&J!zK;Ny+;1Ip_)3yxj=reXbm$;Zv}lp&n;uNxK({"
+    ">-;n{yTl?q!>m9|gEDs<O`lzgIL@+#mU=blpu;{l^TJHmtj+LHn5B`#NGI1ZWUgG3sEQxpERb&ve04k*?gdn%VzV"
+    "=mV$5hS@w;j;H>fO<hKRjtk6^eMRs2S!bQuBZz0!kceY;eg7s&a_Kbe@uSU(#ic(PM-3lWk&)B&dXDNc2_)6H`fd"
+    "$&wwwk7{hs5hv%^GR*>IHZlrtIv5F;p36}ZIAaf<RQyUm4<evsONSI|2upS<{hhd>L6xrQv;{Un0)|l7Go$CoP@t"
+    ";(Ev{8&)|a27Yg=rLR|3w2><WY^<M4~a`9sAUgh@R<#ommb_PYU>mtfDC6p>2f4(E79ct0av1faz^BpB<T+@R;CW"
+    "i~DP>va9_8871KTA0urGykv<$hGU5mVb#ys!|5oV%^z<UUD;Id|RCcr7faZGc8OJ;8(GM-TAYdzGbJE7$Ovb}-Cc"
+    "h09w-eUW9|l&X5$=aLOfQy}b_V^f{)OtNR$Us%f&$6zD2k_wMC!rpd2r9+<5MgJpTN3e&(Ds1A2%7I!K+sqd@^tw"
+    "Sx<VD<}V`LliL2M`$1y!4+$P&_?)bUh}V>nXumTtB<k;7Zbwca^<Ik**gMeXM*BT-TY@shJ6j|f-^=D3X>S5h}AN"
+    "f`BFk|SwbK!4IS>bf%P|Mm9Lx7e+G`TgzZ_uqefr&$>oGE1$ovz#zPa&eL{!<df1@rHMK#w|e$j-eO9BGxg-wQZx"
+    "NRe6obC5~vkF^2G<08mR|{Lgz1Gl;}dF)ixz?O2<_m{r5SsmG%R^YhiIJlwAq&O@12;;{!mJVh|(=`bj42{{iPX|"
+    "%|+(@E}9$vjKkGe4B@rrZj;wrzB13H_$0?lg{@(lx)#->y8m!ylQiYR;_UwUzKP+J6dynloGo8L9*$!wKfHI@E(G"
+    "A|!y=Tf|FwPlw}$p5-f$kb_Rvkp3BTX+X?_iN=#4H;N0anAvCsrxqu*UC;Ot>4zklL1Z&z*Gh~HZF8R0ifmM_ogA"
+    "<g0gE`oN`E#%$dSR8`4GlH0b4pu5D66_ZG?XevKj^ua-{z>jjskvC1mi6ke4+4maWNekoeAxUCoXM#41QOyGaMDh"
+    "v?oEqR99li8Yz_xNzK<6Ho@^{*f^WGqYpj3*3Y9cbYj9&gR{|p(-YAM&M;>Cb^ypET<HL5<qZroO+AR1dbFg`Vy6"
+    "v>Wh+b>!O*gq_h<Z{L+I#2YxQ8f%KltK)e>|^`pPg7%z*Dj}n4}KTdDN@!;E$OD_m6*QV;V<DZ^^FWM}mjH@Oue@"
+    "Yx_S-uC;vuGo*$j>8;<W%m!_8lvH1)OrBKM6~ZhUA4FXL45E0nXdd*Y&3xw<&w8%B&p?HSm=@B34E=>>cN2aP^t&"
+    "bkOBYS<;)gwm*ETQz(kGOacXIW$Co02=BDMlOsHfofM61(hgs@`dp|zrgc>Or9{Gz&cn=4^uFlwyr5<1Z`&exh#s"
+    "Bko?g4^S?g*6WQ2lcVErxo4fRkG9&-M?!b;WXSv_a8(w@)c##};1GeeFaYTJ+c^`2>t#Aa>A#32TT1=)1c;WGe&&"
+    "#2WJMs{rn(b)tMU61*Esi^4<ecS;|9~msz+sNcW*FcPUBnIH_p`>Y|8BFKud$>|V^Mv$`DQ!#o3Od#a4BAKR)ICl"
+    "c?^hI@lOwuSy(&;bnUkjamd<vxWx$)>oLyH+URqQbYOF+3!da*b4n#N>27YL5lO~>~kxconpk0Q@$%lEcQRJ_Y+a"
+    "w>j82hE!iOsz3#Y$HT_ueM+?6HboP9K1R@W~yl$Jrv{Y=m=-Db~)E<uUk*0t^aEc~y~9ibUigB$m-)W9Q)dn}t+2"
+    "XDf@hLT)KzDNMJ{R}hNZe_Rp@<2&x6IpQ+AOToaStWrq!LtQT>7g;%M%X%J|!<992rj)OGr_>Z-USW%Xoj-Vg4fP"
+    "nz5IUw|6)tTj=-2vJR}AfY6u+(B5W}^sSY@j`^60;Pe*gCNx3Ayc59#ZdZ(slR(zqZ|$>HG0@UF4qR}Tv`L1**0D"
+    "0fDv8k~;j6fCVLFPGEwgZkIdwf-sdy@E&Yq!A5d;Cz`>!%tI~>>1@J$YF+W6rskmvOFu>Eu6k0%U6CADubLjl5;t"
+    "$D2Iu|o^^<D35R0Wx7wdb6V97vlu-~s2UgW4J7@5PykdJ{HwhTau3ypB>vg1Fyl?5hQ&T$q24;=PO<XS-13TI;Jw"
+    "czN)-zLBgM%MzVSP8yf{pN(f;xdMvuRi(qJ|xYD9Y*%HQ*wc?B{V%Ow&d57kE6L{yVBN33OEdm63L+7>m)QL08O1"
+    "K2VQ@Kko>41J6rWg*tUQw+5>v<DELQE>{XN*Xd#w$#Q{jRk4NezFUV_{s^!+dKYs7vN%a!o=+sI^l6Gh#2BfSMVL"
+    "EU5LUSj9TZw&7L1ECVe~_5q{?ym$W!36yR)yqlC{->irGRs{Nw@Cs4Mqie3iqSy5AMs3tZTjz^g~QZzjUUmN|h_G"
+    "<~+0g!B?T&>Wy1Y&knOS5VrTv51p!3u?*Ugor1^MDW5{wP+)Ad*rJAD$MnqW7Y^bR5g$1vX^8YaP>5wCbE<H!GnW"
+    "JNyYePC}r<pW>n#NQC@aOc(@-uf_FM5+Zh@C3N6a*CKBkcgqNIOMUxFbA#)!x0eOuGhK%a-vSGLrlX4mcyw~{>o1"
+    "l+lLG4$<4Jq~#hr*oL`){KcM<h3?gp|V|Pof}*Zecgq<}(2@LqOO4YjO{Cd1}e|6{^e}xiA&>YI#P8h54N(&M+#a"
+    "1*WA4@9u3dlZqk&$*?C48C{c6Uye}2v-no=OM>L-kc^wl{lVu8=e=euNxaboNQ<msHN<FWnlY3Y#&xg;+I4T_JNQ"
+    "24=D-wILXky}Q-}%$(OcO&=f5w#w6>?Ed7Cp-g8Gi*cvS^6hejYANUAyuXLz=w?g)<_6@OexAD?)w9ma27QG;N7h"
+    "#138F$X0}He5dM?IFLXZ`Gaq2_pUIr#Zu24bjx7!M$u&GrBrOrcR`8;__d*zJC4$y)C6IGZ|WyqB<)CHpmAr@X|R"
+    "m3;{&`<6E#*jz{JQ{$gYwm=+`A9KmMw8E+_f#*7<9^3OW`S&o5gy9Jo%wSe5rb^cklMwOfsw7E6KBdu|)d9!MW<E"
+    "gV@e@X^iXpT$T;TvytuHC50EKiCO>ST%oZr0^ABc!#<9a9*R7Hyh$4+1W3%Hqjgs@<lj%neEN)Q1o#c!7@fSV{xe"
+    "xG2$c=wCgl?%{FAmLQg$2!tFuh|wvG<4lvQ$ik{zhNnybn6u%D{zy#u<JT`g|4Quq+n4WeS1>*K^W(Ogks-kngKa"
+    "(vniolsI$-HB=h&;yAYaCTc-0+Jk%!Q;-$7br*?JG#d(uZ6Prfk=Yq6~e26KWOMzGu9kgy5zP3&L+LU1#PFIZG!O"
+    "U1Z@Il?Q}v9ewJcnOlLlXAaTMLq6k{pWzR(w!`<&A_->iFo+S+$OTC_M6(+UKIkn%%`j25WB+P!wz5@r0Qch-bd_"
+    "d1W&a*yWtgsA|yzbU}4>wX~db5kh-(f7{+~2!TUn-D(145FuT4E@L&lC4F{;)N@p;U(el*GKN%dK&f9-fdeebC?E"
+    "i^wFyxHp<}vk`^JTS>mX5Q)wdT<7i1LtIq0voj&K@OlHv?#fHN|tHKs|;pk04X^n94RxsZZtso5J>Z^v)gdvA|(u"
+    "TA;{OT!B}Hl4g6<S&S|9LLXl&>Qk7uwy8u|gq?<C2Zj-m;(BwH0NqC97qa@~lIp=VoP@0`$D2c70~5;RUM6#G>1n"
+    "g+UlHRbQB6b-J4Qk1FFLeqlXH-Zv=S+=s`PM?sVV4?r`nSk0E4llI6Y_=M#x9{>-4N(JYX=xoDuT~B?D<f*wLzUY"
+    "|r<g-YypW&82d=0iBokWI}n!FGk4XV1T>rIu?^TMNDFk@V))SaDVcEZ9&8Ia}?ufgE%9pv)*IS91}7M+a3Bam88<"
+    "Aiy6LfbLF#5%IN{gMqXqh-#l@Nv>wrdF+h(*C3sLh+@=LRg6sfbv*+zs2k7&nYs$%jIbUzh)7a?`v(+PY${91Dsp"
+    "o0OAFzVc)@kh(Ig>Yy-BNeQr&X_qPOA`Od1;qfb81x#tXA6)p)?Vys_3dcJDC=2#A`A6&p8=zMr9(MxuaKDa)(Ju"
+    "IIZJ3U5e4&n*1lTx!J%&j##mO8{y1pLMKBAhF|(!CnKMFuMkWRf3D(>zSOcgrz~c_YH2367z!&gj=G&UB=m<_XL%"
+    "t6mc}6g>HBiSJIDCuNA#DS*`z;ldsfh^Tq#p$7^}+5R<%l+ebrWtyzki~FA70>4W>siBG4HMPD#vh20Y*aq?X9I)"
+    "P&t=`Z^Hl8cY{t{}wXXjuwr({o?K6&UJ?$X!Zbuu!RBhX_`e}x~`bkj)=^*&z1pd7(FqJ-HzC;4#!;4Ei1M)Tg%`"
+    "ee@P_f&DUt0A?TaQFUlj9D$C=Tq-MP>ThiKEA4nr{cYl$XB)h(F;2COrDwY^5_KM0T-#%ry0ne;mNsIF;j8R#8UU"
+    "gD7gWc}*Y6jD%=!+)CXNQF|oSl81u}y0@xt;H%3fE($<M;)nv*y*6eERYBUtiz9|8MyyshC{D@Dku~#Ar%ZF-V*x"
+    "LIdO5j5{*=l#<uHE&nj$F+^B0VB}2&=SEd9kk;r=UV6_4wl_BFxYAKsts1@D1rXeFwR$y(!p|Cw$T8*2>R~$mQT;"
+    "JFj>q(HIO-}v89SnramP`7#9`(%Ft5i<)$>+HgVMaLPQjGWXQzuNGx#=C5Mtu(7bXmi$f0_4XpF8|6k##$qJiKY)"
+    "~|z<VHB)+Rfp$jY~WID=F90ejHeo;9Bo6&zd6z9REo)YCLZ+g+rp`NrQpXA*_C{OrZslpFEfM7yvK10&!y`+-dPU"
+    "G_=+XA7D$Rhq8e7nEk>x8TSJ>uK57oBrt610TeIdBd{h&XC)5UvRyNn`&?$A`t2B%&=$Kd*H^HM7RNxg1W&v_90Z"
+    "*PW{&be+Ck8DdeyHAR5EP=;duY-_IA2&HQ+7k-^$??Gv@RwBP0-w1^o8HAwl&-~Dh$U`rDNO*xM|g6F3}yjDsD=#"
+    "pa{0c>GJIN_~@A7iY(Ko<TBYwz@RS&2g&wZbxZmHK9oTqqT^ttx5zZayyvbqbGVgy3HYGf;E>s_Rwo~NT^^6zoWn"
+    "3%pcK4h%GJgeDT5tr9COS$!kgh}4yYW0fW(a3#8A+tRg<Z~idQ&|r?Ev=40Wn#XH=|wBY+skuIVNR<!9dX1JD%^i"
+    "DbMHnE<*&LDQRNy@a`8el^9I7X6{1pC-+e*MK48DZ144DI}y=W2x~@A(SO$zG>oLC5VN3xkvO1U4Y(Z!C>k_DkcG"
+    "T2}{l_u!QdwISxN+%nA}_as;|zD&x4BeU2nbM4_IE{ab3}dubszILlx6l_5PNjQB|Y&dw&cMNg{fDY5*(Rgx+lkw"
+    "-1#pPZ$Pb6boNM*sME7Hm94U?7G8CUwY&#RG<xwjwBt*DcRM^1|)Ne;r7<!br@w*IWwUVd)|g9WtALMW`R_w1`gj"
+    "eq|c1Iv<8&iDW%Z)5v$ri-KG3ilNtc0_MPe%I2`9^=idEmwY#4ZiKLVoTvjcfEiCMq@cjC28LC#?RQMt7L1^JLN="
+    "76DSf-7B9S!$1--tO=LNHytP?|LWRWz8ZC+c;>(i5Z!0KK1{ANjbf^ZBbqi8~DY?-mjJx&zlG91&ZZB~MU!uF0!i"
+    "lNi=AxXwEb5vrxP?v&(-XqQE+$*}!>CGi#eWR4c^V@@?GP1woKo5vD?_4~N<?_mB;$>x-qvi>%5=IO}*e}^_ct5w"
+    "$W*d-&{IffQUn}lT7O$;2(Bv)+d9Y;PdL^X%@$38VZ=WAc%Kv2cb<w`)R+@K0m2)ZECbDn$4LH%hds8>bb$qX0u("
+    "ikhe1(YfxGm3{B>W8ccawL@ZIzwxxG4Pq!+sL}V5Aq_l?5PtdrhhyS?f_oEuz|eg(TlF8Uet0K3mR#X2>}xrj+=y"
+    "OO6kxB8e$naz072R}OMhiX_8M)r$KpAJG)98s>NAb%m`ys8+=C3{H|@npCCCwVI>YrQkZ3jHf9%f>tMWxf&|B%WZ"
+    "+ao^OV1ve0lUn?%v>#5N|UEkpECdp<kU1eRZk)@{Bz4~COb!U%8K#DuMIY1)$G(#Tui#LI;iF?L*BFC#0uNl*EDS"
+    "Pm&kHgXa**4_reQ#F{Wtk<8hbp#Rg{bvIYivwKVS~%F*@#YdTUc>FB;76cPu|WxOI;KJK<gz19SGLuCHY;;sL#_a"
+    "r%Q0*B*v;R%oVb#B;EQi?P!brHQTukKez$Ey)e$VxcQNVMvQ6r(L<sjiHutO%!v+u={Z|fJ4<VVNqndSu4zkc)XH"
+    "=o({(ZNTJ%dd*8y9HDx?OX$N{YD}gLYSZH*13PM2qM}HK_)Z5P8RoQQcrYkrRR*4gFJOC`43M*6v-}hgi{!v56Ki"
+    "33g2;!dy^^k%&CU0TnV40uYat(YiiNcZKCn2@t3|g=c`f0H2z<VM{-^Nj&s!0omiS=$%)ieTB6(A_^0AX$_wpECP"
+    "$OR@VRN8y_W+niH9A1R*iPUkoSvJ>H8k>HP3)L90>vIIT{;gjS3m^=@<K+R+%v9|~hnS-(5_Ng7X@?>pE_8E7Kp7"
+    "+-47lZ>HM-MACO+3YNzWFf1GS%zIYon&1cT?WH`NdyHj5U!50*K2TDL}c$_wh}7}wtkBXq(p3F(8CFZGP4*<r$YS"
+    "~G*of6$;Rz1vf2PTlNO(zb(+}Wc3cA`Kac%_Fh1HLLCeG-QO6xE_J`evVaVi_F3ekM%%r&)w&^K#aV7^RdXpigh}"
+    "&Ee5EiKsT7mZzRHzj*?H-CcoE^$tsJy^#j<=?#k{-^rQ}R+#Di<1p&K;-Zt}HwO;8Ck)ptY`l5n(zxqCf~%DWTR{"
+    "L{<nXR3mJidPV3h9-tX!nQlH|<Xwth+L&4-xNexBWJa2^>xw^waXIUP=nvDfJJTG}`clI`WZM+%SK(x{U>sGy@o)"
+    "<jpX59mf69<fyt#Fc?{FC`M((EINKwOR$ATDM10c0!gTpQXtu$VAcR0Q|&Z~x$9C|qxOGs82v<DwSHK680W{cDq`"
+    "vIzBrI_?Ig+fi|TXwi>mWLtnuV4Ro`~3CokN3C#O+v479?7mYl5yf(`Orsw5mOEGUU6V3D$|DcvUIHOj1tUq8zAw"
+    "m7Dkye0_vZLH<2n|#Lue`V8*s9tH-Jg&Ze}`Fk}y>y9B|~6E?)1Lxm4_c$WFzhU8mfqKYb;9>!hVdAIoqq+@OSH3"
+    "%)km{fRT*>G4oG05F37?&9DYAMmy&2ZDA8s5M2l3;u#`hlqywrlN~%to4#JzsR}0bNy)za36SWQu{(*t8E*o`SSA"
+    "z>tGG61HosZM{urm}bGe4;e^!i|J-0`F=>Gg~YEr#iRT@_crwk9o9lqJP`;{Q&bmK4dJENNvS<_suWb={SCm$mSa"
+    "W~$p}NQ0;w|2JMQGEdM|g^P<WM5F%mu-16502@x0CaI7}!z(PQ4uwM&lFS_Yc#g7lI5y@8vADWkrUekY>+#Ipb<T"
+    "&%3*O~LJjwXu}TqUx?e%H$fuuq8;EEzC{=t+DJ4rVgxzg4a&Yk@UR+kS@_noSl@h&f2eDF4z0Rs1YV&dLfgSuA6a"
+    "%UzoHz+D~;uq)b#L&qhT^0i3D-$wsvZqb$R|Y}Zg3*sjDZpiZp_LpEO}n4$U((IOHD#;GNQlcIJg6CPQt@xbeg0^"
+    "u>pg5e%MW5g6o)L0B(=S#3g!$dEo+rXl0&mbdz8ItS?9KLlPDR5z#wmv)WRbBrG)Onh7U#B)S8d0Rcm!yO;Bt5wK"
+    "CSt5faCv>C1I5p!Y>2cD<}kK9R-MC1Oyc~#Dy$DrxnjzjVx*>IOoQ)QpXG4{XR4F>`VcV4k;C7xiE2eQ`El@wz^i"
+    "G1uQmyMw7TUOmk3B+Ad=HFE*6`h^cfL=_#;ScH-vI9DSK%lFP-70&fp_bG(vTbtO<e$qj|}L^p8XK@5OdI9mLs_b"
+    "-e_FJ*X8kcJDD#Cv}ZL?<9oQ0Z)=XRzYPP+8dHKyXBJMl6io%Lp+8pqIg_z(jc)YXv_wX^s5Euim)@VbQPNGY1VV"
+    "D2xh49c9G8uR0P8<@~2GhYOXAlMpOI>2Rk(86R(3up{vJHUc}P0mtZAZz!U+zjTTQc!4g@Su7!3B=7$eXe<zZ>`q"
+    "1#FgocQfw~+pYrhCZ_X|JwbgO51%(@ovkXwgkbHg%2(3+TJaiING-HRWoEnMm<rXMJmH()X3B*S2SVc#c&mTW?6o"
+    "+T*1wx)W*oinMDdqvp(L{^(y==S1MGm(P+bfY3gH{X@3T-McBwS?h|N1yrDV<&{tpDI|^j1bsLex708sVBC4uL_{"
+    "DPwuTo-zAZpzmhbiX>sur`MlXVo1pTnFVqx!JH9?cD>gGx;Q+XbJ2+vCWx$Vm5jpSadi1wBnIjj_l)b}1VbIr*y%"
+    "PuH!hsi3DcX}Ku^N{{f%#*JUPpU_Ck#QpSS?I5OO^(G%$fhN4HJmD(mEQ@`rY`g9iu3y+KgF)fwqea@c95t9YIaz"
+    "5Na-MWccK2SA5Ipi^-OkQlu}<4&=N0Z-A#h*7Qm1&QtlI%RoR)T-=0zZ)_5Q5>yUr?K|=G~!ddLu<pK~a`sNZ9jz"
+    "&Opo4I9j)llX?BV*5=!9P^X&@|>9)}j{jwV%rBW6Nuxxp2^hf#|7?a%sN!r6h#*IhQHqTb{l6D<_{I8(_mWiFi&M"
+    "X*v6&Q?#R#ke9Cq#8RSOO3=S!z9N0#&V+>R&>URv4=?IK4OMT&8$7&<PlCW=QBz|}yRSK&j&Lv)_kJeg<{S~s_$;"
+    "hL)6UuGGL+y~N{vGVP#4@1^gf_MZ3JE2q&$<3xh_jwTUqiSi|2Sa<*a)G4`Z=q`?PEG9!;th5~e|AfMZHMtc!_@C"
+    "KF0z`pvSCr3A8Q1=MW8icYXHP^!YVWr)S8jYJp+6c&tII*oR-Kwc?K$&7t<oNq*BNI>H>EP7n4ZNl-YIsF_SWE=6"
+    "<FbGvGYMfejKU1^GlUmIEzTh>9SerrJd~>M^T3Jl3u<-4=kE~a-+k_)xQr}YSlJ<NZKBlZ{-!xeN4vko{ex<vYh<"
+    "J5Kx`U1CHR1ruEU{g0m7@-;^L22&Mo8`%zXA1Hm8YVEKAMk3pJcT@TZo$gi6Leuf&b-M-3cA;Gu#AWuGRA5_0-t%"
+    "TS}8$!Dhx?jr_&Nsig*Q#r=2cxa?!DPFhrKFKWXXjz7+AbR0>0t6gvwt7e;_B;(ASg2j&0S-KN-$X}q`rpdNQv!="
+    "$7VeG|LvM;m^cJQe4Xc7FYrfSr~u6_hE(YmBCTDN^df4sud8UO9}Qf!VeP!~7%=t^w$5q`($y_;OAzSJ}*^h;1I^"
+    "JIbaXVZ-9_j9O)-)RfW98ON=4c;p~-2&46a{NAo(N@<JsuKxcwOTu*NOgr!$53&F%_V}NRQ?n)GfZ0X0E=BsEKN5"
+    "l$<)WvbSDdYLN^TYlNDbcd7N#DFR(zH?Li8`F!>AVb{TFF=Xy^4u-~fvHVJqMIw?ezuNqE*ycK>{4f1w>H8~2R_X"
+    "e`8x<E6K4jU1u2zjZX-LILLlfcg^AHGL+ty;2u5*?G&zoFS{C?Wh&728L%tL5qm^#B#6fmsJ^)SbtRt7y82BWJUg"
+    "rxxWB$iMykkMBRe{_PRz`04v!-+uY}jfN$nJMiM^!FLpDNYt>5t4a@gLTopT>omof>QCA*M6-pl45_ENn2&XqEOX"
+    "o2YaWGl4lUfRa`D|U7UY+0$zwQHSH|^8ac^d**&J5ZuoPWVx$CR$FPo_BtfhFO3=->8!<54RT|odJW6OM-Q$TyV1"
+    "*ji2Tex<kB5zu_@P?|<hkB<k*mM!PIa{<r)9^b|%S<kmg0sqe76KQ-6LWaalp|5d=4|BcSW}PlKE<dbpsT-RsZ>F"
+    "q(mkk(R2X|bu(|Ge5Wxb(pw=AbXmA<?Ad63`GCLZum}rs;MM*{I*!=vVtIyos_xoBAX6v6M*>Hy1^5YY=r-N9e+a"
+    "osx_fWr_{&Kup8C_=nW`twm!|yt5`M&k+2^y{wc>P+nLqsOWIA$iS%zXT{rWcw;YSFd9Ryn5#lYQvhp{{M52lWC1"
+    "IM)etfydcq=@D0Xj&~Z;I&K3fi0RLM>z-s8^IypC$2sb{`lQq`NA>v@hp=TuYU6rxKq`6(mBdFq7F4+o{1X*abFQ"
+    "1QO?`ij`Ji&n=M1d}_NAaA<lY`D2vD)raN1eJtfz;kJ#+;l=g-04v-hX?Fd&-Jms+%wq0-J8QdA%Cz^tW+$uvj6p"
+    "6h`m(%ui<0frpD4ZSR<AjwOGE>Jr!Zpp`I3ALuBM|Yv`3D7RHovbWJM9_jCaZrflmL6)LG=-Bb7Z{ssA)BLvOPp3"
+    "1b!8YMYKVr8B_;g9bKI>FHwD2w5Hh#bde!E5U*~Ww8bNss*KW-*^*@<?-^22V!N!fkq$5I{iV}rjm-VMmh66><4="
+    "?cNVbA7})el*TdVzEyp_R3Xz=&mdAZ7!=H+K=f^`nL$Rhi&00BU&Ow>aVbW2WFy3EJaJV)V{B?1|QwXA6kjIAoS>"
+    "b5)GkmZop=iUqa>a<aL{MyGH6?q>KaNL9{3kv?xf=Bx9W+|V+EU#}A=Uxgq%f)}bz163o3RPGRtQykP+MPWDkQhi"
+    "M%_}=G0m_{iguzD{FD`cQejT}Nb@Aa%-N_ca(PLdPg{{*jECE9pR8hmO&w;CUwJ>pBm?}jYLiy+cM$w(RXo?B>w$"
+    "pE^8*pm4jF6k_~?gGJ!-BapeH-YI^CvOA+6+taYt33=FyNHwHgobTU7<R5PUP*3C+1(Wk{^XS;R+-N7=@{%Av?t-"
+    "RN5q<`vkn0w<U+CTLE~~BAzrZ24%=<YKjIf^qbzUw;6&PrDFiBn@m@(aIQ<seGBcgcjA*(PmZ+cNwPlT_!k+(hE%"
+    "~7ke9qxcDtYsalXeB<-v098r%!J`zP*3?@%G1;AHRP6$B(zaefjOL_9T!Cn}NspD6j3{nm#uhkApXes>f{Er@wra"
+    "Lf<T83(&l_R|Um!#$>S>_z^zODX3Z@=ZmzQ8L?cPrL#WAZZ+VOF~j!<zk5sch+FDWjcUO-qR)^Q85(35*P%C*gp^"
+    "|NgSB4q2uXmt2EVi((J>0rf-Q{&KkBDU*_d~XeLOH$gedbZAnuK^Tv9+4a_W6gijcR9Y21^H)AY3GQ=&ClHZ9ly%"
+    "yN-thQXGSen|DK%Xpe)@*B|RCT&{{yy*$~<B@>&Fcy^t(6hTbQ3Bc+H?2`!4y^{IHL8ik6>5mq+P2psAh*=Tm;y^"
+    "Jr+IZmGJ1!(vH=fMjQay#ondy{bR~j{4pSmv63;Oof0GdKIE^tj(6vHJ-_17QDD_RJV_g$mAicSpb~xa^O>v-eu8"
+    "lK2H2yRqcD#f!T6(pNuh{!n=h5|;XJlxe3)2m;wj7~DQh<t$iDtrDVkw_z92IUM4RmIJj79*VwR7^&+VJ=Lltb9O"
+    "Ps{DqchCpz2-eL4hi%C2b@CSC9uL=f4`t_zm+~Apq~L>(qAW#1tcf4t@;jdWaxP^tZ_j}-stJqt7HF)V_M22{Ltl"
+    "f4G-fO#V6>T8(M=)*X5dEb#PLX=Y&H74l?b0!MkAdiqIAqv$b#-o;z}egw`6?^j^HoUP%+C}h&<;+hdwp0jsy@E7"
+    "d@&x{0D()JQ2_y;H*kY9lM|mE*qLt)9e}k3O+&DVKM0$ChQf>Ev`TTQm#Kd``>6U-%B@yvIjf!>;(eWa6+(pF8GF"
+    "Dme%Jz(nK)>U><kEm~!ie96@&kZ3_S^5s7%p#m8o~--S|Iyf$@?+VjaU`lHF+2l|2wAv)qHegIY!W6OpzyTN&*mb"
+    "^ILHfSIemz1p9O%{%VKFO@~z&0yY528k>LyXpILn$~T6K1_eg9XPy(}FCWK1}4gw@P2y<JP#5+KYnjPB-Wt<-;rZ"
+    "O27GN3iSDQO;bCZvY3b+Qb>YFy|snMN2(aMc}8hDPPPzfjm;S-X008-L;Ww#-?aZ9&rN;OrGB-zL_Ieh-6-b`@WZ"
+    "5#5>oYH$kG5rpLh;$Apw_VgmOi?a*buE`^&ydYUX7kn=PV4Gb;WNWSBYcw+1~6F%V5@cRdYxYUW%ZV^RL6%D8N2p"
+    "=QrBh{<R>#(>GurouL)97q^vh+IEBt6w7`Ixl^W%p}sF)uyc6j%G;6hHAkkh#*ay|0mLOqiEIMI{0}&yb$37^dsz"
+    "cFawUfi-ewVYjLtM$jgyB%Hg2M{a_E>+b8!{)XRVQ{`U1B-`>9e`1<o--#&l)`uD%Te}4P=%P;mSRZbQRj)iwO$O"
+    "0dw`1dEu=tAL|$zV^;Oo&0sS-0t^`e3H5&{c}Bt27ubq}ZPEX2dR_{>Q5Jq*Qo_nOb-3TG>T06mTM5Rg~u%^MY`c"
+    "hfqe**5r|A;yxm}T)ac4n#dWFgc$=fJscL{3r(3NhriGrMNuasy+TwUarn{idckE%?K*-F$rRhFIV%9~ZM|d{iY&"
+    "GyHzpKXjF7rYMN&8L<ykS1#e;W*Iz;y}r};5RA+)#Q2$A*HU(`fv1SPLP)MPXe1-y=fy)v;V(J<JIs}`jFIVXH>G"
+    "jazt%R=P1G62rh6a)1KSMi3K9#R=sUO3z-_U~Gl()+G(w6jnPn4x#;PWkPDCl6$2p(=_YJbZ%c+%*Q+DM)b32qWq"
+    ")e=pr}wL9y#{`iDiCQH{K?K}v`%;TW*>=&)1qobxMP_EQ=)QsA(zy;rC5qR&-Y*b~i?=>-r!mz|7jl|*Bo>NKlCC"
+    "|Qy96HcLYhI8VoctA4ZA<qh4Opj!una!aw)<kiW<x^&IqvNFu!-rfHq*ty`~%BixtV&s;bP%QU^YtM!|D|eZqJV#"
+    "=FTR92W{AlYYPVj_TgD4WuP@Z8~zN-*n~GGlZm{0)B_J<o_aY8wq?jrD82Ehk;hVR4JPz>RkQM0S-KCBDnKNtl{I"
+    "K_swwkxo%(ml63aNE7RlR-2um7T&1biQ0m`qTR_k&mKgX_(P-jA7jj6K0_=C`rF0D8QtlBhO?F89efa6Oz^$dF}a"
+    "%GDDVTWVr$zR9>edO@7=5JfsmM1fJ?}A@&OiTDBFg`2mCG1XH?h=fB>D#W@q73fxSv{5o>y^6iLe(OhUOI<+fK!{"
+    "P!M}d1kp)Q=Rd@Agc(y>?%1p*mbyF(--+1&nd{<*W5qFfLTa;o1?UJb)mo~Nvm`5-#vraS6j#MXH+Q37ou=RtP5)"
+    "4bd`7IzJJ4FbNc|D=nO<KX{9G1(tKjD@g0Ts2IR%62-GIUuKyQ#1jTGTot@*KGGGuFaQgs@vwTc<c&3~S1pz-G}~"
+    "$c>Fe;Bct}8%afgLwz|cC;Qjg4M*vb`$;0elrhOj<PlNLcnBF|N#lh(GgYZY?zGyZx+)iiGYw`OS@=GZebB!Qr-I"
+    "r|^kA({Hv*&%AX+gixg|IFLeftaw3I*Iy^pzJW>4+KwQi~t%!+6o&co)9%DDDFwaC%6d%fnx#=v%^I{Gt@9I`=zp"
+    "f{BebmPvm*|a?}^cb@CE;-FfbhT`ma?u3)HjvXpIBF>L`IoH4|6)imM(O{}-|IiW{Px@1r*GfB{PR7yUPQu`681~"
+    "j2kbjg^f{k#gvLCZotE#R+0i|sn=#W|pQy^2pf5;TdfpSIl6i><`ZIA=4{n{obt)*mgn^^McoG)ESy$a{L0o{|Lg"
+    "%c8sYdX1e_l^QqxpDeJW~FIfKVv{;Vs4gL<~L_^?0^LFtVu9MD<80Z|D}>_yC-pN1l_0W*lZLGNCe_2--zSFto>_"
+    "w+<k-6bq9C=Qi2T--dgRQ-^R*0t8F$=83vqf__nEpF@Y<BrbND<A;`!83)ZiG!K;l>2x9#E5)#N)QVDl69G`BNgk"
+    "9v3zgRtP>^147&qzN=UtJ-vHjmOGHN4Thq4`;pec(r<2x+_$Yg>9!(~JJ&X%Axg))d<NK=5-r9WztYD9Yt2Cv2wt"
+    "fy?`xbthodtC)<(+O#cAC(A=@I($$SJG6M>DPwbl{Jss(;1zcrIHGnLLh5EUECr<-YKGha}?6XiILk~89;WZL|GW"
+    "~F_#jxb3*UzzqGT|SJTp2EzdUMjSU~}89E459BDFsTxJOr1b<l*uo9js(AX-(oQ#R*rA2>|;*=a&pcvliMYsuQpS"
+    "X;KgGcMqV<L(u!+b+K+#S3$n=NT%`i=ybNypuxHrQLCuGsaVIx`Y8hd6~eFiV6LIzLO}=c-5|?<H?P-Izfsur0!A"
+    "6xu>oob6{)KRNM%O-JCA)HRjJG8=c^!sTnEKHF_~8vbl9>^P`L)+?f?$T<mGJn|}ubW?;=n5P;KrkBAvFY+bUN|0"
+    "C0yhmjejGl<?3@?2%z?U`L47C{TPS>><BW+)qaT66HZn*JKbj+@K)>)K0i#G}RI3h2G+GK1c!lLA1R0DVg!?VkZw"
+    "=Z@Mzqg|^9l2Jl2*74a{h~v(86?>Dck<mb+LRLE<&l~Zo(d@bN?c?7uCA3>hfL>M%6O#PMXYB2UVh1RF13{Bq$6J"
+    "U4C9oj261-I+QKdeOC`tB;JRH7u=5?Y!R1eXndyrLhWj@Q-VIq8RLci=GFXE{p&qqrA#_bX`RnD08PEm`Ey8(Uf~"
+    ")e9%L>@HnonLyNjRF#0AmdV$pJ8(TQNyryZ}T>LCksm{b7DfqZX{u=G`L2EPi2e#!?+I>5d5@YOKhobSE_IaizRL"
+    "l6ARTt3Ak&f;fscxu2VQ59NuvVx>?r9_O6gIu3NeQW;FSFeFvy)^%{3JnWQX01$Eni_GZmVYN=jgsZ>k0{fyIT6z"
+    "e2&QtI0ttSChx-DrpTX@J!ihv13JivdeRncdFgz(wV_&JqlqY#~ODunA0ezi2~#q#?6{{8#=w;yjm|N7;(&)?pEf"
+    "BWsrU*At&V`2_kA_|q8bXsDys6H<!F$XIPLRHOxEi9MW*or#<Y+6WglC~yJ0S7t~TtELu7;#;teM`6b$#t?ZMWcu"
+    "c510xfu<VE>VXqui!yGx2lnUM+2-7k@<BoKdX@`Bxgy58=;ACkW5n^i#A2@`H7+KqKoVTcstmzhx2{SwmU9LCNp2"
+    "M<+NEt)KRKvAPF+Imd!k?itxhYy7jTDvL)+l0m>PKL(p7nnolu8TKrth-lIc<W8z+lDoB@i);s7iJax+CPwc%^cu"
+    "2jC{PpS21t;>GXSgqSnQBKFj%IMam{R<lhW`rF{$*~8hg#|R3bn;YIVz8nMlUa)F~>H|KnU8xhsp)X~C*u~_YqPv"
+    "cvA;b8-wr%$#IDlDmyGbpiu#qN6x?~g7pCcw(!Xe<WZR2%5Q@Bp_==VN8v*4!Fqm!HZ?0qvBwM__O6Z0I&hY)1@j"
+    "?&e@l&+&o`;(b;R+Tn0dtN^Kb{80rtD#~z0+>o2dU{L%Cx%3-If5Ec3~bzc+)*fD0O_n;{pgu3e7LPAA1$nNaFe2"
+    "D-1tY*dM;$Tz1x)DovhS=)_35-zZJ$!_pN4Y%}^TijYDDS2{R<J&?w*)a8X9W2H{+&x1;-!iRiO&ODY-b3#&O6oJ"
+    "|q8u*JkUE~aVtOmu&^b5Dr>358ts+AHBh6m@j)FuVDi8f7?KXVN*H1>|tH<Pf!eDths32e8wDVx1AR#X=gY|4}{V"
+    "re9a)keD!*=7@ldY;v~w73v0u-~=FA9W#s-=Ic9)Je29ku}DQ+5(<j)7#Vvje8w=^(&lh(nBk7Qs;#*q+C~`0Wj%"
+    "oN7889tDV-U@KgvRAf+0F$G(Xmge$m{_St1Br;H`(<8#{FdhF5iUz_*N}Mt$|77$@v87eY}|7Zr_&Y};yFIO=`{u"
+    "$SJpaUq6n1bj;T#B+KEmChR`^Ep%nBaAQt=3%zSjIRc#o3W<BpE@o}-^kk^z9p{99zLHt`uy!6&mor5JoDnSje9b"
+    "qMd)*w0Uqh+MY}nTcwK;PhA(MgLJmlPG6&Fl*4wlMGt@6!5%qGshI6<*_o*9Gc8nXe95_hITf?}0-_|cLEWb5F&j"
+    "<B~KL*upCe0|FHJfu^j-wr<g3f!oBByS3-7$2mQ;wpT0ye4VGX#+ADL8TV=V7;1thcm|BwTx%AP~+Rt7)O9HH$1D"
+    "-s3Wj$@Y0xOGIXeDUvQDV%mE%W6W_bs~l;{ml3YIgJ8QKt}7HP<;@i4b#GJoK+O-IG|%(k7tl@9N{$@h#{lugZ}|"
+    "KBj~~Cizg+_QKi=QI{_%bdRQ~w&>u>MhKmGO|+IcI#1pM41Nlr7O9tqc8Vn|_m+Qr7KB?ku{A!D|1!a4As#_*=bO"
+    "$jF?CPJWlR58kSfC>Y>$x@RwNn|YLk_#4ExN~f%=1znfm}UTn^~ugMo8XcV7X+cBMvN79-ciP$tv|!RT<x@pNa-#"
+    "GHDO?Ov0iFcxf(dV)M@!?)!%@ky84~DC6&M<fL%{bo(uzb784;5U3|x#0Kck=xHb%CC-Rbk$7n7#uotiIj2C3=G>"
+    "=w#6Q3Nhfh`Ca0(>pRh8j=W_!*BB*;S72Jy>V-D#x=kH2LFD4#F9xsYvT~Q5Wg@Bzm6$0NJo2>M^|uhQbvXjoju%"
+    "d!=EbA*h@%`S4On-9|57M15xO7K+FcA!9-!k1zo^p)^52aZr(Tpp9C(6gWx{r7EOq&ZnHiFF;<S3~d;mUBCAe*!m"
+    ")j%t&}b6vtSoI`8JgQU8n;2Jo1ORIX<u6cp7xc9X@7sZ}e|$Gy2^>4r)N^{aV*F@Rr;ydU)mu{>I($vswLJ9PS|X"
+    "Xv7lgL`-b!d4LefrufgoT(U|MA&+6tG>v#v(?66+FU44ijZ|l%D!6tvj^6abOz^4yXgKwD-PuFdJA~*MEHU=ZlvV"
+    "iYARZ_9R8L7Pml6V07b7EbvJOGcErx#-nMjE+j*Kq!tw&_G@c-T%Vr*KRH)|9xeAvT2UgfG2q+l7W<|ckzO&#g^J"
+    ">D{u|UeIx(U-zoT{niNs@my>*>zyk3UB~)<_(loVI36>W5&8O1X8jBVs6vAMBN}nX$@#Sh<Iap}h)%8Yi4)&RoH5"
+    "BO%mIv&1p#iy{N3M)-ph(3ogzIu|qG$C>ouxuNVtHRx+AI>OW{Ij-p?%K1}zKK`_N%fIjd(atL01gFzAc*2C43GE"
+    "kdLLNaI70#&WVOsV=Dxs)i9s^fvXr?96FRQs?#FQHc_99xVOh>5QQFVForRu;*O|G}73Xb4;Lj87Bv3j@`YiS>$3"
+    "qf#$zZUFL$efd5Yxd&g?AOaNHgmSE3uh$_DX8o_ZJ^cmtU3zHQ@}GbAQ?Tzn<kp6n@S}HBQI)RX}SzcT?=8Cgz?&"
+    "B)YTctF6<r~=`TyySj*_X)z?^xcbhx)BzA{A%=!wFHc0*1&pL>Kt)A4Ia01TfU>-y^c|4hl+H69#TohZTB$N_nYO"
+    "vjDgmv04Dc{M2%=EkiZ=)x@k>RS}z0Q1%kHz<k5^_ae`Z+{$1mG6R;0RSpz>C#Jt3ke3DVoB-0-so$+XN)mX1I-p"
+    "ftPwW3)Hf;VTTGf#)Ihf=tjQ1e}4PV_ix|+_4dnepZ*zsUO}S2!nIgfa0|@*JP2vN5;LwrneIe-2L%VMV@z6>bN?"
+    "}(T_STrKhSqAFT;3ari*?JeYL8fB@`{#MW`ay^gz0s`w?Z-#PK%tD7nO;55q`a;709jAvK+II5WuP*cOTAF5$3&D"
+    "n{mXxDY~2+`f(@!am#{h|abXYTn~Irt=Py823bP;RU>(<4wC>ahcXvGu$Gi5DjSLGTC{DtSYI_FY*+})1*kPd%;R"
+    "=>Z9x{kf0T+oYr1PNVlgY?DYj>DG;GX;Irxu@#@N&DNyJOGlmN5y@?YgOQ=wDb^tm{$C{zhMtlH0MazO1E3O{sGB"
+    "PlmRwK{?9>5Hm7?O)3v|xv259UC3sBWxNBvcei7+h^6eHysblAR1X&@^LxX-85R1NWtyTMMzF(8+$Dy*9$nYGKf^"
+    "d(g?HOU;-=WzCDyZ9ro;>)3fcrDQ$uEfXamK%qz*<4)fd*^Rm+j2%TYOwugIBy>xaR)wlLK*LsAX*m;tHUQ@+?kl"
+    "7IN38JpllD4%-o>ri(oBKZZN_-$SS(%5l6;|B-2}-8V}r;2%}R{n%~@YFoQo%3&bnjwzUG~2ajvrRL5kC%hoPqpv"
+    "94#*)s*IrS(2BL)~TA?DGQmoYHA{6SDuWsf}j?By4r&&jx0#$>lPktN+QBDskUc#Dnfr<dpE9Q!Mkk1Oo<^7KrZN"
+    "I%7DM?P3s{b@L&^O01c$C=t<JX3P79iRb$JPG0jM}%*~k7Z0tMMIx%W2_f)#*kJnKPAIQk`wpj!Qn%*Xw?B)nl4%"
+    "hI|G`ytsOceK6apyJwtd<FtTv0132f5T_TZXyEQcr+}J6U#t0c<;|G1S6RWoccM%bi$u2I9Jrc^Xo?FNIDy-_asG"
+    "V%Ew?^ec=NO4o;tpFZGJb``q8&+YUnTQ~24DPV{Cp=F1?(O^Rc3{`K7_COZpRs{0ElC0tOk=<`isUTWKt>$doWLi"
+    "UI@xUoC`z9>K7WWTrRS92XUezc8+|b51{qef#v;>=}dH}oAPf=aIiXDwAn}0=^(dT@-(yH->C!4}Y!`UC|*a?erJ"
+    "z&w}>IF$PQa*Gf%21K_#$jLiYwJ#otz0^jf2BGVPEhxHn9O;STmkcVG;FR&uB(~ac|r{B_(~K`EbK;$1NS*Yl&-i"
+    "%r-_<d4CT-GH&`!t1#9EDb~rZi-du<%V^OCuq`jtb`Xu`&PN*H>Bt6Yw$?iJ!N_)<@oA^LFcn%r*80wlUxmbZ4i)"
+    "Rq3iCbHp^T`RF5#D^g_69$+AVH{2iw+YWA_XVq@|XYnfB%2xQjuZ"
+)
+MINILM = json.loads(zlib.decompress(base64.b85decode(MINILM_ENCODED)).decode())
+QUESTIONS = [(q, relevant, kind) for q, relevant, kind in MINILM["questions"]]
+
+
+def minilm_ranking(question):
+    """Rank all twelve notes by all-minilm's vectors (normalized, so dot product = cosine)."""
+    q = MINILM["vectors"][question]
+    order = sorted(range(len(NOTES)), key=lambda i: (-dot(MINILM["vectors"][NOTES[i]], q), i))
+    return [NOTE_IDS[i] for i in order]
+
+
+COURSE_WORK = COURSE_START_DIRECTORY / "practical-work" / "ch06-b"
+COURSE_WORK.mkdir(parents=True, exist_ok=True)
+os.chdir(COURSE_WORK)
+print("Python", sys.version.split()[0])
+print(
+    len(QUESTIONS),
+    "labeled questions;",
+    len(MINILM["vectors"]["a treat without milk"]),
+    "numbers per all-minilm vector",
+)
+print("Save your work here:", COURSE_WORK)
+```
+
+</details>
+
+
+## Commit to a prediction before the examples
+
+Six of the questions paraphrase a note without using any of its words: "a treat without milk" for "mango sorbet is dairy-free and vegan". Before you run anything below, write down:
+
+- which of the three retrievers you expect to find those notes;
+- why your Unit A vectors might not even produce a ranking for them.
+
+```python tags=["prediction", "learner-notes"]
+prediction_notes = {
+    "prediction": "Write which retriever finds the paraphrased notes, and why.",
+    "reason": "Name the rule behind that prediction.",
+    "falsifier": "Name an observation that would prove the explanation wrong.",
+    "revision": "After execution, explain what changed in your understanding.",
+}
+```
+
+### Two metrics, by hand
+
+A **ranking** lists note ids, best first. A **labeled question** names the notes that answer it. Two numbers describe how good a ranking is:
+
+- **recall@k**: the share of the relevant notes that appear in the first $k$;
+- **reciprocal rank**: $1/r$, where $r$ is the position of the first relevant note, or 0 if none appears.
+
+For "what goes in a waffle cone", the relevant notes are n5 and n6. Predict both numbers for the ranking below with $k = 2$, then run it.
+
+```python tags=["foundation", "worked-example"]
+ranking = ["n6", "n8", "n5", "n7"]
+relevant = ["n5", "n6"]
+print("recall@2:", len(set(ranking[:2]) & set(relevant)) / len(relevant))
+first = next(position for position, note in enumerate(ranking, start=1) if note in relevant)
+print("reciprocal rank:", 1 / first)
+```
+
+### What each retriever does with one paraphrase
+
+The cell below asks "a dessert children like", whose answer is n8, "kids want a chocolate cone". Predict each retriever's first answer.
+
+```python tags=["foundation", "worked-example"]
+question = "a dessert children like"
+print("BM25:", bm25_ranking(question)[:3])
+print("all-minilm:", minilm_ranking(question)[:3])
+```
+
+## Choose an explicit starting point
+
+This unit measures the index you built in Unit A. To use your own, replace `None` with the path to your `practical-work/ch06-a/ch06-unit-a-handoff-v1.json`. Leave it as `None` to start from the supplied reference, which is the index the worked Unit A produces. Your submission records which you chose.
+
+```python tags=["setup", "handoff-selection"]
+LEARNER_HANDOFF = None
+```
+
+```python tags=["setup", "independent-reference-start"]
+import shutil
+
+COURSE_INPUT = COURSE_WORK / "ch06-unit-a-handoff-v1.json"
+if LEARNER_HANDOFF is not None:
+    learner_input = Path(LEARNER_HANDOFF).expanduser().resolve()
+    if not learner_input.is_file():
+        raise FileNotFoundError("The selected learner handoff does not exist")
+    if learner_input != COURSE_INPUT.resolve():
+        shutil.copy2(learner_input, COURSE_INPUT)
+    HANDOFF_ORIGIN = "LEARNER_SELECTED"
+else:
+    reference_encoded = (
+        "c-pO4%Wfh`7Tx<RLac3c-;df(_pV1Xi`k88kp<~0)HZ2lVpo@1_3xtqTx3vc*)+q#NE!HW&pr2Xf<JFcS!}lJ{*T"
+        "3n^52_MO8ImDx0J=|c^v!gZt<b)#^?U__3>uC_)r#GT>N<QIIR1J`fyr}-EQ^ej@GBcUH?agSUh&y&qJAp@l(Gmo"
+        "2jh3&G_x^e(d|wZP(?c|J-d)|Mk+ZcEk81ruw>rWpc1Z1}Oxx=<WQFMU54OLs`lBc=mDs{{8k6Zge5Hq1%<0Zo7G"
+        "S=>9gffP_fU3=)Z!8m5T32L`Go<2Bs)LT>x$%j$XB4Uhdem2UdI+z;bX$+s2ra3x9yprkxg%+kp+6vdrLub?Ft(w"
+        "b@XGq;(ZZ|lY&qzP=64A$xv%<dejOw8(b1wp-3w_`m{t6_L5n{DaJ*Y5uQp)adp+rLfA1Dx1XRZ;Oo3zn#Afl0{D"
+        "8SZ%nE4z@@>dUYi9=cusw|RkSl?vTNJR4rAz8@^%0AS`<@bU|JO}nxC`l%nsZ*yYP^XG1SCofhbM-)uM`S_?+2x="
+        "B4i2{;9SMZ7pdHudwPvvX3-IcDKw0jpL2T%gD6y+qJGa{i#2S*dvV0v#~-FFYuPn7aPO1m$8nVz4X9ya}0*8Rigr"
+        "H+o>^QWl{+wwSU*WI_b$f2cCB)f!bDEe(HrYZygd1AQ96?!3D!*1%g>#5X7o9)Z6S@o6S{kVAtLn6sEHP8rhwRSM"
+        "33u~&n6B_tc3@<ezPu;iDuzcmV*_Ktm-A!*(Lkb~Qb`qmFr=|qSs%n^F*Q{#1*oTbkek_l}*dOZgejFYfu5Z?5Fs"
+        "Ei}DjWS&mJFPTp&<!)4Ke<|_T2j_5`#D*&^-v~oEecx2&$v=+2Fq^<zxN$UxvDvcHQoIswe;W*FXRL+pqum^_RoJ"
+        "^LBGwTVQtwFR}PKjO+T@L#`Hwk~_tE2g^WWb9Z54iytD~@e<t8GRZV3fDe81@%D)HI$!5#v=l)|tAmDY=D=WS$&7"
+        "?9ni`?ng4Ge-;3&Hj1PURho>mMj4Z(y}y=Ir#TA){VHAllGN@kcisad9;NWyY&^1&>s&u}Ae@J`09O<IPM)a{0eD"
+        "L4ltB@lP!OsE^B#XDA0izWmr5Xl^&X#Atc?`RoV$9MJV9unS)aID1!Ol!i-%`=^aafXG}hahBxrcfK%aW1u3T#Y8"
+        "X><tQn{gB}fmuaG&NC~Ni(B`df;<Lg?HRJFqL<IOr&>C#@e)S6ygBqayMXnVSk}?=GSpp^Ixfctrek%e|Q?P|PEX"
+        "%XZb11Mlm|}3wlEqFTYy<)depVMlw`+q^5nyl-N=^iwR~YV5oDw<IS_St*w2jF)Bm$(~(HLe>yrgtSA_#HBXpx@I"
+        "xw)&TyQyI$A<b}*1k4>o(4AVGy(4V33qZDN&IwIz){C5sU>sT76ePJtstf%rCf0D$sB_&jb(U`-Czm=RYT0Isbh!"
+        "StEy(Q1R$ZF}w;4B+Krm!?3v6f2$^5noCW%2cdKPImFHlM)Hbu+&WdLV*)i$5iI++qOkngW#CnTxm?}}dG1pN%?x"
+        "Hiw)nK`81i_8G9$rzKGrw6H|M;lgMS7*&!D_yBBBvW9XAt?kY8G_V4_h^t_@1{+*7)1yGg}?}nPaFX~NXWz>(<Hf"
+        "V=)><5?Q|w{vIt@k(YB%4RaGQ1u>NAvKpk#kb1YeclccaZDG1L}Z&ufFq<HnYM?+C}?)RJTH~#}}gc2M"
+    )
+    COURSE_INPUT.write_bytes(zlib.decompress(base64.b85decode(reference_encoded)))
+    HANDOFF_ORIGIN = "SUPPLIED_REFERENCE"
+print("Starting evidence:", HANDOFF_ORIGIN)
+```
+
+```python tags=["setup", "handoff-consumer"]
+handoff = json.loads(COURSE_INPUT.read_text(encoding="utf-8"))
+handoff_status = (
+    "VERIFIED"
+    if handoff.get("status") == "COMPLETED" and handoff.get("unit") == "ch06-a"
+    else "INVALID"
+)
+own_words, own_index, own_model = handoff["words"], handoff["index"], handoff["model"]
+
+
+def own_ranking(question):
+    """Your Unit A index: no ranking at all when the question has no word the vectors know."""
+    try:
+        vector = note_vector(question, own_words)
+    except ValueError:
+        return []
+    return search(own_index, {"model": own_model, "vector": vector}, len(own_index))
+
+
+print("UNIT_A_HANDOFF", handoff_status, "|", len(own_words), "words,", len(own_index), "index rows")
+```
+
+## 2. Construct `evaluate`
+
+`evaluate(rankings, relevant, k)` receives a list of rankings (one per question, each a list of note ids, best first), a list of the same length holding each question's relevant note ids, and an integer `k`. It must return a dictionary with:
+
+- `"recall_at_k"`: the mean over questions of the share of relevant ids in the ranking's first `k`;
+- `"reciprocal_rank"`: the mean over questions of $1/r$ for the first relevant id at position $r$, or 0 when none appears **anywhere** in the ranking;
+
+both rounded to three decimals. It must raise `ValueError` when the two lists have different lengths, when there are no questions, or when `k` is less than 1. An empty ranking scores 0 on both. Change neither input.
+
+The starter below counts a question as found when anything relevant is in the first `k`, and takes the reciprocal rank only within the first `k`. Run the visible cases to see where it fails, then repair it.
+
+```python tags=["exercise", "learner-owned", "ch06-evaluate"]
+def evaluate(rankings, relevant, k):
+    """Mean recall@k and mean reciprocal rank over the questions."""
+    if len(rankings) != len(relevant) or not rankings or k < 1:
+        raise ValueError("need one relevant list per ranking, at least one question, and k >= 1")
+    recall, reciprocal = 0.0, 0.0
+    for ranking, answers in zip(rankings, relevant, strict=True):
+        wanted = set(answers)
+        recall += len(set(ranking[:k]) & wanted) / len(wanted)
+        for position, note in enumerate(ranking, start=1):
+            if note in wanted:
+                reciprocal += 1 / position
+                break
+    count = len(rankings)
+    return {
+        "recall_at_k": round(recall / count, 3),
+        "reciprocal_rank": round(reciprocal / count, 3),
+    }
+```
+
+<details><summary>Hint 1 — recall is a share, not a hit</summary>
+
+A question with two relevant notes and one of them in the top $k$ has recall 0.5, not 1.
+
+</details>
+
+<details><summary>Hint 2 — reciprocal rank looks at the whole ranking</summary>
+
+A first relevant note at position 4 is worth $1/4$ even when $k = 2$. The two metrics answer different questions: whether the answer is near the top, and how far down the first one is.
+
+</details>
+
+<details><summary>Hint 3 — refuse bad input</summary>
+
+`zip` stops at the shorter list without complaint, which would quietly drop questions. Check the lengths first, or pass `strict=True`.
+
+</details>
+
+```python tags=["assessment", "visible"]
+import copy
+
+VISIBLE_CASES = [
+    (
+        "a perfect ranking",
+        [[["n1", "n2"]], [["n1"]], 1],
+        {"recall_at_k": 1.0, "reciprocal_rank": 1.0},
+    ),
+    (
+        "half the relevant notes",
+        [[["n5", "n8"]], [["n5", "n6"]], 2],
+        {"recall_at_k": 0.5, "reciprocal_rank": 1.0},
+    ),
+    (
+        "found below k",
+        [[["n2", "n3", "n4", "n1"]], [["n1"]], 2],
+        {"recall_at_k": 0.0, "reciprocal_rank": 0.25},
+    ),
+    (
+        "an empty ranking",
+        [[[], ["n1"]], [["n1"], ["n1"]], 1],
+        {"recall_at_k": 0.5, "reciprocal_rank": 0.5},
+    ),
+    (
+        "means over questions",
+        [[["n1"], ["n2", "n1"], ["n3"]], [["n1"], ["n1"], ["n1"]], 2],
+        {"recall_at_k": 0.667, "reciprocal_rank": 0.5},
+    ),
+    ("different lengths are refused", [[["n1"]], [["n1"], ["n2"]], 1], "ValueError"),
+    ("k below one is refused", [[["n1"]], [["n1"]], 0], "ValueError"),
+]
+
+
+def grade_evaluate(candidate, cases):
+    rows = []
+    for label, arguments, expected in cases:
+        supplied = copy.deepcopy(arguments)
+        try:
+            observed = candidate(*supplied)
+        except Exception as error:
+            observed = type(error).__name__
+        passed = observed == expected and supplied == arguments
+        rows.append(
+            {
+                "case": label,
+                "expected": expected,
+                "observed": observed,
+                "status": "PASS" if passed else "FAIL",
+            }
+        )
+    return rows
+
+
+visible_results = grade_evaluate(evaluate, VISIBLE_CASES)
+VISIBLE_PASSED = all(r["status"] == "PASS" for r in visible_results)
+for visible_row in visible_results:
+    print(visible_row["status"], visible_row["case"], "->", visible_row["observed"])
+print("VISIBLE_CONTRACT", "PASSED" if VISIBLE_PASSED else "NEEDS_WORK")
+```
+
+## 3. Measure three retrievers on Lucy's questions
+
+Once the visible cases pass, the cell below ranks the twelve notes for every question with BM25, with your Unit A index and with `all-minilm`, and scores each retriever with *your* `evaluate`, separately for direct questions and paraphrases, at $k = 2$.
+
+Before running it, predict the order of the three retrievers on paraphrases.
+
+```python tags=["integration", "learner-path"]
+connected = None
+if VISIBLE_PASSED:
+    rankers = {"bm25": bm25_ranking, "yours": own_ranking, "all-minilm": minilm_ranking}
+    table = {}
+    for name, ranker in rankers.items():
+        for kind in ("direct", "paraphrase"):
+            chosen = [(q, answers) for q, answers, k in QUESTIONS if k == kind]
+            scores = evaluate([ranker(q) for q, _ in chosen], [answers for _, answers in chosen], 2)
+            table[f"{name} {kind}"] = scores
+            recall, rank = scores["recall_at_k"], scores["reciprocal_rank"]
+            print(f"{name:10} {kind:10} recall@2 {recall:.3f}  reciprocal rank {rank:.3f}")
+    unranked = [q for q, _, kind in QUESTIONS if kind == "paraphrase" and not own_ranking(q)]
+    print("paraphrases your vectors could not rank:", len(unranked), "of 6")
+    connected = {"table": table, "unranked": unranked}
+    paraphrase = {name: table[f"{name} paraphrase"]["recall_at_k"] for name in rankers}
+    assert paraphrase["all-minilm"] > paraphrase["bm25"] > paraphrase["yours"] == 0.0
+
+else:
+    print("CONNECTION_NOT_READY — repair evaluate, then run again.")
+```
+
+Your vectors know only the twenty-four words of Lucy's notes, so a question in other words gives them nothing to average. BM25 ranks only notes that share a word; on paraphrases that is usually a small word such as "a" or "the". Its right answer for "a dessert children like" came from the word "a" in a short note, which is luck, not understanding. `all-minilm` learned from about a billion sentence pairs that "children" and "kids" mean the same.
+
+## 4. Save the measurement
+
+The course report below keeps the table. Chapter 6 measures the same three kinds of retriever on Chapter 5's forty notes, with a larger set of questions.
+
+```python tags=["exercise-report"]
+exercise_report = {
+    "unit": "ch06-b",
+    "attempted": 1,
+    "completed": int(VISIBLE_PASSED),
+    "failed": int(not VISIBLE_PASSED),
+    "skipped": 0,
+    "connection": "PASSED" if connected else "NOT_READY",
+    "handoff": handoff_status,
+}
+print("EXERCISE_REPORT=" + json.dumps(exercise_report, sort_keys=True))
+```
+
+## Changed-constraint construction: weighted fusion
+
+**Allow fifteen minutes:** three to predict, eight to implement and trace, and four to search for a weight.
+
+Unit A fused two rankings with equal weight. When one ranker is weak on a kind of question, equal weight lets it pull good answers down. Give each ranking a weight: an id scores the sum over rankings of $w/(60 + \text{rank})$.
+
+`transfer_weighted_fuse(rankings, weights, k)` receives a list of rankings, a list of the same length of non-negative weights, and `k`. Return the `k` best ids by weighted score, best first, ties by id. Raise `ValueError` if the lengths differ or a weight is negative. An id missing from a ranking gets nothing from it. Change neither input.
+
+Write your expected values before you run the table.
+
+```python tags=["exercise", "transfer-owned"]
+def transfer_weighted_fuse(rankings, weights, k):
+    if len(rankings) != len(weights) or any(w < 0 for w in weights):
+        raise ValueError("one non-negative weight per ranking")
+    score = {}
+    for ranking, weight in zip(rankings, weights, strict=True):
+        for rank, identity in enumerate(ranking, start=1):
+            score[identity] = score.get(identity, 0.0) + weight / (60 + rank)
+    return sorted(score, key=lambda identity: (-score[identity], identity))[:k]
+```
+
+```python tags=["assessment", "transfer-invocation"]
+TRANSFER_CASES = [
+    ("equal weights are ordinary fusion", [[["n1", "n2"], ["n2", "n1"]], [1, 1], 2], ["n1", "n2"]),
+    ("a heavier ranking wins", [[["n1", "n2"], ["n2", "n1"]], [1, 2], 2], ["n2", "n1"]),
+    ("a zero weight silences a ranking", [[["n1"], ["n2"]], [0, 1], 2], ["n2", "n1"]),
+    ("an empty ranking adds nothing", [[[], ["n3", "n1"]], [5, 1], 1], ["n3"]),
+    ("a negative weight is refused", [[["n1"]], [-1], 1], {"raises": "ValueError"}),
+]
+
+
+def run_transfer(candidate, cases):
+    observations = []
+    for label, arguments, expected in cases:
+        supplied = copy.deepcopy(arguments)
+        try:
+            actual = candidate(*supplied)
+        except NotImplementedError:
+            actual = {"unfinished": True}
+        except Exception as error:
+            actual = {"raises": type(error).__name__}
+        passed = actual == expected and supplied == arguments
+        observations.append(
+            {"case": label, "expected": expected, "observed": actual, "passed": passed}
+        )
+        print("PASS" if passed else "NEEDS_WORK", label, "expected", expected, "observed", actual)
+    return observations
+
+
+transfer_observations = run_transfer(transfer_weighted_fuse, TRANSFER_CASES)
+TRANSFER_PASSED = all(r["passed"] for r in transfer_observations)
+print("TRANSFER_STATUS", "PASS" if TRANSFER_PASSED else "NEEDS_WORK")
+```
+
+### Search for a weight, and do not fool yourself
+
+When your fusion passes, the cell below fuses BM25 with `all-minilm` for several weights on BM25 and evaluates each. Look for a weight that does at least as well as `all-minilm` alone on both kinds of question.
+
+Then answer honestly: you chose the weight by looking at these twelve questions. How would you check that it still helps on questions you have not seen?
+
+```python tags=["exploration"]
+if TRANSFER_PASSED and connected:
+    for weight in (1.0, 0.5, 0.25, 0.1):
+        for kind in ("direct", "paraphrase"):
+            chosen = [(q, answers) for q, answers, k in QUESTIONS if k == kind]
+            fused = [
+                transfer_weighted_fuse([bm25_ranking(q), minilm_ranking(q)], [weight, 1.0], 12)
+                for q, _ in chosen
+            ]
+            scores = evaluate(fused, [answers for _, answers in chosen], 2)
+            recall, rank = scores["recall_at_k"], scores["reciprocal_rank"]
+            print(f"BM25 weight {weight:<4} {kind:10} recall@2 {recall:.3f}  reciprocal {rank:.3f}")
+else:
+    print("Complete evaluate and the fusion first.")
+```
+
+## Instructor explanation and additional transfer cases
+
+Three misconceptions come up.
+
+**"Recall is whether we found it."** With two relevant notes, finding one is half the job. The starter counted it as the whole.
+
+**"Reciprocal rank stops at k."** It does not: it measures how far down the first answer is, anywhere in the ranking. The starter reported 0 for an answer at position four.
+
+**"A retriever that returns nothing scored badly."** It scored zero, which is the right number, but the cause matters. Your Unit A vectors did not rank the paraphrases at all; they did not know the words. That is a vocabulary failure, not a ranking failure, and more training on twelve notes cannot fix it.
+
+On these twelve questions no weight tried matched `all-minilm` alone on the paraphrases: the best, a BM25 weight of 0.1, reached recall@2 0.667 against 0.917. Fusion still helped the direct questions' reciprocal rank at equal weight. The exploration is the chapter's lesson in miniature: a weight chosen on twelve questions is a result on twelve questions. Chapter 16 shows how much a choice made on the same cases overstates.
+
+The cases below add three rankings and a request for more ids than exist.
+
+```python tags=["instructor-check"]
+INSTRUCTOR_TRANSFER_CASES = [
+    ("three rankings", [[["n1"], ["n2"], ["n2"]], [1, 1, 1], 2], ["n2", "n1"]),
+    ("more ids than exist", [[["n1"], ["n1"]], [1, 1], 5], ["n1"]),
+]
+instructor_observations = run_transfer(transfer_weighted_fuse, INSTRUCTOR_TRANSFER_CASES)
+assert TRANSFER_PASSED and all(r["passed"] for r in instructor_observations)
+```
+
+```python tags=["instructor-check", "core-holdout"]
+holdout = evaluate([["n4", "n9", "n1"], ["n2"], []], [["n1", "n9"], ["n2", "n3"], ["n5"]], 2)
+assert holdout == {"recall_at_k": 0.333, "reciprocal_rank": 0.5}, holdout
+try:
+    evaluate([], [], 1)
+    holdout_refused = False
+except ValueError:
+    holdout_refused = True
+assert holdout_refused
+print("HOLDOUT_RESULT=" + json.dumps({"status": "PASSED", "unit": "ch06-b"}, sort_keys=True))
+```
+
+## Save your evidence and explain the result
+
+Fill in the prediction notes and your explanation before saving. Include:
+
+- the exact observed value, and the input that caused it;
+- your code's invocation point;
+- one failed hypothesis;
+- the strongest claim the evidence still cannot support.
+
+Twelve questions are few. A difference of one question moves a recall by 0.167. Chapter 15 shows how to put an interval around a rate measured on so few cases.
+
+```python tags=["course-report", "retained-evidence"]
+explanation_notes = {
+    "causal_trace": "Explain the input, learner invocation and observed result.",
+    "failed_hypothesis": "Describe a prediction the evidence changed.",
+    "remaining_limit": "Name the guarantee not established by this experiment.",
+}
+course_submission = {
+    "unit": "ch06-b",
+    "planned_minutes": 90,
+    "starting_evidence": HANDOFF_ORIGIN,
+    "prediction": prediction_notes,
+    "explanation": explanation_notes,
+    "core_report": exercise_report,
+    "measurement": connected,
+    "transfer": transfer_observations,
+    "explanation_review": "HUMAN_REVIEW_REQUIRED",
+}
+submission_path = COURSE_WORK / "ch06-b-submission-v1.json"
+submission_path.write_text(
+    json.dumps(course_submission, indent=2, sort_keys=True), encoding="utf-8"
+)
+print("Saved evidence:", submission_path)
+print(
+    "COURSE_REPORT="
+    + json.dumps(
+        {
+            "unit": "ch06-b",
+            "transfer_passed": TRANSFER_PASSED,
+            "starting_evidence": course_submission["starting_evidence"],
+            "edition": "instructor",
+        },
+        sort_keys=True,
+    )
+)
+```
+
+<!-- #region tags=["profrod-community"] -->
+## Keep building with Prof Rod
+
+Found this material through a colleague, classroom or shared download? [Get the complete book at profrod.ai/book](https://profrod.ai/book) and [join the Prof Rod learner community](https://profrod.ai/community). Bring one result, one question or one failure you learned from. Share this resource with another learner and keep its source links with it so they can find the full course and future updates.
+<!-- #endregion -->

@@ -12,7 +12,7 @@ Work through the student notebooks, make predictions, build the missing code and
 
 [Set up your environment](profrod-sovereign-agent-exercises-setup.md) · [Download this complete asset](profrod-sovereign-agent-exercises-2026-09-10.zip)
 
-The edition has twenty chapter slots. **Eighteen chapters currently have two ninety-minute units each: 36 units and 54 hours of available practice. Chapters 6 and 14 are planned construction briefs.** The finished plan calls for 40 units and 60 hours; those four additional units are not yet published. Existing units use a supplied runtime and can be studied while the new foundations are authored. No completed notebook is represented by an empty placeholder.
+The edition has twenty chapter slots. **Nineteen chapters currently have two ninety-minute units each: 38 units and 57 hours of available practice. Chapter 14 is a planned construction brief.** The finished plan calls for 40 units and 60 hours; those two additional units are not yet published. Existing units use a supplied runtime and can be studied while the new foundations are authored. No completed notebook is represented by an empty placeholder.
 
 | Chapter | Topic | Availability |
 |---|---|---|
@@ -21,7 +21,7 @@ The edition has twenty chapter slots. **Eighteen chapters currently have two nin
 | 3 | [The agent loop: why reliability compounds, and a loop that stops](ch03/profrod-sovereign-agent-ch03-agent-loop-exercise-guide.md) | Available draft — A and B, 90 minutes each |
 | 4 | [Build durable SQLite state](ch04/profrod-sovereign-agent-ch04-sqlite-state-exercise-guide.md) | Available draft — A and B, 90 minutes each |
 | 5 | [Memory and retrieval: what the model sees, and a memory that forgets](ch05/profrod-sovereign-agent-ch05-durable-memory-exercise-guide.md) | Available draft — A and B, 90 minutes each |
-| 6 | [Embeddings and vector search: when words are not enough](ch06/profrod-sovereign-agent-ch06-embeddings-vector-search-exercise-guide.md) | PLANNED — brief only |
+| 6 | [Embeddings and vector search: when words are not enough](ch06/profrod-sovereign-agent-ch06-embeddings-vector-search-exercise-guide.md) | Available draft — A and B, 90 minutes each |
 | 7 | [In-context learning: why a skill's exact words must be tested](ch07/profrod-sovereign-agent-ch07-versioned-skills-exercise-guide.md) | Available draft — A and B, 90 minutes each |
 | 8 | [Build a durable work inbox and report outbox](ch08/profrod-sovereign-agent-ch08-durable-inbox-outbox-exercise-guide.md) | Available draft — A and B, 90 minutes each |
 | 9 | [Where the wait goes: prefill, decode and a phone channel](ch09/profrod-sovereign-agent-ch09-telegram-messaging-exercise-guide.md) | Available draft — A and B, 90 minutes each |

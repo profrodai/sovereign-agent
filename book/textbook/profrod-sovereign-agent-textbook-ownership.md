@@ -23,7 +23,7 @@ Later chapters print substantial implementation logic, while their executable re
 | 3 | agent-loop | No direct finished-runtime import; see transitive dependencies below |
 | 4 | durable-state | None: the learner builds the store; the checkpoint imports only the standard library and the learner file |
 | 5 | memory | `reference_organizations.store.agent`, `sovereign_agent.agent_loop`, `sovereign_agent.assistant_context`, `sovereign_agent.assistant_work`, `sovereign_agent.database`, `sovereign_agent.model_turn` |
-| 6 | embeddings | PLANNED: learner construction and handoff not yet implemented |
+| 6 | embeddings | None: the standard library and the chapter's learner files |
 | 7 | skills | `reference_organizations.store.agent`, `reference_organizations.store.evaluation`, `sovereign_agent.agent_loop`, `sovereign_agent.assistant_context`, `sovereign_agent.database`, `sovereign_agent.model_turn` |
 | 8 | durable-work | None: the learner builds the queue on their Chapter 4 store; the checkpoint runs the learner files for Chapters 2, 3, 4 and 8 |
 | 9 | messaging | `reference_organizations.store.agent`, `reference_organizations.store.evaluation`, `sovereign_agent.agent_loop`, `sovereign_agent.assistant_context`, `sovereign_agent.assistant_work`, `sovereign_agent.database`, `sovereign_agent.model_turn`, `sovereign_agent.telegram_channel` |
