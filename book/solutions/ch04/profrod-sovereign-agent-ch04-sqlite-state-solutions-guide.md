@@ -6,7 +6,7 @@
 > — bring your questions, compare experiments and share what you build.
 > **Original source and updates:** [profrodai/sovereign-agent](https://github.com/profrodai/sovereign-agent).
 
-**Available draft · two ninety-minute units · nineteen-chapter edition**
+**Available draft · two ninety-minute units · twenty-chapter edition**
 
 Retain your own attempt before reading these worked solutions. Explain the reasoning, then solve a changed case without looking.
 

@@ -8,7 +8,7 @@
 
 **Created:** 2026-09-07 · **Last-updated:** 2026-09-07 · **Status:** DRAFT
 
-This recipe supports Chapter 18's construction. It uses the same Linux user services and SQLite state as the runtime. The accompanying evidence records an actual Ubuntu host upgrade, account recovery and compatible-code rollback. It is not a substitute for completing the chapter or observing a real phone interaction.
+This recipe supports Chapter 19's construction. It uses the same Linux user services and SQLite state as the runtime. The accompanying evidence records an actual Ubuntu host upgrade, account recovery and compatible-code rollback. It is not a substitute for completing the chapter or observing a real phone interaction.
 
 Use immutable release directories containing the committed source and their own frozen virtual environments. Keep the writable state directory outside those releases. Both `agent.env` and `research.env` belong to the operator, have mode 0600, and remain outside source control. Do not print their contents while collecting evidence.
 

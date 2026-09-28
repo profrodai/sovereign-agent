@@ -531,7 +531,7 @@ Three misconceptions come up.
 
 **"The training column is a noisy estimate of the held-out column."** It is a biased one. A model is fitted to its training text, so training loss is systematically optimistic, and more so for more flexible models. That is why every training run reports a validation loss.
 
-**"Three held-out notes are enough."** They are enough to show the mechanism, not to choose a production tokenizer. The spread of held-out bits across many held-out samples would tell you whether the difference between 100 and 134 merges is real. Chapter 15 builds that statistics.
+**"Three held-out notes are enough."** They are enough to show the mechanism, not to choose a production tokenizer. The spread of held-out bits across many held-out samples would tell you whether the difference between 100 and 134 merges is real. Chapter 16 builds that statistics.
 
 The cases below add a long text and a mix of certain and uncertain tokens.
 

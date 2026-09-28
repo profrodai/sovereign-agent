@@ -1,4 +1,4 @@
-# Complete the nineteen-chapter construction
+# Complete the twenty-chapter construction
 
 > **Learn with Prof Rod** — *Build Your Always-On AI Agent From Scratch*.
 > **Read the full book and get the latest learning materials:** [https://profrod.ai/book](https://profrod.ai/book).
@@ -8,19 +8,20 @@
 
 **Updated:** 2026-09-09 · **Status:** ACTIVE CONSTRUCTION PLAN
 
-The current teaching collection has one nineteen-chapter map and four reader-facing assets: Teaching Book, Exercise Book, Solutions Book and Educator Guide. This plan records the work after reorganizing those assets. Sixteen manuscript drafts and their reference checkpoints have been retained. Chapter 4, the first missing foundation, is now a drafted chapter with a learner-owned store, checkpoint, experiment and two practical units. Chapter 7 is drafted too, with a learner-owned work queue on that store, checkpoint, experiment and two practical units. Chapter 13 remains a clearly marked construction brief.
+The current teaching collection has one twenty-chapter map and four reader-facing assets: Teaching Book, Exercise Book, Solutions Book and Educator Guide. This plan records the work after reorganizing those assets. Sixteen manuscript drafts and their reference checkpoints have been retained. Chapter 4, the first missing foundation, is now a drafted chapter with a learner-owned store, checkpoint, experiment and two practical units. Chapter 8 is drafted too, with a learner-owned work queue on that store, checkpoint, experiment and two practical units. Chapters 6 and 14 remain clearly marked construction briefs.
 
 The quality benchmark is a self-contained professional technical textbook. “Manning level” describes teaching and editorial quality, not a publisher destination. No publisher submission belongs in this plan.
 
-## The three chapter additions
+## The four chapter additions
 
 | Chapter | Why it needs dedicated space | Reader-owned output | Consumed next |
 | --- | --- | --- | --- |
-| [4: Durable state](ch04/profrod-sovereign-agent-ch04-sqlite-state-chapter.md) | Persistence and transaction foundations currently arrive through a supplied wrapper | Minimal store, explicit transactions, migrations, immutable event append | Memory in 5 and work in 7 |
-| [7: Durable work](ch07/profrod-sovereign-agent-ch07-durable-inbox-outbox-chapter.md) | Intake, completion and delivery have different failure states, crowded into messaging | Durable admission, basic claim, atomic terminal state/report creation | Telegram in 8 and scheduling in 9 |
-| [13: MCP](ch13/profrod-sovereign-agent-ch13-mcp-tools-chapter.md) | Protocol connection and OS containment are different concepts and environments | Bounded stdio initialization, discovery and allowed invocation | Isolation in 14 |
+| [4: Durable state](ch04/profrod-sovereign-agent-ch04-sqlite-state-chapter.md) | Persistence and transaction foundations currently arrive through a supplied wrapper | Minimal store, explicit transactions, migrations, immutable event append | Memory in 5 and work in 8 |
+| [6: Embeddings and vector search](ch06/profrod-sovereign-agent-ch06-embeddings-vector-search-chapter.md) | Chapter 5 measures lexical retrieval missing paraphrases; dense vectors answer that failure, with costs of their own | Embedding use, cosine search, an index and its recall, retrieval metrics | Skills in 7 and every later memory lookup |
+| [8: Durable work](ch08/profrod-sovereign-agent-ch08-durable-inbox-outbox-chapter.md) | Intake, completion and delivery have different failure states, crowded into messaging | Durable admission, basic claim, atomic terminal state/report creation | Telegram in 9 and scheduling in 10 |
+| [14: MCP](ch14/profrod-sovereign-agent-ch14-mcp-tools-chapter.md) | Protocol connection and OS containment are different concepts and environments | Bounded stdio initialization, discovery and allowed invocation | Isolation in 15 |
 
-Each linked brief contains prerequisites, first-use concepts, a build/fail/repair sequence, interface requirements, exact ninety-minute Unit A and B plans and independently authored acceptance cases. The complete prose, examples, learner code and notebooks remain explicit deliverables. Chapter 14 currently retains its MCP teaching so restructuring does not discard content; that material moves and expands only when Chapter 13 is authored and tested.
+Each linked brief contains prerequisites, first-use concepts, a build/fail/repair sequence, interface requirements, exact ninety-minute Unit A and B plans and independently authored acceptance cases. The complete prose, examples, learner code and notebooks remain explicit deliverables. Chapter 15 currently retains its MCP teaching so restructuring does not discard content; that material moves and expands only when Chapter 14 is authored and tested.
 
 ## One chapter map across four assets
 
@@ -33,36 +34,37 @@ Stable lesson identity is separate from display number. This map preserves the m
 | 3 | Owned model/tool loop | 3 |
 | 4 | Durable SQLite state | New |
 | 5 | Memory | 4 |
-| 6 | Tested skills | 5 |
-| 7 | Durable work and reports | New |
-| 8 | Telegram | 6 |
-| 9 | Schedules and stock events | 7 |
-| 10 | Spending permissions | 8 |
-| 11 | Ambiguous supplier outcomes | 9 |
-| 12 | Worker recovery | 10 |
-| 13 | MCP protocol | New standalone lesson |
-| 14 | Isolation | 11 |
-| 15 | Evaluation | 12 |
-| 16 | Controlled improvement | 13 |
-| 17 | Bounded delegation | 14 |
-| 18 | Deployment and maintenance | 15 |
-| 19 | Integrated day | 16 |
+| 6 | Embeddings and vector search | New |
+| 7 | Tested skills | 5 |
+| 8 | Durable work and reports | New |
+| 9 | Telegram | 6 |
+| 10 | Schedules and stock events | 7 |
+| 11 | Spending permissions | 8 |
+| 12 | Ambiguous supplier outcomes | 9 |
+| 13 | Worker recovery | 10 |
+| 14 | MCP protocol | New standalone lesson |
+| 15 | Isolation | 11 |
+| 16 | Evaluation | 12 |
+| 17 | Controlled improvement | 13 |
+| 18 | Bounded delegation | 14 |
+| 19 | Deployment and maintenance | 15 |
+| 20 | Integrated day | 16 |
 
 Older numbered releases retain their original meaning in historical records. Active manuscript links, checkpoint paths, companion numbers and classroom labels use the current map. Do not relabel an old binary archive and imply its contents were rebuilt.
 
 ## Telegram and operating integrations
 
-Telegram is implemented in the reference runtime and taught in Chapter 8. The actual path is authenticated intake → durable work/cursor transaction → claim → context and loop → terminal work/report transaction → delivery disposition. The outbox is created by the reference schema's terminal-state triggers. A source trace establishes this wiring; fixture tests and live observations establish different behavior.
+Telegram is implemented in the reference runtime and taught in Chapter 9. The actual path is authenticated intake → durable work/cursor transaction → claim → context and loop → terminal work/report transaction → delivery disposition. The outbox is created by the reference schema's terminal-state triggers. A source trace establishes this wiring; fixture tests and live observations establish different behavior.
 
 | Integration | Current teaching/reference evidence | Remaining construction or acceptance |
 | --- | --- | --- |
 | Telegram | Offline authenticated admission, duplicate/cursor behavior, work routing, report delivery and UNKNOWN handling | Connect the new learner inbox/outbox; complete a dedicated bot/handset exchange with sanitized identity/receipt evidence; handle structured retry delays in a bounded adapter |
-| Schedules | Durable due slots and stock episodes enter the same work path; idle operation does not require a model | Consume Chapter 7's learner queue and demonstrate restart/coalescing; keep UTC interval scope explicit |
+| Schedules | Durable due slots and stock episodes enter the same work path; idle operation does not require a model | Consume Chapter 8's learner queue and demonstrate restart/coalescing; keep UTC interval scope explicit |
 | Local skills | TOML versions, candidate evaluation, explicit activation and context selection | Introduce TOML/hashing before use and connect the cumulative learner store; skill text cannot grant tool authority |
 | Permissions | Exact proposal, expiration/revocation and shared spend reservations | Break dense transactional methods into taught increments; independently test simultaneous reservation and stale consent |
 | Supplier and receiving | Controlled independent ledger, lost-response reconciliation and receiving | Preserve UNKNOWN; reconcile physical stock, pending stock and actual expenditure separately |
 | Worker recovery | Killed/stale-worker reference experiments and ownership generations | Extend the basic learner claim with tested takeover/fencing; never imply a local fence recalls a remotely accepted request |
-| MCP | Bounded stdio reference client; optional pinned ZeoCore interoperability | Author Chapter 13 and connect learner validation/allowlist; keep ZeoCore optional and separate |
+| MCP | Bounded stdio reference client; optional pinned ZeoCore interoperability | Author Chapter 14 and connect learner validation/allowlist; keep ZeoCore optional and separate |
 | Container isolation | Configured Linux/container reference observations | Separate protocol permissions from filesystem/network/process enforcement; repeat measured boundaries on the final supported setup |
 | Evaluation and improvement | Independent outcomes, strong baseline, explanation blind spot, versioned activation and rollback | Preserve failures and fresh-case discipline; measure learner comprehension and operator effort; a green trace is not prose acceptance |
 | Delegation | Bounded child task, deadline/cancellation and shared budget; plain-function comparison | Explain first-use subprocess and budget concepts; retain evidence that delegation earns its added complexity |
@@ -89,7 +91,7 @@ Plan approximately **100,000–115,000 main-manuscript prose words** to provide 
 
 | Order | Work | Required exit observation |
 | --- | --- | --- |
-| 1 | Establish four assets and nineteen-chapter identities | One visible map; preserved source content; active links and executable reference checks pass |
+| 1 | Establish four assets and twenty-chapter identities | One visible map; preserved source content; active links and executable reference checks pass |
 | 2 | Finalize cumulative learner ownership and interface contracts | Each chapter names owned code, previous definitions, infrastructure and fixtures |
 | 3 | Author SQLite and its two units | Empty-root build works; rollback, conflicts and future-schema refusal fail correctly |
 | 4 | Author durable work and refocus Telegram/schedules | Both producers invoke the learner's actual admission/finish/outbox implementation |

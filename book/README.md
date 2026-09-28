@@ -6,7 +6,7 @@
 > — bring your questions, compare experiments and share what you build.
 > **Original source and updates:** [profrodai/sovereign-agent](https://github.com/profrodai/sovereign-agent).
 
-**One teaching book. Four companion assets. Nineteen chapters.**
+**One teaching book. Four companion assets. Twenty chapters.**
 
 Learn to build a Python agent for Lucy's ice cream shop: tools, memory, Telegram messaging, schedules, permissions and recovery. Start with the textbook, then use the matching chapter in the exercises book. Consult solutions after an attempt. Educators can prepare a class from the fourth asset alone.
 
@@ -21,9 +21,9 @@ Every asset uses the same chapter numbers. For example, `textbook/ch02`, `exerci
 
 ## What is available now
 
-The nineteen-chapter edition is under construction. **Eighteen chapters have manuscript drafts and two ninety-minute practical units each. Chapter 13 has a detailed planned scope; its new lesson and two practical units are not yet written.** The [textbook contents](textbook/profrod-sovereign-agent-textbook-start-here.md) marks each chapter's status explicitly.
+The twenty-chapter edition is under construction. **Eighteen chapters have manuscript drafts and two ninety-minute practical units each. Chapters 6 and 14 have detailed planned scopes; their new lessons and practical units are not yet written.** The [textbook contents](textbook/profrod-sovereign-agent-textbook-start-here.md) marks each chapter's status explicitly.
 
-There are currently 36 student units and 36 worked counterparts: 54 hours of planned student practice. The completed nineteen-chapter course will contain 38 student units: 57 hours. Every available notebook includes its own required setup, concepts and supplied teaching runtime. Its successful execution does not certify that the learner has built that entire runtime from scratch.
+There are currently 36 student units and 36 worked counterparts: 54 hours of planned student practice. The completed twenty-chapter course will contain 40 student units: 60 hours. Every available notebook includes its own required setup, concepts and supplied teaching runtime. Its successful execution does not certify that the learner has built that entire runtime from scratch.
 
 The exercises run on Google Colab or any Python 3.12+ kernel; the solutions use Python 3.14. Both need Jupyter and Pydantic 2; their setup pages explain preparation. The textbook explains how to install the locked repository environment for chapter checkpoints. Core practical work runs offline after setup. Live Telegram, model, container and operating-system observations are identified separately from local fixtures.
 

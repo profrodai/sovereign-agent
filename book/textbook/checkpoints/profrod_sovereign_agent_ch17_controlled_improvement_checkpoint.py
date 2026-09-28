@@ -1,0 +1,192 @@
+# Prof Rod | Build Your Always-On AI Agent From Scratch
+# Full book and learning materials: https://profrod.ai/book
+# Join the Prof Rod learner community: https://profrod.ai/community
+# Original source and updates: https://github.com/profrodai/sovereign-agent
+
+"""Prove candidate guidance is evaluated before activation and rollback."""
+
+import hashlib
+import json
+import math
+import random
+import runpy
+import tempfile
+import tomllib
+from pathlib import Path
+
+from reference_organizations.store.agent import OfflineShopModel
+from reference_organizations.store.improvement import change_skill
+from sovereign_agent.assistant_context import skill_snapshot, stage_skill
+from sovereign_agent.database import Database
+from sovereign_agent.events import append_event
+from sovereign_agent.model_turn import ModelTurn
+
+
+class FollowsCandidate(OfflineShopModel):
+    """A deterministic policy fixture, not a measure of language-model quality."""
+
+    def complete(self, messages, *args, **kwargs):
+        turn = super().complete(messages, *args, **kwargs)
+        if "Report every amount in euros." in messages[0]["content"]:
+            return ModelTurn(
+                turn.content.replace("cents USD", "euros"), turn.calls, turn.output_tokens
+            )
+        return turn
+
+
+BOOK = Path(__file__).resolve().parents[1]
+OPTIMIZATION = runpy.run_path(
+    str(BOOK / "learner/profrod_sovereign_agent_ch17_optimization_learner.py")
+)
+
+
+def optimization():
+    """Part A's functions, each checked against an independent computation."""
+    expected_max = OPTIMIZATION["expected_max_normal"]
+    assert math.isclose(expected_max(2), 1 / math.sqrt(math.pi), abs_tol=1e-6)
+    rng = random.Random(16)
+    draws = [max(rng.gauss(0, 1) for _ in range(8)) for _ in range(40_000)]
+    assert abs(sum(draws) / len(draws) - expected_max(8)) < 0.02
+    print("ok   E[max of 2 normals] = 1/sqrt(pi); E[max of 8] agrees with simulation")
+
+    single = OPTIMIZATION["winners_curse"]([0.5], 6, 20_000, seed=1)
+    assert abs(single["optimism"]) < 0.01
+    print("ok   with one candidate there is no selection, and no optimism")
+
+    bt, loglik = OPTIMIZATION["bradley_terry"], OPTIMIZATION["log_likelihood"]
+    assert bt(0.3, 0.3) == 0.5 and math.isclose(bt(1.0, -0.5) + bt(-0.5, 1.0), 1.0)
+    lab = runpy.run_path(
+        str(BOOK / "experiments/profrod_sovereign_agent_textbook_ch17_optimization_v1.py")
+    )
+    receipt = json.loads(
+        (BOOK.parents[1] / "docs/evidence/book-ch17/ch17-optimization-receipt-v1.json").read_text()
+    )
+    assert json.loads(json.dumps(lab["offline"]())) == receipt["offline"]
+    rng = random.Random(3)
+    comparisons = [(0, 1)] * 30 + [(1, 0)] * 10 + [(1, 2)] * 25 + [(2, 1)] * 15
+    fitted = OPTIMIZATION["fit_bradley_terry"](comparisons, 3)
+    for i in range(3):
+        bumped = list(fitted)
+        bumped[i] += 1e-5
+        assert abs(loglik(comparisons, bumped) - loglik(comparisons, fitted)) < 1e-6
+    print("ok   the receipt's offline section recomputes exactly; the BT fit is a stationary point")
+
+
+def main():
+    optimization()
+    original = tomllib.loads(
+        (
+            Path(__file__).parents[1]
+            / "skills"
+            / "profrod_sovereign_agent_textbook_opening_check_v1.toml"
+        ).read_text()
+    )
+    with tempfile.TemporaryDirectory(prefix="lucy-improvement-") as temporary:
+        root = Path(temporary)
+        db = Database(root / "agent.sqlite")
+        reports = root / "reports"
+
+        def stage(version, instructions, name=original["name"]):
+            path = root / f"{name}-{version}.toml"
+            assert not path.exists()
+            path.write_text(
+                "name="
+                + json.dumps(name)
+                + "\nversion="
+                + json.dumps(version)
+                + "\ninstructions="
+                + json.dumps(instructions)
+                + "\nrequires="
+                + json.dumps(original["requires"])
+                + "\n"
+            )
+            skill = stage_skill(db, path)
+            with db.immediate():
+                append_event(
+                    db,
+                    "assistant.skill.proposed",
+                    {
+                        "name": skill.name,
+                        "version": skill.version,
+                        "candidate_sha256": hashlib.sha256(
+                            skill.model_dump_json().encode()
+                        ).hexdigest(),
+                        "feedback_source": "fixture/lucy/brief-1",
+                        "request": "Keep amounts in USD and make the closing sentence concise.",
+                        "scope": "Operator-staged test proposal; does not grant tool authority.",
+                    },
+                )
+            return skill
+
+        stage("1", original["instructions"])
+        assert (
+            change_skill(db, original["name"], "1", FollowsCandidate, reports)["status"]
+            == "ACTIVATED"
+        )
+        stage("2", original["instructions"] + "\nReport every amount in euros.")
+        bad = change_skill(db, original["name"], "2", FollowsCandidate, reports)
+        assert bad["status"] == "REJECTED"
+        assert skill_snapshot(db)[1][0].version == "1"
+        print(
+            "Regressing guidance:",
+            bad["status"],
+            "active version",
+            skill_snapshot(db)[1][0].version,
+        )
+        stage("3", original["instructions"] + "\nKeep the closing sentence concise.")
+        good = change_skill(db, original["name"], "3", FollowsCandidate, reports)
+        assert good["status"] == "ACTIVATED"
+        print("Passing candidate:", good["status"])
+        rolled = change_skill(db, original["name"], "1", FollowsCandidate, reports, rollback=True)
+        assert rolled["status"] == "ROLLED_BACK"
+        print("Earlier activated version:", rolled["status"])
+        stage("4", original["instructions"] + "\nRetain source names in explanations.")
+        stage("1", "Keep reports concise.", name="reporting")
+        other = Database(db.path)
+
+        class ConcurrentChange(FollowsCandidate):
+            changed = False
+
+            def complete(self, *args, **kwargs):
+                if not ConcurrentChange.changed:
+                    ConcurrentChange.changed = True
+                    assert (
+                        change_skill(other, "reporting", "1", FollowsCandidate, reports)["status"]
+                        == "ACTIVATED"
+                    )
+                return super().complete(*args, **kwargs)
+
+        stale = change_skill(db, original["name"], "4", ConcurrentChange, reports)
+        assert stale["status"] == "STALE" and stale["passed"]
+        print("Configuration changes during evaluation:", stale["status"])
+        assert [(s.name, s.version) for s in skill_snapshot(db)[1]] == [
+            (original["name"], "1"),
+            ("reporting", "1"),
+        ]
+        for result in (bad, good, rolled, stale):
+            raw = Path(result["report"]).read_bytes()
+            assert hashlib.sha256(raw).hexdigest() == result["sha256"]
+            assert json.loads(raw)["acceptance"]["status"] in {"REVIEW_REQUIRED", "REJECTED"}
+        print(
+            "Retained version rows:",
+            db.connection.execute("SELECT count(*) FROM assistant_skills").fetchone()[0],
+        )
+        print("Retained evaluation reports:", len(list(reports.glob("*.json"))))
+        proposals = db.connection.execute(
+            "SELECT count(*) FROM events WHERE kind='assistant.skill.proposed'"
+        ).fetchone()[0]
+        assert proposals == 5
+        print("Proposals retain feedback provenance:", proposals)
+        other.close()
+        db.close()
+        reopened = Database(root / "agent.sqlite")
+        assert [(s.name, s.version) for s in skill_snapshot(reopened)[1]] == [
+            (original["name"], "1"),
+            ("reporting", "1"),
+        ]
+        print("Active configuration survives reopen:", True)
+        reopened.close()
+
+
+if __name__ == "__main__":
+    main()

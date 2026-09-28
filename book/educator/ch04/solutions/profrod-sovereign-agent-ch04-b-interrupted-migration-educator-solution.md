@@ -209,7 +209,7 @@ prediction_notes = {
 
 ### Versions form a line
 
-A file's schema has a **version**: 0 for an empty file, then 1, 2 and so on. A **migration** turns version $k-1$ into version $k$. To bring a file from version $a$ up to version $b$, apply the migrations $a+1, a+2, \dots, b$ in order; there is exactly one path. The file remembers its version in a small `meta` table, under the name of the tables' owner, here `stock.version`. Chapter 5's memory and Chapter 7's work keep their own lines under their own names, so the order the chapters are written in never decides each other's numbers.
+A file's schema has a **version**: 0 for an empty file, then 1, 2 and so on. A **migration** turns version $k-1$ into version $k$. To bring a file from version $a$ up to version $b$, apply the migrations $a+1, a+2, \dots, b$ in order; there is exactly one path. The file remembers its version in a small `meta` table, under the name of the tables' owner, here `stock.version`. Chapter 5's memory and Chapter 8's work keep their own lines under their own names, so the order the chapters are written in never decides each other's numbers.
 
 Predict what the reader below prints for an empty file and for a version-1 file.
 

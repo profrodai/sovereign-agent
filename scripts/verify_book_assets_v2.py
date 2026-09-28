@@ -29,12 +29,12 @@ else:
 ROOT = Path(__file__).resolve().parents[1]
 BOOK = ROOT / "book"
 ASSETS = ("textbook", "exercises", "solutions", "educator")
-PLANNED = {13}
+PLANNED = {6, 14}
 # PLANNED chapters whose manuscript is drafted before their notebooks: their listings and
 # checkpoint are checked now, so the text cannot rot while the notebooks are written. A chapter
 # leaves this map when BOOK.json marks it DRAFT (which requires its notebooks).
 IN_PROGRESS: dict[int, str] = {}
-AVAILABLE = set(range(1, 20)) - PLANNED
+AVAILABLE = set(range(1, 21)) - PLANNED
 EXPECTED = {f"ch{chapter:02d}-{letter}" for chapter in AVAILABLE for letter in "ab"}
 RECEIPT = ROOT / "docs/evidence/book-four-assets/verification-v2.json"
 LEGACY = runpy.run_path(str(ROOT / "scripts/verify_practical_course_v1.py"))
@@ -67,14 +67,14 @@ def verify_layout(book: Path = BOOK) -> dict:
     manifest = json.loads(local_file(book, "textbook/BOOK.json").read_text())
     assert manifest["schemaVersion"] == 3
     chapters = manifest["chapters"]
-    assert [row["number"] for row in chapters] == list(range(1, 20)), "chapter coverage drift"
-    assert len({row["lessonId"] for row in chapters}) == 19, "duplicate stable lesson identity"
+    assert [row["number"] for row in chapters] == list(range(1, 21)), "chapter coverage drift"
+    assert len({row["lessonId"] for row in chapters}) == 20, "duplicate stable lesson identity"
     assert {row["number"] for row in chapters if row["status"] == "PLANNED"} == PLANNED
     for asset in ASSETS:
         local_file(book, f"{asset}/README.md")
         local_file(book, f"{asset}/{distribution.start_name(asset)}")
         actual = {p.name for p in (book / asset).glob("ch[0-9]*") if p.is_dir()}
-        assert actual == {f"ch{n:02d}" for n in range(1, 20)}, f"{asset}: chapter coverage drift"
+        assert actual == {f"ch{n:02d}" for n in range(1, 21)}, f"{asset}: chapter coverage drift"
     for row in chapters:
         chapter = row["number"]
         prefix = f"ch{chapter:02d}"
@@ -191,7 +191,7 @@ def verify_textbook() -> None:
             f"{matched} output pairs; checkpoint ran."
         )
     print(f"ACTIVE TEXTBOOK: 18 draft checkpoints; {examples} examples and {pairs} output pairs.")
-    print("Chapter 13 remains PLANNED. No publication or classroom-quality acceptance.")
+    print("Chapters 6 and 14 remain PLANNED. No publication or classroom-quality acceptance.")
 
 
 def execute_one(path: Path) -> dict:
@@ -282,7 +282,7 @@ def execute_handoff(chapter: int) -> dict:
 def verify_receipt(path: Path = RECEIPT, book: Path = BOOK) -> None:
     verify_layout(book)
     receipt = json.loads(path.read_text())
-    assert receipt["schemaVersion"] == 1 and receipt["edition"] == "four-assets-19-chapters"
+    assert receipt["schemaVersion"] == 1 and receipt["edition"] == "four-assets-20-chapters"
     rows = receipt["notebooks"]
     assert len(rows) == 72 and {(row["id"], row["asset"]) for row in rows} == {
         (identity, asset) for identity in EXPECTED for asset in ("exercises", "solutions")
@@ -321,7 +321,7 @@ def execute(workers: int, *, record: bool = True) -> None:
         handoffs = list(pool.map(execute_handoff, sorted(AVAILABLE)))
     receipt = {
         "schemaVersion": 1,
-        "edition": "four-assets-19-chapters",
+        "edition": "four-assets-20-chapters",
         "created": "2026-09-10",
         "python": platform.python_version(),
         "notebooks": notebooks,

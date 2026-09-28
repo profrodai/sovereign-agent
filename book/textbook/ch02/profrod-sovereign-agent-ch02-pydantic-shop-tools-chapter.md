@@ -227,7 +227,7 @@ Three rules follow, and Part B builds on them:
 
 - **Use constrained decoding when the server offers it.** It removes a whole class of failures for free.
 - **Validate anyway.** A schema says a quantity is an integer. Only the program can say that it matches the shop's need, is within the supplier's limits, or refers to the product Lucy meant. That is why the dispatcher below checks every request before it runs.
-- **Evaluate the meaning, not the form.** Valid-but-wrong answers pass every structural check. Only a comparison with an authored expected answer, as in [Chapter 15](../ch15/profrod-sovereign-agent-ch15-agent-evaluation-chapter.md), catches them.
+- **Evaluate the meaning, not the form.** Valid-but-wrong answers pass every structural check. Only a comparison with an authored expected answer, as in [Chapter 16](../ch16/profrod-sovereign-agent-ch16-agent-evaluation-chapter.md), catches them.
 
 ## Part B: give the agent reliable shop tools
 
@@ -652,13 +652,13 @@ A description helps the model select an appropriate tool. It does not grant auth
 
 The `consequential` flag marks tools that need a write-authority check before their handler can run. All three shop tools in this chapter return information. When we demonstrate a consequential tool below, it will be a local probe that records whether its handler ran, not a live purchasing endpoint.
 
-The frozen record prevents accidental rebinding of a registered handler through ordinary field assignment. This is an application invariant, not protection against arbitrary hostile Python executing in the host process. All Python handlers here are trusted code you write. Chapter 14 will introduce an operating-system boundary for a tool that executes generated code.
+The frozen record prevents accidental rebinding of a registered handler through ordinary field assignment. This is an application invariant, not protection against arbitrary hostile Python executing in the host process. All Python handlers here are trusted code you write. Chapter 15 will introduce an operating-system boundary for a tool that executes generated code.
 
 ## Build the dispatcher
 
 The dispatcher receives a parsed tool request and returns an observation. It owns the association between a public tool name and executable code. There is no `eval`, dynamic import, or shell command assembled from a requested name. A name that is missing from the registry cannot select a handler.
 
-A request also needs an identifier. In the next chapter, the model's request and the tool's observation will be separate messages. The identifier lets the provider associate an observation with the call that produced it. It is a conversation identifier; it is not yet the stable operation identifier we will use to recover a purchase in Chapter 11.
+A request also needs an identifier. In the next chapter, the model's request and the tool's observation will be separate messages. The identifier lets the provider associate an observation with the call that produced it. It is a conversation identifier; it is not yet the stable operation identifier we will use to recover a purchase in Chapter 12.
 
 **Listing:** A parsed request carries a bounded identifier, a tool name, and argument data.
 
@@ -744,7 +744,7 @@ The `schemas` method returns only allowed tools. Hiding unavailable operations m
 
 Expected failures become small error codes. We do not copy exception messages into the model's context: validation errors may include raw arguments, and network exceptions can include sensitive addresses or credentials. During development, you can reproduce a failure with the deterministic request and inspect its handler locally. A public observation need not expose every internal detail to be useful.
 
-The exception list is deliberate. It covers expected input, permission, timeout, and operating-system failures. It does not catch every possible programming defect or interrupt. A misspelled variable should fail visibly during development instead of being disguised as a routine tool refusal. In Chapter 12 we will save unfinished tasks so another process can recover them after a failure.
+The exception list is deliberate. It covers expected input, permission, timeout, and operating-system failures. It does not catch every possible programming defect or interrupt. A misspelled variable should fail visibly during development instead of being disguised as a routine tool refusal. In Chapter 13 we will save unfinished tasks so another process can recover them after a failure.
 
 The result limit counts encoded bytes, not Python characters. A character may require several UTF-8 bytes. `allow_nan=False` also rejects values such as floating-point infinity that do not belong in a strict JSON observation. These checks keep a completed tool result from flooding the next model request or violating its data format.
 
@@ -933,7 +933,7 @@ print("handler invocations", len(executions))
 handler invocations 0
 ```
 
-A missing write-authority function is a refusal. A present function that raises is also a refusal. Neither path calls the handler. The callback is an interface where Chapter 10 will check durable approvals, expiry, operator authority, and spending reservations. Merely supplying a callback that always returns would not implement those rules.
+A missing write-authority function is a refusal. A present function that raises is also a refusal. Neither path calls the handler. The callback is an interface where Chapter 11 will check durable approvals, expiry, operator authority, and spending reservations. Merely supplying a callback that always returns would not implement those rules.
 
 Do not interpret the callback as a guarantee that authorization remains valid forever after it returns. A real external call has a point at which the runtime commits to sending it. Revocation before that point must block the action; revocation afterwards cannot undo a request already accepted by a supplier. We will make that distinction explicit when the order workflow has durable state.
 
@@ -1031,7 +1031,7 @@ Before continuing, answer these questions without rerunning the examples. Where 
 
 ## Summary
 
-A model writes structured output one sampled token at a time, so a long answer's validity compounds like Chapter 3's reliability. Constrained decoding masks invalid tokens and guarantees an answer that parses and fits the schema. It also changes what the model says, because it cannot look ahead, and it cannot make a valid answer the right one. On a real model the schema turned every answer valid; the wrong SKUs and quantities that remained are what Part B's validation and Chapter 15's evaluation exist for.
+A model writes structured output one sampled token at a time, so a long answer's validity compounds like Chapter 3's reliability. Constrained decoding masks invalid tokens and guarantees an answer that parses and fits the schema. It also changes what the model says, because it cannot look ahead, and it cannot make a valid answer the right one. On a real model the schema turned every answer valid; the wrong SKUs and quantities that remained are what Part B's validation and Chapter 16's evaluation exist for.
 
 You built three typed tools, an explicit registry, and a dispatcher whose checks precede invocation. Deterministic code calculates Lucy's replenishment quantities and USD amounts. Malformed arguments, unavailable operations, missing authority, and inconsistent business requests produce tested refusals. The failure experiments also established a limit: a refused result does not necessarily mean a handler had no effect.
 

@@ -43,7 +43,7 @@ A code listing may depend on earlier definitions in the same chapter. Adjacent o
 | Linux or container experiment | Behavior on the recorded host and configuration | A universal operating-system guarantee |
 | Passing automated checks | The particular assertions executed | Reader comprehension or editorial acceptance |
 
-A high score cannot change DRAFT to READY. Chapter 15 deliberately exposes a correct tool trace paired with a false explanation. Preserve failing cases and the exact source revision alongside successful results. Run `uv run python scripts/verify_book_assets_v2.py --textbook` for this manuscript's examples and checkpoints. The full repository gate is `make verify`; it also checks the other active assets and preserved historical material.
+A high score cannot change DRAFT to READY. Chapter 16 deliberately exposes a correct tool trace paired with a false explanation. Preserve failing cases and the exact source revision alongside successful results. Run `uv run python scripts/verify_book_assets_v2.py --textbook` for this manuscript's examples and checkpoints. The full repository gate is `make verify`; it also checks the other active assets and preserved historical material.
 
 ## Use Lucy's units and authority consistently
 

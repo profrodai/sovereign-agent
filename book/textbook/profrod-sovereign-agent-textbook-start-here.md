@@ -6,7 +6,7 @@
 > — bring your questions, compare experiments and share what you build.
 > **Original source and updates:** [profrodai/sovereign-agent](https://github.com/profrodai/sovereign-agent).
 
-**Edition:** nineteen-chapter construction · **Updated:** 2026-09-09
+**Edition:** twenty-chapter construction · **Updated:** 2026-09-09
 
 Build Your Always-On AI Agent From Scratch follows one Python agent from its first model call to an unattended day in Lucy's ice cream shop. Read the chapters in order. Each introduces a problem, constructs a mechanism, reproduces a failure and explains the repair.
 
@@ -14,9 +14,9 @@ Start with the [preface](profrod-sovereign-agent-textbook-preface.md) and [setup
 
 ## What is available
 
-There is one nineteen-chapter sequence. Eighteen chapters contain substantial **DRAFT** manuscripts and executable checkpoints; Chapter 4's runs the learner's own store, and Chapter 7's the learner's own work queue on it. Chapter **13** contains a **PLANNED construction brief**: its goals, interfaces, two ninety-minute practical plans and acceptance cases are documented, but its complete lesson, notebooks and new learner implementation are not yet delivered. A planned chapter is not an executable lesson. The [construction roadmap](profrod-sovereign-agent-textbook-expansion.md) records the remaining work and the integration commitments.
+There is one twenty-chapter sequence. Eighteen chapters contain substantial **DRAFT** manuscripts and executable checkpoints; Chapter 4's runs the learner's own store, and Chapter 8's the learner's own work queue on it. Chapters **6** and **14** contain **PLANNED construction briefs**: their goals, interfaces, two ninety-minute practical plans and acceptance cases are documented, but their complete lessons, notebooks and new learner implementations are not yet delivered. A planned chapter is not an executable lesson. The [construction roadmap](profrod-sovereign-agent-textbook-expansion.md) records the remaining work and the integration commitments.
 
-You can read the drafted chapters and run their supplied reference checkpoints now. Building the entire nineteen-chapter system solely from your own preceding chapter code remains a release requirement. The [code ownership guide](profrod-sovereign-agent-textbook-ownership.md) names the supplied components so a working demonstration cannot be mistaken for a completed from-scratch construction.
+You can read the drafted chapters and run their supplied reference checkpoints now. Building the entire twenty-chapter system solely from your own preceding chapter code remains a release requirement. The [code ownership guide](profrod-sovereign-agent-textbook-ownership.md) names the supplied components so a working demonstration cannot be mistaken for a completed from-scratch construction.
 
 ## Contents
 
@@ -27,20 +27,21 @@ You can read the drafted chapters and run their supplied reference checkpoints n
 | 3 | [The agent loop: why reliability compounds, and a loop that stops](ch03/profrod-sovereign-agent-ch03-agent-loop-chapter.md) | DRAFT |
 | 4 | [Build durable state with SQLite](ch04/profrod-sovereign-agent-ch04-sqlite-state-chapter.md) | DRAFT |
 | 5 | [Memory and retrieval: what the model sees, and a memory that forgets](ch05/profrod-sovereign-agent-ch05-durable-memory-chapter.md) | DRAFT |
-| 6 | [In-context learning: why a skill's exact words must be tested](ch06/profrod-sovereign-agent-ch06-versioned-skills-chapter.md) | DRAFT |
-| 7 | [Build a durable work inbox and report outbox](ch07/profrod-sovereign-agent-ch07-durable-inbox-outbox-chapter.md) | DRAFT |
-| 8 | [Where the wait goes: prefill, decode and a phone channel](ch08/profrod-sovereign-agent-ch08-telegram-messaging-chapter.md) | DRAFT |
-| 9 | [Events at random: queues, utilization and scheduled work](ch09/profrod-sovereign-agent-ch09-schedules-stock-events-chapter.md) | DRAFT |
-| 10 | [When to ask: calibration, oversight and spending permission](ch10/profrod-sovereign-agent-ch10-spending-permissions-chapter.md) | DRAFT |
-| 11 | [Exactly one order: lost replies, retries and idempotency](ch11/profrod-sovereign-agent-ch11-ambiguous-supplier-order-chapter.md) | DRAFT |
-| 12 | [Slow or dead: leases, fencing and crash recovery](ch12/profrod-sovereign-agent-ch12-worker-recovery-chapter.md) | DRAFT |
-| 13 | [Connect an external tool with MCP](ch13/profrod-sovereign-agent-ch13-mcp-tools-chapter.md) | PLANNED |
-| 14 | [Prompt injection and isolation: words steer the model, boundaries hold](ch14/profrod-sovereign-agent-ch14-tool-isolation-chapter.md) | DRAFT |
-| 15 | [Evaluation as measurement: error bars and paired comparisons](ch15/profrod-sovereign-agent-ch15-agent-evaluation-chapter.md) | DRAFT |
-| 16 | [Optimizing against an evaluation: the winner's curse and preferences](ch16/profrod-sovereign-agent-ch16-controlled-improvement-chapter.md) | DRAFT |
-| 17 | [When a second agent pays: parallelism, errors and bounded delegation](ch17/profrod-sovereign-agent-ch17-bounded-delegation-chapter.md) | DRAFT |
-| 18 | [What a model call costs, and a deployment that survives](ch18/profrod-sovereign-agent-ch18-deployment-restoration-chapter.md) | DRAFT |
-| 19 | [A whole day: reliability, honest reports and readiness](ch19/profrod-sovereign-agent-ch19-integrated-shop-day-chapter.md) | DRAFT |
+| 6 | [Embeddings and vector search: when words are not enough](ch06/profrod-sovereign-agent-ch06-embeddings-vector-search-chapter.md) | PLANNED |
+| 7 | [In-context learning: why a skill's exact words must be tested](ch07/profrod-sovereign-agent-ch07-versioned-skills-chapter.md) | DRAFT |
+| 8 | [Build a durable work inbox and report outbox](ch08/profrod-sovereign-agent-ch08-durable-inbox-outbox-chapter.md) | DRAFT |
+| 9 | [Where the wait goes: prefill, decode and a phone channel](ch09/profrod-sovereign-agent-ch09-telegram-messaging-chapter.md) | DRAFT |
+| 10 | [Events at random: queues, utilization and scheduled work](ch10/profrod-sovereign-agent-ch10-schedules-stock-events-chapter.md) | DRAFT |
+| 11 | [When to ask: calibration, oversight and spending permission](ch11/profrod-sovereign-agent-ch11-spending-permissions-chapter.md) | DRAFT |
+| 12 | [Exactly one order: lost replies, retries and idempotency](ch12/profrod-sovereign-agent-ch12-ambiguous-supplier-order-chapter.md) | DRAFT |
+| 13 | [Slow or dead: leases, fencing and crash recovery](ch13/profrod-sovereign-agent-ch13-worker-recovery-chapter.md) | DRAFT |
+| 14 | [Connect an external tool with MCP](ch14/profrod-sovereign-agent-ch14-mcp-tools-chapter.md) | PLANNED |
+| 15 | [Prompt injection and isolation: words steer the model, boundaries hold](ch15/profrod-sovereign-agent-ch15-tool-isolation-chapter.md) | DRAFT |
+| 16 | [Evaluation as measurement: error bars and paired comparisons](ch16/profrod-sovereign-agent-ch16-agent-evaluation-chapter.md) | DRAFT |
+| 17 | [Optimizing against an evaluation: the winner's curse and preferences](ch17/profrod-sovereign-agent-ch17-controlled-improvement-chapter.md) | DRAFT |
+| 18 | [When a second agent pays: parallelism, errors and bounded delegation](ch18/profrod-sovereign-agent-ch18-bounded-delegation-chapter.md) | DRAFT |
+| 19 | [What a model call costs, and a deployment that survives](ch19/profrod-sovereign-agent-ch19-deployment-restoration-chapter.md) | DRAFT |
+| 20 | [A whole day: reliability, honest reports and readiness](ch20/profrod-sovereign-agent-ch20-integrated-shop-day-chapter.md) | DRAFT |
 
 The four parts are: **1–4, First useful construction**; **5–9, Continuity and initiative**; **10–14, Permission and external boundaries**; and **15–19, Evaluate and operate**.
 

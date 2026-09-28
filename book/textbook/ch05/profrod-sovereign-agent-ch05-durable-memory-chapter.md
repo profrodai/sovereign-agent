@@ -57,7 +57,7 @@ print(len(NOTES), "notes,", len(QUESTIONS), "questions")
 
 ### The context is a budget
 
-[Chapter 18](../ch18/profrod-sovereign-agent-ch18-deployment-restoration-chapter.md) measures what each prompt token costs:
+[Chapter 19](../ch19/profrod-sovereign-agent-ch19-deployment-restoration-chapter.md) measures what each prompt token costs:
 
 - **Time:** prefill reads every token.
 - **Memory:** the key-value cache stores every token for the rest of the call.
@@ -162,7 +162,7 @@ for a, b in (([1, 2, 0], [2, 4, 0]), ([1, 0, 0], [0, 1, 0]), ([1, 1, 0], [1, 0, 
 0.7071
 ```
 
-Embeddings trade one failure for another. They match paraphrases, but they blur exact identifiers: two SKUs or two dates can embed almost identically. Production systems often combine both kinds of score. This book's local model server was not configured to serve embeddings, so the measurements below are lexical. Exercise 6 asks you to add an embedding model and rerun them.
+Embeddings trade one failure for another. They match paraphrases, but they blur exact identifiers: two SKUs or two dates can embed almost identically. Production systems often combine both kinds of score. The measurements below are lexical. [Chapter 6](../ch06/profrod-sovereign-agent-ch06-embeddings-vector-search-chapter.md) builds embeddings from scratch, measures them on these same questions and combines them with BM25.
 
 ### Measured: three rankers on Lucy's notes
 
@@ -274,7 +274,7 @@ The two policies tied on accuracy, and each got the same two questions wrong. Re
 
 - **The model can fail with the evidence in front of it.** Asked when deliveries should arrive, with every note in context it invented a weekly delivery schedule, and with the top three it described the back door instead. The "afternoon" note was in its context both times. Retrieval cannot fix a model that does not use what it is given.
 - **Retrieval failures can hide behind correct answers.** BM25 did not send the freezer note for "How cold is the freezer kept?" The model still answered "approximately -18°C", from general knowledge of freezers rather than from Lucy's records. It scored as correct, and it would have been wrong for a shop that keeps its freezer colder. Measure whether the relevant record was sent, not only whether the answer looks right.
-- **Grade the grader.** The first scoring of this experiment matched answers by substring. It marked "8 AM" wrong against the expected "eight", and "Tuesdays" wrong against "Tuesday". Every answer was then read by hand, and the grader was rewritten to match whole words and accept numerals. The retained answers were scored again without calling the model. [Chapter 15](../ch15/profrod-sovereign-agent-ch15-agent-evaluation-chapter.md) treats grader validity in depth.
+- **Grade the grader.** The first scoring of this experiment matched answers by substring. It marked "8 AM" wrong against the expected "eight", and "Tuesdays" wrong against "Tuesday". Every answer was then read by hand, and the grader was rewritten to match whole words and accept numerals. The retained answers were scored again without calling the model. [Chapter 16](../ch16/profrod-sovereign-agent-ch16-agent-evaluation-chapter.md) treats grader validity in depth.
 
 The design rule follows. **When the memory fits comfortably in the context, send it all; retrieve when it does not, and then measure recall.** Lucy's forty notes cost 592 tokens. At 40,000 notes, sending everything would be impossible, and the recall of the retriever would decide what the agent can know. The rest of this chapter builds the memory itself: what to store, how to correct it and how to forget it.
 
@@ -357,7 +357,7 @@ The database wrapper used in the following experiments is our repository's own S
 
 The source field is a locator, not proof by itself. A string such as `lucy/message/1` says where this value came from in the exercise. In the messaging chapter, the authenticated intake record will provide that connection. A model-generated sentence saying “Lucy said this” would not become an operator instruction merely because it used the same words.
 
-For this first implementation, only explicit operator actions update preferences. The model has read access through context; it does not have a `remember` tool that can silently promote its own inferences into facts. Chapter 16 will introduce proposed changes and an evaluated activation path. Keeping the initial write surface small lets us test correction and forgetting before adding another decision-maker.
+For this first implementation, only explicit operator actions update preferences. The model has read access through context; it does not have a `remember` tool that can silently promote its own inferences into facts. Chapter 17 will introduce proposed changes and an evaluated activation path. Keeping the initial write surface small lets us test correction and forgetting before adding another decision-maker.
 
 ## Make correction one transaction
 
@@ -492,7 +492,7 @@ An empty query is useful for listing active preferences. Every candidate then ha
 
 We will add a small amount of recent work to the explicit preferences. A recorded result is useful continuity, but it may include generated mistakes. Mark it as an excerpt and retain the work identifier. The next model can use it as historical context while current tools remain the source for stock and arithmetic.
 
-The repository's durable work record will be developed further in Chapters 9–12. For this memory exercise, the following helper records an already observed result and stamps the context revision captured when its turn began. It performs no purchase and grants no execution authority. The installed worker captures the corresponding revision when work enters the queue, before a model starts running.
+The repository's durable work record will be developed further in Chapters 10–13. For this memory exercise, the following helper records an already observed result and stamps the context revision captured when its turn began. It performs no purchase and grants no execution authority. The installed worker captures the corresponding revision when work enters the queue, before a model starts running.
 
 **Listing:** Keep a source identifier and the context revision used by a past turn.
 
@@ -532,7 +532,7 @@ print(
 0 0
 ```
 
-The selected-context function below handles preferences and past work. Chapter 6 will extend its initial item list with local skill guidance. We have kept the same interface as the runtime, including its allowed-tool set, so that extension can test a skill's requirements without changing the caller. There are no active skills in this chapter's fixture.
+The selected-context function below handles preferences and past work. Chapter 7 will extend its initial item list with local skill guidance. We have kept the same interface as the runtime, including its allowed-tool set, so that extension can test a skill's requirements without changing the caller. There are no active skills in this chapter's fixture.
 
 **Listing:** Select complete provenance-bearing items within a byte budget.
 
@@ -842,7 +842,7 @@ Rerun the rankers with $b = 0$ and with $b = 1$, and with $k_1 = 0.5$ and $k_1 =
 
 ### Exercise 6: add an embedding model
 
-Start a local server with embeddings enabled, or use any embedding API, and add a ranker that orders notes by cosine similarity to the question. Measure recall@3 on the direct questions and on the paraphrases. Then combine the two rankers, for example by adding their normalized scores, and report whether the combination beats both.
+Start a local server with embeddings enabled, or use any embedding API, and add a ranker that orders notes by cosine similarity to the question. Measure recall@3 on the direct questions and on the paraphrases. Then combine the two rankers, for example by adding their normalized scores, and report whether the combination beats both. [Chapter 6](../ch06/profrod-sovereign-agent-ch06-embeddings-vector-search-chapter.md) develops this into a full chapter.
 
 ## Active recall
 
@@ -862,7 +862,7 @@ A model sees only its context, and every token costs time, memory and money. Ret
 
 You built a memory path whose behavior can be inspected across process boundaries. Preferences have explicit sources, correction commits atomically, retrieval respects sessions, and complete selected items fit a declared budget. The returning-preference experiment showed why the whole path into a future model request must be checked. Context revisions now exclude old summaries after forgetting without pretending to erase operational records or remote copies.
 
-The next chapter gives repeated procedures a similarly explicit home: local versioned skills. A preference describes Lucy's choice; a skill describes a procedure the agent can follow. Both can guide a model, and neither can enlarge the authority enforced by the tool and purchasing boundaries.
+The next chapter answers this chapter's measured limit: [Chapter 6](../ch06/profrod-sovereign-agent-ch06-embeddings-vector-search-chapter.md) finds the paraphrases with embeddings and measures what they cost. [Chapter 7](../ch07/profrod-sovereign-agent-ch07-versioned-skills-chapter.md) then gives repeated procedures a similarly explicit home: local versioned skills. A preference describes Lucy's choice; a skill describes a procedure the agent can follow. Both can guide a model, and neither can enlarge the authority enforced by the tool and purchasing boundaries.
 
 ```python
 db.close()

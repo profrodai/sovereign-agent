@@ -68,7 +68,7 @@ def members(asset: str) -> dict[str, bytes]:
     download_link = f"[Download this complete asset]({distribution.download_name(asset)})"
     assert source.count(download_link) == 1, "source start page must link its named download once"
     result[start] = source.replace(download_link, "You have the complete asset.").encode()
-    assert {f"ch{n:02d}/{distribution.chapter_name(n, asset)}" for n in range(1, 20)} <= set(result)
+    assert {f"ch{n:02d}/{distribution.chapter_name(n, asset)}" for n in range(1, 21)} <= set(result)
     names = [Path(name).name.casefold() for name in result]
     assert len(names) == len(set(names)), "download members collide outside their directories"
     for name, content in result.items():
