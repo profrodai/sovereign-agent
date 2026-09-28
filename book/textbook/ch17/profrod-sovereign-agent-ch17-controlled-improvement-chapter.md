@@ -149,13 +149,13 @@ dev_transfer_correlation 0.949
 ```mermaid
 xychart-beta
     title "Sixteen instructions: development and transfer pass rates"
-    x-axis ["0000", "0001", "0010", "0011", "0100", "0101", "0110", "0111", "1000", "1001", "1010", "1011", "1100", "1101", "1110", "1111"]
+    x-axis "Hints in the instruction (one digit per hint, 1 = included)" ["0000", "0001", "0010", "0011", "0100", "0101", "0110", "0111", "1000", "1001", "1010", "1011", "1100", "1101", "1110", "1111"]
     y-axis "Pass rate" 0 --> 1
-    bar [0.17, 0.17, 0.17, 0.17, 0.5, 0.5, 0.5, 0.5, 0.17, 0.17, 0.17, 0.17, 0.5, 0.5, 0.5, 0.5]
-    line [0.375, 0.375, 0.25, 0.375, 0.625, 0.625, 0.625, 0.625, 0.375, 0.375, 0.375, 0.375, 0.625, 0.625, 0.625, 0.5]
+    bar "Development" [0.17, 0.17, 0.17, 0.17, 0.5, 0.5, 0.5, 0.5, 0.17, 0.17, 0.17, 0.17, 0.5, 0.5, 0.5, 0.5]
+    bar "Transfer" [0.375, 0.375, 0.25, 0.375, 0.625, 0.625, 0.625, 0.625, 0.375, 0.375, 0.375, 0.375, 0.625, 0.625, 0.625, 0.5]
 ```
 
-**Figure:** Bars are development pass rates; the line is transfer. Every instruction with the second hint (negation) steps up on both.
+**Figure:** Development and transfer pass rates for each of the sixteen instructions. Every instruction with the second hint (negation) steps up on both.
 
 Here the search worked, and the reason is instructive. One hint, the second (negation), carried the whole effect. Every instruction containing it scored three of six on development and five of eight on transfer (four when all four hints were present). Every instruction without it scored one of six and two or three of eight. Development and transfer scores correlate at 0.95. The chosen instruction transferred *better* than its development score suggested.
 

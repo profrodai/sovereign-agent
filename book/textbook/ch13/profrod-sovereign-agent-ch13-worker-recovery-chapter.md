@@ -144,8 +144,8 @@ The measured delay, 5.12 seconds, is within 0.03 seconds of the prediction, and 
 ```mermaid
 xychart-beta
     title "Share of the pilot's turns that outlive a lease"
-    x-axis "lease (seconds)" [0.25, 0.5, 1, 1.5, 2, 2.5, 3]
-    y-axis "false expiry share" 0 --> 1
+    x-axis "Lease (seconds)" [0.25, 0.5, 1, 1.5, 2, 2.5, 3]
+    y-axis "Share of turns that outlive the lease" 0 --> 1
     line [0.875, 0.625, 0.325, 0.05, 0.05, 0.05, 0]
 ```
 

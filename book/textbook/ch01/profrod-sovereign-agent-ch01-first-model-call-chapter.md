@@ -320,11 +320,11 @@ xychart-beta
     title "Bits per character as smoothing shrinks"
     x-axis "Smoothing alpha" ["1", "0.1", "0.01", "0.001", "0.0001"]
     y-axis "Bits per character" 0 --> 3
-    line [2.647, 1.708, 0.915, 0.642, 0.600]
-    line [2.598, 1.708, 0.970, 0.751, 0.757]
+    line "Training text" [2.647, 1.708, 0.915, 0.642, 0.600]
+    line "Held-out text" [2.598, 1.708, 0.970, 0.751, 0.757]
 ```
 
-**Figure:** Training cross-entropy (lower line) keeps falling as smoothing shrinks; held-out cross-entropy (upper line) turns back up below alpha = 0.001, the signature of overfitting.
+**Figure:** Cross-entropy on the training text keeps falling as smoothing shrinks; on held-out text it turns back up below alpha = 0.001, the signature of overfitting.
 
 Training cross-entropy keeps falling as $\alpha$ shrinks. Held-out cross-entropy falls, bottoms out near $\alpha = 0.001$, and rises again. Below that, the model trusts its few counts too much. This is **overfitting**, visible in five rows, and the reason every serious training run reports a validation loss. The learner file uses $\alpha = 0.001$.
 

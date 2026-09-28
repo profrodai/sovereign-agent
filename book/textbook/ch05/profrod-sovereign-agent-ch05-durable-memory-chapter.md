@@ -192,13 +192,13 @@ most_recent   recall@3 0.062  MRR 0.072  direct 0.00  paraphrases 0.25
 ```mermaid
 xychart-beta
     title "Recall@3 on Lucy's notes"
-    x-axis ["BM25", "Word overlap", "Most recent"]
+    x-axis "Ranker" ["BM25", "Word overlap", "Most recent"]
     y-axis "Share of relevant notes in the top three" 0 --> 1
-    bar [1.0, 1.0, 0.0]
-    line [0.5, 0.25, 0.25]
+    bar "Twelve direct questions" [1.0, 1.0, 0.0]
+    bar "Four paraphrases" [0.5, 0.25, 0.25]
 ```
 
-**Figure:** Bars are the twelve direct questions; the line is the four paraphrases. Lexical rankers are perfect when the words match and weak when they do not.
+**Figure:** Each ranker's recall@3, the share of questions whose relevant note was among the three it returned, on the twelve direct questions and the four paraphrases. Lexical rankers are perfect when the words match and weak when they do not.
 
 On direct questions both lexical rankers are perfect. On paraphrases, BM25 finds two of four, and word overlap finds one. "The most recent notes" is the policy many chatbots use by default, and it almost never finds the relevant note. Recency is a good ranking for a conversation's last few turns, and a poor one for a long memory.
 
@@ -263,7 +263,7 @@ bm25_top3  correct 14/16  paraphrases 3/4  relevant note sent 14/16  82 prompt t
 ```mermaid
 xychart-beta
     title "Prompt tokens per question, qwen2.5:1.5b"
-    x-axis ["All forty notes", "BM25 top three"]
+    x-axis "Notes sent with the question" ["All forty notes", "BM25 top three"]
     y-axis "Prompt tokens" 0 --> 650
     bar [592, 82]
 ```

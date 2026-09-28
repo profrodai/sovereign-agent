@@ -110,14 +110,14 @@ The retained replies show how the failures happen. On the chocolate situation (7
 
 ```mermaid
 xychart-beta
-    title "Accuracy (bars) against stated confidence (line)"
-    x-axis ["qwen2.5 0.5B", "qwen2.5 1.5B", "qwen3 0.6B", "qwen3 0.6B thinking"]
-    y-axis "share" 0 --> 1
-    bar [0.05, 0.19, 0.335, 0.84]
-    line [0.976, 0.904, 0.853, 0.858]
+    title "Accuracy against stated confidence"
+    x-axis "Model" ["qwen2.5 0.5B", "qwen2.5 1.5B", "qwen3 0.6B", "qwen3 0.6B thinking"]
+    y-axis "Share of answers" 0 --> 1
+    bar "Right" [0.05, 0.19, 0.335, 0.84]
+    bar "Stated confidence" [0.976, 0.904, 0.853, 0.858]
 ```
 
-**Figure:** Stated confidence barely moves while accuracy ranges from 5% to 84%. The gap between line and bar is the overconfidence.
+**Figure:** Stated confidence barely moves while accuracy ranges from 5% to 84%. The gap between each model's two bars is its overconfidence.
 
 ### A confidence from agreement
 

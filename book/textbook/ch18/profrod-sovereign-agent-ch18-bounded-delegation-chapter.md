@@ -170,11 +170,11 @@ xychart-beta
     title "Majority of three independent voters"
     x-axis "Accuracy of one voter" [0.1, 0.3, 0.5, 0.7, 0.9]
     y-axis "Accuracy of the majority" 0 --> 1
-    line [0.028, 0.216, 0.5, 0.784, 0.972]
-    line [0.1, 0.3, 0.5, 0.7, 0.9]
+    line "Majority of three" [0.028, 0.216, 0.5, 0.784, 0.972]
+    line "One voter" [0.1, 0.3, 0.5, 0.7, 0.9]
 ```
 
-**Figure:** The curve is the majority of three; the straight line is one voter. Above one half, voting helps; below it, voting hurts.
+**Figure:** The majority of three against a single voter. Above one half, voting helps; below it, voting hurts.
 
 With three votes per question, each measured value is one of 0, ⅓, ⅔ and 1, so read the direction, not the digits. Where the model was usually right, voting made it always right. Where it was usually wrong, voting made it always wrong. The errors were also not all independent. On the delivery question the model kept inventing a schedule, and question 11, right 60% of the time, fell to one in three because its wrong answers repeated the same slip: "the accountant" instead of "Marcus". **Voting helps a subagent that is already more right than wrong, and amplifies the mistakes of one that is not.** The grader is Chapter 5's whole-word rule, so a few borderline answers, such as "the accountant" for "Marcus", count as wrong.
 
