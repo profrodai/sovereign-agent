@@ -221,12 +221,12 @@ On direct questions every ranker finds the right note within three. On paraphras
 ```mermaid
 xychart-beta
     title "Recall@3 on paraphrased questions"
-    x-axis ["BM25", "from scratch", "all-minilm", "fused"]
-    y-axis "recall@3" 0 --> 1
+    x-axis "Ranker" ["BM25", "from scratch", "all-minilm", "fused"]
+    y-axis "Share of right notes in the top three" 0 --> 1
     bar [0.2, 0.267, 0.733, 0.4]
 ```
 
-**Figure:** On the fifteen paraphrases, a trained encoder finds nearly three times as many right notes as word matching. Fusing it with BM25 gave some of that back.
+**Figure:** Each bar is one ranker's recall@3 on the fifteen paraphrased questions: the share whose right note was among the three it returned. BM25 matches words; from scratch is the sixteen-dimension vectors trained on Lucy's forty notes; all-minilm is the trained encoder; fused combines BM25 and all-minilm by reciprocal rank. The trained encoder finds nearly three times as many right notes as word matching, and fusing it with BM25 gave some of that back.
 
 ### Fusion is not free
 

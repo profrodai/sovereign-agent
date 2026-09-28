@@ -115,14 +115,14 @@ qwen2.5:1.5b  range across three orders, per paraphrase: [0.208, 0.292, 0.167, 0
 ```mermaid
 xychart-beta
     title "qwen2.5:1.5b: six equivalent instructions"
-    x-axis ["Paraphrase 1", "2", "3", "4", "5", "6"]
+    x-axis "Wording of the instruction" ["1", "2", "3", "4", "5", "6"]
     y-axis "Accuracy on 24 requests" 0 --> 1
-    bar [0.708, 0.583, 0.625, 0.708, 0.542, 0.375]
-    line [0.75, 0.75, 0.667, 0.708, 0.667, 0.542]
-    line [0.542, 0.458, 0.5, 0.417, 0.5, 0.375]
+    bar "No examples" [0.708, 0.583, 0.625, 0.708, 0.542, 0.375]
+    bar "Four examples, one order" [0.75, 0.75, 0.667, 0.708, 0.667, 0.542]
+    bar "Same examples, another order" [0.542, 0.458, 0.5, 0.417, 0.5, 0.375]
 ```
 
-**Figure:** Bars are each instruction with no examples; the lines are the same instruction with the same four examples in two different orders. The wording moves accuracy by a third, and the order of four examples by up to 29 points.
+**Figure:** Each of the six wordings with no examples, and with the same four examples in two different orders. The wording moves accuracy by a third, and the order of four examples by up to 29 points.
 
 On the larger model, reordering four examples moved one paraphrase's accuracy by 29 points. Models are sensitive to which example comes last, among other things, and this sensitivity is not something a reader of the prompt can see.
 

@@ -128,13 +128,13 @@ total variation distance: 0.8174
 ```mermaid
 xychart-beta
     title "Probability of each valid answer in the toy model"
-    x-axis ["ay", "by"]
+    x-axis "Valid answer" ["ay", "by"]
     y-axis "Probability" 0 --> 1
-    bar [0.0826, 0.9174]
-    line [0.9, 0.1]
+    bar "Conditioned on validity" [0.0826, 0.9174]
+    bar "Token-by-token masking" [0.9, 0.1]
 ```
 
-**Figure:** Bars are the model conditioned on validity; the line is what token-by-token masking produces. Masking follows the likely first token into its one valid ending.
+**Figure:** The model conditioned on validity, against what token-by-token masking produces. Masking follows the likely first token into its one valid ending.
 
 Conditioning says "ay" is rare: the model almost never completes "a" validly, so valid answers mostly begin with "b". Masking commits to "a" nine times in ten and then forces the one valid continuation. The two distributions are 0.82 apart in total variation, which is the largest possible gap in probability for any event. **Constrained decoding changes what the model says, not only whether it parses.** Exact conditioning would need lookahead over whole continuations. Sampling repeatedly and keeping only valid answers achieves it, at a cost that grows as $1/P(\text{valid})$.
 
@@ -167,13 +167,13 @@ qwen2.5:1.5b  schema enforced  parses 60/60  schema 60/60  correct 58/60
 ```mermaid
 xychart-beta
     title "qwen2.5:0.5b, sixty answers each way"
-    x-axis ["Parses", "Fits the schema", "Right order"]
-    y-axis "Answers" 0 --> 60
-    bar [60, 60, 44]
-    line [48, 40, 32]
+    x-axis "Check the answer passes" ["Parses", "Fits the schema", "Right order"]
+    y-axis "Answers out of sixty" 0 --> 60
+    bar "Schema enforced" [60, 60, 44]
+    bar "JSON asked for in the prompt" [48, 40, 32]
 ```
 
-**Figure:** Bars are with the schema enforced; the line is JSON asked for in the prompt only. The schema closes the first two gaps completely, and the third only partly.
+**Figure:** The same sixty requests with the schema enforced, and with JSON asked for in the prompt only. The schema closes the first two gaps completely, and the third only partly.
 
 The schema did what it promises: every constrained answer parsed and fitted. Read the failures before crediting it with more.
 

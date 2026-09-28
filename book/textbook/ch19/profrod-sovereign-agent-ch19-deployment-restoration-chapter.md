@@ -148,14 +148,14 @@ qwen2.5:1.5b  28 layers, 2 of 12 heads for KV, d = 128: 28,672 B/token; full 32,
 
 ```mermaid
 xychart-beta
-    title "Weights against a full-context KV cache (GB)"
-    x-axis ["qwen2.5:0.5b", "qwen3:0.6b", "qwen2.5:1.5b"]
+    title "Weights against a full-context KV cache"
+    x-axis "Model" ["qwen2.5:0.5b", "qwen3:0.6b", "qwen2.5:1.5b"]
     y-axis "Gigabytes" 0 --> 5
-    bar [0.40, 0.52, 0.99]
-    line [0.40, 4.70, 0.94]
+    bar "Weights" [0.40, 0.52, 0.99]
+    bar "KV cache, one sequence at full context" [0.40, 4.70, 0.94]
 ```
 
-**Figure:** Bars are the weights; the line is one sequence's KV cache at the model's full context. With eight KV heads, `qwen3:0.6b`'s cache dwarfs its weights.
+**Figure:** Each model's weights beside one sequence's KV cache at the model's full context. With eight KV heads, `qwen3:0.6b`'s cache dwarfs its weights.
 
 At its full context, `qwen3:0.6b`'s cache would be about nine times the size of its weights. Long contexts are paid for in memory, per sequence. Grouped-query attention is why `qwen2.5:1.5b`'s cache is small: two KV heads instead of twelve divide it by six.
 
@@ -213,11 +213,11 @@ xychart-beta
     title "Total decode throughput against concurrent requests, qwen2.5:1.5b"
     x-axis "Requests at once" [1, 2, 4]
     y-axis "Tokens per second" 0 --> 400
-    line [97.1, 194.2, 388.4]
-    line [97.1, 103.8, 107.0]
+    line "Ideal batching" [97.1, 194.2, 388.4]
+    line "This server" [97.1, 103.8, 107.0]
 ```
 
-**Figure:** Ideal batching (upper line) would multiply throughput by the batch size while the weights are read once per step. This server, as configured, served requests one at a time (lower line).
+**Figure:** Ideal batching would multiply throughput by the batch size while the weights are read once per step. This server, as configured, served requests one at a time.
 
 This server, as configured, did not batch. It served the requests one after another. Total throughput stayed near one request's decode rate, and wall time grew in proportion to the number of requests. Batching is a property of the serving software and its configuration, not of the model. The consequence for an agent is queueing. **Little's law**, from [Chapter 8](../ch08/profrod-sovereign-agent-ch08-durable-inbox-outbox-chapter.md), says the average number of requests in progress equals the arrival rate times the time each spends in the system. A server that handles one request at a time, each taking $W$ seconds, can sustain at most $1/W$ requests per second. Above that rate, the queue grows without bound.
 
@@ -286,11 +286,11 @@ xychart-beta
     title "Input tokens over an agent loop"
     x-axis "Model calls in the loop" [2, 5, 10, 20]
     y-axis "Input tokens" 0 --> 18000
-    line [660, 2100, 5700, 17400]
-    line [660, 1650, 3300, 6600]
+    line "Resending the transcript" [660, 2100, 5700, 17400]
+    line "Growing only with the calls" [660, 1650, 3300, 6600]
 ```
 
-**Figure:** Resending the transcript (upper line) grows with the square of the loop's length. The lower line is what the two-call loop would cost if cost grew only in proportion to the number of calls.
+**Figure:** Resending the transcript grows with the square of the loop's length. The other line is what the two-call loop would cost if cost grew only in proportion to the number of calls.
 
 Ten times the calls, from two to twenty, costs about twenty-six times the input. Three design rules follow, each already in this book:
 

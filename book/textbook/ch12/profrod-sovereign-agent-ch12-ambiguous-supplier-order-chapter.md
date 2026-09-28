@@ -111,8 +111,8 @@ Both predictions hold: 1.42 attempts against 1.429, and 0.27 duplicate orders pe
 ```mermaid
 xychart-beta
     title "Duplicate orders per intended order, retrying without a key (a = 0.1)"
-    x-axis "chance b of losing the reply after the commit" [0, 0.1, 0.2, 0.3, 0.4, 0.5]
-    y-axis "expected duplicates" 0 --> 1.4
+    x-axis "Chance b of losing the reply after the commit" [0, 0.1, 0.2, 0.3, 0.4, 0.5]
+    y-axis "Expected duplicates" 0 --> 1.4
     line [0, 0.125, 0.286, 0.5, 0.8, 1.25]
 ```
 

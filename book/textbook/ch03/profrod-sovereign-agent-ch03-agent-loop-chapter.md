@@ -209,11 +209,11 @@ xychart-beta
     title "Task success against task length, qwen2.5:1.5b"
     x-axis "Products to look up (n)" [1, 2, 4, 8]
     y-axis "Share of tasks right" 0 --> 1
-    line [1.0, 1.0, 0.4, 0.175]
-    line [1.0, 1.0, 1.0, 0.925]
+    line "Model adds the total" [1.0, 1.0, 0.4, 0.175]
+    line "Program adds the lookups" [1.0, 1.0, 1.0, 0.925]
 ```
 
-**Figure:** The model adding the total itself (lower line) against the program adding the recorded lookups (upper line), on the same forty runs per length.
+**Figure:** The model adding the total itself against the program adding the recorded lookups, on the same forty runs per length.
 
 Task success falls with length, as the arithmetic predicts. But it does not fall the way $p^{n}$ does. A least-squares fit of $\log(\text{success}) = n \log p + \log a$ returns $p = 0.767$ and $a = 1.39$, and a probability above one is not a probability: the model of independent, identical steps is wrong for this task.
 
@@ -246,12 +246,12 @@ xychart-beta
     title "Solved within k attempts, n = 4, temperature 0.8"
     x-axis "Attempts (k)" [1, 2, 3, 4]
     y-axis "Share solved" 0 --> 1
-    line [0.35, 0.577, 0.725, 0.821]
-    line [0.35, 0.45, 0.6, 0.725]
-    line [0.35, 0.531, 0.625, 0.673]
+    line "Predicted, independent attempts" [0.35, 0.577, 0.725, 0.821]
+    line "Measured" [0.35, 0.45, 0.6, 0.725]
+    line "Predicted, hard cases stay hard" [0.35, 0.531, 0.625, 0.673]
 ```
 
-**Figure:** Measured retries (middle line at four attempts) fall below the independent prediction (top) and above the naive hard-fraction prediction (bottom) by the fourth attempt.
+**Figure:** Measured retries fall below the prediction for independent attempts, and by the fourth attempt they are above the naive prediction in which the hard cases stay hard.
 
 Independence overpredicts from the first retry on. A failed instance succeeded on its second attempt only 15% of the time (10 points of the 65% that had failed), against 35% on first attempts, because the instances that fail are the ones that are harder for this model. The hard-fraction model, fitted naively (treating the 27.5% never solved in four attempts as permanently hard), is closer at two and three attempts but underpredicts at four. Some of the "hard" instances were merely unlucky, and a longer run would separate the two. Neither model is the truth; both are ways of asking the data a precise question. The conclusion that holds under both models: **retries buy less than independence promises**, so budget for them from measurements, not from $1 - (1 - q)^k$.
 

@@ -162,14 +162,14 @@ Mixing reports into the queue also lengthened every wait. At 69% utilization, th
 
 ```mermaid
 xychart-beta
-    title "Mean wait before service in the three stable runs (seconds)"
-    x-axis ["notes, 57% busy", "notes, 85% busy", "mixed, 69% busy"]
-    y-axis "seconds" 0 --> 2.5
-    bar [0.573, 1.214, 2.198]
-    line [0.5, 1.503, 2.208]
+    title "Mean wait before service in the three stable runs"
+    x-axis "Run" ["notes, 57% busy", "notes, 85% busy", "mixed, 69% busy"]
+    y-axis "Mean wait (seconds)" 0 --> 2.5
+    bar "Measured" [0.573, 1.214, 2.198]
+    bar "Pollaczek-Khinchine prediction" [0.5, 1.503, 2.208]
 ```
 
-**Figure:** Bars are measured; the line is the Pollaczek–Khinchine prediction from each run's own service times. The fourth run, planned for 80% and actually 111% busy, is off this scale: 38.9 seconds.
+**Figure:** Each run's measured wait beside the Pollaczek–Khinchine prediction from its own service times. The fourth run, planned for 80% and actually 111% busy, is off this scale: 38.9 seconds.
 
 **Listing:** Little's law on the same runs: the time-average number of jobs in the system against the arrival rate times the mean time in the system.
 

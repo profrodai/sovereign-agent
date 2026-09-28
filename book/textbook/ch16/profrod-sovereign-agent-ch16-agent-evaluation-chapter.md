@@ -118,13 +118,13 @@ n=100 p=0.99: Wald 0.633  Wilson 0.921
 ```mermaid
 xychart-beta
     title "Exact coverage of a nominal 95% interval, n = 16"
-    x-axis "True pass rate p" [0.5, 0.9, 0.95, 0.99]
+    x-axis "True pass rate p" ["0.5", "0.9", "0.95", "0.99"]
     y-axis "Probability the interval contains p" 0 --> 1
-    line [0.923, 0.932, 0.957, 0.851]
-    line [0.923, 0.811, 0.559, 0.149]
+    line "Wilson" [0.923, 0.932, 0.957, 0.851]
+    line "Wald" [0.923, 0.811, 0.559, 0.149]
 ```
 
-**Figure:** Wilson (upper line) stays near its promised 0.95; Wald (lower line) collapses as the agent gets better.
+**Figure:** Wilson stays near its promised 0.95; Wald collapses as the agent gets better.
 
 At sixteen runs of an agent that really passes 95% of the time, the "95%" Wald interval contains the truth barely more than half the time. It is worst for good agents, which are the ones we most want to measure. Wilson stays close to its promise. From here on, this book reports Wilson intervals.
 
@@ -305,11 +305,11 @@ xychart-beta
     title "pass@k, contrast instruction, qwen2.5:1.5b"
     x-axis "Samples (k)" [1, 2, 5]
     y-axis "Share of cases solved" 0 --> 1
-    line [0.4143, 0.657, 0.9311]
-    line [0.4143, 0.4937, 0.5697]
+    line "Predicted if every case were alike" [0.4143, 0.657, 0.9311]
+    line "Measured case by case" [0.4143, 0.4937, 0.5697]
 ```
 
-**Figure:** What pass@1 predicts if every case were alike (upper line), against the unbiased pass@k measured case by case (lower line).
+**Figure:** What pass@1 predicts if every case were alike, against the unbiased pass@k measured case by case.
 
 Three findings, each a general lesson.
 
