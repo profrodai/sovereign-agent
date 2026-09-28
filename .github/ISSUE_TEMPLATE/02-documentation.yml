@@ -7,7 +7,7 @@ body:
     attributes:
       label: Page or chapter
       description: Link to the file and heading, or give the repository path.
-      placeholder: "book/textbook/ch11/profrod-sovereign-agent-ch11-spending-permissions-chapter.md#..."
+      placeholder: "docs/quickstart.md#... (book chapters: report them at profrod.ai/book)"
     validations:
       required: true
   - type: textarea

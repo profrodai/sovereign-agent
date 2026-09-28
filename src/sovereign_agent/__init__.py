@@ -1,4 +1,4 @@
-"""Sovereign Agent: an executable textbook for Zero-Employee Organizations.
+"""Sovereign Agent: an always-on AI agent you can read end to end.
 
 Importing this package performs no filesystem, process, or network activity.
 """

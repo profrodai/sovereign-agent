@@ -6,6 +6,14 @@ Repository: [`profrodai/sovereign-agent`](https://github.com/profrodai/sovereign
 
 ## Unreleased
 
+- The book moved home. Its chapters live only at https://profrod.ai/book; its
+  exercises, solutions, educator guides and chapter code (checkpoints, learner
+  modules, experiments) live in profrodai/profrodai-resources under
+  `courses/sovereign-agent-book`, which installs this package. `book/`, the
+  archived 2026-09-09 edition, their evidence and every book-only gate, script
+  and test left this repository; history is unchanged. The package itself is
+  untouched: this repository is the finished agent the book builds.
+
 - Add a standalone Chapter 1 classroom notebook and instructor guide with
   explicit live opt-in, labeled offline fallback, repeatable fixtures,
   adversarial envelope checks and a rubric. Fold warning-check counterexamples

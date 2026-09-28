@@ -1,13 +1,14 @@
 # Sovereign Agent documentation
 
-Sovereign Agent 1.x is an executable textbook for learning how an outcome
+Sovereign Agent 1.x is an always-on agent you can read end to end: how an outcome
 becomes governed work performed by accountable actors. It is a compact Python
 reference implementation, not the production Zero Employee control plane.
 
 ## Start here
 
 1. [Install and run the quickstart](quickstart.md).
-2. Work through the [executable book](../book/README.md).
+2. Build it step by step with [the book](https://profrod.ai/book) and
+   [its exercises](https://github.com/profrodai/profrodai-resources/tree/main/courses/sovereign-agent-book).
 3. Read the [architecture](architecture.md) when you want to connect a chapter
    concept to the production modules.
 4. Use the [API reference](api_reference.md) and
@@ -41,7 +42,6 @@ before following one of those pages.
 | --- | --- |
 | `src/sovereign_agent/` | The small governed-organization implementation and CLI. |
 | `src/reference_organizations/store/` | Lucy's store domain used by the book. |
-| `book/` | Reader-facing chapters, solutions, instructor notes, and labs. |
 | `tests/` | Behavioral and adversarial proof matrix. |
 | `scripts/` | Release, curriculum, proof-pack, and repository verifiers. |
 | `docs/` | Current reference plus explicitly retained historical records. |

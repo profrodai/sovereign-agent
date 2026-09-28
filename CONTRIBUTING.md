@@ -67,12 +67,10 @@ fixtures, or session artifacts.
 - Library code: `src/sovereign_agent/`
 - The reference organization: `src/reference_organizations/store/`
 - Deterministic tests: `tests/`
-- The teaching collection: [`book/`](book/README.md) — one nineteen-chapter
-  sequence in four assets: textbook, exercises, solutions and educator materials.
-  The source registry is [`book/textbook/BOOK.json`](book/textbook/BOOK.json).
-  See the [migration and consumer contract](docs/book-migration-20260909.md)
-  before changing chapter paths or numbers. Website rendering is managed
-  separately; this repository builds no site of its own.
+- The book is not here: it lives at [profrod.ai/book](https://profrod.ai/book), and its exercises,
+  solutions, educator guides and chapter code live in
+  [profrodai-resources](https://github.com/profrodai/profrodai-resources/tree/main/courses/sovereign-agent-book), which installs this package. A change here that
+  alters behavior a chapter relies on should run that course's `make test`.
 - Verification scripts: `scripts/`
 - Rulings and reference notes: `docs/` — much of it documents the 0.x line and
   is labeled as historical.

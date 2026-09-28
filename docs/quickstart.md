@@ -127,7 +127,7 @@ shelf was still empty. That gap is what the book is about.
 
 ## Where next
 
-- [The book](../book/README.md) — Chapter 0 is this shift, explained.
+- [The book](https://profrod.ai/book) and [its exercises](https://github.com/profrodai/profrodai-resources/tree/main/courses/sovereign-agent-book) build this agent chapter by chapter.
 - [Persistence boundary](persistence-boundary.md) — what is canonical, what is
   derived, and what this design does *not* promise.
 
