@@ -33,7 +33,9 @@ PLANNED = {6, 14}
 # PLANNED chapters whose manuscript is drafted before their notebooks: their listings and
 # checkpoint are checked now, so the text cannot rot while the notebooks are written. A chapter
 # leaves this map when BOOK.json marks it DRAFT (which requires its notebooks).
-IN_PROGRESS: dict[int, str] = {}
+IN_PROGRESS: dict[int, str] = {
+    6: "checkpoints/profrod_sovereign_agent_ch06_embeddings_vector_search_checkpoint.py"
+}
 AVAILABLE = set(range(1, 21)) - PLANNED
 EXPECTED = {f"ch{chapter:02d}-{letter}" for chapter in AVAILABLE for letter in "ab"}
 RECEIPT = ROOT / "docs/evidence/book-four-assets/verification-v2.json"

@@ -16,6 +16,7 @@ Each file below is the completed comparison implementation for one chapter's con
 | 3 | `profrod_sovereign_agent_ch03_agent_loop_learner.py` | The owned model and tool loop, its adapter, and the reliability arithmetic |
 | 4 | `profrod_sovereign_agent_ch04_state_store_learner.py` | The durable state store |
 | 5 | `profrod_sovereign_agent_ch05_retrieval_learner.py` | BM25, cosine similarity, precision@k, recall@k, reciprocal rank and a context packer |
+| 6 | `profrod_sovereign_agent_ch06_embeddings_learner.py` | One-hot vectors, the lookup as a matrix product, skip-gram with negative sampling, pooling, exact search, reciprocal rank fusion, ranking metrics and a small-world graph |
 | 7 | `profrod_sovereign_agent_ch07_prompt_sensitivity_learner.py` | Labels from free text, accuracy, spread across prompts, case-sampling noise and agreement |
 | 8 | `profrod_sovereign_agent_ch08_work_queue_learner.py` | The durable work queue |
 | 9 | `profrod_sovereign_agent_ch09_latency_learner.py` | A least-squares line, prefill as b n + c n², time to first token and to the whole reply, and conversation prefill with and without a cache |
