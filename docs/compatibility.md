@@ -4,7 +4,7 @@
 
 | Component | Supported contract |
 | --- | --- |
-| Python | 3.14 or newer |
+| Python | 3.12 or newer (Google Colab runs 3.12) |
 | Direct runtime dependency | `pydantic>=2,<3` |
 | Operating systems | Platform-independent core; provider CLIs and shell examples depend on their host |
 | Default tests | Offline, deterministic, no credentials |

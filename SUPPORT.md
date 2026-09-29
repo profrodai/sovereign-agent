@@ -6,7 +6,7 @@ provided.
 
 ## Before asking for help
 
-1. Use Python 3.14 or let `uv` provision it.
+1. Use Python 3.12 or newer, as on Google Colab, or let `uv` provision it.
 2. Run `sovereign-agent doctor`.
 3. Check the [README](README.md), [quickstart](docs/quickstart.md), and
    [compatibility guide](docs/compatibility.md).

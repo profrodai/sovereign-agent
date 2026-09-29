@@ -4,7 +4,7 @@ Ten minutes and no API keys. You will run a small organization through
 one complete piece of work and then check whether it told you the truth.
 
 You need [`uv`](https://docs.astral.sh/uv/), `git`, and a terminal. Nothing
-else — uv supplies Python 3.14 itself, and after installation there is no
+else — uv supplies Python 3.12 itself, and after installation there is no
 API key, no network, and no database tools.
 
 ## 1. Install

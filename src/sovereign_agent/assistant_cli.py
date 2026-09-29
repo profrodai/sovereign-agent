@@ -367,7 +367,7 @@ def handle(args: argparse.Namespace) -> int:
                 # Logs describe work state, never prompts or channel credentials.
                 print(json.dumps({"status": item["status"], "work": item.get("work")}), flush=True)
                 failures = 0
-            except OSError, ValueError:
+            except (OSError, ValueError):
                 failures = min(failures + 1, 5)
                 print(json.dumps({"status": "RETRY_WAIT", "attempt": failures}), flush=True)
             stop.wait(min(60, 2**failures) if failures else 1)

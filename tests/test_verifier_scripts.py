@@ -158,8 +158,9 @@ def test_the_published_quickstart_uses_only_commands_that_exist(tmp_path: Path) 
     unknown = {name for name in used if name not in declared}
     assert not unknown, f"quickstart uses commands that do not exist: {sorted(unknown)}"
 
-    assert "3.13" not in text, "quickstart names a Python version below the package floor"
-    assert "python3.14" in text or "3.14" in text
+    # The floor is Python 3.12, the version Google Colab runs.
+    assert not re.search(r"3\.(?:[0-9]|1[01])\b", text), "quickstart names a Python below 3.12"
+    assert "3.12" in text
 
     # It must not require a database client it never told the reader to install.
     assert not re.search(r"^\s*sqlite3 ", text, re.M), (

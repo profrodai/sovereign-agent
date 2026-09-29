@@ -176,7 +176,7 @@ def serve(
             self.end_headers()
             try:
                 self.wfile.write(raw)
-            except BrokenPipeError, ConnectionResetError:
+            except (BrokenPipeError, ConnectionResetError):
                 pass  # A bounded client may already have stopped waiting.
 
         def operation(self) -> str | None:

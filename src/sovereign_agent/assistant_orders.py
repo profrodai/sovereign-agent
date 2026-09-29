@@ -336,7 +336,7 @@ def execute(
             receipt = supplier.lookup(identifier)
             if receipt is not None:
                 return _record(db, work, identifier, receipt)
-        except OSError, ValueError:
+        except (OSError, ValueError):
             return {"status": "UNKNOWN", "operation": identifier, "needs_operator": True}
         if not supplier.idempotent:
             return {"status": "UNKNOWN", "operation": identifier, "needs_operator": True}
@@ -389,7 +389,7 @@ def execute(
     try:
         receipt = supplier.order(identifier, json.loads(row["proposal"]))
         return _record(db, work, identifier, receipt)
-    except OSError, ValueError:
+    except (OSError, ValueError):
         with db.immediate() as connection:
             assert_current(connection, work)
             connection.execute(

@@ -29,11 +29,11 @@ def _root(namespace: argparse.Namespace) -> Path:
 
 
 def _doctor(_: argparse.Namespace) -> int:
-    python_ok = sys.version_info >= (3, 14)
+    python_ok = sys.version_info >= (3, 12)
     pydantic_version = _installed_version("pydantic")
     pydantic_ok = pydantic_version != "not installed"
     print("Sovereign Agent doctor")
-    print(f"  Python:   {platform.python_version()} {'OK' if python_ok else 'NEEDS 3.14+'}")
+    print(f"  Python:   {platform.python_version()} {'OK' if python_ok else 'NEEDS 3.12+'}")
     print(f"  Pydantic: {pydantic_version} {'OK' if pydantic_ok else 'MISSING'}")
     print("  Network:  not required")
     print("  Tokens:   not required")
@@ -65,7 +65,7 @@ def _doctor(_: argparse.Namespace) -> int:
         print("Ready for the offline curriculum. Live providers are optional.")
         return 0
     if not python_ok:
-        print("Next: install Python 3.14, then rerun `sovereign-agent doctor`.")
+        print("Next: install Python 3.12 or newer, then rerun `sovereign-agent doctor`.")
     else:
         print("Next: reinstall sovereign-agent so its sole runtime dependency is present.")
     return 1

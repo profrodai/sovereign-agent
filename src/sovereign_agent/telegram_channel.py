@@ -43,7 +43,7 @@ class Telegram:
             if not isinstance(result, dict) or result.get("ok") is not True:
                 raise ValueError("Telegram declined operation")
             return result["result"]
-        except OSError, ValueError, KeyError, TypeError:
+        except (OSError, ValueError, KeyError, TypeError):
             # API URLs contain the token. Never expose exception URLs or bodies.
             raise OSError("Telegram request failed; inspect connectivity and credentials") from None
 
@@ -176,7 +176,7 @@ def deliver_one(db: Database, bot: Bot, operators: frozenset[int]) -> str | None
         ):
             raise ValueError("missing delivery receipt")
         status = "SENT"
-    except OSError, ValueError:
+    except (OSError, ValueError):
         status = "UNKNOWN"
     with db.immediate() as connection:
         updated = connection.execute(

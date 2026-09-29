@@ -10,7 +10,7 @@ documentation defects, and proposals. Vulnerabilities must follow
 
 ## Set up a development checkout
 
-Requirements: Git, Python 3.14+, `make`, and
+Requirements: Git, Python 3.12+, `make`, and
 [`uv`](https://docs.astral.sh/uv/).
 
 ```bash
@@ -33,7 +33,7 @@ The Makefile exposes the supported development entry points, with `help` as the
 default goal:
 
 ```bash
-make install   # uv sync --python 3.14 --group dev
+make install   # uv sync --python 3.12 --group dev
 make lint      # ruff format --check, ruff check, mypy (src tests scripts book)
 make test      # pytest
 make verify    # runtime, active book, historical compatibility and clean onboarding

@@ -167,5 +167,5 @@ class HTTPModel:
             if tokens > max_output_tokens or len(calls) > 32:
                 raise ModelError("model exceeded requested limits")
             return ModelTurn(content, calls, tokens)
-        except OSError, ValueError, KeyError, IndexError, TypeError:
+        except (OSError, ValueError, KeyError, IndexError, TypeError):
             raise ModelError("model transport or response validation failed") from None
