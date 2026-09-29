@@ -72,5 +72,5 @@ class Dispatcher:
             if len(encoded.encode()) > self.max_result_bytes:
                 return {"ok": False, "error": "result_too_large"}
             return {"ok": True, "value": value}
-        except ValueError, TypeError, KeyError, PermissionError, TimeoutError, OSError:
+        except (ValueError, TypeError, KeyError, PermissionError, TimeoutError, OSError):
             return {"ok": False, "error": "tool_failed"}

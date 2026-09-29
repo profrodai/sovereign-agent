@@ -6,6 +6,13 @@ Repository: [`profrodai/sovereign-agent`](https://github.com/profrodai/sovereign
 
 ## Unreleased
 
+- Run on Python 3.12 or newer, the version Google Colab runs, instead of
+  requiring 3.14. Sixteen `except A, B:` clauses, a Python 3.14 form, are
+  parenthesized; `doctor` accepts 3.12; development pins 3.12 in
+  `.python-version`; ruff and mypy target 3.12. All 645 tests pass on Python
+  3.12.13 and on 3.14. The book's course runs every notebook and chapter on
+  Colab and needs the package there too.
+
 - The book moved home. Its chapters live only at https://profrod.ai/book; its
   exercises, solutions, educator guides and chapter code (checkpoints, learner
   modules, experiments) live in profrodai/profrodai-resources under

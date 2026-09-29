@@ -3,7 +3,7 @@ name = "sovereign-agent"
 version = "1.4.0"
 description = "An always-on AI agent you can read end to end: tools, memory, approvals, recovery and operation in Python"
 readme = "README.md"
-requires-python = ">=3.14"
+requires-python = ">=3.12"
 license = "Apache-2.0"
 license-files = ["LICENSE", "NOTICE"]
 authors = [{ name = "Rod Rivera" }]
@@ -13,6 +13,8 @@ classifiers = [
   "Intended Audience :: Education",
   "Operating System :: OS Independent",
   "Programming Language :: Python :: 3",
+  "Programming Language :: Python :: 3.12",
+  "Programming Language :: Python :: 3.13",
   "Programming Language :: Python :: 3.14",
   "Topic :: Education",
   "Typing :: Typed",
@@ -57,7 +59,7 @@ markers = [
 
 [tool.ruff]
 line-length = 100
-target-version = "py314"
+target-version = "py312"
 
 [tool.ruff.lint]
 select = ["E", "F", "W", "I", "N", "UP", "B"]
@@ -68,5 +70,5 @@ select = ["E", "F", "W", "I", "N", "UP", "B"]
 known-first-party = ["sovereign_agent", "reference_organizations"]
 
 [tool.mypy]
-python_version = "3.14"
+python_version = "3.12"
 strict = true

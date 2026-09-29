@@ -4,7 +4,7 @@
 
 [![CI](https://github.com/profrodai/sovereign-agent/actions/workflows/ci.yml/badge.svg)](https://github.com/profrodai/sovereign-agent/actions/workflows/ci.yml)
 [![PyPI](https://img.shields.io/pypi/v/sovereign-agent.svg)](https://pypi.org/project/sovereign-agent/)
-[![Python 3.14+](https://img.shields.io/badge/python-3.14%2B-blue.svg)](https://www.python.org/downloads/)
+[![Python 3.12+](https://img.shields.io/badge/python-3.12%2B-blue.svg)](https://www.python.org/downloads/)
 [![License: Apache-2.0](https://img.shields.io/badge/license-Apache--2.0-blue.svg)](LICENSE)
 
 Sovereign Agent runs Lucy's ice cream shop unattended. It answers her messages, keeps stock,
@@ -14,7 +14,7 @@ agent harness needs is here, small enough to read: the model and tool loop, type
 SQLite state, memory with retrieval, versioned skills, a durable work queue, messaging and
 schedules, approvals bound to the exact spend, idempotent external actions, leases and fencing for
 recovery, execution isolation, evaluation, controlled improvement and bounded delegation. Python
-3.14, SQLite and one runtime dependency, Pydantic.
+3.12 or newer, including Google Colab, SQLite and one runtime dependency, Pydantic.
 
 **If it helps you understand how agents really work, [star the repository](https://github.com/profrodai/sovereign-agent)**:
 it is how other engineers find it.
@@ -70,15 +70,15 @@ uv tool install sovereign-agent
 sovereign-agent doctor
 ```
 
-(Plain `pip install sovereign-agent` still works in any Python 3.14
-environment if you prefer it.)
+(Plain `pip install sovereign-agent` still works in any Python 3.12 or newer
+environment, Google Colab included, if you prefer it.)
 
 The 1.x API intentionally replaces the v0.7 fleet framework. To keep using that
 framework: `uvx "sovereign-agent<1"`.
 
 ## Educational development install
 
-Python 3.14 is required; `uv` provides it automatically.
+Python 3.12 or newer is required, the version Google Colab runs; `uv` provides it automatically.
 
 ```bash
 uv sync
@@ -89,7 +89,7 @@ Expected result:
 
 ```text
 Sovereign Agent doctor
-  Python:   3.14.x OK
+  Python:   3.12.x OK
   Pydantic: 2.x OK
   Network:  not required
   Tokens:   not required

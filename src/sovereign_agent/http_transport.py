@@ -75,7 +75,7 @@ def request(
         return HTTPResult(result["status"], base64.b64decode(result["body"], validate=True))
     except subprocess.TimeoutExpired:
         raise TimeoutError("HTTP deadline expired; remote outcome may be unknown") from None
-    except ValueError, KeyError:
+    except (ValueError, KeyError):
         raise OSError("invalid HTTP transport result") from None
 
 
@@ -105,7 +105,7 @@ def _main() -> int:
             status, body = error.code, b""
         print(json.dumps({"status": status, "body": base64.b64encode(body).decode()}))
         return 0
-    except OSError, ValueError, KeyError, TypeError:
+    except (OSError, ValueError, KeyError, TypeError):
         return 2
 
 

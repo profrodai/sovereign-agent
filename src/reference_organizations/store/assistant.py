@@ -288,7 +288,7 @@ def run_once(
         except PermissionError:
             return {"status": "STALE", "work": work.id}
         return {"status": "BLOCKED", "work": work.id}
-    except ValueError, OSError:
+    except (ValueError, OSError):
         assistant_work.finish(
             db,
             work,

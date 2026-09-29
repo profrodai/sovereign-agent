@@ -130,7 +130,7 @@ def _coerce_units(value: object) -> int | None:
         return None
     try:
         return int(value)
-    except TypeError, ValueError:
+    except (TypeError, ValueError):
         return None
 
 
@@ -141,7 +141,7 @@ def run_llm_report(output: Path, prompt: str, *, timeout: float = 120.0) -> Acto
     base, model, api_key = resolve_config()
     try:
         scope = str(json.loads(prompt)["statement_of_work"]["scope"])
-    except json.JSONDecodeError, KeyError, TypeError:
+    except (json.JSONDecodeError, KeyError, TypeError):
         scope = prompt
     try:
         content = _chat(
@@ -169,7 +169,7 @@ def run_llm_report(output: Path, prompt: str, *, timeout: float = 120.0) -> Acto
             questions=[],
             notes=(str(parsed.get("notes") or f"proposed by {model}"))[:500],
         )
-    except OSError, ValueError, KeyError:
+    except (OSError, ValueError, KeyError):
         notes = "OpenAI-compatible endpoint failed: transport or response validation failed"
         report = ActorReport(status="failed", proposed_restock_units=None, notes=notes[:500])
     (output / "report.json").write_text(report.model_dump_json(indent=2), encoding="utf-8")
