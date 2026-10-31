@@ -657,6 +657,7 @@ def wake(db: Database, root: Path, model: Model | None, *, owner: str = "researc
             queue.finish(db, claim, "DONE", "Recovered durable operation; awaiting receipt")
             return "RECOVERED"
         if paper.binding(db, claim.session):
+            paper.require_private_root(root)
             committed = db.connection.execute(
                 "SELECT 1 FROM events WHERE kind='research.proposal' "
                 "AND json_extract(payload,'$.work')=?", (claim.id,),

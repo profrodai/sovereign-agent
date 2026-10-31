@@ -216,3 +216,13 @@ def test_structural_locator_does_not_prove_scientific_entailment(tmp_path):
     value["contribution"] = "An unsupported scientific interpretation using a valid pointer"
     # Structural validation cannot judge this meaning. Independent scientific review must.
     assert paper.validate_card(paper.Card.model_validate(value), source, [observation])
+
+
+def test_private_input_cannot_be_admitted_under_a_git_worktree(tmp_path):
+    repository = tmp_path / "public-source"
+    repository.mkdir()
+    (repository / ".git").mkdir()
+    private = repository / "misplaced-paper-root"
+    digest, _ = supplied(private)
+    with pytest.raises(PermissionError, match="outside Git"):
+        paper.load(private, "manifest.json", digest, "fixture input attestation")

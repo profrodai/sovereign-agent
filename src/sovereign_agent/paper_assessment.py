@@ -172,8 +172,16 @@ def unique_fields(pairs: list[tuple[str, Any]]) -> dict[str, Any]:
     return result
 
 
+def require_private_root(root: Path) -> None:
+    for directory in (root, *root.parents):
+        marker = directory / ".git"
+        if marker.exists() or marker.is_symlink():
+            raise PermissionError("private paper roots must be outside Git worktrees")
+
+
 def load(root: Path, path: str, expected: str, approval: str) -> dict[str, Any]:
     """Operator-side admission, never a model action or manifest approval field."""
+    require_private_root(root)
     if not approval.strip() or len(approval) > 512:
         raise PermissionError("explicit operator input/access approval reference required")
     body = read_owned(root, path, 65536)
