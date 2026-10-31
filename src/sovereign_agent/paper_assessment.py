@@ -153,7 +153,8 @@ def read_owned(root: Path, relative: str, limit: int) -> bytes:
             body = b"".join(chunks)
             after = os.fstat(descriptor)
             if len(body) > limit or (before.st_size, before.st_mtime_ns) != (
-                after.st_size, after.st_mtime_ns
+                after.st_size,
+                after.st_mtime_ns,
             ):
                 raise ValueError("paper input changed or exceeded its bound")
             return body
@@ -226,8 +227,14 @@ def load(root: Path, path: str, expected: str, approval: str) -> dict[str, Any]:
                 raise ValueError("invalid, oversized or mismatched evidence locator")
             excerpt.decode("utf-8")
         anchor_count += len(document.anchors)
-        snapshots.append({"document": document.model_dump(), "text": decoded,
-                          "original_bytes": len(original), "text_bytes": len(text)})
+        snapshots.append(
+            {
+                "document": document.model_dump(),
+                "text": decoded,
+                "original_bytes": len(original),
+                "text_bytes": len(text),
+            }
+        )
     if anchor_count > 24:
         raise ValueError("at most 24 locators in one private snapshot")
     return {
@@ -257,8 +264,11 @@ def attached_record(db: Database, identifier: str, *, first: bool = False) -> di
         "AND json_extract(payload,'$.investigation')=? ORDER BY seq " + order + " LIMIT 1",
         (identifier,),
     ).fetchone()
-    return {"seq": row["seq"], "created_at": row["created_at"],
-            **json.loads(row["payload"])} if row else None
+    return (
+        {"seq": row["seq"], "created_at": row["created_at"], **json.loads(row["payload"])}
+        if row
+        else None
+    )
 
 
 def binding(db: Database, identifier: str) -> dict[str, Any] | None:
@@ -362,10 +372,14 @@ def validate_card(card: Card, source: dict[str, Any], evidence: list[dict[str, A
         or not any(known[key]["role"] == "prior_work" for key in originality.evidence)
         or not any(known[key]["role"] == "paper" for key in originality.evidence)
     ):
-        raise ValueError("originality requires primary and examined prior-work evidence or abstention")
+        raise ValueError(
+            "originality requires primary and examined prior-work evidence or abstention"
+        )
     for name, dimension in card.dimensions.items():
-        if name != "originality" and dimension.level is not None and not any(
-            known[key]["role"] == "paper" for key in dimension.evidence
+        if (
+            name != "originality"
+            and dimension.level is not None
+            and not any(known[key]["role"] == "paper" for key in dimension.evidence)
         ):
             raise ValueError("paper dimension needs inspected primary paper evidence")
     if not card.support_evidence and card.strongest_support != "insufficient evidence":
@@ -385,11 +399,12 @@ def model_context(db: Database, identifier: str) -> dict[str, Any]:
         doc = snapshot["document"]
         documents.append(
             {
-                "id": doc["id"], "role": doc["role"], "title": doc["title"],
+                "id": doc["id"],
+                "role": doc["role"],
+                "title": doc["title"],
                 "source_version": doc["source_version"],
                 "locators": [
-                    {"id": doc["id"] + "/" + a["id"], "label": a["locator"]}
-                    for a in doc["anchors"]
+                    {"id": doc["id"] + "/" + a["id"], "label": a["locator"]} for a in doc["anchors"]
                 ],
             }
         )
@@ -450,7 +465,8 @@ INSTRUCTIONS = (
     "Choose read with one locator from paper.documents to inspect a bounded excerpt; "
     "each read returns an observation operation ID. Choose assess only after inspecting "
     "the evidence needed for a Card, referencing those exact operation IDs in its evidence. "
-    "Other actions are interpret, wait, stop or escalate. No evaluate, network, code or publishing. "
+    "Other actions are interpret, wait, stop or escalate. "
+    "No evaluate, network, code or publishing. "
     "For read set locator, not assessment. For assess set assessment, not locator. Never set x. "
     "Every numeric dimension needs observed evidence. Missing material means level null and "
     "a missing explanation, not level 1. Originality needs examined prior-work comparisons "
@@ -458,12 +474,12 @@ INSTRUCTIONS = (
     "A valid citation is not proof of entailment. Limit conclusions to examined excerpts. "
     "No composite score, decimals, author identification, venue decisions or review inputs. "
     "Reproduction is not attempted. If no strongest support can be identified, use the exact "
-    "text 'insufficient evidence' with empty support_evidence. All cards remain unreviewed/private. "
+    "text 'insufficient evidence' with empty support_evidence. "
+    "All cards remain unreviewed/private. "
     "wait and assess suspend automatic inference until an operator control/input arrives. "
     "For theory, support may be a proof and checked assumptions; absence of software "
     "alone is not a readiness defect. Presentation is communication, not costly typesetting. "
-    "These provisional ordinal anchors require independent calibration: "
-    + json.dumps(ANCHORS)
+    "These provisional ordinal anchors require independent calibration: " + json.dumps(ANCHORS)
 )
 
 
@@ -472,17 +488,23 @@ def private_report(db: Database, identifier: str, revision: int) -> dict[str, An
     cards = records(db, identifier, "paper_assessment")
     latest = cards[-1] if cards else None
     current = bool(
-        latest and source and latest["revision"] == revision
+        latest
+        and source
+        and latest["revision"] == revision
         and latest["card"]["input_sha256"] == source["source"]["input_sha256"]
         and latest["rubric_sha256"] == sha256(json.dumps(ANCHORS, sort_keys=True).encode())
         and latest["assessor_sha256"] == sha256(Path(__file__).read_bytes())
     )
     assessment_evidence = [
-        item["observation"] for item in records(db, identifier, "paper_observation")
-        if latest and item["seq"] < latest["seq"]
+        item["observation"]
+        for item in records(db, identifier, "paper_observation")
+        if latest
+        and item["seq"] < latest["seq"]
         and item["observation"]["input_sha256"] == latest["card"]["input_sha256"]
-        and ("inspected_operations" not in latest
-             or item["observation"]["operation"] in latest["inspected_operations"])
+        and (
+            "inspected_operations" not in latest
+            or item["observation"]["operation"] in latest["inspected_operations"]
+        )
     ]
     return {
         "investigation": identifier,
@@ -490,14 +512,21 @@ def private_report(db: Database, identifier: str, revision: int) -> dict[str, An
         "current_objective_revision": revision,
         "latest": latest,
         "markdown": render_private_card(latest, assessment_evidence, current=current)
-        if latest else None,
+        if latest
+        else None,
         "observations": observations(db, identifier),
         "assessment_observations": assessment_evidence,
         "rubric_anchors": ANCHORS,
         "human_review": "pending",
         "public_release": False,
-        "public_surface": {"index": False, "sitemap": False, "search": False,
-                           "feed": False, "social_card": False, "robots": "noindex"},
+        "public_surface": {
+            "index": False,
+            "sitemap": False,
+            "search": False,
+            "feed": False,
+            "social_card": False,
+            "robots": "noindex",
+        },
         "limitations": "Structural checks do not prove scientific entailment or calibration.",
     }
 
@@ -516,29 +545,36 @@ def render_private_card(
 ) -> str:
     card = record["card"]
     known = {item["operation"]: item for item in evidence}
+
     def links(ids: list[str]) -> str:
         if not set(ids).issubset(known):
             raise ValueError("stored assessment cites unavailable evidence")
         return ", ".join(
             "[evidence](#evidence-" + sha256(key.encode()) + ")" for key in ids if key in known
         )
+
     lines = [
-        "# Private automated evidence notes on examined excerpts", "",
+        "# Private automated evidence notes on examined excerpts",
+        "",
         "Current revision." if current else "STALE: historical card; new interpretation required.",
         "Human scientific review: pending. Public release: disabled.",
         "Generated by an automated agent. Human state: pending.",
         "Provisional rubric, not yet calibrated. Excerpts only.",
-        "Editorial and visual checks: not obtained.", "",
+        "Editorial and visual checks: not obtained.",
+        "",
         "Draft identity: `" + record["assessment_id"] + "`",
         "Input: `" + card["input_sha256"] + "`",
         "Generated UTC: " + display(record["created_at"]),
-        "Rubric: " + display(card["rubric"]), "",
+        "Rubric: " + display(card["rubric"]),
+        "",
         display(card["contribution"]) + " " + links(card["contribution_evidence"]),
-        "Audience: " + display(card["audience"]), "",
+        "Audience: " + display(card["audience"]),
+        "",
     ]
     lines.extend(["Examined portions (not the complete paper):", ""])
-    lines.extend("- " + display(item["source_locator"]) + " " + links([key])
-                 for key, item in known.items())
+    lines.extend(
+        "- " + display(item["source_locator"]) + " " + links([key]) for key, item in known.items()
+    )
     lines.append("")
     for name in sorted(DIMENSIONS):
         item = card["dimensions"][name]
@@ -550,36 +586,64 @@ def render_private_card(
             value = "[" + value + "](#evidence-" + sha256(references[0].encode()) + ")"
         anchor = record["rubric_anchors"][name][item["level"] - 1] if item["level"] else ""
         if name == "originality":
-            compared = {known[key]["document_id"] for comparison in card["closest_prior_work"]
-                        for key in comparison["evidence"] if key in known}
+            compared = {
+                known[key]["document_id"]
+                for comparison in card["closest_prior_work"]
+                for key in comparison["evidence"]
+                if key in known
+            }
             title = "Originality relative to these " + str(len(compared)) + " examined works"
         else:
             title = name.replace("_", " ")
-        lines.extend([
-            "## " + title + ": " + value + " (excerpts only)", "",
-            "Anchor: " + display(anchor) if anchor else "Not enough evidence: " + display(item["missing"]),
-            display(item["explanation"]) + " " + links(references),
-            "Limitations: " + display(item["limitations"]),
-            "Missing: " + display(item["missing"]), "",
-        ])
-    lines.extend(["## Strongest support", "",
-                  display(card["strongest_support"]) + " " + links(card["support_evidence"]),
-                  "", "## Examined prior work", ""])
+        lines.extend(
+            [
+                "## " + title + ": " + value + " (excerpts only)",
+                "",
+                "Anchor: " + display(anchor)
+                if anchor
+                else "Not enough evidence: " + display(item["missing"]),
+                display(item["explanation"]) + " " + links(references),
+                "Limitations: " + display(item["limitations"]),
+                "Missing: " + display(item["missing"]),
+                "",
+            ]
+        )
+    lines.extend(
+        [
+            "## Strongest support",
+            "",
+            display(card["strongest_support"]) + " " + links(card["support_evidence"]),
+            "",
+            "## Examined prior work",
+            "",
+        ]
+    )
     for comparison in card["closest_prior_work"]:
         lines.append(display(comparison["difference"]) + " " + links(comparison["evidence"]))
     lines.extend(["", "## Unresolved questions", ""])
     lines.extend("- " + display(question) for question in card["unresolved"])
-    lines.extend(["", "Reproduction: not attempted, as of " + display(record["created_at"]),
-                  "", "## Inspected evidence", ""])
+    lines.extend(
+        [
+            "",
+            "Reproduction: not attempted, as of " + display(record["created_at"]),
+            "",
+            "## Inspected evidence",
+            "",
+        ]
+    )
     for key, item in known.items():
-        lines.extend([
-            "### Evidence " + sha256(key.encode()), "",
-            "Source: " + display(item["source_url"]),
-            "Version: " + display(item["source_version"]),
-            "Locator: " + display(item["source_locator"]),
-            "Original SHA256: `" + item["original_sha256"] + "`",
-            "Extracted SHA256: `" + item["text_sha256"] + "`", "",
-        ])
+        lines.extend(
+            [
+                "### Evidence " + sha256(key.encode()),
+                "",
+                "Source: " + display(item["source_url"]),
+                "Version: " + display(item["source_version"]),
+                "Locator: " + display(item["source_locator"]),
+                "Original SHA256: `" + item["original_sha256"] + "`",
+                "Extracted SHA256: `" + item["text_sha256"] + "`",
+                "",
+            ]
+        )
         lines.extend("> " + display(line) for line in item["quote"].splitlines())
         lines.append("")
     return "\n".join(lines)

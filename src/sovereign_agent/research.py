@@ -174,13 +174,16 @@ def revise(
             campaign = allowance.require(db, identifier)
             previous = paper.binding(db, identifier)
             first_campaign = (
-                paper.baseline(db, identifier)["first_campaign"]
-                if previous else campaign["id"]
+                paper.baseline(db, identifier)["first_campaign"] if previous else campaign["id"]
             )
             paper.check_allocations(db, identifier, first_campaign)
             event(
-                db, identifier, "paper_attached", revision=revision,
-                source=paper_source, first_campaign=first_campaign,
+                db,
+                identifier,
+                "paper_attached",
+                revision=revision,
+                source=paper_source,
+                first_campaign=first_campaign,
             )
         if head(db, identifier)["state"] == "ACTIVE":
             try:
@@ -423,9 +426,13 @@ def context(db: Database, identifier: str) -> dict[str, Any]:
         # Full source bytes and inference answers stay in the private event ledger.
         # They must not crowd approved excerpts out of the bounded model context.
         result["recent_history"] = [
-            {"seq": item["seq"], "kind": item["kind"], "revision": item.get("revision"),
-             "belief": item.get("proposal", {}).get("belief", ""),
-             "reason": item.get("reason", "")}
+            {
+                "seq": item["seq"],
+                "kind": item["kind"],
+                "revision": item.get("revision"),
+                "belief": item.get("proposal", {}).get("belief", ""),
+                "reason": item.get("reason", ""),
+            }
             for item in history(db, identifier, limit=8)
         ]
     return result
@@ -549,26 +556,50 @@ def apply(db: Database, root: Path, claim: queue.Claim, proposal: Proposal) -> N
                 observation = executor.read_paper(
                     attached["source"], proposal.locator, uuid.uuid4().hex
                 )
-                event(db, claim.session, "paper_observation", revision=current["revision"],
-                      work=claim.id, observation=observation)
+                event(
+                    db,
+                    claim.session,
+                    "paper_observation",
+                    revision=current["revision"],
+                    work=claim.id,
+                    observation=observation,
+                )
             elif proposal.action == "assess":
                 if proposal.assessment is None or proposal.locator is not None:
                     raise ValueError("paper assess needs a card, not a read locator")
                 digest = paper.validate_card(proposal.assessment, attached["source"], observations)
                 assessor_digest = paper.sha256(Path(paper.__file__).read_bytes())
                 rubric_digest = paper.sha256(json.dumps(paper.ANCHORS, sort_keys=True).encode())
-                assessment_id = paper.sha256(json.dumps({
-                    "card": digest, "objective_revision": current["revision"],
-                    "assessor_sha256": assessor_digest, "rubric_sha256": rubric_digest,
-                    "inspected_sha256": paper.sha256(json.dumps(observations, sort_keys=True).encode()),
-                }, sort_keys=True).encode())
-                event(db, claim.session, "paper_assessment", revision=current["revision"],
-                      work=claim.id, assessment_id=assessment_id,
-                      card=proposal.assessment.model_dump(),
-                      human_review="pending", public_release=False,
-                      assessor="paper-evidence-adapter/v1", assessor_sha256=assessor_digest,
-                      rubric_sha256=rubric_digest, rubric_anchors=paper.ANCHORS,
-                      inspected_operations=[item["operation"] for item in observations])
+                assessment_id = paper.sha256(
+                    json.dumps(
+                        {
+                            "card": digest,
+                            "objective_revision": current["revision"],
+                            "assessor_sha256": assessor_digest,
+                            "rubric_sha256": rubric_digest,
+                            "inspected_sha256": paper.sha256(
+                                json.dumps(observations, sort_keys=True).encode()
+                            ),
+                        },
+                        sort_keys=True,
+                    ).encode()
+                )
+                event(
+                    db,
+                    claim.session,
+                    "paper_assessment",
+                    revision=current["revision"],
+                    work=claim.id,
+                    assessment_id=assessment_id,
+                    card=proposal.assessment.model_dump(),
+                    human_review="pending",
+                    public_release=False,
+                    assessor="paper-evidence-adapter/v1",
+                    assessor_sha256=assessor_digest,
+                    rubric_sha256=rubric_digest,
+                    rubric_anchors=paper.ANCHORS,
+                    inspected_operations=[item["operation"] for item in observations],
+                )
             elif proposal.assessment is not None or proposal.locator is not None:
                 raise ValueError("only paper read/assess may supply domain fields")
         elif proposal.action in {"read", "assess"} or proposal.locator or proposal.assessment:
@@ -609,11 +640,18 @@ def apply(db: Database, root: Path, claim: queue.Claim, proposal: Proposal) -> N
         allowance.charge(db, claim.session, current["campaign"], "actions", 1)
         connection.execute(
             "UPDATE investigations SET state=?,next_due=?,wake=? WHERE id=?",
-            (state, due,
-             "executor result" if raw else "operator review of private card"
-             if attached and proposal.action == "assess" else "operator input required"
-             if attached and proposal.action == "wait" else proposal.action,
-             claim.session),
+            (
+                state,
+                due,
+                "executor result"
+                if raw
+                else "operator review of private card"
+                if attached and proposal.action == "assess"
+                else "operator input required"
+                if attached and proposal.action == "wait"
+                else proposal.action,
+                claim.session,
+            ),
         )
         event(
             db,
@@ -662,13 +700,15 @@ def wake(db: Database, root: Path, model: Model | None, *, owner: str = "researc
             paper.require_private_root(root)
             committed = db.connection.execute(
                 "SELECT 1 FROM events WHERE kind='research.proposal' "
-                "AND json_extract(payload,'$.work')=?", (claim.id,),
+                "AND json_extract(payload,'$.work')=?",
+                (claim.id,),
             ).fetchone()
             if committed:
                 queue.finish(db, claim, "DONE", "Recovered durable proposal; no repeated inference")
                 return "RECOVERED"
             attempted = db.connection.execute(
-                "SELECT 1 FROM research_inference WHERE work_id=?", (claim.id,),
+                "SELECT 1 FROM research_inference WHERE work_id=?",
+                (claim.id,),
             ).fetchone()
             if attempted:
                 raise PermissionError(
@@ -691,7 +731,8 @@ def wake(db: Database, root: Path, model: Model | None, *, owner: str = "researc
 
         if paper.binding(db, claim.session):
             messages[0]["content"] = (
-                paper.INSTRUCTIONS + " Output ONLY a JSON Proposal matching this schema: "
+                paper.INSTRUCTIONS
+                + " Output ONLY a JSON Proposal matching this schema: "
                 + json.dumps(Proposal.model_json_schema())
             )
         inference_owner = uuid.uuid4().hex

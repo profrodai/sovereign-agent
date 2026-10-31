@@ -14,7 +14,9 @@ def supplied(root, *, prior=False, text_override=None, two_anchors=False):
     root.mkdir(parents=True, exist_ok=True)
     documents = []
     for identifier, role in [("main", "paper"), *([("prior", "prior_work")] if prior else [])]:
-        text = (text_override or f"Invented {role} evidence. A bounded decision rule is specified.\n").encode()
+        text = (
+            text_override or f"Invented {role} evidence. A bounded decision rule is specified.\n"
+        ).encode()
         (root / (identifier + ".txt")).write_bytes(text)
         documents.append(
             {
@@ -51,13 +53,18 @@ def supplied(root, *, prior=False, text_override=None, two_anchors=False):
             body = (root / document["text_path"]).read_bytes()
             split = body.index(b". ") + 2
             document["anchors"] = [
-                {"id": key, "locator": "invented paragraph " + key,
-                 "start": start, "end": end, "quote_sha256": paper.sha256(body[start:end])}
+                {
+                    "id": key,
+                    "locator": "invented paragraph " + key,
+                    "start": start,
+                    "end": end,
+                    "quote_sha256": paper.sha256(body[start:end]),
+                }
                 for key, start, end in [("a", 0, split), ("b", split, len(body))]
             ]
-        document["locator_map_sha256"] = paper.sha256(json.dumps(
-            document["anchors"], sort_keys=True, separators=(",", ":")
-        ).encode())
+        document["locator_map_sha256"] = paper.sha256(
+            json.dumps(document["anchors"], sort_keys=True, separators=(",", ":")).encode()
+        )
     manifest = {
         "schema": "sovereign.paper-source/v1",
         "observed_utc": "2026-10-31T00:00:00+00:00",
@@ -75,15 +82,20 @@ def write_manifest(root, manifest):
 def card(input_digest, observation):
     dimensions = {
         name: {
-            "level": None, "explanation": "Not established from this invented excerpt",
+            "level": None,
+            "explanation": "Not established from this invented excerpt",
             "limitations": "A synthetic fragment cannot qualify science",
-            "evidence": [], "missing": "Required source material not examined",
+            "evidence": [],
+            "missing": "Required source material not examined",
         }
         for name in paper.DIMENSIONS
     }
     dimensions["clarity"] = {
-        "level": 3, "explanation": "The inspected decision rule can be followed",
-        "limitations": "No complete paper was examined", "evidence": [observation], "missing": "",
+        "level": 3,
+        "explanation": "The inspected decision rule can be followed",
+        "limitations": "No complete paper was examined",
+        "evidence": [observation],
+        "missing": "",
     }
     return {
         "input_sha256": input_digest,
@@ -183,7 +195,9 @@ def test_duplicate_json_and_forbidden_review_metadata_are_not_silently_flattened
         paper.load(tmp_path, "manifest.json", paper.sha256(body), "fixture approval")
 
 
-@pytest.mark.parametrize("change", ["unbacked", "unknown", "version", "novelty", "composite", "reproduced"])
+@pytest.mark.parametrize(
+    "change", ["unbacked", "unknown", "version", "novelty", "composite", "reproduced"]
+)
 def test_card_rejects_unbacked_scores_and_authority_claims(tmp_path, change):
     digest, source, observation = loaded(tmp_path)
     value = card(digest, observation["operation"])
