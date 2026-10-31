@@ -23,6 +23,12 @@ An investigation outlives its execution allowance: later authorized sessions ret
 its evidence and cumulative accounting. The research CLI supports the approved
 Claude Code subscription route as well as explicitly configured HTTP model turns.
 
+The draft [private paper evidence adapter](docs/research-profile.md#private-paper-evidence-adapter-implementation-draft)
+extends that same profile with approved supplied snapshots and evidence-linked
+private cards. It has no live paper ingestion, public assessment service or
+scientific calibration claim; qualification and input/access approval remain
+prerequisites.
+
 **If it helps you understand how agents really work, [star the repository](https://github.com/profrodai/sovereign-agent)**:
 it is how other engineers find it.
 
