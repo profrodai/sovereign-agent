@@ -479,7 +479,10 @@ def private_report(db: Database, identifier: str, revision: int) -> dict[str, An
     )
     assessment_evidence = [
         item["observation"] for item in records(db, identifier, "paper_observation")
-        if latest and item["observation"]["input_sha256"] == latest["card"]["input_sha256"]
+        if latest and item["seq"] < latest["seq"]
+        and item["observation"]["input_sha256"] == latest["card"]["input_sha256"]
+        and ("inspected_operations" not in latest
+             or item["observation"]["operation"] in latest["inspected_operations"])
     ]
     return {
         "investigation": identifier,

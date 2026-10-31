@@ -560,13 +560,15 @@ def apply(db: Database, root: Path, claim: queue.Claim, proposal: Proposal) -> N
                 assessment_id = paper.sha256(json.dumps({
                     "card": digest, "objective_revision": current["revision"],
                     "assessor_sha256": assessor_digest, "rubric_sha256": rubric_digest,
+                    "inspected_sha256": paper.sha256(json.dumps(observations, sort_keys=True).encode()),
                 }, sort_keys=True).encode())
                 event(db, claim.session, "paper_assessment", revision=current["revision"],
                       work=claim.id, assessment_id=assessment_id,
                       card=proposal.assessment.model_dump(),
                       human_review="pending", public_release=False,
                       assessor="paper-evidence-adapter/v1", assessor_sha256=assessor_digest,
-                      rubric_sha256=rubric_digest, rubric_anchors=paper.ANCHORS)
+                      rubric_sha256=rubric_digest, rubric_anchors=paper.ANCHORS,
+                      inspected_operations=[item["operation"] for item in observations])
             elif proposal.assessment is not None or proposal.locator is not None:
                 raise ValueError("only paper read/assess may supply domain fields")
         elif proposal.action in {"read", "assess"} or proposal.locator or proposal.assessment:

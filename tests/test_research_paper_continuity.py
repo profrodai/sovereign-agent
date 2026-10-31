@@ -23,13 +23,13 @@ def command(root, *args):
     )
 
 
-def paper_investigation(root, *, text_override=None):
+def paper_investigation(root, *, text_override=None, two_anchors=False):
     db = research.open_agent(root)
     identifier = research.revise(db, "Inspect the evidence and state missing information")
     with db.immediate():
         allowance.grant(db, identifier, "paper-session-1", 300, "synthetic fixture authorization",
                         {"calls": 3, "tokens": 6000, "actions": 4, "evaluations": 0})
-    digest, _ = supplied(root, text_override=text_override)
+    digest, _ = supplied(root, text_override=text_override, two_anchors=two_anchors)
     attached = command(root, "attach-paper", "manifest.json", "--id", identifier,
                        "--digest", digest, "--evidence", "approved fixture input")
     assert attached.returncode == 0, attached.stderr
@@ -37,8 +37,9 @@ def paper_investigation(root, *, text_override=None):
 
 
 class ScriptedPaperModel:
-    def __init__(self, action):
+    def __init__(self, action, locator=None):
         self.action = action
+        self.locator = locator
         self.calls = 0
 
     def complete(self, messages, tools, **kwargs):
@@ -51,7 +52,7 @@ class ScriptedPaperModel:
             "belief": "Only the inspected material supports interpretation", "evidence": [],
         }
         if self.action == "read":
-            proposal["locator"] = context["paper"]["documents"][0]["locators"][0]["id"]
+            proposal["locator"] = self.locator or context["paper"]["documents"][0]["locators"][0]["id"]
         elif self.action == "assess":
             observation = context["paper"]["observations"][0]["operation"]
             proposal["evidence"] = [observation]
@@ -317,3 +318,28 @@ def test_changed_rubric_cannot_relabel_or_inherit_current_card(tmp_path, monkeyp
     assert original["clarity"][2] in report["markdown"]
     assert changed["clarity"][2] not in report["markdown"]
     assert report["human_review"] == "pending" and report["public_release"] is False
+
+
+def test_old_card_evidence_snapshot_is_immutable_after_new_read(tmp_path):
+    db, identifier, _ = paper_investigation(tmp_path, two_anchors=True)
+    assert research.wake(db, tmp_path, ScriptedPaperModel("read", "main/a")) == "PROPOSED"
+    research.control(db, identifier, "resume")
+    assert research.wake(db, tmp_path, ScriptedPaperModel("assess")) == "PROPOSED"
+    before = paper.private_report(db, identifier, research.head(db, identifier)["revision"])
+    old_identity = before["latest"]["assessment_id"]
+    research.control(db, identifier, "resume")
+    assert research.wake(db, tmp_path, ScriptedPaperModel("read", "main/b")) == "PROPOSED"
+    after = paper.private_report(db, identifier, research.head(db, identifier)["revision"])
+    assert after["latest"]["assessment_id"] == old_identity
+    assert after["markdown"] == before["markdown"]
+    assert after["assessment_observations"] == before["assessment_observations"]
+    assert len(after["observations"]) == 2 and len(after["assessment_observations"]) == 1
+    with db.immediate():
+        allowance.grant(db, identifier, "paper-session-2", 300, "synthetic second allocation",
+                        {"calls": 3, "tokens": 6000, "actions": 4, "evaluations": 0})
+    research.control(db, identifier, "resume")
+    assert research.wake(db, tmp_path, ScriptedPaperModel("assess")) == "PROPOSED"
+    later = paper.private_report(db, identifier, research.head(db, identifier)["revision"])
+    assert later["latest"]["assessment_id"] != old_identity
+    assert len(later["assessment_observations"]) == 2
+    assert len(paper.records(db, identifier, "paper_assessment")) == 2

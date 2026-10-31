@@ -10,7 +10,7 @@ import pytest
 from sovereign_agent import paper_assessment as paper
 
 
-def supplied(root, *, prior=False, text_override=None):
+def supplied(root, *, prior=False, text_override=None, two_anchors=False):
     root.mkdir(parents=True, exist_ok=True)
     documents = []
     for identifier, role in [("main", "paper"), *([("prior", "prior_work")] if prior else [])]:
@@ -47,6 +47,14 @@ def supplied(root, *, prior=False, text_override=None):
             }
         )
     for document in documents:
+        if two_anchors:
+            body = (root / document["text_path"]).read_bytes()
+            split = body.index(b". ") + 2
+            document["anchors"] = [
+                {"id": key, "locator": "invented paragraph " + key,
+                 "start": start, "end": end, "quote_sha256": paper.sha256(body[start:end])}
+                for key, start, end in [("a", 0, split), ("b", split, len(body))]
+            ]
         document["locator_map_sha256"] = paper.sha256(json.dumps(
             document["anchors"], sort_keys=True, separators=(",", ":")
         ).encode())
