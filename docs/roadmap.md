@@ -4,9 +4,9 @@ This is the public work-repository implementation plan for the **0.x** line.
 
 **1.x educational reset (2026-08-25).** Binding holdings for the executable
 textbook are in
-[rulings/2026-08-25-educational-reset.md](rulings/2026-08-25-educational-reset.md).
+[rulings/2026-08-25-educational-reset.md](https://github.com/profrodai/sovereign-agent/blob/b4d26bc040d28ce9508d18f2da279359af53f216/docs/rulings/2026-08-25-educational-reset.md).
 SOW metadata is in
-[sows/sovereign-agent-v1-educational-control-plane.md](sows/sovereign-agent-v1-educational-control-plane.md).
+[sows/sovereign-agent-v1-educational-control-plane.md](https://github.com/profrodai/sovereign-agent/blob/b4d26bc040d28ce9508d18f2da279359af53f216/docs/sows/sovereign-agent-v1-educational-control-plane.md).
 Implementation proceeds on branch `v1-educational`. `main` remains v0.7 until
 1.0 is done. Tag `v0.7.0` is not moved.
 

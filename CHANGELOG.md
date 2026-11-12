@@ -316,10 +316,10 @@ outside this unit's implementation-acceptance scope.
   `docs/andrea-chapters-0-7-evaluation.md`'s stale "Unit 12 Andrea soak"
   phrasing is preserved unedited with a dated correction note naming
   "Andrea live evaluation" as current terminology.
-  `docs/sows/sovereign-agent-v1-educational-control-plane.md` carries a
+  [docs/sows/sovereign-agent-v1-educational-control-plane.md](https://github.com/profrodai/sovereign-agent/blob/b4d26bc040d28ce9508d18f2da279359af53f216/docs/sows/sovereign-agent-v1-educational-control-plane.md) carries a
   dated correction note identifying its `done_when` clause and sequencing
   amendment 6 as superseded by
-  `docs/rulings/2026-08-31-unit12-scope.md`'s Holding 1 replacement text
+  [docs/rulings/2026-08-31-unit12-scope.md](https://github.com/profrodai/sovereign-agent/blob/b4d26bc040d28ce9508d18f2da279359af53f216/docs/rulings/2026-08-31-unit12-scope.md)'s Holding 1 replacement text
   ("local, learner-controlled Sovereign Store release evaluation ->
   redacted Unit 12 proof pack accepted"); both original passages remain
   intact.
@@ -488,7 +488,7 @@ Closes the gap between the manually dispatched Unit 5 Store pipeline and
 sequencing amendment 5's proactive milestone: "sale → inventory signal →
 deterministic wake gate → pulse → replenishment work created without a
 human prompt." Pulse is a **distinct mechanism from the supervisor**, per
-[the governing ruling](docs/rulings/2026-08-29-unit9-pulse-is-separate-from-supervisor.md):
+[the governing ruling](https://github.com/profrodai/sovereign-agent/blob/b4d26bc040d28ce9508d18f2da279359af53f216/docs/rulings/2026-08-29-unit9-pulse-is-separate-from-supervisor.md):
 `supervisor.tick()` is unchanged, still never reads a Pulse signal or fires
 a wake gate.
 
@@ -563,8 +563,8 @@ completion, mutate canonical execution state, acknowledge mailbox work, or
 reclaim the active workspace -- Unit 4's mailbox proved actor-level
 idempotency, never process-level exclusivity, and named the gap rather than
 build a supervisor to close it
-([deferral ruling](docs/rulings/2026-08-26-deferral-unit4-fencing.md),
-[one-process-per-actor ruling](docs/rulings/2026-08-26-one-process-per-actor.md)).
+([deferral ruling](https://github.com/profrodai/sovereign-agent/blob/b4d26bc040d28ce9508d18f2da279359af53f216/docs/rulings/2026-08-26-deferral-unit4-fencing.md),
+[one-process-per-actor ruling](https://github.com/profrodai/sovereign-agent/blob/b4d26bc040d28ce9508d18f2da279359af53f216/docs/rulings/2026-08-26-one-process-per-actor.md)).
 A hard-killed worker also left its assignment stuck `RUNNING` forever, since
 "a process cannot record its own death" (Unit 5). This unit closes both.
 
@@ -683,7 +683,7 @@ earlier holding that "`main` remains the 0.7 line" is superseded. Tag `v0.7.0`
 remains immutable at `be2a41bbee202c52a40b2e87c00215827be302a0`; pin
 `sovereign-agent<1` for the 0.x framework. No claim is made that 1.0 has met its
 release gates. See
-[docs/rulings/2026-08-25-main-is-the-1x-line.md](docs/rulings/2026-08-25-main-is-the-1x-line.md)
+[docs/rulings/2026-08-25-main-is-the-1x-line.md](https://github.com/profrodai/sovereign-agent/blob/b4d26bc040d28ce9508d18f2da279359af53f216/docs/rulings/2026-08-25-main-is-the-1x-line.md)
 and [docs/persistence-boundary.md](docs/persistence-boundary.md).
 
 ### Providers (Unit 6)
@@ -709,7 +709,7 @@ not moved. Pin `sovereign-agent<1` for the old framework.
 The 0.x non-goal “no governance decisions in this package” remains true for
 v0.7 and is superseded for 1.x: the package may include the minimum
 governance needed to teach and run one outcome. See
-[docs/rulings/2026-08-25-educational-reset.md](docs/rulings/2026-08-25-educational-reset.md),
+[docs/rulings/2026-08-25-educational-reset.md](https://github.com/profrodai/sovereign-agent/blob/b4d26bc040d28ce9508d18f2da279359af53f216/docs/rulings/2026-08-25-educational-reset.md),
 [docs/migration-v0.7-to-v1.md](docs/migration-v0.7-to-v1.md), and
 [docs/non-goals.md](docs/non-goals.md).
 

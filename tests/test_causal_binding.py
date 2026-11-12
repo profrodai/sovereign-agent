@@ -1,6 +1,6 @@
 """The accepted execution must have caused the effect it is credited with.
 
-Governed by docs/rulings/2026-08-26-outcomes-are-conditions-sows-are-work.md:
+Governed by historical 2026-08-26-outcomes-are-conditions-sows-are-work record:
 an outcome is a standing condition, a SOW is a unit of work, and acceptance
 asserts BOTH that the condition holds and that the bound execution contributed
 the effect its SOW declares.
@@ -400,7 +400,7 @@ def test_core_and_the_truth_verifier_agree_on_a_multi_sow_organization(
 def test_a_sow_must_produce_its_declared_deliverable(tmp_path: Path) -> None:
     """For a non-effectful SOW the deliverable IS the proof.
 
-    Holding 2 of docs/rulings/2026-08-26-amendment-conditional-effects.md.
+    Holding 2 of historical 2026-08-26-amendment-conditional-effects record.
     Judging an investigation by the outcome's inventory checks would be a check
     named for one fact measuring another — this unit's signature defect, one
     scope up.
@@ -431,7 +431,7 @@ def test_corroboration_detects_inconsistency_but_does_not_authenticate(
 ) -> None:
     """States the LIMITATION as a fact, so nobody re-derives it as a bug.
 
-    Governed by docs/rulings/2026-08-26-sqlite-writers-are-inside-the-boundary.md.
+    Governed by historical 2026-08-26-sqlite-writers-are-inside-the-boundary record.
 
     An earlier version of this test was named "a forged effect row does not
     credit idle work" and asserted only the half that passes. Both reviewers

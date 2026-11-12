@@ -27,13 +27,13 @@
   `finally` — see Property 1's own account below. Corrected in place on
   the same branch; PR #31 carries all correction commits.
 - **governing rulings closed by this unit:**
-  [`docs/rulings/2026-08-26-deferral-unit4-fencing.md`](rulings/2026-08-26-deferral-unit4-fencing.md)
+  [[docs/rulings/2026-08-26-deferral-unit4-fencing.md](https://github.com/profrodai/sovereign-agent/blob/b4d26bc040d28ce9508d18f2da279359af53f216/docs/rulings/2026-08-26-deferral-unit4-fencing.md)](https://github.com/profrodai/sovereign-agent/blob/b4d26bc040d28ce9508d18f2da279359af53f216/docs/rulings/2026-08-26-deferral-unit4-fencing.md)
   (F-U4-1, closed) and
-  [`docs/rulings/2026-08-26-one-process-per-actor.md`](rulings/2026-08-26-one-process-per-actor.md)
+  [[docs/rulings/2026-08-26-one-process-per-actor.md](https://github.com/profrodai/sovereign-agent/blob/b4d26bc040d28ce9508d18f2da279359af53f216/docs/rulings/2026-08-26-one-process-per-actor.md)](https://github.com/profrodai/sovereign-agent/blob/b4d26bc040d28ce9508d18f2da279359af53f216/docs/rulings/2026-08-26-one-process-per-actor.md)
   (lease fencing, landed) — both updated additively with a closure section;
   neither is rewritten
 - **applies_to:** Sovereign Agent 1.x, Unit 8
-- **requested_by:** `docs/sows/sovereign-agent-v1-educational-control-plane.md`
+- **requested_by:** [docs/sows/sovereign-agent-v1-educational-control-plane.md](https://github.com/profrodai/sovereign-agent/blob/b4d26bc040d28ce9508d18f2da279359af53f216/docs/sows/sovereign-agent-v1-educational-control-plane.md)
   (OQ-3: "teach supervisor as the control loop"), the Unit 7 handover's own
   "Unit 8 is authorized, not started" section, and the deferral rulings this
   unit closes
@@ -62,7 +62,7 @@ execution (Units 5 and 7) both reasoned only about actors: "is this the
 actor that holds the claim," "did this actor's assignment complete." Two
 different *processes* claiming to be the same actor — the ordinary shape of
 a crashed-and-restarted worker — were indistinguishable to that reasoning.
-`docs/rulings/2026-08-26-one-process-per-actor.md` named the gap and
+[docs/rulings/2026-08-26-one-process-per-actor.md](https://github.com/profrodai/sovereign-agent/blob/b4d26bc040d28ce9508d18f2da279359af53f216/docs/rulings/2026-08-26-one-process-per-actor.md) named the gap and
 deferred its close to "the supervisor that owns process lifecycle." This
 unit is that supervisor, and `fencing.py` is where the process/actor
 distinction actually becomes machine-checkable: every lease and every
@@ -126,7 +126,7 @@ keyed by `assignment_id`, it never asked whether the process was allowed
 to be hosting the actor at all. Two *different* assignments for the *same*
 actor could each acquire their own execution attempt and run under two
 separate processes, exactly the process-level exclusivity gap
-`docs/rulings/2026-08-26-one-process-per-actor.md` named and deferred to
+[docs/rulings/2026-08-26-one-process-per-actor.md](https://github.com/profrodai/sovereign-agent/blob/b4d26bc040d28ce9508d18f2da279359af53f216/docs/rulings/2026-08-26-one-process-per-actor.md) named and deferred to
 this unit. `organization.run_assignment` now calls
 `fencing.acquire_or_renew_actor_lease` as the **first thing it does** — a
 new helper that extends this process's own lease if it already holds one
@@ -205,7 +205,7 @@ second explicit ownership check at the reclaim call site.
 ### Property 3 — mailbox claims are fenced; F-U4-1 is closed
 
 **The exact defect, as recorded:**
-`docs/rulings/2026-08-26-deferral-unit4-fencing.md` named F-U4-1: `claim()`'s
+[docs/rulings/2026-08-26-deferral-unit4-fencing.md](https://github.com/profrodai/sovereign-agent/blob/b4d26bc040d28ce9508d18f2da279359af53f216/docs/rulings/2026-08-26-deferral-unit4-fencing.md) named F-U4-1: `claim()`'s
 same-owner short-circuit (`if message.state == MessageState.CLAIMED and
 message.claim_owner == actor_id: return message`) fired unconditionally,
 even when that owner's own lease had already expired — so the CAS's own
@@ -296,7 +296,7 @@ traceback), not left to crash. **No hidden daemonization**: `supervisor.run`
 never forks, never detaches from its controlling terminal, and never
 installs itself as an OS service. The CLI's own help text distinguishes
 three names on purpose, per
-`docs/sows/sovereign-agent-v1-educational-control-plane.md` OQ-3: **`supervisor`**
+[docs/sows/sovereign-agent-v1-educational-control-plane.md](https://github.com/profrodai/sovereign-agent/blob/b4d26bc040d28ce9508d18f2da279359af53f216/docs/sows/sovereign-agent-v1-educational-control-plane.md) OQ-3: **`supervisor`**
 is the runtime loop, implemented here; **`service`** would be future
 operating-system hosting (`install`/`status`/`uninstall`) and is **not**
 implemented — no `service` subcommand exists in this unit, on purpose (a

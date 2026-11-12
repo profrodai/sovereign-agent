@@ -14,9 +14,9 @@
 - **base:** `main = 95ceb8d66b0734a3942d71d3510660c0f4109eb5` (the exact
   commit the Unit 9 SOW was reviewed and merged at; Units 0-8 ACCEPTED)
 - **governing SOW:**
-  [`docs/sows/sovereign-agent-v1-unit9-pulse-proactive-work.md`](sows/sovereign-agent-v1-unit9-pulse-proactive-work.md)
+  [[docs/sows/sovereign-agent-v1-unit9-pulse-proactive-work.md](https://github.com/profrodai/sovereign-agent/blob/b4d26bc040d28ce9508d18f2da279359af53f216/docs/sows/sovereign-agent-v1-unit9-pulse-proactive-work.md)](https://github.com/profrodai/sovereign-agent/blob/b4d26bc040d28ce9508d18f2da279359af53f216/docs/sows/sovereign-agent-v1-unit9-pulse-proactive-work.md)
 - **governing ruling:**
-  [`docs/rulings/2026-08-29-unit9-pulse-is-separate-from-supervisor.md`](rulings/2026-08-29-unit9-pulse-is-separate-from-supervisor.md)
+  [[docs/rulings/2026-08-29-unit9-pulse-is-separate-from-supervisor.md](https://github.com/profrodai/sovereign-agent/blob/b4d26bc040d28ce9508d18f2da279359af53f216/docs/rulings/2026-08-29-unit9-pulse-is-separate-from-supervisor.md)](https://github.com/profrodai/sovereign-agent/blob/b4d26bc040d28ce9508d18f2da279359af53f216/docs/rulings/2026-08-29-unit9-pulse-is-separate-from-supervisor.md)
 - **applies_to:** Sovereign Agent 1.x, Unit 9
 - **review history:** PR #35, first head `690e8ddd`. Sparring's independent
   review found F-U9-1: `Organization.create_pulse_work` was five separate
@@ -41,7 +41,7 @@ revised here.
 
 ## The separate-Pulse ruling, and why this document exists to prove it held
 
-`docs/rulings/2026-08-29-unit9-pulse-is-separate-from-supervisor.md` decided
+[docs/rulings/2026-08-29-unit9-pulse-is-separate-from-supervisor.md](https://github.com/profrodai/sovereign-agent/blob/b4d26bc040d28ce9508d18f2da279359af53f216/docs/rulings/2026-08-29-unit9-pulse-is-separate-from-supervisor.md) decided
 two open questions ahead of this unit's implementation:
 
 1. **Pulse is a separate mechanism.** `Supervisor.tick()` is not extended
@@ -485,8 +485,8 @@ compressed to fit either ceiling.
 
 ## Related documents
 
-- [SOW: Sovereign Agent 1.x — Unit 9 Pulse and proactive governed work](sows/sovereign-agent-v1-unit9-pulse-proactive-work.md)
-- [Ruling: Unit 9 Pulse is a separate mechanism from the supervisor; attribution is structured and durable](rulings/2026-08-29-unit9-pulse-is-separate-from-supervisor.md)
+- [SOW: Sovereign Agent 1.x — Unit 9 Pulse and proactive governed work](https://github.com/profrodai/sovereign-agent/blob/b4d26bc040d28ce9508d18f2da279359af53f216/docs/sows/sovereign-agent-v1-unit9-pulse-proactive-work.md)
+- [Ruling: Unit 9 Pulse is a separate mechanism from the supervisor; attribution is structured and durable](https://github.com/profrodai/sovereign-agent/blob/b4d26bc040d28ce9508d18f2da279359af53f216/docs/rulings/2026-08-29-unit9-pulse-is-separate-from-supervisor.md)
 - [Unit 8: supervisor, fencing, and hard-kill recovery](v1-unit8-supervisor-fencing-recovery.md)
 - [Unit 7: workspace lifecycle](v1-unit7-workspace-lifecycle.md)
 - [Units 0-6 contract](units-0-6-contract.md)

@@ -91,7 +91,7 @@ def claim(db: Database, message_id: str, actor_id: str) -> Message:
     expired-lease clause (`claim_expires_at <= now`) was unreachable for the
     owner: only a *different* actor could ever hit it. Recorded as a named
     limit rather than silently fixed
-    (`docs/rulings/2026-08-26-deferral-unit4-fencing.md`), because closing it
+    (`historical 2026-08-26-deferral-unit4-fencing record`), because closing it
     meant deciding what a fencing token even IS -- Unit 8's territory, not
     Unit 4's. Now: the short-circuit only fires when the lease is *both*
     same-owner *and* unexpired (still idempotent -- a retried worker inside
@@ -171,7 +171,7 @@ def complete(db: Database, message_id: str, actor_id: str, *, fencing_token: int
 
     `claim_owner == actor_id` alone is not exclusivity: it is the SAME check
     that made the pre-Unit-8 mailbox actor-idempotent rather than
-    process-exclusive (`docs/rulings/2026-08-26-one-process-per-actor.md`) --
+    process-exclusive (`historical 2026-08-26-one-process-per-actor record`) --
     two processes hosting one actor id both pass it. `fencing_token` is
     REQUIRED (keyword-only, no default) precisely so a caller cannot silently
     skip presenting it: it must be the token this caller's own most recent

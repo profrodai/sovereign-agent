@@ -566,7 +566,7 @@ def test_actor_lease_blocks_a_second_assignment_for_the_same_actor_before_invoca
     so two DIFFERENT assignments for the SAME actor could each acquire
     their own execution attempt and both run under two separate processes
     -- exactly the process-level exclusivity gap
-    docs/rulings/2026-08-26-one-process-per-actor.md named and deferred to
+    historical 2026-08-26-one-process-per-actor record named and deferred to
     this unit. This is a REAL two-process proof, not a lease-table check in
     isolation: two genuinely separate `Organization` instances (distinct
     `process_identity`, distinct SQLite connections, opened against the
