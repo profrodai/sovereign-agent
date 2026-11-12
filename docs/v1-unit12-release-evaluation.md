@@ -10,9 +10,9 @@
 - **base:** `main = a17a01a6926168234ebf9622076ac2cf258da5ed` (the exact
   merged Unit 12 SOW commit this implementation branched from)
 - **governing SOW:**
-  [`docs/sows/sovereign-agent-v1-unit12-release-evaluation.md`](sows/sovereign-agent-v1-unit12-release-evaluation.md)
+  [[docs/sows/sovereign-agent-v1-unit12-release-evaluation.md](https://github.com/profrodai/sovereign-agent/blob/b4d26bc040d28ce9508d18f2da279359af53f216/docs/sows/sovereign-agent-v1-unit12-release-evaluation.md)](https://github.com/profrodai/sovereign-agent/blob/b4d26bc040d28ce9508d18f2da279359af53f216/docs/sows/sovereign-agent-v1-unit12-release-evaluation.md)
 - **governing ruling:**
-  [`docs/rulings/2026-08-31-unit12-scope.md`](rulings/2026-08-31-unit12-scope.md)
+  [[docs/rulings/2026-08-31-unit12-scope.md](https://github.com/profrodai/sovereign-agent/blob/b4d26bc040d28ce9508d18f2da279359af53f216/docs/rulings/2026-08-31-unit12-scope.md)](https://github.com/profrodai/sovereign-agent/blob/b4d26bc040d28ce9508d18f2da279359af53f216/docs/rulings/2026-08-31-unit12-scope.md)
 - **applies_to:** Sovereign Agent 1.x, Unit 12
 - **work branch:** `unit-12/release-evaluation`
 
@@ -124,7 +124,7 @@ new gate:
 - confirms no evidence committed anywhere under `docs/evidence/unit12/`
   claims the real pilot-start act occurred — both by grepping for the exact
   retired real-pilot identifiers
-  (`docs/rulings/2026-08-30-unit11-local-closure-supersedes-real-deployment-gate.md`'s
+  ([docs/rulings/2026-08-30-unit11-local-closure-supersedes-real-deployment-gate.md](https://github.com/profrodai/sovereign-agent/blob/b4d26bc040d28ce9508d18f2da279359af53f216/docs/rulings/2026-08-30-unit11-local-closure-supersedes-real-deployment-gate.md)'s
   own Holding 5) and by a narrow real-pilot-claim shape pattern.
 
 ### Property 4 — truthful, conditional provider-status reporting
@@ -146,21 +146,21 @@ own acceptance, not a gap.
 phrasing is unedited at its own citation; a dated terminology note directly
 below it names the phrase as superseded, states the current terminology
 ("Andrea live evaluation"), and cites
-`docs/rulings/2026-08-31-unit12-scope.md`'s Holding 7. `docs/v0.6-soak.md`
+[docs/rulings/2026-08-31-unit12-scope.md](https://github.com/profrodai/sovereign-agent/blob/b4d26bc040d28ce9508d18f2da279359af53f216/docs/rulings/2026-08-31-unit12-scope.md)'s Holding 7. `docs/v0.6-soak.md`
 and every historical accepted SOW/acceptance record are untouched. The new
 `docs/andrea-chapters-0-12-evaluation.md` uses only "Andrea live evaluation"
 throughout.
 
 ### Property 6 — the top-level design memo corrected additively
 
-`docs/sows/sovereign-agent-v1-educational-control-plane.md` carries a dated
+[docs/sows/sovereign-agent-v1-educational-control-plane.md](https://github.com/profrodai/sovereign-agent/blob/b4d26bc040d28ce9508d18f2da279359af53f216/docs/sows/sovereign-agent-v1-educational-control-plane.md) carries a dated
 additive correction note (inserted directly after its own intro paragraph,
 before "Decision in one sentence") identifying that the `done_when` clause's
 "30-day Sovereign Store pilot -> redacted proof pack accepted" line and
 sequencing amendment 6's "then starts the 30-day pilot. Unit 12 finishes the
 pilot..." clause are both superseded, citing
-`docs/rulings/2026-08-30-unit11-local-closure-supersedes-real-deployment-gate.md`
-and `docs/rulings/2026-08-31-unit12-scope.md`'s Holding 1, and quoting that
+[docs/rulings/2026-08-30-unit11-local-closure-supersedes-real-deployment-gate.md](https://github.com/profrodai/sovereign-agent/blob/b4d26bc040d28ce9508d18f2da279359af53f216/docs/rulings/2026-08-30-unit11-local-closure-supersedes-real-deployment-gate.md)
+and [docs/rulings/2026-08-31-unit12-scope.md](https://github.com/profrodai/sovereign-agent/blob/b4d26bc040d28ce9508d18f2da279359af53f216/docs/rulings/2026-08-31-unit12-scope.md)'s Holding 1, and quoting that
 holding's exact replacement text. Both original passages remain intact,
 unedited, at their own original citations.
 
@@ -198,12 +198,12 @@ grep -n "Terminology correction (2026-08-31)" docs/andrea-chapters-0-7-evaluatio
 
 # Property 6 -- both original superseded passages remain intact, and the
 # correction note citing their replacement exists
-grep -n "30-day Sovereign Store pilot -> redacted proof pack accepted" \
-  docs/sows/sovereign-agent-v1-educational-control-plane.md
-grep -n "30-day pilot. Unit 12 finishes the" \
-  docs/sows/sovereign-agent-v1-educational-control-plane.md
-grep -n "Correction (2026-08-31), additive" \
-  docs/sows/sovereign-agent-v1-educational-control-plane.md
+git show b4d26bc040d28ce9508d18f2da279359af53f216:docs/sows/sovereign-agent-v1-educational-control-plane.md |
+  grep -n "30-day Sovereign Store pilot -> redacted proof pack accepted"
+git show b4d26bc040d28ce9508d18f2da279359af53f216:docs/sows/sovereign-agent-v1-educational-control-plane.md |
+  grep -n "30-day pilot. Unit 12 finishes the"
+git show b4d26bc040d28ce9508d18f2da279359af53f216:docs/sows/sovereign-agent-v1-educational-control-plane.md |
+  grep -n "Correction (2026-08-31), additive"
 ```
 
 Confirmed at implementation head: `uv lock --check` resolves cleanly;
@@ -420,9 +420,9 @@ named is untouched.
 
 ## Related documents
 
-- [SOW: Sovereign Agent 1.x — Unit 12 release evaluation, proof pack, Andrea protocol, 1.0.0 release](sows/sovereign-agent-v1-unit12-release-evaluation.md)
-- [Ruling: Unit 12 scope — release evaluation, proof pack, Andrea protocol, provider truthfulness, release sequence](rulings/2026-08-31-unit12-scope.md)
-- [Ruling: Unit 11 closes on local, learner-controlled SQLite — the real-deployment pilot-start gate is withdrawn](rulings/2026-08-30-unit11-local-closure-supersedes-real-deployment-gate.md)
+- [SOW: Sovereign Agent 1.x — Unit 12 release evaluation, proof pack, Andrea protocol, 1.0.0 release](https://github.com/profrodai/sovereign-agent/blob/b4d26bc040d28ce9508d18f2da279359af53f216/docs/sows/sovereign-agent-v1-unit12-release-evaluation.md)
+- [Ruling: Unit 12 scope — release evaluation, proof pack, Andrea protocol, provider truthfulness, release sequence](https://github.com/profrodai/sovereign-agent/blob/b4d26bc040d28ce9508d18f2da279359af53f216/docs/rulings/2026-08-31-unit12-scope.md)
+- [Ruling: Unit 11 closes on local, learner-controlled SQLite — the real-deployment pilot-start gate is withdrawn](https://github.com/profrodai/sovereign-agent/blob/b4d26bc040d28ce9508d18f2da279359af53f216/docs/rulings/2026-08-30-unit11-local-closure-supersedes-real-deployment-gate.md)
 - [Unit 11: Store expansion, Chapters 8-12, pilot-start mechanism](v1-unit11-store-expansion-pilot-start.md)
 - [Unit 10: curriculum completion, Chapters 0-7](v1-unit10-curriculum-completion.md)
 - [Unit 9: Pulse and proactive governed work](v1-unit9-pulse-proactive-work.md)

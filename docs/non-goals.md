@@ -8,7 +8,7 @@ Read with [roadmap.md](roadmap.md) (sequence) and [API.md](API.md) (what the
 in [v0.3-non-goals.md](v0.3-non-goals.md).
 
 The 1.x educational line is authorized by
-[ruling 2026-08-25 educational reset](rulings/2026-08-25-educational-reset.md).
+[ruling 2026-08-25 educational reset](https://github.com/profrodai/sovereign-agent/blob/b4d26bc040d28ce9508d18f2da279359af53f216/docs/rulings/2026-08-25-educational-reset.md).
 That ruling does **not** move tag `v0.7.0` and does **not** rewrite the 0.x
 contract.
 
@@ -80,13 +80,13 @@ engine or digest is still a refusal, never a silent downgrade.
 ## Sovereign Agent 1.x (educational line)
 
 Authorized 2026-08-25. See the
-[SOW metadata](sows/sovereign-agent-v1-educational-control-plane.md) and
+[SOW metadata](https://github.com/profrodai/sovereign-agent/blob/b4d26bc040d28ce9508d18f2da279359af53f216/docs/sows/sovereign-agent-v1-educational-control-plane.md) and
 [migration guide](migration-v0.7-to-v1.md).
 
 1.x **does** include minimum local governance (outcomes, SOWs, rulings,
 authority, acceptance) in order to teach a complete organization.
 
-The [2026-09-07 always-on teaching ruling](rulings/2026-09-07-always-on-teaching-scope.md)
+The [2026-09-07 always-on teaching ruling](https://github.com/profrodai/sovereign-agent/blob/b4d26bc040d28ce9508d18f2da279359af53f216/docs/rulings/2026-09-07-always-on-teaching-scope.md)
 authorizes one Telegram adapter, a bounded MCP client, local versioned skills,
 an explicit OS-supervised service, and an optional isolated container tool in
 this distribution. These are educational implementations; ZeoCore remains
@@ -111,8 +111,9 @@ optional. The exclusions below apply outside that bounded teaching scope.
 
 ## How to change this list
 
-1. File authorization (1.x holdings are recorded in this repository under
-   `docs/rulings/`; corpus filing follows when `sow_repo` is set).
+1. File authorization (historical 1.x holdings are preserved in the
+   [rulings snapshot](https://github.com/profrodai/sovereign-agent/tree/b4d26bc040d28ce9508d18f2da279359af53f216/docs/rulings);
+   corpus filing follows when `sow_repo` is set).
 2. Record the reversal in `CHANGELOG.md` under the release that reverses it,
    and edit this file in the same change.
 3. Sandcastle remains refused through v0.7 without a further reversal. 1.x

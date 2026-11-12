@@ -17,7 +17,7 @@
   accepted target because there is no gap between them to name two commits
   for.
 - **governing ruling:**
-  [`docs/rulings/2026-08-27-unit7-is-workspaces-not-pulse.md`](rulings/2026-08-27-unit7-is-workspaces-not-pulse.md)
+  [[docs/rulings/2026-08-27-unit7-is-workspaces-not-pulse.md](https://github.com/profrodai/sovereign-agent/blob/b4d26bc040d28ce9508d18f2da279359af53f216/docs/rulings/2026-08-27-unit7-is-workspaces-not-pulse.md)](https://github.com/profrodai/sovereign-agent/blob/b4d26bc040d28ce9508d18f2da279359af53f216/docs/rulings/2026-08-27-unit7-is-workspaces-not-pulse.md)
   (scope: workspace lifecycle, not Pulse; unchanged by this acceptance)
 - **applies_to:** Sovereign Agent 1.x, Unit 7
 - **requested_by:** `.unit7/SCOPE-PROPOSAL.md`, the read-only investigation
@@ -74,7 +74,7 @@ The governing ruling above resolved a transcription error, not a genuine
 disagreement: the only in-tree 1.x sentence naming what Unit 7 *is*
 (`book/ch03_actor_is_not_a_model/README.md:89`, "Stronger workspace lifecycle
 policies arrive in Unit 7") already agreed with the ratified sequencing
-amendment (`docs/sows/sovereign-agent-v1-educational-control-plane.md:59`,
+amendment ([docs/sows/sovereign-agent-v1-educational-control-plane.md](https://github.com/profrodai/sovereign-agent/blob/b4d26bc040d28ce9508d18f2da279359af53f216/docs/sows/sovereign-agent-v1-educational-control-plane.md#L59),
 "Unit 9 is the first fully proactive milestone"). A corpus-side handover note
 transcribed the pipeline under the wrong unit number; both are corrected. Unit
 9 owns Pulse. Unit 7 is workspace lifecycle.

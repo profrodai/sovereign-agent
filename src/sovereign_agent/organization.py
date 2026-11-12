@@ -577,7 +577,7 @@ class Organization:
         # was keyed by assignment_id, so two DIFFERENT assignments for the
         # SAME actor could each acquire their own attempt and both run under
         # two separate processes, exactly the process-level exclusivity gap
-        # `docs/rulings/2026-08-26-one-process-per-actor.md` named and
+        # `historical 2026-08-26-one-process-per-actor record` named and
         # deferred to this unit. This is that close: an actor-hosting lease,
         # checked before any assignment-scoped state exists to reason about.
         # `acquire_or_renew_actor_lease` extends this process's own lease if
@@ -1390,7 +1390,7 @@ class Organization:
         arbitrary rows can rewrite the organization's memory, and no number of
         cross-table checks changes that. Authenticating against an arbitrary
         writer needs a trust root outside the database. See
-        docs/rulings/2026-08-26-sqlite-writers-are-inside-the-boundary.md.
+        historical 2026-08-26-sqlite-writers-are-inside-the-boundary record.
         """
         rows = self.db.connection.execute(
             "SELECT DISTINCT kind FROM effects WHERE assignment_id = ?", (assignment_id,)

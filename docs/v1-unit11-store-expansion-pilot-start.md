@@ -4,7 +4,7 @@
   `95f633bb2de066e072638dfb5d18f811f204701b`, this document's own reviewed
   status flip merged separately per the governing SOW's "Review and merge
   ritual"). Per
-  `docs/rulings/2026-08-30-unit11-local-closure-supersedes-real-deployment-gate.md`,
+  [docs/rulings/2026-08-30-unit11-local-closure-supersedes-real-deployment-gate.md](https://github.com/profrodai/sovereign-agent/blob/b4d26bc040d28ce9508d18f2da279359af53f216/docs/rulings/2026-08-30-unit11-local-closure-supersedes-real-deployment-gate.md),
   Unit 11 closes on the merged, reviewed pilot-start mechanism operating
   against local, learner-controlled SQLite — **no real pilot-start act,
   governance receipt, or production Sovereign Store deployment was performed
@@ -19,9 +19,9 @@
 - **base:** `main = 5933eb75edaa4b00bfaaaffaa6d87ccf33f2e389` (the exact
   merged Unit 11 SOW commit this implementation branched from)
 - **governing SOW:**
-  [`docs/sows/sovereign-agent-v1-unit11-store-expansion-pilot-start.md`](sows/sovereign-agent-v1-unit11-store-expansion-pilot-start.md)
+  [[docs/sows/sovereign-agent-v1-unit11-store-expansion-pilot-start.md](https://github.com/profrodai/sovereign-agent/blob/b4d26bc040d28ce9508d18f2da279359af53f216/docs/sows/sovereign-agent-v1-unit11-store-expansion-pilot-start.md)](https://github.com/profrodai/sovereign-agent/blob/b4d26bc040d28ce9508d18f2da279359af53f216/docs/sows/sovereign-agent-v1-unit11-store-expansion-pilot-start.md)
 - **governing ruling:**
-  [`docs/rulings/2026-08-30-unit11-scope.md`](rulings/2026-08-30-unit11-scope.md)
+  [[docs/rulings/2026-08-30-unit11-scope.md](https://github.com/profrodai/sovereign-agent/blob/b4d26bc040d28ce9508d18f2da279359af53f216/docs/rulings/2026-08-30-unit11-scope.md)](https://github.com/profrodai/sovereign-agent/blob/b4d26bc040d28ce9508d18f2da279359af53f216/docs/rulings/2026-08-30-unit11-scope.md)
 - **applies_to:** Sovereign Agent 1.x, Unit 11
 - **work branch:** `unit-11/store-expansion-pilot-start`
 
@@ -150,7 +150,7 @@ named pilot organization.** The only caller anywhere in this unit's own
 code or curriculum is Chapter 12's exercise, against its own disposable
 identity. The governance receipt described in the governing SOW's section 4
 is not built or filed by this implementation, and — per
-`docs/rulings/2026-08-30-unit11-local-closure-supersedes-real-deployment-gate.md`
+[docs/rulings/2026-08-30-unit11-local-closure-supersedes-real-deployment-gate.md](https://github.com/profrodai/sovereign-agent/blob/b4d26bc040d28ce9508d18f2da279359af53f216/docs/rulings/2026-08-30-unit11-local-closure-supersedes-real-deployment-gate.md)
 — never will be: Unit 11 closes on the mechanism itself, not on a real
 invocation or its receipt.
 
@@ -307,7 +307,7 @@ budget's own scope, matching the split Unit 9 established for
 - **Did not itself flip this document's own status to `ACCEPTED`.** That
   flip happened in a later, separate reviewed change, per the governing
   SOW's own "Review and merge ritual" — and, per
-  `docs/rulings/2026-08-30-unit11-local-closure-supersedes-real-deployment-gate.md`,
+  [docs/rulings/2026-08-30-unit11-local-closure-supersedes-real-deployment-gate.md](https://github.com/profrodai/sovereign-agent/blob/b4d26bc040d28ce9508d18f2da279359af53f216/docs/rulings/2026-08-30-unit11-local-closure-supersedes-real-deployment-gate.md),
   on the corrected basis that the real pilot-start act and its governance
   receipt are never required for that flip or for Unit 11's closure.
 - **Did not run or claim credentialed provider smokes.** The 9 `live`-marked
@@ -341,7 +341,7 @@ budget's own scope, matching the split Unit 9 established for
 - No claim that the real 30-day Store pilot has started. Only Chapter 12's
   own disposable exercise identity has ever been passed to `start_pilot`.
 - No claim that a governance receipt exists or was ever required — per
-  `docs/rulings/2026-08-30-unit11-local-closure-supersedes-real-deployment-gate.md`,
+  [docs/rulings/2026-08-30-unit11-local-closure-supersedes-real-deployment-gate.md](https://github.com/profrodai/sovereign-agent/blob/b4d26bc040d28ce9508d18f2da279359af53f216/docs/rulings/2026-08-30-unit11-local-closure-supersedes-real-deployment-gate.md),
   its absence is permanent, not a stage this unit's implementation was
   waiting to close.
 - No claim that the real pilot-start act was ever performed, at any point,
@@ -352,8 +352,8 @@ budget's own scope, matching the split Unit 9 established for
 
 ## Related documents
 
-- [SOW: Sovereign Agent 1.x — Unit 11 Store expansion, Chapters 8-12, pilot-start mechanism](sows/sovereign-agent-v1-unit11-store-expansion-pilot-start.md)
-- [Ruling: Unit 11 scope — pilot start marker, multi-SKU catalog, Chapters 8-12](rulings/2026-08-30-unit11-scope.md)
+- [SOW: Sovereign Agent 1.x — Unit 11 Store expansion, Chapters 8-12, pilot-start mechanism](https://github.com/profrodai/sovereign-agent/blob/b4d26bc040d28ce9508d18f2da279359af53f216/docs/sows/sovereign-agent-v1-unit11-store-expansion-pilot-start.md)
+- [Ruling: Unit 11 scope — pilot start marker, multi-SKU catalog, Chapters 8-12](https://github.com/profrodai/sovereign-agent/blob/b4d26bc040d28ce9508d18f2da279359af53f216/docs/rulings/2026-08-30-unit11-scope.md)
 - [Unit 10: curriculum completion, Chapters 0-7](v1-unit10-curriculum-completion.md)
 - [Unit 9: Pulse and proactive governed work](v1-unit9-pulse-proactive-work.md)
 - [Unit 8: supervisor, fencing, and hard-kill recovery](v1-unit8-supervisor-fencing-recovery.md)

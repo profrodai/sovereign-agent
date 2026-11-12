@@ -5,8 +5,8 @@ mailbox message produce exactly one winner. It also, deliberately, left one
 thing unproven: a second *process* hosting the *same* actor id was not
 defended against, because defending against it means inventing process
 lifecycle -- and Unit 4 had no supervisor to own that
-(`docs/rulings/2026-08-26-one-process-per-actor.md`,
-`docs/rulings/2026-08-26-deferral-unit4-fencing.md`).
+(`historical 2026-08-26-one-process-per-actor record`,
+`historical 2026-08-26-deferral-unit4-fencing record`).
 
 This module is that process lifecycle. It answers three questions, always by
 compare-and-set against SQLite -- the same discipline `relay.claim()` already

@@ -174,7 +174,7 @@ document, runs entirely offline on the `scripted` provider.
 directly above is superseded, stale wording — retained here unedited, per
 this project's own established discipline of naming a superseded passage
 rather than silently rewriting it. Current terminology, per
-`docs/rulings/2026-08-31-unit12-scope.md` (Holding 7), is **"Andrea live
+[docs/rulings/2026-08-31-unit12-scope.md](https://github.com/profrodai/sovereign-agent/blob/b4d26bc040d28ce9508d18f2da279359af53f216/docs/rulings/2026-08-31-unit12-scope.md) (Holding 7), is **"Andrea live
 evaluation"**: the timed, human, live session
 `docs/andrea-chapters-0-12-evaluation.md` defines. "Unit 12 Andrea soak" and
 "Andrea-profile soak" no longer describe that session; "v0.6 infrastructure

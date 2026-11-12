@@ -1,7 +1,7 @@
 """Pulse: sale -> signal -> deterministic wake gate -> proactive governed work.
 
 A distinct mechanism from `supervisor.py`, per the governing ruling
-(`docs/rulings/2026-08-29-unit9-pulse-is-separate-from-supervisor.md`):
+(`historical 2026-08-29-unit9-pulse-is-separate-from-supervisor record`):
 `Supervisor.tick()` never imports this module, never calls it, and this
 module never imports `supervisor.py`. The two compose only through a
 foreground caller running each as its own separate operation with its own

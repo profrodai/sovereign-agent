@@ -82,7 +82,7 @@ change.
 
 ## Rulings
 
-Binding decisions live in `docs/rulings/`. A ruling that contradicts the code is
+Binding decisions are preserved in the [historical rulings snapshot](https://github.com/profrodai/sovereign-agent/tree/b4d26bc040d28ce9508d18f2da279359af53f216/docs/rulings). A ruling that contradicts the code is
 worse than no ruling, because it teaches a reader that the governance records
 are decoration. If you find one that no longer describes the repository, file an
 amendment rather than editing the original, and say how to check it against the
