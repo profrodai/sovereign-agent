@@ -18,7 +18,7 @@ from verify_source_budget import MAX_ROOT_EXPORTS, root_exports
 ROOT = Path(__file__).resolve().parent.parent
 CORE = ROOT / "src" / "sovereign_agent"
 MAX_CORE_MODULES = 55
-MAX_CORE_LINES = 12_250
+MAX_CORE_LINES = 12_261
 MAX_INSTALLED_MODULES = 80
 MAX_INSTALLED_LINES = 15_500
 

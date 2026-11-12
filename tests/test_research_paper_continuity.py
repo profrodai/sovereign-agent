@@ -4,6 +4,7 @@ import json
 import subprocess
 import sys
 import time
+import uuid
 
 import pytest
 
@@ -11,6 +12,7 @@ from sovereign_agent import assistant_work as queue
 from sovereign_agent import paper_assessment as paper
 from sovereign_agent import research
 from sovereign_agent import research_allowance as allowance
+from sovereign_agent import research_executor as executor
 from sovereign_agent.model_turn import ModelError, ModelTurn
 from tests.test_paper_assessment import card, supplied
 
@@ -88,6 +90,79 @@ class ScriptedPaperModel:
             proposal["evidence"] = [observation]
             proposal["assessment"] = card(context["paper"]["input_sha256"], observation)
         return ModelTurn(json.dumps(proposal), output_tokens=100)
+
+
+def test_report_summarizes_attachments_without_exposing_text_paths_or_approval(tmp_path):
+    text = "Sensitive invented source text, not an automatically published excerpt.\n"
+    db, identifier, _ = paper_investigation(tmp_path, text_override=text)
+    result = command(tmp_path, "report", "--id", identifier)
+    assert result.returncode == 0, result.stderr
+    records = json.loads(result.stdout)
+    attached = next(item["source"] for item in records if item["kind"] == "research.paper_attached")
+    document = attached["documents"][0]
+    assert "text" not in document and text not in result.stdout
+    assert "approval" not in attached
+    assert "original_path" not in document["document"]
+    assert "text_path" not in document["document"]
+    assert document["text_bytes"] == len(text.encode())
+    assert document["document"]["text_sha256"] == paper.sha256(text.encode())
+    # The report projection must not alter immutable private evidence in the ledger.
+    stored = paper.binding(db, identifier)["source"]
+    assert stored["documents"][0]["text"] == text
+    assert stored["approval"] == "approved fixture input"
+
+
+def test_model_context_reports_the_enforced_paper_caps(tmp_path):
+    db, identifier, _ = paper_investigation(tmp_path)
+    before = research.context(db, identifier)["remaining"]
+    assert (before["calls"], before["actions"], before["evaluations"]) == (6, 8, 0)
+    assert research.wake(db, tmp_path, ScriptedPaperModel("read")) == "PROPOSED"
+    after = research.context(db, identifier)["remaining"]
+    assert (after["calls"], after["actions"], after["evaluations"]) == (5, 7, 0)
+    other = research.open_agent(tmp_path / "synthetic")
+    synthetic = research.context(other, research.revise(other, "Synthetic objective"))["remaining"]
+    assert (synthetic["calls"], synthetic["actions"], synthetic["evaluations"]) == (12, 24, 12)
+
+
+@pytest.mark.parametrize("action", ["wait", "assess"])
+def test_injected_late_synthetic_receipt_cannot_restart_paper_inference(tmp_path, action):
+    db, identifier, _ = paper_investigation(tmp_path)
+    if action == "assess":
+        assert research.wake(db, tmp_path, ScriptedPaperModel("read")) == "PROPOSED"
+        research.control(db, identifier, "resume")
+    assert research.wake(db, tmp_path, ScriptedPaperModel(action)) == "PROPOSED"
+    before = research.head(db, identifier)
+    assert before["next_due"] is None
+    # Inject a delayed, correctly bound receipt for work from the pre-paper revision.
+    previous = db.connection.execute(
+        "SELECT work_id FROM research_work WHERE investigation=? AND revision=1", (identifier,)
+    ).fetchone()[0]
+    operation = uuid.uuid4().hex
+    raw = executor.Request(operation=operation, x=0.0).model_dump_json()
+    with db.immediate() as connection:
+        connection.execute(
+            "INSERT INTO research_operations(id,work_id,request,state,submitted) "
+            "VALUES (?,?,?,'RUNNING',?)",
+            (operation, previous, raw, time.time()),
+        )
+    folder = executor.directory(tmp_path, operation)
+    folder.mkdir(parents=True)
+    receipt = executor.Receipt(
+        operation=operation,
+        request_digest=executor.digest(raw),
+        status="COMPLETED",
+        x=0.0,
+        value=0.190625,
+        cpu_seconds=0.0,
+        wall_seconds=0.0,
+        max_rss=0,
+    )
+    (folder / "result.json").write_text(receipt.model_dump_json())
+    assert research.reconcile(db, tmp_path) == 1
+    after = research.head(db, identifier)
+    assert after["next_due"] is None and after["wake"] == before["wake"]
+    idle = ScriptedPaperModel("read")
+    assert research.wake(db, tmp_path, idle) == "WAITING" and idle.calls == 0
 
 
 def test_normal_cli_attach_private_report_and_no_inference_while_waiting(tmp_path):

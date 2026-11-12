@@ -535,7 +535,7 @@ def display(text: str) -> str:
     # Evidence remains exact in JSON. Escape its display so text cannot create
     # links, headings or raw HTML in the private review projection.
     escaped = html.escape(text, quote=False).replace("\\", "\\\\")
-    for character in "[]*_`#":
+    for character in "[]*_`#|=.!+-(){}:/@":
         escaped = escaped.replace(character, "\\" + character)
     return escaped
 

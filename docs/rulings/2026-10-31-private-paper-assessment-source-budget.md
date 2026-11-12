@@ -19,3 +19,8 @@ line allowance is not evidence that the code passes, that a paper assessment is
 scientifically useful, or that a model campaign or public service is authorized.
 Tests use invented source text. Real input, access, scientific review and any
 later public release remain separate requirements.
+
+The review repair in pull request 140 has a further finite allowance of 12,261
+nonblank core lines, approved on 12 November 2026. This replaces the 12,250
+core-line ceiling for that repair only. The installed-line, module and export
+ceilings and all counting rules above remain unchanged.

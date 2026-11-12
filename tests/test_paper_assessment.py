@@ -3,6 +3,8 @@
 import hashlib
 import json
 import os
+import subprocess
+import sys
 from copy import deepcopy
 
 import pytest
@@ -129,15 +131,11 @@ def test_valid_private_shape_links_exact_inspected_bytes(tmp_path):
     assert proposal.reproduction == "not attempted"
 
 
-@pytest.mark.parametrize("change", ["quote", "range", "original", "text", "use", "authors"])
+@pytest.mark.parametrize("change", ["original", "text", "use", "authors"])
 def test_forged_or_unapproved_inputs_refuse_before_admission(tmp_path, change):
     _, manifest = supplied(tmp_path)
     document = manifest["documents"][0]
-    if change == "quote":
-        document["anchors"][0]["quote_sha256"] = "0" * 64
-    elif change == "range":
-        document["anchors"][0]["end"] = 99999
-    elif change == "original":
+    if change == "original":
         document["original_sha256"] = "0" * 64
     elif change == "text":
         document["text_sha256"] = "0" * 64
@@ -146,7 +144,41 @@ def test_forged_or_unapproved_inputs_refuse_before_admission(tmp_path, change):
     else:
         document["authors"] = ["forbidden identifying scoring field"]
     digest = write_manifest(tmp_path, manifest)
-    with pytest.raises((ValueError, PermissionError)):
+    expected = {
+        "original": "original or extraction digest mismatch",
+        "text": "original or extraction digest mismatch",
+        "use": "source use is not approved",
+        "authors": "authors",
+    }
+    with pytest.raises((ValueError, PermissionError), match=expected[change]):
+        paper.load(tmp_path, "manifest.json", digest, "operator fixture reference")
+
+
+@pytest.mark.parametrize("change", ["quote", "range", "oversize", "empty", "reverse", "utf8"])
+def test_admitted_locator_reaches_each_byte_guard(tmp_path, change):
+    text = "x" * 1025 if change == "oversize" else "αx" if change == "utf8" else None
+    _, manifest = supplied(tmp_path, text_override=text)
+    document = manifest["documents"][0]
+    body = (tmp_path / document["text_path"]).read_bytes()
+    anchor = document["anchors"][0]
+    if change == "quote":
+        anchor["quote_sha256"] = "0" * 64
+    elif change == "range":
+        anchor["end"] = len(body) + 1
+    elif change in {"empty", "reverse"}:
+        anchor.update(start=1 if change == "empty" else 2, end=1)
+    elif change == "utf8":
+        anchor.update(start=1, end=2)
+    if change != "quote":
+        anchor["quote_sha256"] = paper.sha256(body[anchor["start"] : anchor["end"]])
+    # Preserve the independently admitted map digest so the inner guard is reached.
+    document["locator_map_sha256"] = paper.sha256(
+        json.dumps(document["anchors"], sort_keys=True, separators=(",", ":")).encode()
+    )
+    digest = write_manifest(tmp_path, manifest)
+    error = UnicodeDecodeError if change == "utf8" else ValueError
+    message = "utf-8" if change == "utf8" else "invalid, oversized or mismatched evidence locator"
+    with pytest.raises(error, match=message):
         paper.load(tmp_path, "manifest.json", digest, "operator fixture reference")
 
 
@@ -166,6 +198,23 @@ def test_bounded_owned_input_refuses_alias_or_blocking_file(tmp_path, kind):
     relative = "input"
     if kind == "fifo":
         os.mkfifo(target)
+        result = subprocess.run(
+            [
+                sys.executable,
+                "-c",
+                "from pathlib import Path; import sys; "
+                "from sovereign_agent import paper_assessment as p\n"
+                "try: p.read_owned(Path(sys.argv[1]), 'input', 5)\n"
+                "except (ValueError, OSError): sys.exit(0)\n"
+                "sys.exit('blocking input was accepted')",
+                str(tmp_path),
+            ],
+            timeout=5,
+            capture_output=True,
+            text=True,
+        )
+        assert result.returncode == 0, result.stderr
+        return
     elif kind == "final_alias":
         (tmp_path / "source").write_text("x")
         target.symlink_to(tmp_path / "source")
@@ -181,6 +230,38 @@ def test_bounded_owned_input_refuses_alias_or_blocking_file(tmp_path, kind):
         target.write_bytes(b"x" * 10)
     with pytest.raises((ValueError, OSError)):
         paper.read_owned(tmp_path, relative, 5)
+
+
+def test_owned_input_refuses_another_uid(tmp_path, monkeypatch):
+    (tmp_path / "input").write_text("x")
+    uid = os.geteuid()
+    monkeypatch.setattr(paper.os, "geteuid", lambda: uid + 1)
+    with pytest.raises(ValueError, match="bounded owned regular file"):
+        paper.read_owned(tmp_path, "input", 5)
+
+
+def test_owned_input_refuses_mtime_change_during_read(tmp_path, monkeypatch):
+    target = tmp_path / "input"
+    target.write_text("x")
+    initial = target.stat()
+    read = os.read
+
+    def changed_read(fd, size):
+        body = read(fd, size)
+        if os.fstat(fd).st_ino == initial.st_ino:
+            os.utime(target, ns=(initial.st_atime_ns, initial.st_mtime_ns + 1_000_000))
+        return body
+
+    monkeypatch.setattr(paper.os, "read", changed_read)
+    with pytest.raises(ValueError, match="changed or exceeded"):
+        paper.read_owned(tmp_path, "input", 5)
+
+
+def test_private_display_neutralizes_block_syntax_and_bare_links():
+    rendered = paper.display("Title\n---\n+ item\n1. step\n|x|\nhttps://example.invalid/x")
+    for fragment in (r"\-\-\-", r"\+ item", r"1\. step", r"\|x\|", r"https\:\/\/"):
+        assert fragment in rendered
+    assert "https://" not in rendered
 
 
 def test_duplicate_json_and_forbidden_review_metadata_are_not_silently_flattened(tmp_path):

@@ -281,13 +281,15 @@ def cancel_operation(db: Database, root: Path, identifier: str) -> None:
         )
 
 
-def history(db: Database, identifier: str, *, limit: int = -1) -> list[dict[str, Any]]:
+def history(
+    db: Database, identifier: str, *, limit: int = -1, redact_paper: bool = False
+) -> list[dict[str, Any]]:
     rows = db.connection.execute(
         "SELECT * FROM events WHERE kind LIKE 'research.%' "
         "AND json_extract(payload,'$.investigation')=? ORDER BY seq DESC LIMIT ?",
         (identifier, limit),
     ).fetchall()
-    return [
+    entries = [
         {
             "seq": row["seq"],
             "time": row["created_at"],
@@ -296,6 +298,16 @@ def history(db: Database, identifier: str, *, limit: int = -1) -> list[dict[str,
         }
         for row in reversed(rows)
     ]
+    if redact_paper:
+        for entry in entries:
+            if entry["kind"] == "research.paper_attached":
+                source = entry["source"]
+                source.pop("approval", None)
+                for document in source["documents"]:
+                    document.pop("text", None)
+                    document["document"].pop("original_path", None)
+                    document["document"].pop("text_path", None)
+    return entries
 
 
 def recovery(db: Database, identifier: str) -> list[dict[str, Any]]:
@@ -385,6 +397,7 @@ def recover(db: Database, root: Path, operation: str, evidence: str) -> None:
 def context(db: Database, identifier: str) -> dict[str, Any]:
     current = head(db, identifier)
     campaign = allowance.current(db, identifier)
+    attached = paper.model_context(db, identifier)
     result: dict[str, Any] = {
         "objective": db.get("outcomes", "id", identifier),
         "runtime": current,
@@ -414,13 +427,12 @@ def context(db: Database, identifier: str) -> dict[str, Any]:
         "recent_history": history(db, identifier, limit=8),
         "remaining": {
             "campaign_seconds": max(0, campaign["deadline"] - time.time()) if campaign else 0,
-            "calls": 12 - current["calls"],
+            "calls": (6 if attached else 12) - current["calls"],
             "output_tokens": 12000 - current["tokens"],
-            "actions": 24 - current["actions"],
-            "evaluations": 12 - current["evaluations"],
+            "actions": (8 if attached else 24) - current["actions"],
+            "evaluations": (0 if attached else 12) - current["evaluations"],
         },
     }
-    attached = paper.model_context(db, identifier)
     if attached:
         result["paper"] = attached
         # Full source bytes and inference answers stay in the private event ledger.
@@ -506,7 +518,7 @@ def reconcile(db: Database, root: Path) -> int:
                 receipt=receipt.model_dump(),
                 relevance="requires interpretation",
             )
-            if current["state"] == "ACTIVE":
+            if current["state"] == "ACTIVE" and not paper.binding(db, row["investigation"]):
                 connection.execute(
                     "UPDATE investigations SET next_due=?,wake='new evidence' WHERE id=?",
                     (time.time(), row["investigation"]),

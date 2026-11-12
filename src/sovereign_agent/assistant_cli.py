@@ -478,7 +478,7 @@ def handle_research(args: argparse.Namespace, root: Path) -> int:
             else [dict(row) for row in db.connection.execute("SELECT * FROM investigations")]
         )
         if args.action == "report":
-            result = research.history(db, args.id)
+            result = research.history(db, args.id, redact_paper=True)
     elif args.action in {"work", "serve"}:
         model: Model | None = None
         if args.live:
