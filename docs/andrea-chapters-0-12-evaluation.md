@@ -222,7 +222,7 @@ chapter's exercise constitutes, or is equivalent to, a real deployment
 pilot — that would be exactly the "local mechanism mistaken for a real
 deployment" claim this task exists to catch, and the mistake this project's
 own governing ruling
-(`docs/rulings/2026-08-30-unit11-local-closure-supersedes-real-deployment-gate.md`)
+([docs/rulings/2026-08-30-unit11-local-closure-supersedes-real-deployment-gate.md](https://github.com/profrodai/sovereign-agent/blob/b4d26bc040d28ce9508d18f2da279359af53f216/docs/rulings/2026-08-30-unit11-local-closure-supersedes-real-deployment-gate.md))
 was written to prevent from ever being taught as true.
 
 ## Scoring

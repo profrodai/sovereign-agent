@@ -1,9 +1,9 @@
 """Count the entire installed teaching distribution, with a visible core subtotal.
 
 Supersedes verify_source_budget.py for the always-on curriculum. Allowance:
-docs/rulings/2026-09-07-always-on-source-budget.md, with the measured research
-amendments in docs/rulings/2026-10-24-research-profile-source-budget.md and
-docs/rulings/2026-10-25-research-continuation-source-budget.md.
+historical 2026-09-07-always-on-source-budget record, with the measured research
+amendments in historical 2026-10-24-research-profile-source-budget record and
+historical 2026-10-25-research-continuation-source-budget record.
 Legacy script remains history.
 """
 

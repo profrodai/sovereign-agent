@@ -158,7 +158,7 @@ uv run sovereign-agent --help
 uv run sovereign-agent doctor
 ```
 
-See the [educational reset ruling](docs/rulings/2026-08-25-educational-reset.md)
+See the [educational reset ruling](https://github.com/profrodai/sovereign-agent/blob/b4d26bc040d28ce9508d18f2da279359af53f216/docs/rulings/2026-08-25-educational-reset.md)
 and [v0.7 migration guide](docs/migration-v0.7-to-v1.md).
 
 ## Project resources

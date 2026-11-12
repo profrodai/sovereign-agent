@@ -200,7 +200,7 @@ def test_the_same_actor_from_two_processes_is_idempotent_within_an_unexpired_lea
     idempotency feature (a retried worker inside its own lease window is
     harmless), not a gap. It says nothing about two DIFFERENT processes, or
     about a lease that has EXPIRED -- see F-U4-1's closure
-    (`docs/rulings/2026-08-26-deferral-unit4-fencing.md`) for the expired
+    (`historical 2026-08-26-deferral-unit4-fencing record`) for the expired
     case, and `test_fencing.py` for actual process-level exclusivity, which
     this test never tested and does not test now.
     """

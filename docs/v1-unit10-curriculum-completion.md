@@ -14,9 +14,9 @@
 - **base:** `main = 7958f74c96f1e51591e631fb62a7c5af017a794f` (Units 0-9
   ACCEPTED; the exact commit the Unit 10 SOW was reviewed and merged at)
 - **governing SOW:**
-  [`docs/sows/sovereign-agent-v1-unit10-curriculum-completion.md`](sows/sovereign-agent-v1-unit10-curriculum-completion.md)
+  [[docs/sows/sovereign-agent-v1-unit10-curriculum-completion.md](https://github.com/profrodai/sovereign-agent/blob/b4d26bc040d28ce9508d18f2da279359af53f216/docs/sows/sovereign-agent-v1-unit10-curriculum-completion.md)](https://github.com/profrodai/sovereign-agent/blob/b4d26bc040d28ce9508d18f2da279359af53f216/docs/sows/sovereign-agent-v1-unit10-curriculum-completion.md)
 - **applies_to:** Sovereign Agent 1.x, Unit 10
-- **requested_by:** `docs/sows/sovereign-agent-v1-educational-control-plane.md`
+- **requested_by:** [docs/sows/sovereign-agent-v1-educational-control-plane.md](https://github.com/profrodai/sovereign-agent/blob/b4d26bc040d28ce9508d18f2da279359af53f216/docs/sows/sovereign-agent-v1-educational-control-plane.md)
   (sequencing amendment 6) and `docs/units-0-6-contract.md`'s curriculum
   cross-cutting section — the governing SOW states the reconciling reading
   of the two explicitly rather than picking one silently (see its own
@@ -337,7 +337,7 @@ claimed to be graded anywhere in this unit's own text.
 
 ## Related documents
 
-- [SOW: Sovereign Agent 1.x — Unit 10 curriculum completion, Chapters 0-7](sows/sovereign-agent-v1-unit10-curriculum-completion.md)
+- [SOW: Sovereign Agent 1.x — Unit 10 curriculum completion, Chapters 0-7](https://github.com/profrodai/sovereign-agent/blob/b4d26bc040d28ce9508d18f2da279359af53f216/docs/sows/sovereign-agent-v1-unit10-curriculum-completion.md)
 - [Unit 9: Pulse and proactive governed work](v1-unit9-pulse-proactive-work.md)
 - [Unit 8: supervisor, fencing, and hard-kill recovery](v1-unit8-supervisor-fencing-recovery.md)
 - [Unit 7: workspace lifecycle](v1-unit7-workspace-lifecycle.md)

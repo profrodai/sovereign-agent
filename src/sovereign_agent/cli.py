@@ -204,7 +204,7 @@ def _supervisor(namespace: argparse.Namespace) -> int:
     `service` (future OS-level install/status/uninstall, unimplemented) and
     from `pulse` (Unit 9's own separate proactive-wake mechanism, implemented
     below but never called from here -- see
-    docs/rulings/2026-08-29-unit9-pulse-is-separate-from-supervisor.md) --
+    historical 2026-08-29-unit9-pulse-is-separate-from-supervisor record) --
     this command is the supervisor itself, and it still never reads a Pulse
     signal or fires a wake gate.
     """

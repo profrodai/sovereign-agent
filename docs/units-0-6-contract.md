@@ -39,7 +39,7 @@ exists**; and a **validated textbook source** in `book/`.
 
 Publication is explicitly NOT a Units 0-6 dependency. This repository builds no
 site: the textbook is rendered and published by `zeroemployeeorg/zeo-site`, per
-[the publication ruling](rulings/2026-08-27-book-publication-destination.md), and
+[the publication ruling](https://github.com/profrodai/sovereign-agent/blob/b4d26bc040d28ce9508d18f2da279359af53f216/docs/rulings/2026-08-27-book-publication-destination.md), and
 `book/CONTENT-SOURCE.md` states the contract that consumer inherits. An
 earlier version of this contract said "a published site is part of the reset",
 which was written while this repository still carried a MkDocs pipeline aimed at
@@ -197,8 +197,8 @@ Annotated, in `main`'s ancestry, each gating green at its own target:
 
 ## Deferrals, on the record rather than as absences
 
-- [Unit 4 multi-process fencing → Unit 8](rulings/2026-08-26-deferral-unit4-fencing.md)
-- [Unit 6 credentialed provider smokes → Unit 12](rulings/2026-08-26-deferral-unit6-smokes.md)
+- [Unit 4 multi-process fencing → Unit 8](https://github.com/profrodai/sovereign-agent/blob/b4d26bc040d28ce9508d18f2da279359af53f216/docs/rulings/2026-08-26-deferral-unit4-fencing.md)
+- [Unit 6 credentialed provider smokes → Unit 12](https://github.com/profrodai/sovereign-agent/blob/b4d26bc040d28ce9508d18f2da279359af53f216/docs/rulings/2026-08-26-deferral-unit6-smokes.md)
 
 ## How to check this document against the repository
 

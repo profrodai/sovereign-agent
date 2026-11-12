@@ -1,6 +1,6 @@
 """Unit 7: workspace lifecycle.
 
-Five properties, per docs/rulings/2026-08-27-unit7-is-workspaces-not-pulse.md:
+Five properties, per historical 2026-08-27-unit7-is-workspaces-not-pulse record:
 
 1. Reclaim tied to assignment terminal state.
 2. `Actor.workspace_policy` is enforced, not merely declared.

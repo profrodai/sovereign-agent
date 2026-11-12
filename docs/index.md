@@ -26,7 +26,7 @@ optional and credentialed execution is never required by the default test suite.
 - [Durable non-goals](non-goals.md)
 - [Security policy](../SECURITY.md) and [threat model](threat-model.md)
 - [Migration from 0.7 to 1.x](migration-v0.7-to-v1.md)
-- [Rulings index](rulings/index.md)
+- [Rulings index](https://github.com/profrodai/sovereign-agent/blob/b4d26bc040d28ce9508d18f2da279359af53f216/docs/rulings/index.md)
 
 ## Historical 0.x documentation
 
