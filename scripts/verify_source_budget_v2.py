@@ -3,7 +3,8 @@
 Supersedes verify_source_budget.py for the always-on curriculum. Allowance:
 historical 2026-09-07-always-on-source-budget record, with the measured research
 amendments in historical 2026-10-24-research-profile-source-budget record and
-historical 2026-10-25-research-continuation-source-budget record.
+historical 2026-10-25-research-continuation-source-budget record, and the current
+allowance in docs/rulings/2026-10-31-private-paper-assessment-source-budget.md.
 Legacy script remains history.
 """
 
@@ -17,9 +18,9 @@ from verify_source_budget import MAX_ROOT_EXPORTS, root_exports
 ROOT = Path(__file__).resolve().parent.parent
 CORE = ROOT / "src" / "sovereign_agent"
 MAX_CORE_MODULES = 55
-MAX_CORE_LINES = 11_500
+MAX_CORE_LINES = 12_261
 MAX_INSTALLED_MODULES = 80
-MAX_INSTALLED_LINES = 14_750
+MAX_INSTALLED_LINES = 15_500
 
 
 def measure(root: Path) -> tuple[int, int]:

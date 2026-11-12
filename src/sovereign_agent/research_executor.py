@@ -41,6 +41,13 @@ class Receipt(BaseModel):
     max_rss: int = Field(ge=0)
 
 
+def read_paper(source: dict[str, object], locator: str, operation: str) -> dict[str, object]:
+    """Closed in-process read of an admitted immutable extraction; no new process."""
+    from sovereign_agent import paper_assessment
+
+    return paper_assessment.observe(source, locator, operation)
+
+
 def digest(raw: str) -> str:
     return hashlib.sha256(raw.encode()).hexdigest()
 

@@ -27,7 +27,16 @@ def handle(args: argparse.Namespace) -> int:
     investigations.check_root(root, args.profile)
     if args.profile == "research":
         return handle_research(args, root)
-    if args.action in {"pause", "resume", "redirect", "allow", "release-inference", "recover"}:
+    if args.action in {
+        "pause",
+        "resume",
+        "redirect",
+        "allow",
+        "release-inference",
+        "recover",
+        "attach-paper",
+        "paper-card",
+    }:
         raise ValueError("action requires the research profile")
     from reference_organizations.store.account_recovery import configured_supplier
     from reference_organizations.store.agent import OfflineShopModel, seed_lucy
@@ -393,10 +402,40 @@ def handle_research(args: argparse.Namespace, root: Path) -> int:
         if args.action == "redirect" and not args.id:
             raise ValueError("redirect requires --id")
         result = {"investigation": research.revise(db, args.value, args.id)}
+    elif args.action == "attach-paper":
+        result = {
+            "investigation": research.attach_paper(
+                db, root, args.id, args.value, args.digest, args.evidence
+            )
+        }
+    elif args.action == "paper-card":
+        from sovereign_agent import paper_assessment
+
+        result = paper_assessment.private_report(
+            db, args.id, research.head(db, args.id)["revision"]
+        )
     elif args.action == "allow":
+        from sovereign_agent import paper_assessment
         from sovereign_agent import research_allowance as allowance
 
         with db.immediate():
+            attached = paper_assessment.binding(db, args.id)
+            exists = db.connection.execute(
+                "SELECT 1 FROM research_campaigns WHERE id=?", (args.key,)
+            ).fetchone()
+            if attached and not exists:
+                paper_assessment.check_allocations(
+                    db,
+                    args.id,
+                    paper_assessment.baseline(db, args.id)["first_campaign"],
+                    {
+                        "seconds": args.campaign_seconds,
+                        "calls": args.campaign_calls,
+                        "tokens": args.campaign_tokens,
+                        "actions": args.campaign_actions,
+                        "evaluations": args.campaign_evaluations,
+                    },
+                )
             result = {
                 "campaign": allowance.grant(
                     db,
@@ -439,7 +478,7 @@ def handle_research(args: argparse.Namespace, root: Path) -> int:
             else [dict(row) for row in db.connection.execute("SELECT * FROM investigations")]
         )
         if args.action == "report":
-            result = research.history(db, args.id)
+            result = research.history(db, args.id, redact_paper=True)
     elif args.action in {"work", "serve"}:
         model: Model | None = None
         if args.live:
@@ -498,6 +537,8 @@ def register(subparsers: Any, shared: argparse.ArgumentParser) -> None:
             "work",
             "delegate",
             "research-work",
+            "attach-paper",
+            "paper-card",
             "watch-stock",
             "unwatch-stock",
             "receive",

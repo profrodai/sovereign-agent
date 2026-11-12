@@ -16,6 +16,7 @@ from typing import Any, Literal
 from pydantic import BaseModel, ConfigDict, Field
 
 from sovereign_agent import assistant_work as queue
+from sovereign_agent import paper_assessment as paper
 from sovereign_agent import research_allowance as allowance
 from sovereign_agent import research_executor as executor
 from sovereign_agent.agent_loop import Limits, run_loop
@@ -30,7 +31,7 @@ from sovereign_agent.workspace import safe_join
 
 class Proposal(BaseModel):
     model_config = ConfigDict(extra="forbid", strict=True, allow_inf_nan=False)
-    action: Literal["evaluate", "wait", "interpret", "stop", "escalate"]
+    action: Literal["evaluate", "wait", "interpret", "stop", "escalate", "read", "assess"]
     reason: str = Field(min_length=1, max_length=1500)
     belief: str = Field(min_length=1, max_length=1500)
     evidence: list[str] = Field(
@@ -41,6 +42,8 @@ class Proposal(BaseModel):
     )
     x: float | None = Field(default=None, ge=-2, le=2)
     wait_seconds: int = Field(default=1, ge=1, le=60)
+    locator: str | None = Field(default=None, max_length=130)
+    assessment: paper.Card | None = None
 
 
 def check_root(root: Path, profile: str) -> None:
@@ -116,7 +119,9 @@ def enqueue(db: Database, identifier: str, revision: int, reason: str) -> str:
     return work
 
 
-def revise(db: Database, question: str, identifier: str = "") -> str:
+def revise(
+    db: Database, question: str, identifier: str = "", *, paper_source: dict[str, Any] | None = None
+) -> str:
     if not question.strip() or len(question.encode()) > 4096:
         raise ValueError("bounded nonempty research question required")
     with db.immediate() as connection:
@@ -165,6 +170,21 @@ def revise(db: Database, question: str, identifier: str = "") -> str:
             "INSERT INTO research_revisions VALUES (?,?,?)", (identifier, revision, question)
         )
         event(db, identifier, "objective", revision=revision, question=question)
+        if paper_source is not None:
+            campaign = allowance.require(db, identifier)
+            previous = paper.binding(db, identifier)
+            first_campaign = (
+                paper.baseline(db, identifier)["first_campaign"] if previous else campaign["id"]
+            )
+            paper.check_allocations(db, identifier, first_campaign)
+            event(
+                db,
+                identifier,
+                "paper_attached",
+                revision=revision,
+                source=paper_source,
+                first_campaign=first_campaign,
+            )
         if head(db, identifier)["state"] == "ACTIVE":
             try:
                 allowance.require(db, identifier)
@@ -177,6 +197,18 @@ def revise(db: Database, question: str, identifier: str = "") -> str:
             else:
                 enqueue(db, identifier, revision, "operator objective revision")
     return identifier
+
+
+def attach_paper(
+    db: Database, root: Path, identifier: str, manifest: str, digest: str, approval: str
+) -> str:
+    allowance.require(db, identifier)
+    source = paper.load(root, manifest, digest, approval)
+    outcome = db.get("outcomes", "id", identifier)
+    if outcome is None:
+        raise ValueError("unknown investigation")
+    # Revision and attachment are one transaction; in-flight old actions are fenced.
+    return revise(db, outcome["desired_state"], identifier, paper_source=source)
 
 
 def control(db: Database, identifier: str, action: str) -> None:
@@ -222,6 +254,8 @@ def assert_authority(db: Database, claim: queue.Claim) -> dict[str, Any]:
     if row is None:
         raise PermissionError("research plan is obsolete, paused or stopped")
     campaign = allowance.require(db, claim.session, row["campaign"])
+    if paper.binding(db, claim.session):
+        paper.check_campaign(db, claim.session, campaign["id"])
     return {**dict(row), "deadline": campaign["deadline"]}
 
 
@@ -247,20 +281,33 @@ def cancel_operation(db: Database, root: Path, identifier: str) -> None:
         )
 
 
-def history(db: Database, identifier: str) -> list[dict[str, Any]]:
-    return [
+def history(
+    db: Database, identifier: str, *, limit: int = -1, redact_paper: bool = False
+) -> list[dict[str, Any]]:
+    rows = db.connection.execute(
+        "SELECT * FROM events WHERE kind LIKE 'research.%' "
+        "AND json_extract(payload,'$.investigation')=? ORDER BY seq DESC LIMIT ?",
+        (identifier, limit),
+    ).fetchall()
+    entries = [
         {
             "seq": row["seq"],
             "time": row["created_at"],
             "kind": row["kind"],
             **json.loads(row["payload"]),
         }
-        for row in db.connection.execute(
-            "SELECT * FROM events WHERE kind LIKE 'research.%' "
-            "AND json_extract(payload,'$.investigation')=? ORDER BY seq",
-            (identifier,),
-        )
+        for row in reversed(rows)
     ]
+    if redact_paper:
+        for entry in entries:
+            if entry["kind"] == "research.paper_attached":
+                source = entry["source"]
+                source.pop("approval", None)
+                for document in source["documents"]:
+                    document.pop("text", None)
+                    document["document"].pop("original_path", None)
+                    document["document"].pop("text_path", None)
+    return entries
 
 
 def recovery(db: Database, identifier: str) -> list[dict[str, Any]]:
@@ -350,7 +397,8 @@ def recover(db: Database, root: Path, operation: str, evidence: str) -> None:
 def context(db: Database, identifier: str) -> dict[str, Any]:
     current = head(db, identifier)
     campaign = allowance.current(db, identifier)
-    return {
+    attached = paper.model_context(db, identifier)
+    result: dict[str, Any] = {
         "objective": db.get("outcomes", "id", identifier),
         "runtime": current,
         "allowances": allowance.status(db, identifier),
@@ -376,15 +424,30 @@ def context(db: Database, identifier: str) -> dict[str, Any]:
                 (identifier,),
             )
         ],
-        "recent_history": history(db, identifier)[-8:],
+        "recent_history": history(db, identifier, limit=8),
         "remaining": {
             "campaign_seconds": max(0, campaign["deadline"] - time.time()) if campaign else 0,
-            "calls": 12 - current["calls"],
+            "calls": (6 if attached else 12) - current["calls"],
             "output_tokens": 12000 - current["tokens"],
-            "actions": 24 - current["actions"],
-            "evaluations": 12 - current["evaluations"],
+            "actions": (8 if attached else 24) - current["actions"],
+            "evaluations": (0 if attached else 12) - current["evaluations"],
         },
     }
+    if attached:
+        result["paper"] = attached
+        # Full source bytes and inference answers stay in the private event ledger.
+        # They must not crowd approved excerpts out of the bounded model context.
+        result["recent_history"] = [
+            {
+                "seq": item["seq"],
+                "kind": item["kind"],
+                "revision": item.get("revision"),
+                "belief": item.get("proposal", {}).get("belief", ""),
+                "reason": item.get("reason", ""),
+            }
+            for item in history(db, identifier, limit=8)
+        ]
+    return result
 
 
 def reconcile(db: Database, root: Path) -> int:
@@ -455,7 +518,7 @@ def reconcile(db: Database, root: Path) -> int:
                 receipt=receipt.model_dump(),
                 relevance="requires interpretation",
             )
-            if current["state"] == "ACTIVE":
+            if current["state"] == "ACTIVE" and not paper.binding(db, row["investigation"]):
                 connection.execute(
                     "UPDATE investigations SET next_due=?,wake='new evidence' WHERE id=?",
                     (time.time(), row["investigation"]),
@@ -490,8 +553,69 @@ def apply(db: Database, root: Path, claim: queue.Claim, proposal: Proposal) -> N
                 (claim.session,),
             )
         }
+        attached = paper.binding(db, claim.session)
+        observations = paper.observations(db, claim.session) if attached else []
+        if attached:
+            known = {item["operation"] for item in observations}
         if not set(proposal.evidence).issubset(known):
             raise ValueError("interpretation cites unknown observations")
+        if attached:
+            if proposal.x is not None or proposal.action == "evaluate":
+                raise ValueError("paper domain permits no synthetic evaluation or code execution")
+            if proposal.action == "read":
+                if not proposal.locator or proposal.assessment is not None:
+                    raise ValueError("paper read needs only an admitted locator")
+                observation = executor.read_paper(
+                    attached["source"], proposal.locator, uuid.uuid4().hex
+                )
+                event(
+                    db,
+                    claim.session,
+                    "paper_observation",
+                    revision=current["revision"],
+                    work=claim.id,
+                    observation=observation,
+                )
+            elif proposal.action == "assess":
+                if proposal.assessment is None or proposal.locator is not None:
+                    raise ValueError("paper assess needs a card, not a read locator")
+                digest = paper.validate_card(proposal.assessment, attached["source"], observations)
+                assessor_digest = paper.sha256(Path(paper.__file__).read_bytes())
+                rubric_digest = paper.sha256(json.dumps(paper.ANCHORS, sort_keys=True).encode())
+                assessment_id = paper.sha256(
+                    json.dumps(
+                        {
+                            "card": digest,
+                            "objective_revision": current["revision"],
+                            "assessor_sha256": assessor_digest,
+                            "rubric_sha256": rubric_digest,
+                            "inspected_sha256": paper.sha256(
+                                json.dumps(observations, sort_keys=True).encode()
+                            ),
+                        },
+                        sort_keys=True,
+                    ).encode()
+                )
+                event(
+                    db,
+                    claim.session,
+                    "paper_assessment",
+                    revision=current["revision"],
+                    work=claim.id,
+                    assessment_id=assessment_id,
+                    card=proposal.assessment.model_dump(),
+                    human_review="pending",
+                    public_release=False,
+                    assessor="paper-evidence-adapter/v1",
+                    assessor_sha256=assessor_digest,
+                    rubric_sha256=rubric_digest,
+                    rubric_anchors=paper.ANCHORS,
+                    inspected_operations=[item["operation"] for item in observations],
+                )
+            elif proposal.assessment is not None or proposal.locator is not None:
+                raise ValueError("only paper read/assess may supply domain fields")
+        elif proposal.action in {"read", "assess"} or proposal.locator or proposal.assessment:
+            raise ValueError("attach an operator-approved paper input before paper actions")
         if proposal.action == "evaluate":
             pending = connection.execute(
                 "SELECT 1 FROM research_operations "
@@ -522,12 +646,24 @@ def apply(db: Database, root: Path, claim: queue.Claim, proposal: Proposal) -> N
         due = (
             None
             if proposal.action in {"evaluate", "stop", "escalate"}
+            or (attached and proposal.action in {"wait", "assess"})
             else time.time() + proposal.wait_seconds
         )
         allowance.charge(db, claim.session, current["campaign"], "actions", 1)
         connection.execute(
             "UPDATE investigations SET state=?,next_due=?,wake=? WHERE id=?",
-            (state, due, "executor result" if raw else proposal.action, claim.session),
+            (
+                state,
+                due,
+                "executor result"
+                if raw
+                else "operator review of private card"
+                if attached and proposal.action == "assess"
+                else "operator input required"
+                if attached and proposal.action == "wait"
+                else proposal.action,
+                claim.session,
+            ),
         )
         event(
             db,
@@ -572,6 +708,25 @@ def wake(db: Database, root: Path, model: Model | None, *, owner: str = "researc
                 launch(db, root, claim, prior["request"])
             queue.finish(db, claim, "DONE", "Recovered durable operation; awaiting receipt")
             return "RECOVERED"
+        if paper.binding(db, claim.session):
+            paper.require_private_root(root)
+            committed = db.connection.execute(
+                "SELECT 1 FROM events WHERE kind='research.proposal' "
+                "AND json_extract(payload,'$.work')=?",
+                (claim.id,),
+            ).fetchone()
+            if committed:
+                queue.finish(db, claim, "DONE", "Recovered durable proposal; no repeated inference")
+                return "RECOVERED"
+            attempted = db.connection.execute(
+                "SELECT 1 FROM research_inference WHERE work_id=?",
+                (claim.id,),
+            ).fetchone()
+            if attempted:
+                raise PermissionError(
+                    "interrupted paper inference has no committed proposal; "
+                    "inspect report, then explicitly redirect/resume; no automatic retry"
+                )
         messages = [
             {
                 "role": "system",
@@ -586,6 +741,12 @@ def wake(db: Database, root: Path, model: Model | None, *, owner: str = "researc
             {"role": "user", "content": json.dumps(context(db, claim.session))},
         ]
 
+        if paper.binding(db, claim.session):
+            messages[0]["content"] = (
+                paper.INSTRUCTIONS
+                + " Output ONLY a JSON Proposal matching this schema: "
+                + json.dumps(Proposal.model_json_schema())
+            )
         inference_owner = uuid.uuid4().hex
         campaign = allowance.require(db, claim.session, current["campaign"])
         output_allowance = min(
