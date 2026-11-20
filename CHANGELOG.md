@@ -305,8 +305,39 @@ is not, by itself, proof that its artifacts were published to a package registry
 
 ## [0.5.0] — 2026-08-23
 
-This tagged version includes the earlier untagged 0.3 and 0.4 development work;
-those labels do not have corresponding release tags in the current repository.
+### Added
+
+- Reusable capability definitions and runtime capability evidence with distinct
+  identities, so callers can separate available actions from execution receipts.
+
+### Changed
+
+- **Breaking:** required Python 3.13 and adopted ZeoCore as the reusable capability
+  layer. Runtime capability-evidence names now distinguish execution evidence
+  from reusable action definitions.
+
+### Fixed
+
+- Corrected Windows file-lock serialization and sandbox-path handling.
+- Verified built distribution contents instead of assuming a hardcoded artifact
+  filename matched the version being released.
+
+## 2026-08-22 — 0.4.0 (untagged development version)
+
+This version label appeared in the historical changelog, but no corresponding
+release tag is present. It is retained as development history, not a claimed
+package release.
+
+### Added
+
+- A local execution service with authenticated connections, supervised workers,
+  durable approvals, channel integration, and backup/restore support.
+
+## 2026-08-22 — 0.3.0 (untagged development version)
+
+This version label appeared in the historical changelog, but no corresponding
+release tag is present. It is retained as development history, not a claimed
+package release. The work began in May and was integrated in August.
 
 ### Added
 
@@ -318,22 +349,11 @@ those labels do not have corresponding release tags in the current repository.
   leases, and explicit delivery checks.
 - A persistent registry, durable message relay, and an execution handshake that
   produces structured requests and receipts across the worker/runtime boundary.
-- A local execution service with authenticated connections, supervised workers,
-  durable approvals, channel integration, and backup/restore support.
 
 ### Changed
 
 - Moved the package to a `src` layout and published API manifests and migration
   guidance, making the supported import surface explicit.
-- **Breaking:** required Python 3.13 and adopted ZeoCore as the reusable capability
-  layer. Runtime capability-evidence names now distinguish execution evidence
-  from reusable action definitions.
-
-### Fixed
-
-- Corrected Windows file-lock serialization and sandbox-path handling.
-- Verified built distribution contents instead of assuming a hardcoded artifact
-  filename matched the version being released.
 
 ### Removed
 
@@ -365,6 +385,21 @@ release tags in the current repository.
 
 - Refused requested native isolation when the host cannot enforce it, rather than
   silently treating weaker execution as an equivalent sandbox.
+
+## 2026-04-24 — 0.2.0-alpha (untagged development version)
+
+### Added
+
+- Developed the parallel tool calls, isolated workers, session resume, verifier
+  protocol, and invocation-specific human approval included in the 0.2.0 tag.
+  This label is a historical alpha record, not a separate tagged release.
+
+## 2026-04-24 — 0.1.0 (untagged initial scaffold)
+
+### Added
+
+- Established the initial session, queue, ticket, tool, planning, handoff, and
+  command-line scaffold. This was development source, not a tagged release.
 
 [Unreleased]: https://github.com/profrodai/sovereign-agent/compare/v1.4.0...main
 [1.4.0]: https://github.com/profrodai/sovereign-agent/compare/v1.3.0...v1.4.0
