@@ -33,17 +33,26 @@ The Makefile exposes the supported development entry points, with `help` as the
 default goal:
 
 ```bash
-make install   # uv sync --python 3.12 --group dev
-make lint      # ruff format --check, ruff check, mypy (src tests scripts book)
-make test      # pytest
-make verify    # runtime, active book, historical compatibility and clean onboarding
-make doctor    # the CLI's own environment check
-make labs      # execute archived companion labs from fresh roots
-make exercises # execute all active notebooks and verify the downloads
+make help      # five-command first-time guide
+make help-all  # every documented target
+make setup     # uv sync --locked --python 3.12 --group dev
+make hooks     # install the main-push guard without overwriting existing policy
+make doctor    # offline read-only prerequisite and hook diagnosis
+make format    # check formatting
+make typecheck # strict runtime mypy
+make lint      # formatting, Ruff rules, and runtime types
+make test      # deterministic pytest suite
+make verify    # full gate, simulated demo, and clean README onboarding
+make build     # wheel and source distribution in dist/
+make run       # simulated store; DEMO_ROOT chooses its receipt directory
+make release   # full gate and distributions; publication remains the tag workflow
+make clean     # ignored build/tool outputs only, preserving .venv and learner data
+make install   # compatibility alias for setup
 ```
 
-`make lint` runs the identical target list to CI, so it cannot pass while CI
-fails on a path the Makefile forgot.
+`make verify` is the full build-host gate. `make doctor` never invokes `uv run`
+or changes the checkout. The installed pre-push guard performs only the main-ref
+check, not a build or test; exact-head qualification remains required before a PR.
 
 Before opening a pull request, run the same full local gate and check that
 dependency metadata is locked:
