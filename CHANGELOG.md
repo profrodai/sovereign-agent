@@ -6,6 +6,10 @@ Repository: [`profrodai/sovereign-agent`](https://github.com/profrodai/sovereign
 
 ## Unreleased
 
+- Document the development Makefile with `make help` and `make help-all`.
+  Make `make doctor` check prerequisites without changing the environment,
+  and add `make hooks` to guard pushes to main while preserving existing hook policy.
+
 - Run on Python 3.12 or newer, the version Google Colab runs, instead of
   requiring 3.14. Sixteen `except A, B:` clauses, a Python 3.14 form, are
   parenthesized; `doctor` accepts 3.12; development pins 3.12 in

@@ -83,6 +83,30 @@ environment, Google Colab included, if you prefer it.)
 The 1.x API intentionally replaces the v0.7 fleet framework. To keep using that
 framework: `uvx "sovereign-agent<1"`.
 
+## Development commands
+
+Run `make help` for the first-time guide and `make help-all` for every documented
+entry point. Start with `make setup`, then `make doctor`, `make hooks`, and
+`make run`. `make verify` runs the full formatting, lint, type, test, dependency,
+source-budget, and fresh onboarding gate on your build host.
+
+`make doctor` is read-only and offline: it reports tool versions, checks the
+Python minor version pinned in `.python-version` and installed package versions
+against `uv.lock`, and checks the main-push guard. It never syncs an environment,
+downloads Python, probes live providers, or prints credential values. Missing
+prerequisites produce `FIX` lines and a nonzero exit. No external volume,
+service, or credential is required for the default simulated workflow.
+
+`make hooks` installs a lightweight pre-push guard that refuses updates or
+deletions of `main`; it runs no build or test. Existing hooks and custom hook
+paths are preserved and require manual owner integration. Hooks in a shared Git
+store apply to its worktrees; branch protection and the approved merger remain
+necessary. `make run DEMO_ROOT=/tmp/my-first-shift` selects a demo data directory.
+Setup and build can access the package index. `make clean` removes only ignored,
+untracked build/tool output directories, preserving `.venv` and learner data.
+`make release` verifies and prepares distributions; publication continues through
+the existing authorized version-tag workflow and protected package environments.
+
 ## Educational development install
 
 Python 3.12 or newer is required, the version Google Colab runs; `uv` provides it automatically.

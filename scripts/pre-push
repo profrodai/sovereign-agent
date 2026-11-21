@@ -1,0 +1,10 @@
+#!/bin/sh
+# Lightweight local guard: publication to main belongs to the protected merger.
+# Git sends one local-ref/local-oid/remote-ref/remote-oid record per update.
+while read -r local_ref local_oid remote_ref remote_oid; do
+    if [ "$remote_ref" = refs/heads/main ]; then
+        printf '%s\n' 'Refusing a direct update to main. Push a work branch and open a pull request.' >&2
+        exit 1
+    fi
+done
+exit 0
